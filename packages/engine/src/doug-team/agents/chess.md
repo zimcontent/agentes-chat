@@ -9,220 +9,220 @@ routines: []
 skills: []
 third_party_skills:
   - slug: ab-testing
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/ab-testing
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/ab-testing
     license: MIT
   - slug: ad-creative
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/ad-creative
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/ad-creative
     license: MIT
   - slug: ads
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/ads
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/ads
     license: MIT
   - slug: ai-seo
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/ai-seo
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/ai-seo
     license: MIT
   - slug: analytics
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/analytics
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/analytics
     license: MIT
   - slug: aso
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/aso
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/aso
     license: MIT
   - slug: attribution
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/attribution
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/attribution
     license: MIT
   - slug: churn-prevention
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/churn-prevention
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/churn-prevention
     license: MIT
   - slug: co-marketing
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/co-marketing
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/co-marketing
     license: MIT
   - slug: cold-email
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/cold-email
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/cold-email
     license: MIT
   - slug: community-marketing
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/community-marketing
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/community-marketing
     license: MIT
   - slug: competitor-profiling
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/competitor-profiling
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/competitor-profiling
     license: MIT
   - slug: competitors
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/competitors
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/competitors
     license: MIT
   - slug: content-strategy
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/content-strategy
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/content-strategy
     license: MIT
   - slug: conversion-tracking
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/conversion-tracking
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/conversion-tracking
     license: MIT
   - slug: copy-editing
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/copy-editing
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/copy-editing
     license: MIT
   - slug: copywriting
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/copywriting
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/copywriting
     license: MIT
   - slug: cro
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/cro
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/cro
     license: MIT
   - slug: customer-research
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/customer-research
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/customer-research
     license: MIT
   - slug: directory-submissions
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/directory-submissions
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/directory-submissions
     license: MIT
   - slug: emails
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/emails
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/emails
     license: MIT
   - slug: events
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/events
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/events
     license: MIT
   - slug: free-tools
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/free-tools
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/free-tools
     license: MIT
   - slug: image
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/image
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/image
     license: MIT
   - slug: influencer-marketing
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/influencer-marketing
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/influencer-marketing
     license: MIT
   - slug: launch
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/launch
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/launch
     license: MIT
   - slug: lead-magnets
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/lead-magnets
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/lead-magnets
     license: MIT
   - slug: link-building
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/link-building
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/link-building
     license: MIT
   - slug: marketing-council
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/marketing-council
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/marketing-council
     license: MIT
   - slug: marketing-ideas
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/marketing-ideas
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/marketing-ideas
     license: MIT
   - slug: marketing-loops
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/marketing-loops
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/marketing-loops
     license: MIT
   - slug: marketing-plan
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/marketing-plan
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/marketing-plan
     license: MIT
   - slug: marketing-psychology
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/marketing-psychology
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/marketing-psychology
     license: MIT
   - slug: offers
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/offers
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/offers
     license: MIT
   - slug: onboarding
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/onboarding
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/onboarding
     license: MIT
   - slug: paywalls
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/paywalls
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/paywalls
     license: MIT
   - slug: popups
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/popups
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/popups
     license: MIT
   - slug: pricing
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/pricing
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/pricing
     license: MIT
   - slug: product-marketing
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/product-marketing
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/product-marketing
     license: MIT
   - slug: programmatic-seo
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/programmatic-seo
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/programmatic-seo
     license: MIT
   - slug: prospecting
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/prospecting
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/prospecting
     license: MIT
   - slug: public-relations
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/public-relations
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/public-relations
     license: MIT
   - slug: referrals
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/referrals
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/referrals
     license: MIT
   - slug: revops
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/revops
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/revops
     license: MIT
   - slug: sales-enablement
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/sales-enablement
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/sales-enablement
     license: MIT
   - slug: schema
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/schema
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/schema
     license: MIT
   - slug: seo-audit
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/seo-audit
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/seo-audit
     license: MIT
   - slug: signup
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/signup
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/signup
     license: MIT
   - slug: site-architecture
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/site-architecture
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/site-architecture
     license: MIT
   - slug: sms
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/sms
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/sms
     license: MIT
   - slug: social
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/social
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/social
     license: MIT
   - slug: video
-    source: https://github.com/coreyhaines31/marketingskills/tree/main/skills/video
+    source: https://github.com/coreyhaines31/marketingskills/tree/73573e94a06a39965978b3fa1f9c1eace8cebc7c/skills/video
     license: MIT
   - slug: ig-audit
-    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/main/skills/ig-audit
+    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/d03c56bb598be770c60b201f94237e5d1a4268a6/skills/ig-audit
     license: MIT
   - slug: ig-caption
-    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/main/skills/ig-caption
+    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/d03c56bb598be770c60b201f94237e5d1a4268a6/skills/ig-caption
     license: MIT
   - slug: ig-carousel
-    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/main/skills/ig-carousel
+    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/d03c56bb598be770c60b201f94237e5d1a4268a6/skills/ig-carousel
     license: MIT
   - slug: ig-comment
-    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/main/skills/ig-comment
+    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/d03c56bb598be770c60b201f94237e5d1a4268a6/skills/ig-comment
     license: MIT
   - slug: ig-dm
-    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/main/skills/ig-dm
+    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/d03c56bb598be770c60b201f94237e5d1a4268a6/skills/ig-dm
     license: MIT
   - slug: ig-human
-    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/main/skills/ig-human
+    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/d03c56bb598be770c60b201f94237e5d1a4268a6/skills/ig-human
     license: MIT
   - slug: ig-plan
-    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/main/skills/ig-plan
+    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/d03c56bb598be770c60b201f94237e5d1a4268a6/skills/ig-plan
     license: MIT
   - slug: ig-profile
-    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/main/skills/ig-profile
+    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/d03c56bb598be770c60b201f94237e5d1a4268a6/skills/ig-profile
     license: MIT
   - slug: ig-reel
-    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/main/skills/ig-reel
+    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/d03c56bb598be770c60b201f94237e5d1a4268a6/skills/ig-reel
     license: MIT
   - slug: ig-reply
-    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/main/skills/ig-reply
+    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/d03c56bb598be770c60b201f94237e5d1a4268a6/skills/ig-reply
     license: MIT
   - slug: ig-repurpose
-    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/main/skills/ig-repurpose
+    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/d03c56bb598be770c60b201f94237e5d1a4268a6/skills/ig-repurpose
     license: MIT
   - slug: ig-story
-    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/main/skills/ig-story
+    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/d03c56bb598be770c60b201f94237e5d1a4268a6/skills/ig-story
     license: MIT
   - slug: ig-viral
-    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/main/skills/ig-viral
+    source: https://github.com/Jakeschincariol/instagram-agent-skill/tree/d03c56bb598be770c60b201f94237e5d1a4268a6/skills/ig-viral
     license: MIT
   - slug: content-planner
-    source: https://github.com/bradautomates/head-of-content/tree/main/.claude/skills/content-planner
+    source: https://github.com/bradautomates/head-of-content/tree/d841dcff2e4d74a4c31cb3ed2de6c2184de3a970/.claude/skills/content-planner
     license: MIT
   - slug: instagram-research
-    source: https://github.com/bradautomates/head-of-content/tree/main/.claude/skills/instagram-research
+    source: https://github.com/bradautomates/head-of-content/tree/d841dcff2e4d74a4c31cb3ed2de6c2184de3a970/.claude/skills/instagram-research
     license: MIT
   - slug: tiktok-research
-    source: https://github.com/bradautomates/head-of-content/tree/main/.claude/skills/tiktok-research
+    source: https://github.com/bradautomates/head-of-content/tree/d841dcff2e4d74a4c31cb3ed2de6c2184de3a970/.claude/skills/tiktok-research
     license: MIT
   - slug: video-content-analyzer
-    source: https://github.com/bradautomates/head-of-content/tree/main/.claude/skills/video-content-analyzer
+    source: https://github.com/bradautomates/head-of-content/tree/d841dcff2e4d74a4c31cb3ed2de6c2184de3a970/.claude/skills/video-content-analyzer
     license: MIT
   - slug: x-research
-    source: https://github.com/bradautomates/head-of-content/tree/main/.claude/skills/x-research
+    source: https://github.com/bradautomates/head-of-content/tree/d841dcff2e4d74a4c31cb3ed2de6c2184de3a970/.claude/skills/x-research
     license: MIT
   - slug: youtube-research
-    source: https://github.com/bradautomates/head-of-content/tree/main/.claude/skills/youtube-research
+    source: https://github.com/bradautomates/head-of-content/tree/d841dcff2e4d74a4c31cb3ed2de6c2184de3a970/.claude/skills/youtube-research
     license: MIT
   - slug: humanizer
-    source: https://github.com/blader/humanizer/tree/main
+    source: https://github.com/blader/humanizer/tree/b48c832f0f809c1b5658edbb838c2521b72f2413
     license: MIT
 unresolved:
   - slug: brand-voice-analyzer

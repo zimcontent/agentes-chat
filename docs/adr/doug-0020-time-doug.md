@@ -54,10 +54,25 @@ leave: what a new workspace gets is the craft, never the data.
      the receipt says the skills wait for an admin.
    - **Third-party skills** are installed from their public link, only ones published under an open license (MIT,
      Apache-2.0 and the like; the material lists each one's license), through the same path as "From a GitHub link"
-     (`importSkillFromUrl`, `importPickedSkills`), set to update by themselves. They never hold the team up: a job
-     (`doug_team.skills`, one per folder of a repository, so a folder's skills come from one download) installs them
-     after and gives them to the right agents; a network failure is retried by the outbox; their ids join the card's,
-     so Desfazer removes them too; a team already undone installs nothing.
+     (`importSkillFromUrl`, `importPickedSkills`). Each `.md` pins its `source` to a commit SHA (`…/tree/<sha>/…`),
+     fixed by `bun run doug-team:build` and reviewed like any other change to the material, so upstream can't move
+     what a workspace installs under it. They never hold the team up: a job (`doug_team.skills`, one per folder of a
+     repository, so a folder's skills come from one download) installs them after the card reads `created` and gives
+     them to the right agents. The job **only installs once the card is `created`**: a card still `creating` (a job
+     that ran while the team's transaction was open) throws, so the outbox reads it again; a card undone, denied or
+     replaced installs nothing. A network failure throws too, tried again later.
+   - **Updates stay off.** A skill the job installs is left with `autoUpdate` off (the column's default), so an
+     upstream change never reaches a prompt without review: an admin turns "Atualizar sozinha" on, as for any skill
+     from a link.
+   - **The license is kept**: in the skill's `metadata.license` (the license the material lists), beside its own
+     frontmatter.
+   - **A failure is on the receipt.** A skill that fails for good (the link holds no such skill now, or it is past the
+     skill limits) is written to the card's `created.failedSkills` (`slug`, `code`), which the app shows; the others
+     still install.
+   - **Desfazer finds them all**, even from a job that failed halfway: the job marks each skill it made (or a repeat
+     found) with `metadata.dougTeam` (the card's id), and `undoTeam` removes the card's `created.skillIds` and every
+     skill so marked, in one statement. Their ids also join the card's, so the receipt counts them; a repeat never
+     adds one twice.
    - **The computer notice.** The answer and the template say which chosen agents work on a computer
      (`needs_computer`), for the app's notice and its "connect a computer" button.
    - **Only the hello after it**: the team's hello job (ADR 0162) with one line per agent in its words
@@ -85,6 +100,7 @@ leave: what a new workspace gets is the craft, never the data.
 
 - A change to the team's craft is a change to the Markdown and `bun run doug-team:build`; the leak test runs on it.
 - A workspace makes the Doug team once (`doug_team.made`); after Desfazer it may make it again.
-- What the third-party skills hold is their authors'; they update from their links like any skill installed by link,
-  and a link that stops holding the skill leaves it as it was, logged.
+- What the third-party skills hold is their authors'; each is installed from its pinned commit under its license, its
+  updates off until an admin turns them on, and a link that stops holding the skill leaves it as it was, on the card's
+  `failedSkills`.
 - The phone and web screens for the template's choices and the brand step use these routes; they are drawn apart.

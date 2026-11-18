@@ -1436,12 +1436,9 @@ export function accountRoutes(deps: AppDeps) {
           z.object({
             step: z.enum(ONBOARDING_STEPS).optional(),
             finished: z.literal(true).optional(),
-            holdBrand: z
-              .literal(true)
-              .optional()
-              .openapi({
-                description: "The app draws the brand step: 409 while it still waits, instead of finishing.",
-              }),
+            holdBrand: z.literal(true).optional().openapi({
+              description: "The app draws the brand step: 409 while it still waits, instead of finishing.",
+            }),
           }),
         ),
       },

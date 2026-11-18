@@ -306,6 +306,27 @@ function groupOf(source: string) {
 }
 
 /**
+ * A template's third-party skills grouped by the folder they install from (one read per folder), each with the agents
+ * that list it named by the handle they were made with.
+ */
+function madeSkillGroups(chosen: readonly DougAgentTemplate[], byTemplate: Record<string, string>) {
+  const groups = new Map<string, { url: string; items: DougSkillItem[] }>();
+  for (const a of chosen) {
+    const agentId = byTemplate[a.handle];
+    if (!agentId) continue;
+    for (const s of a.thirdPartySkills) {
+      const g = groupOf(s.source);
+      const group = groups.get(g.url) ?? { url: g.url, items: [] };
+      const item = group.items.find((i) => i.slug === s.slug);
+      if (item) item.agentIds.push(agentId);
+      else group.items.push({ slug: s.slug, source: s.source, license: s.license, dir: g.dir, agentIds: [agentId] });
+      groups.set(g.url, group);
+    }
+  }
+  return [...groups.values()].map((g) => [g.url, g.items] as const);
+}
+
+/**
  * "Usar este modelo" on the Doug team (`POST …/team-templates/doug/use`, docs/adr/doug-0020-time-doug.md): the chosen
  * agents (`handles`, every one when absent) made at once in one transaction, as the right hand's card in the person's
  * DM, which then reads created with Undo like any template's. No limit of the team card applies: the template is ours.
@@ -467,29 +488,6 @@ export async function useDougTeam(
             .values([...to].map((agentId) => ({ orgId, agentId, skillId: id, enabled: true })))
             .onConflictDoUpdate({ target: [agentSkills.agentId, agentSkills.skillId], set: { enabled: true } });
         }
-        // The third-party ones from their links, after: a slow or failed download never holds the team up.
-        const groups = new Map<string, { url: string; items: DougSkillItem[] }>();
-        for (const a of chosen) {
-          const agentId = out.byTemplate[a.handle];
-          if (!agentId) continue;
-          for (const s of a.thirdPartySkills) {
-            const g = groupOf(s.source);
-            const group = groups.get(g.key) ?? { url: g.url, items: [] };
-            const item = group.items.find((i) => i.slug === s.slug);
-            if (item) item.agentIds.push(agentId);
-            else
-              group.items.push({ slug: s.slug, source: s.source, license: s.license, dir: g.dir, agentIds: [agentId] });
-            groups.set(g.key, group);
-          }
-        }
-        for (const [key, g] of groups) {
-          await enqueue(tx, {
-            orgId,
-            kind: DOUG_TEAM_SKILLS_JOB,
-            payload: { cardId: card.id, userId, url: g.url, items: g.items },
-            dedupeKey: `${DOUG_TEAM_SKILLS_JOB}:${card.id}:${key}`,
-          });
-        }
       }
       const dougTeam = { cardId: card.id, agents: out.byTemplate, rightHand: rightHand !== null };
       await tx
@@ -551,6 +549,20 @@ export async function useDougTeam(
     },
   };
   await writeCard(deps, pending, done, "creating");
+  // The third-party skills from their links, after the card reads created: a slow or failed download never holds the
+  // team up. The job only installs once the card is created (it throws while creating, so the outbox reads it again).
+  // Skills are an admin's, as on the team card: a member who made the team gets the agents, and the receipt says the
+  // skills wait for an admin (`skipped`).
+  if (admin) {
+    for (const [url, items] of madeSkillGroups(chosen, made.byTemplate)) {
+      await enqueue(deps.db, {
+        orgId,
+        kind: DOUG_TEAM_SKILLS_JOB,
+        payload: { cardId: card.id, userId, url, items },
+        dedupeKey: `${DOUG_TEAM_SKILLS_JOB}:${card.id}:${url}`,
+      });
+    }
+  }
   const now = await getMessage(deps.db, orgId, card.id);
   if (deps.pubsub && now) await publishMessageCreated(deps.pubsub, messageView(now));
   // Only the hello in #general after it (doug-0020): the right hand, then each agent in the card's order.

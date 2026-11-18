@@ -1,5 +1,5 @@
 import { holdEvents, type PubSub } from "@agenteschat/adapters";
-import { and, type Database, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+import { and, type Database, eq, inArray, isNull, or, schema, sql } from "@agenteschat/db";
 import { serverText } from "@agenteschat/i18n";
 import type { AppLocale } from "@agenteschat/i18n/locale";
 import {
@@ -151,6 +151,11 @@ export interface TeamCreated {
   needsComputer?: string[];
   /** The Doug team's: the right hand took the DOUG's role, which Desfazer takes back. */
   rightHandRole?: boolean;
+  /**
+   * The Doug team's third-party skills that failed to install for good (the link holds no such skill now, or it is
+   * past the skill limits), named on the receipt with the code the app says.
+   */
+  failedSkills?: { slug: string; code: string | null }[];
 }
 
 export interface TeamProposalCard {
@@ -800,11 +805,19 @@ export async function undoTeam(deps: TeamDeps, userId: string, orgId: string, me
         if (!(e instanceof NotFoundError)) throw e;
       });
     }
+    // The card's skills, and any the job made and marked as this card's (docs/adr/doug-0020-time-doug.md): a job that
+    // failed halfway had added none to `skillIds` yet, so Desfazer finds them by `metadata.dougTeam`.
+    const marked = sql`${skills.metadata}->>'dougTeam' = ${message.id}`;
     if (made.skillIds.length > 0) {
       await tx
         .update(skills)
         .set({ deletedAt: new Date() })
-        .where(and(eq(skills.orgId, orgId), inArray(skills.id, made.skillIds)));
+        .where(and(eq(skills.orgId, orgId), or(inArray(skills.id, made.skillIds), marked)));
+    } else {
+      await tx
+        .update(skills)
+        .set({ deletedAt: new Date() })
+        .where(and(eq(skills.orgId, orgId), marked));
     }
     const live = await tx
       .select({ id: agents.id })

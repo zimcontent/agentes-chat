@@ -22,61 +22,61 @@ routines:
 skills: []
 third_party_skills:
   - slug: brainstorming
-    source: https://github.com/obra/superpowers/tree/main/skills/brainstorming
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/brainstorming
     license: MIT
   - slug: diagnosing-superpowers
-    source: https://github.com/obra/superpowers/tree/main/skills/diagnosing-superpowers
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/diagnosing-superpowers
     license: MIT
   - slug: dispatching-parallel-agents
-    source: https://github.com/obra/superpowers/tree/main/skills/dispatching-parallel-agents
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/dispatching-parallel-agents
     license: MIT
   - slug: executing-plans
-    source: https://github.com/obra/superpowers/tree/main/skills/executing-plans
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/executing-plans
     license: MIT
   - slug: finishing-a-development-branch
-    source: https://github.com/obra/superpowers/tree/main/skills/finishing-a-development-branch
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/finishing-a-development-branch
     license: MIT
   - slug: receiving-code-review
-    source: https://github.com/obra/superpowers/tree/main/skills/receiving-code-review
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/receiving-code-review
     license: MIT
   - slug: requesting-code-review
-    source: https://github.com/obra/superpowers/tree/main/skills/requesting-code-review
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/requesting-code-review
     license: MIT
   - slug: subagent-driven-development
-    source: https://github.com/obra/superpowers/tree/main/skills/subagent-driven-development
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/subagent-driven-development
     license: MIT
   - slug: systematic-debugging
-    source: https://github.com/obra/superpowers/tree/main/skills/systematic-debugging
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/systematic-debugging
     license: MIT
   - slug: test-driven-development
-    source: https://github.com/obra/superpowers/tree/main/skills/test-driven-development
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/test-driven-development
     license: MIT
   - slug: using-git-worktrees
-    source: https://github.com/obra/superpowers/tree/main/skills/using-git-worktrees
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/using-git-worktrees
     license: MIT
   - slug: using-superpowers
-    source: https://github.com/obra/superpowers/tree/main/skills/using-superpowers
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/using-superpowers
     license: MIT
   - slug: verification-before-completion
-    source: https://github.com/obra/superpowers/tree/main/skills/verification-before-completion
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/verification-before-completion
     license: MIT
   - slug: writing-plans
-    source: https://github.com/obra/superpowers/tree/main/skills/writing-plans
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/writing-plans
     license: MIT
   - slug: writing-skills
-    source: https://github.com/obra/superpowers/tree/main/skills/writing-skills
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/writing-skills
     license: MIT
   - slug: design-taste-frontend
-    source: https://github.com/Leonxlnx/taste-skill-classics/tree/main/skills/taste-skill-v1
+    source: https://github.com/Leonxlnx/taste-skill-classics/tree/5e08c9383dc4ad7fc0df70e1ac8cfa09ec356305/skills/taste-skill-v1
     license: MIT
   - slug: interaction-design
-    source: https://github.com/wshobson/agents/tree/main/plugins/ui-design/skills/interaction-design
+    source: https://github.com/wshobson/agents/tree/9c61ab243def98f72da12abd41cfcf5bcd91af9d/plugins/ui-design/skills/interaction-design
     license: MIT
   - slug: responsive-design
-    source: https://github.com/wshobson/agents/tree/main/plugins/ui-design/skills/responsive-design
+    source: https://github.com/wshobson/agents/tree/9c61ab243def98f72da12abd41cfcf5bcd91af9d/plugins/ui-design/skills/responsive-design
     license: MIT
   - slug: tailwind-design-system
-    source: https://github.com/wshobson/agents/tree/main/plugins/frontend-mobile-development/skills/tailwind-design-system
+    source: https://github.com/wshobson/agents/tree/9c61ab243def98f72da12abd41cfcf5bcd91af9d/plugins/frontend-mobile-development/skills/tailwind-design-system
     license: MIT
 unresolved:
   - slug: code-review

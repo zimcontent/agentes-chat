@@ -39,94 +39,94 @@ skills:
   - versoes-e-entrega
 third_party_skills:
   - slug: hyperframes
-    source: https://github.com/heygen-com/hyperframes/tree/main/skills/hyperframes
+    source: https://github.com/heygen-com/hyperframes/tree/c6e3f30bea553e3a32edd8ae939be69c57346a75/skills/hyperframes
     license: Apache-2.0
   - slug: hyperframes-cli
-    source: https://github.com/heygen-com/hyperframes/tree/main/skills/hyperframes-cli
+    source: https://github.com/heygen-com/hyperframes/tree/c6e3f30bea553e3a32edd8ae939be69c57346a75/skills/hyperframes-cli
     license: Apache-2.0
   - slug: hyperframes-registry
-    source: https://github.com/heygen-com/hyperframes/tree/main/skills/hyperframes-registry
+    source: https://github.com/heygen-com/hyperframes/tree/c6e3f30bea553e3a32edd8ae939be69c57346a75/skills/hyperframes-registry
     license: Apache-2.0
   - slug: media-use
-    source: https://github.com/heygen-com/hyperframes/tree/main/skills/media-use
+    source: https://github.com/heygen-com/hyperframes/tree/c6e3f30bea553e3a32edd8ae939be69c57346a75/skills/media-use
     license: Apache-2.0
   - slug: reverse-any-video
-    source: https://github.com/heygen-com/hyperframes/tree/main/skills/reverse-any-video
+    source: https://github.com/heygen-com/hyperframes/tree/c6e3f30bea553e3a32edd8ae939be69c57346a75/skills/reverse-any-video
     license: Apache-2.0
   - slug: remotion-to-hyperframes
-    source: https://github.com/heygen-com/hyperframes/tree/main/skills/remotion-to-hyperframes
+    source: https://github.com/heygen-com/hyperframes/tree/c6e3f30bea553e3a32edd8ae939be69c57346a75/skills/remotion-to-hyperframes
     license: Apache-2.0
   - slug: style-sampling
-    source: https://github.com/heygen-com/hyperframes/tree/main/skills/style-sampling
+    source: https://github.com/heygen-com/hyperframes/tree/c6e3f30bea553e3a32edd8ae939be69c57346a75/skills/style-sampling
     license: Apache-2.0
   - slug: motion-doctrine
-    source: https://github.com/heygen-com/hyperframes/tree/main/.claude/skills/motion-doctrine
+    source: https://github.com/heygen-com/hyperframes/tree/c6e3f30bea553e3a32edd8ae939be69c57346a75/.claude/skills/motion-doctrine
     license: Apache-2.0
   - slug: cut-the-curve
-    source: https://github.com/heygen-com/hyperframes/tree/main/.claude/skills/cut-the-curve
+    source: https://github.com/heygen-com/hyperframes/tree/c6e3f30bea553e3a32edd8ae939be69c57346a75/.claude/skills/cut-the-curve
     license: Apache-2.0
   - slug: seam-craft
-    source: https://github.com/heygen-com/hyperframes/tree/main/.claude/skills/seam-craft
+    source: https://github.com/heygen-com/hyperframes/tree/c6e3f30bea553e3a32edd8ae939be69c57346a75/.claude/skills/seam-craft
     license: Apache-2.0
   - slug: captions-overlay
-    source: https://github.com/heygen-com/hyperframes/tree/main/.claude/skills/captions-overlay
+    source: https://github.com/heygen-com/hyperframes/tree/c6e3f30bea553e3a32edd8ae939be69c57346a75/.claude/skills/captions-overlay
     license: Apache-2.0
   - slug: oversized-cursor
-    source: https://github.com/heygen-com/hyperframes/tree/main/.claude/skills/oversized-cursor
+    source: https://github.com/heygen-com/hyperframes/tree/c6e3f30bea553e3a32edd8ae939be69c57346a75/.claude/skills/oversized-cursor
     license: Apache-2.0
   - slug: gsap-core
-    source: https://github.com/greensock/gsap-skills/tree/main/skills/gsap-core
+    source: https://github.com/greensock/gsap-skills/tree/aed9cfd3277740755f6bfc1155c7aa645403b760/skills/gsap-core
     license: MIT
   - slug: gsap-timeline
-    source: https://github.com/greensock/gsap-skills/tree/main/skills/gsap-timeline
+    source: https://github.com/greensock/gsap-skills/tree/aed9cfd3277740755f6bfc1155c7aa645403b760/skills/gsap-timeline
     license: MIT
   - slug: gsap-plugins
-    source: https://github.com/greensock/gsap-skills/tree/main/skills/gsap-plugins
+    source: https://github.com/greensock/gsap-skills/tree/aed9cfd3277740755f6bfc1155c7aa645403b760/skills/gsap-plugins
     license: MIT
   - slug: gsap-performance
-    source: https://github.com/greensock/gsap-skills/tree/main/skills/gsap-performance
+    source: https://github.com/greensock/gsap-skills/tree/aed9cfd3277740755f6bfc1155c7aa645403b760/skills/gsap-performance
     license: MIT
   - slug: gsap-utils
-    source: https://github.com/greensock/gsap-skills/tree/main/skills/gsap-utils
+    source: https://github.com/greensock/gsap-skills/tree/aed9cfd3277740755f6bfc1155c7aa645403b760/skills/gsap-utils
     license: MIT
   - slug: ffmpeg-skill
-    source: https://github.com/kajisho5/ffmpeg-skill/tree/main
+    source: https://github.com/kajisho5/ffmpeg-skill/tree/07c84812bb6b8d2b959586d13585ef01769a63d7
     license: MIT
   - slug: video-use
-    source: https://github.com/browser-use/video-use/tree/main
+    source: https://github.com/browser-use/video-use/tree/43cfc566833548093455c9d4a46bd69913b7e552
     license: MIT
   - slug: watch
-    source: https://github.com/bradautomates/claude-video/tree/main/skills/watch
+    source: https://github.com/bradautomates/claude-video/tree/03ceb42f7fa2c4439aca01752118044baabffb8f/skills/watch
     license: MIT
   - slug: motion-design
-    source: https://github.com/LottieFiles/motion-design-skill/tree/main/skills/motion-design
+    source: https://github.com/LottieFiles/motion-design-skill/tree/2e1f3c052dd70c60b598413e2fc5d7704d9e9896/skills/motion-design
     license: MIT
   - slug: davinci-resolve-social-editor
-    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/main/skills/davinci-resolve-social-editor
+    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/cf7e4275f10d6d7b709a5c50155769715c8d14f0/skills/davinci-resolve-social-editor
     license: MIT
   - slug: social-video-folder-autocutter
-    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/main/skills/social-video-folder-autocutter
+    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/cf7e4275f10d6d7b709a5c50155769715c8d14f0/skills/social-video-folder-autocutter
     license: MIT
   - slug: davinci-resolve-audio-cleanup-podcast
-    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/main/skills/davinci-resolve-audio-cleanup-podcast
+    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/cf7e4275f10d6d7b709a5c50155769715c8d14f0/skills/davinci-resolve-audio-cleanup-podcast
     license: MIT
   - slug: davinci-resolve-color-grade-webcam
-    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/main/skills/davinci-resolve-color-grade-webcam
+    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/cf7e4275f10d6d7b709a5c50155769715c8d14f0/skills/davinci-resolve-color-grade-webcam
     license: MIT
   - slug: davinci-resolve-cut-screen-recording
-    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/main/skills/davinci-resolve-cut-screen-recording
+    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/cf7e4275f10d6d7b709a5c50155769715c8d14f0/skills/davinci-resolve-cut-screen-recording
     license: MIT
   - slug: davinci-resolve-titles-and-lower-thirds
-    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/main/skills/davinci-resolve-titles-and-lower-thirds
+    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/cf7e4275f10d6d7b709a5c50155769715c8d14f0/skills/davinci-resolve-titles-and-lower-thirds
     license: MIT
   - slug: davinci-resolve-export-multi-platform
-    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/main/skills/davinci-resolve-export-multi-platform
+    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/cf7e4275f10d6d7b709a5c50155769715c8d14f0/skills/davinci-resolve-export-multi-platform
     license: MIT
   - slug: davinci-resolve-troubleshooting
-    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/main/skills/davinci-resolve-troubleshooting
+    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/cf7e4275f10d6d7b709a5c50155769715c8d14f0/skills/davinci-resolve-troubleshooting
     license: MIT
   - slug: davinci-resolve-setup
-    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/main/skills/davinci-resolve-setup
+    source: https://github.com/ChaiWithJai/davinci-resolve-claude-skills/tree/cf7e4275f10d6d7b709a5c50155769715c8d14f0/skills/davinci-resolve-setup
     license: MIT
 unresolved:
   - slug: remotion-best-practices

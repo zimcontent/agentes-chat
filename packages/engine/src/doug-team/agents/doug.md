@@ -45,16 +45,16 @@ skills:
   - modelo-de-cada-agente
 third_party_skills:
   - slug: brainstorming
-    source: https://github.com/obra/superpowers/tree/main/skills/brainstorming
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/brainstorming
     license: MIT
   - slug: dispatching-parallel-agents
-    source: https://github.com/obra/superpowers/tree/main/skills/dispatching-parallel-agents
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/dispatching-parallel-agents
     license: MIT
   - slug: verification-before-completion
-    source: https://github.com/obra/superpowers/tree/main/skills/verification-before-completion
+    source: https://github.com/obra/superpowers/tree/22f0b463e7a5e579904dd6211a520321035526f7/skills/verification-before-completion
     license: MIT
   - slug: skill-creator
-    source: https://github.com/anthropics/skills/tree/main/skills/skill-creator
+    source: https://github.com/anthropics/skills/tree/e4bb5d960d87126ff3b3a8af1a104b7db67560ba/skills/skill-creator
     license: Apache-2.0
 unresolved:
   - slug: deep-research

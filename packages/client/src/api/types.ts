@@ -1202,6 +1202,11 @@ export interface TeamProposalCard {
     skillIds: string[];
     skipped: ("skills" | "weekly")[];
     noAi: string[];
+    /**
+     * The Doug team's third-party skills that failed to install for good (docs/adr/doug-0020-time-doug.md): each by its
+     * slug, with the `code` the app says. Absent until the job reports one.
+     */
+    failedSkills?: { slug: string; code: string | null }[];
   };
   /** The last try failed at `step`, creating nothing: `reason` in English, `status`/`code`/`params` to translate. */
   error?: { step: string; reason: string; status?: number; code?: string; params?: Record<string, unknown> } | null;
