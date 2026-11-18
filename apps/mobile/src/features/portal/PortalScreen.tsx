@@ -58,8 +58,9 @@ export function PortalScreen() {
   const entries = pipeline.data?.entries;
   // Início's "Alterações" with several clients asking: only them, until "Ver todos".
   const { alteracoes } = useLocalSearchParams<{ alteracoes?: string }>();
-  const onlyAsking = alteracoes === "1";
   const asking = (client: string) => (summaries.get(client)?.counts.adjusting ?? 0) > 0;
+  // A link kept after the changes were answered shows every client, never an empty list.
+  const onlyAsking = alteracoes === "1" && clients.some((c) => asking(c.client));
   // The pipeline knows what is late; until it answers, the overview's counts say the rest.
   const rows = entries
     ? pipelineClients(
