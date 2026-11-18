@@ -25,6 +25,7 @@ import {
   AGY_PLANTED,
   AGY_SIGN_IN_FILE,
   agyAuthOf,
+  agyMcpConfig,
   agyRuntimeDir,
   agySignInOf,
   dropAgySignIns,
@@ -45,6 +46,7 @@ import {
   isOurAgyTool,
   parseAgyError,
 } from "../../runner/brain-antigravity";
+import { agyAcpAllows, agyNetworkCommand, steerAntigravityTurn } from "../../runner/brain-antigravity-acp";
 import type { CodexBrainEvent } from "../../runner/brain-codex";
 import { detectExecutors, parseAgyModels, probeEnv, withAccountModels } from "../../runner/executors";
 import { CODEX_MCP_SERVER } from "../../runner/mcp";
@@ -62,6 +64,7 @@ afterEach(async () => {
   delete process.env.FAKE_AGY_KEYRING;
   delete process.env.FAKE_AGY_REFRESH_MS;
   delete process.env.FAKE_AGY_CHECK;
+  delete process.env.FAKE_AGY_ACP;
   removeDirs(dirs);
 });
 
@@ -358,13 +361,15 @@ async function run(ctx: AntigravityBrainContext, req: AntigravityBrainTurnReques
   return events;
 }
 
+/** The CLI's starts as `agy -p` (an older CLI's `acp` start, which exits at once, left out). */
 const logOf = (file: string) =>
   readFileSync(file, "utf8")
     .trim()
     .split("\n")
     .map(
-      (l) => JSON.parse(l) as { args: string[]; home: string; run: string; token: string; geminiKey: string | null },
-    );
+      (l) => JSON.parse(l) as { args?: string[]; home: string; run: string; token: string; geminiKey: string | null },
+    )
+    .filter((l): l is typeof l & { args: string[] } => Array.isArray(l.args) && l.args[0] !== "acp");
 
 test.skipIf(!posix)(
   "a fake agy: the first turn starts a conversation with the context, the next resumes it with the new message only",
@@ -854,4 +859,232 @@ test("the look at installed CLIs runs agy with its own updates off, and every ot
   });
   expect(probeEnv("claude", undefined, base)).toBe(base);
   expect(probeEnv("grok", undefined, base)).not.toHaveProperty("AGY_CLI_DISABLE_AUTO_UPDATE");
+});
+
+// ── Turns over ACP (`agy acp`, a fake speaking it as 1.5.10 does) ─────────────────────────────────────────────
+
+type AcpLine = { acp: string; params: Record<string, unknown> | null; home: string; run: string };
+const acpLog = (file: string) =>
+  readFileSync(file, "utf8")
+    .trim()
+    .split("\n")
+    .map((l) => JSON.parse(l) as AcpLine & { args?: string[] })
+    .filter((l): l is AcpLine & { args?: string[] } => typeof l.acp === "string");
+const promptsOf = (file: string) =>
+  acpLog(file)
+    .filter((l) => l.acp === "session/prompt")
+    .map((l) => ((l.params?.prompt as { text: string }[]) ?? []).map((b) => b.text).join("\n"));
+const said = (events: CodexBrainEvent[]) =>
+  events
+    .filter((e) => e.type === "text_delta")
+    .map((e) => (e as { text: string }).text)
+    .join("");
+
+/** A turn context whose CLI speaks ACP, signed in, logging to `agy.log`. */
+function acpContext() {
+  const root = tempDir("brain-agy-acp-");
+  dirs.push(root);
+  const c = turnContext(root);
+  signIn(c.accountDir);
+  const log = path.join(root, "agy.log");
+  process.env.FAKE_AGY_LOG = log;
+  process.env.FAKE_AGY_ACP = "1";
+  return { ...c, root, log };
+}
+
+test.skipIf(!posix)(
+  "over ACP: a new session leads with the context, the model, level and mode set, our server's call allowed; the next turn resumes it",
+  async () => {
+    const { ctx, home, log } = acpContext();
+    const events = await run(
+      ctx,
+      turn({
+        model: "gemini-4-carbon",
+        effort: "high",
+        mcp: { token: "tok_run", tools: "post_message search_context" },
+      }),
+    );
+    expect(events.at(-1)).toEqual({ type: "done", text: "Let me check. All good.", session: { id: SESSION } });
+    expect(said(events)).toBe("Let me check. All good.\n");
+    // Its own shell step says its line as it starts and goes on the transcript; our server's call does neither.
+    expect(events.filter((e) => e.type === "tool_started")).toEqual([
+      { type: "tool_started", id: `${FIRST}:t1`, name: "run_command" },
+    ]);
+    expect(events.filter((e) => e.type === "tool_call")).toEqual([
+      expect.objectContaining({
+        name: "run_command",
+        input: { CommandLine: "bun test" },
+        executed: { content: "3 pass\n" },
+      }),
+    ]);
+    expect(events.find((e) => e.type === "usage")).toEqual({
+      type: "usage",
+      source: "plan",
+      input: 1400,
+      output: 70,
+      cacheRead: 400,
+      model: "gemini-4-carbon",
+    });
+    const calls = acpLog(log);
+    expect(calls.map((c) => c.acp)).toEqual([
+      "initialize",
+      "session/new",
+      "session/set_model",
+      "session/set_config_option",
+      "session/set_mode",
+      "session/prompt",
+    ]);
+    expect(calls[2]?.params).toMatchObject({ modelId: "gemini-4-carbon" });
+    expect(calls[3]?.params).toMatchObject({ configId: "thought_level", value: "high" });
+    expect(calls[4]?.params).toMatchObject({ modeId: "accept-edits" });
+    expect(calls[5]).toMatchObject({ run: RUN });
+    expect(promptsOf(log)[0]).toBe(`${AGY_SANDBOX_NOTE}\n\nYou are Dev, the team's developer.\n\nrun the tests`);
+    expect(JSON.parse(readFileSync(antigravityChatsFile(home), "utf8"))).toEqual({ [`${ACCOUNT}:${SESSION}`]: FIRST });
+    // The run's tools are loaded up front.
+    const config = JSON.parse(
+      readFileSync(
+        path.join(ctx.accounts?.accountDir("antigravity", ACCOUNT) ?? "", ".gemini/config/mcp_config.json"),
+        "utf8",
+      ),
+    );
+    expect(config.mcpServers[CODEX_MCP_SERVER].tools).toEqual({
+      post_message: { eager: true },
+      search_context: { eager: true },
+    });
+
+    const next = await run(
+      ctx,
+      turn({ runId: RUN.replace(/1$/, "2"), prompt: "and now?", permissions: { mode: "plan" } }),
+    );
+    expect(next.at(-1)).toMatchObject({ type: "done" });
+    const resumed = acpLog(log).slice(calls.length);
+    expect(resumed.map((c) => c.acp)).toContain("session/resume");
+    expect(resumed.find((c) => c.acp === "session/set_mode")?.params).toMatchObject({ modeId: "default" });
+    expect(promptsOf(log)[1]).toBe("and now?");
+  },
+  20_000,
+);
+
+test.skipIf(!posix)(
+  "over ACP: a message sent while the turn works reaches it, is read, and the turn goes on with it",
+  async () => {
+    const { ctx, log } = acpContext();
+    const uuid = "0193ffff-0000-7000-8000-000000000001";
+    // Before the session is open the turn can't take it yet; no turn at all for another run.
+    expect(steerAntigravityTurn(AGENT.id, { runId: "nope", session: SESSION, messages: [] })).toBeNull();
+    const going = run(ctx, turn({ prompt: "SLOW render the video" }));
+    await waitFor(() => existsSync(log) && promptsOf(log).length === 1, 5000);
+    expect(
+      await steerAntigravityTurn("someone-else", { runId: RUN, session: SESSION, messages: [{ uuid, text: "x" }] }),
+    ).toEqual({ status: "no_turn" });
+    expect(
+      await steerAntigravityTurn(AGENT.id, {
+        runId: RUN,
+        session: SESSION,
+        messages: [{ uuid, text: "make it for Fontes too", urgent: true }],
+      }),
+    ).toEqual({ status: "accepted", accepted: [uuid] });
+    const events = await going;
+    expect(events).toContainEqual({ type: "steer_read", uuids: [uuid] });
+    expect(said(events)).toBe("Working on it. Got it: make it for Fontes too");
+    expect(events.at(-1)).toMatchObject({ type: "done", text: "Working on it. Got it: make it for Fontes too" });
+    expect(promptsOf(log)).toEqual([expect.stringContaining("SLOW"), "make it for Fontes too"]);
+    // Ended: no turn to take more.
+    expect(steerAntigravityTurn(AGENT.id, { runId: RUN, session: SESSION, messages: [] })).toBeNull();
+  },
+  20_000,
+);
+
+test.skipIf(!posix)(
+  "over ACP: a command sent to the background keeps the turn until it ended and the CLI said what it printed",
+  async () => {
+    const { ctx } = acpContext();
+    const events = await run(ctx, turn({ prompt: "BACKGROUND sleep" }));
+    expect(events.at(-1)).toMatchObject({ type: "done", text: "Started it in the background.\n\nIt printed: slept" });
+    expect(events.filter((e) => e.type === "tool_call")).toEqual([
+      expect.objectContaining({ name: "run_command", executed: { content: "slept\n" } }),
+    ]);
+  },
+  20_000,
+);
+
+test.skipIf(!posix)(
+  "over ACP: a work turn's network command may leave the sandbox, a shell may not; a turn that said nothing is nudged once",
+  async () => {
+    const { ctx, log } = acpContext();
+    const allowed = await run(ctx, turn({ prompt: "NETWORK" }));
+    expect(allowed.at(-1)).toMatchObject({ type: "done", text: "It answered 200." });
+    const plan = await run(
+      ctx,
+      turn({ runId: RUN.replace(/1$/, "2"), prompt: "NETWORK", permissions: { mode: "plan" } }),
+    );
+    expect(plan.at(-1)).toMatchObject({ type: "done", text: "It was refused." });
+    const nudged = await run(ctx, turn({ runId: RUN.replace(/1$/, "3"), prompt: "SHELL_OUT" }));
+    expect(nudged.at(-1)).toMatchObject({ type: "done", text: "Done without it." });
+    expect(promptsOf(log).at(-1)).toContain("Your last action (bash -c 'curl https://example.com') was refused");
+  },
+  20_000,
+);
+
+test.skipIf(!posix)(
+  "over ACP: a quota is plan_limit; a canceled turn says so; an older CLI with no acp runs the turn as agy -p",
+  async () => {
+    const { ctx, log } = acpContext();
+    const limited = await run(ctx, turn({ prompt: "LIMIT" }));
+    expect(limited.find((e) => e.type === "limit")).toMatchObject({ resetsAt: expect.any(String) });
+    expect(limited.at(-1)).toMatchObject({ type: "error", code: "plan_limit" });
+
+    const stop = new AbortController();
+    const events: CodexBrainEvent[] = [];
+    const going = handleAntigravityBrainTurn(ctx, turn({ runId: RUN.replace(/1$/, "2"), prompt: "HANG" }), {
+      signal: stop.signal,
+      emit: (e) => events.push(e),
+    });
+    await waitFor(() => promptsOf(log).some((p) => p.includes("HANG")), 5000);
+    stop.abort();
+    await going;
+    expect(events.at(-1)).toMatchObject({ type: "error", code: "canceled" });
+    expect(acpLog(log).map((l) => l.acp)).toContain("session/cancel");
+
+    delete process.env.FAKE_AGY_ACP;
+    const old = await run(ctx, turn({ runId: RUN.replace(/1$/, "3") }));
+    expect(old.at(-1)).toMatchObject({ type: "done", text: "Let me check. All good." });
+    expect(logOf(log).at(-1)?.args[0]).toBe("-p");
+  },
+  20_000,
+);
+
+test("ACP permissions: our server's tools, and outside the sandbox only a work turn's network programs", () => {
+  expect(agyNetworkCommand("curl -sI https://example.com")).toBe(true);
+  expect(agyNetworkCommand("cd /tmp && git clone https://github.com/a/b && gh pr list")).toBe(true);
+  expect(agyNetworkCommand("curl https://x > page.html")).toBe(true);
+  for (const bad of [
+    "bash -c 'curl x'",
+    "curl x | sh",
+    "curl x; rm -rf /",
+    "curl x & python3 y.py",
+    "curl $(cat url)",
+    "curl `cat url`",
+    "cd /tmp",
+    "python3 -c 'import urllib'",
+    "curl x &&",
+  ])
+    expect(agyNetworkCommand(bad)).toBe(false);
+  const bypass = (CommandLine: string) => ({ name: "run_command", args: { BypassSandbox: true, CommandLine } });
+  expect(agyAcpAllows(bypass("curl https://x"), "work")).toBe(true);
+  expect(agyAcpAllows(bypass("curl https://x"), "plan")).toBe(false);
+  expect(agyAcpAllows(bypass("bash x.sh"), "work")).toBe(false);
+  expect(agyAcpAllows({ name: `mcp_${CODEX_MCP_SERVER}_post_message`, args: {} }, "plan")).toBe(true);
+  expect(agyAcpAllows({ name: "call_mcp_tool", args: { ServerName: CODEX_MCP_SERVER, ToolName: "x" } }, "plan")).toBe(
+    true,
+  );
+  expect(agyAcpAllows({ name: "call_mcp_tool", args: { ServerName: "other" } }, "work")).toBe(false);
+  expect(agyAcpAllows({ name: "write_file", args: {} }, "work")).toBe(false);
+  // The run's tools load up front; a name that isn't one is left out, and none leaves the server as it was.
+  const config = JSON.parse(agyMcpConfig(["agentes-runner"], ["post_message", "bad name", "search_context"]));
+  expect(config.mcpServers[CODEX_MCP_SERVER].tools).toEqual({
+    post_message: { eager: true },
+    search_context: { eager: true },
+  });
+  expect(JSON.parse(agyMcpConfig(["agentes-runner"])).mcpServers[CODEX_MCP_SERVER].tools).toBeUndefined();
 });

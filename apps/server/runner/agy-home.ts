@@ -217,10 +217,23 @@ export const AGY_PLANTED = [
   ".gemini/AGENTS.md",
 ] as const;
 
-/** `mcp_config.json` with our server alone: `agentes-runner mcp`, the run and its token from the env it inherits. */
-export function agyMcpConfig(command: string[] | undefined): string {
+/** The most tool names loaded up front: past it, the CLI loads them on demand as it would by itself. */
+const AGY_EAGER_MAX = 300;
+
+/**
+ * `mcp_config.json` with our server alone: `agentes-runner mcp`, the run and its token from the env it inherits.
+ * `tools`: the run's tools, loaded up front (`eager`, Antigravity CLI 1.5.10; a `*` isn't read): the CLI otherwise
+ * loads an MCP server's tools on demand, through `call_mcp_tool` and a schema file per tool the model reads first.
+ */
+export function agyMcpConfig(command: string[] | undefined, tools: readonly string[] = []): string {
   const [bin, ...args] = command ?? [];
-  const server = { command: bin ?? "agentes-runner", args: [...args, "mcp"], timeoutSeconds: 360 };
+  const names = tools.filter((t) => /^[\w.-]{1,128}$/.test(t)).slice(0, AGY_EAGER_MAX);
+  const server = {
+    command: bin ?? "agentes-runner",
+    args: [...args, "mcp"],
+    timeoutSeconds: 360,
+    ...(names.length ? { tools: Object.fromEntries(names.map((n) => [n, { eager: true }])) } : {}),
+  };
   return `${JSON.stringify({ mcpServers: { [CODEX_MCP_SERVER]: server } }, null, 2)}\n`;
 }
 
@@ -242,11 +255,16 @@ export const agyChatAgent = (): string =>
 /**
  * Before a turn: what an earlier turn planted dropped, then our settings, our server alone and Lodi's agent written
  * (each only when it differs). `profile`: a `work` turn's commands may leave the sandbox for the network
- * (`AGY_NETWORK_COMMANDS`); any other turn's never.
+ * (`AGY_NETWORK_COMMANDS`); any other turn's never. `tools`: the run's, loaded up front (`agyMcpConfig`).
  */
-export function prepareAgyHome(home: string, command: string[] | undefined, profile?: CommandProfile) {
+export function prepareAgyHome(
+  home: string,
+  command: string[] | undefined,
+  profile?: CommandProfile,
+  tools?: readonly string[],
+) {
   for (const rel of AGY_PLANTED) rmSync(path.join(home, rel), { recursive: true, force: true });
   writeAgySettings(home, undefined, undefined, profile);
-  writeIfChanged(path.join(configDir(home), "mcp_config.json"), agyMcpConfig(command));
+  writeIfChanged(path.join(configDir(home), "mcp_config.json"), agyMcpConfig(command, tools));
   writeIfChanged(path.join(configDir(home), "agents", AGY_CHAT_AGENT, "agent.md"), agyChatAgent());
 }

@@ -80,3 +80,31 @@ anything. A `plan` or `chat` turn gets none. A work turn's `agyDeniedNudge` name
 `run_code`. Seen before it: an agent in an old conversation uploading media with `curl` to a signed address, refused
 again and again. Since the settings are the account's, a `plan` turn starting at the same moment as a `work` one on
 the same account may start with either list, as with every other shared setting.
+
+## Addendum 2026-11-18: turns over ACP, so a person's messages reach them; our tools loaded up front
+
+A Gemini agent on `agy -p` took nothing mid-turn: a message sent while it worked waited out the whole turn (one on
+2026-11-18 waited over four minutes behind a video render it had picked up again), and the talker answered "when this
+round of work ends". The CLI's ACP server (`agy acp`, 1.5.10) takes a new prompt while one runs, at the turn's next
+step. Every turn but the right hand's now runs over it (`brain-antigravity-acp.ts`, through `acp.ts` as OpenCode's
+do), with all the `-p` turn sets up (the account's home and settings, our server, the sandbox note, the env):
+
+- `brain.steer` sends the messages as a prompt; the earlier one answers `end_turn` and the new one carries the turn.
+  They are read (`steer_read`) once the prompts before them answered.
+- A command the model sends to the background outlives the prompt over ACP (`agy -p` waits for it): the turn ends only
+  once no prompt is open, no tool runs, and the CLI's wake after a command that ended has ended (a model call's
+  `usage_update` and nothing after it, or no wake within a minute).
+- Over ACP the settings' allow rules aren't read and the CLI asks: our server's tools are allowed, a `work` turn's
+  `BypassSandbox` command only as `AGY_NETWORK_COMMANDS` allow it, each part joined by `&&` one of them or `cd`, with no
+  other chaining or nesting (`agyNetworkCommand`); anything else is refused and counts for the nudge as `-p`'s denials
+  do.
+- Model, thinking level and mode are the session's (`session/set_model`, the `thought_level` option, `accept-edits` for
+  work, `default` for plan, where an edit asks and is refused).
+- A tool of the CLI's own says its step as it starts (`tool_started`), not only once it ended.
+- Setup that fails (an older CLI with no `acp`, a session it can't open) runs the turn as `agy -p`, which answers
+  `brain.steer` with `unsupported` as before. The right hand stays on `-p`, whose `init` the chat guard reads.
+
+The CLI loads an MCP server's tools on demand: the model reached ours through `call_mcp_tool` after listing and reading
+a schema file per tool, six to eight steps of a turn on 2026-11-18. A server's tools marked `eager` in
+`mcp_config.json` are loaded up front and called by name in one step (`tools: { <name>: { eager: true } }`; a `*`
+isn't read). Every turn's config marks the run's tools so (`BrainTurnRequest.mcp.tools`, at most 300).
