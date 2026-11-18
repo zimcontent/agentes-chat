@@ -3,44 +3,59 @@
 #
 #   doug-atualizar-clientes [opções] [<tag>]
 #
-#   <tag>             a imagem nova: `doug-abc123` ou `agentes-zim:doug-abc123`. Sem ela, a mais recente
-#                     `agentes-zim:doug-*` que existe nesta máquina (a mesma que a instância principal usa)
+#   <tag>             a imagem nova: `doug-abc123` ou `agentes-zim:doug-abc123`. Sem ela, a imagem que o container
+#                     da instância principal roda agora (DOUG_PRINCIPAL_CONTAINER): a que já passou pela produção
 #   --so <codigo>     só este cliente (pode repetir, ou separar por vírgula)
 #   --exceto <codigo> todos menos este (pode repetir, ou separar por vírgula)
+#   --forcar          tenta de novo um cliente que já falhou ou voltou com esta mesma imagem
 #   --dry-run         só mostra o que faria: não pede parada, não faz backup, não troca nada, não grava log
 #   -h, --help        esta ajuda
 #
 # Para cada cliente de clientes.tsv (colunas: codigo slug nome porta imagem criado_em):
-#   1. confere a cota de disco (aviso; com DOUG_QUOTA_ESTRITA=1 passar dela impede a atualização);
-#   2. faz backup do Postgres (`pg_dump -Fc` dentro do container do banco) em dados/backups/, guarda os 3 últimos;
-#   3. pede o ponto de parada (ADR doug-0005): SIGUSR2 ao servidor e espera `restart: ready` no /api/health, até
-#      DOUG_PARADA_TIMEOUT_S; passado o limite troca assim mesmo, como a instância principal;
-#   4. troca DOUG_IMAGE no .env e roda `docker compose up -d`;
-#   5. espera o /api/health dizer `ok`, até DOUG_SAUDE_TIMEOUT_S;
-#   6. se não disser, volta para a imagem anterior (restaura o .env, `up -d`, espera o health de novo).
-# O banco NÃO é restaurado sozinho: se a versão nova migrou o esquema, o backup do passo 2 é o caminho de volta.
+#   1. confere o cliente (código e slug do padrão, pasta dentro da raiz, dono root, sem escrita para grupo/outros,
+#      sem link simbólico) e as duas imagens (a atual e a nova têm de existir aqui);
+#   2. confere a cota de disco (aviso; com DOUG_QUOTA_ESTRITA=1 passar dela impede a atualização);
+#   3. prepara o .env novo ao lado e guarda o atual em .env.antes-atualizar;
+#   4. pede o ponto de parada (ADR doug-0005): SIGUSR2 ao servidor, só se ele conhece o aviso, e espera
+#      `restart: ready` no /api/health, até DOUG_PARADA_TIMEOUT_S; passado o limite troca assim mesmo;
+#   5. faz o backup do Postgres (`pg_dump -Fc`) em <raiz>/backups/<codigo>/, já com nada rodando;
+#   6. troca o .env (um mv), roda as migrações se o .env as desliga no boot, e `docker compose up -d`;
+#   7. espera o /api/health dizer `ok` e confere que o servidor roda a imagem nova, até DOUG_SAUDE_TIMEOUT_S;
+#   8. se não, volta para a imagem anterior (restaura o .env, `up -d`, espera o health de novo).
+# O banco NÃO é restaurado sozinho: se a versão nova migrou o esquema, o backup do passo 5 é o caminho de volta.
 #
-# Um cliente que falha não para os outros. No fim, o resumo lista quem atualizou, quem já estava na imagem, quem
-# voltou e quem falhou. Código de saída: 0 tudo certo; 1 algum cliente falhou; 3 nenhum falhou, mas algum voltou
-# para a imagem anterior; 2 uso errado ou algo global (imagem inexistente, outra atualização rodando).
+# Um cliente que falha não para os outros, mas DOUG_DISJUNTOR voltas ou falhas seguidas com a mesma imagem param a
+# rodada: a imagem é o problema, não o cliente. Um cliente que falhou ou voltou com uma imagem fica marcado e é
+# pulado nas próximas rodadas com ela (--forcar tenta de novo). Código de saída: 0 tudo certo; 1 algum cliente falhou
+# ou ficou sem iniciar; 3 nenhum falhou, mas algum voltou para a imagem anterior ou foi pulado; 2 uso errado ou algo
+# global (imagem inexistente, outra atualização rodando, a instância principal em atualização).
 #
 # Ambiente (todos opcionais):
 #   DOUG_CLIENTES_DIR        raiz dos clientes (padrão /opt/doug-clientes)
 #   DOUG_CLIENT_QUOTA_GB     cota de disco por cliente, em GB (padrão 40)
 #   DOUG_IMAGE_REPO          repositório da imagem (padrão agentes-zim)
+#   DOUG_PRINCIPAL_CONTAINER container da instância principal (padrão agentes-chat-agentes-1)
+#   DOUG_PRINCIPAL_UNIT      unidade que atualiza a instância principal (padrão doug-atualizar.service)
 #   DOUG_SERVER_SERVICE      serviço do servidor no compose do cliente (padrão agentes)
 #   DOUG_DB_SERVICE          serviço do Postgres no compose do cliente (padrão postgres)
 #   DOUG_DB_USER, DOUG_DB_NAME  usuário e banco do Postgres (padrão agentes e agentes)
 #   DOUG_PARADA_TIMEOUT_S    espera pelo ponto de parada (padrão 900, os 15 minutos da instância principal)
 #   DOUG_SAUDE_TIMEOUT_S     espera pelo health depois da troca e depois da volta (padrão 300)
 #   DOUG_POLL_S              intervalo entre duas conferências (padrão 5)
-#   DOUG_BACKUPS_GUARDADOS   quantos backups ficam por cliente (padrão 3)
+#   DOUG_FALHAS_SEGUIDAS     leituras seguidas sem resposta até dar o servidor por parado (padrão 3)
+#   DOUG_BACKUPS_GUARDADOS   quantos backups de atualizações boas ficam por cliente (padrão 3)
+#   DOUG_DISJUNTOR           voltas ou falhas seguidas que param a rodada (padrão 2)
+#   DOUG_TRAVA_ESPERA_S      quanto esperar o doug-cliente soltar a trava de um cliente (padrão 0: não espera)
+#   DOUG_DONO_UID            dono esperado da pasta dos clientes e dos arquivos (padrão 0, root)
 #   DOUG_LOG_DIR             onde ficam os logs (padrão $DOUG_CLIENTES_DIR/logs)
 set -uo pipefail
+umask 077
 
 RAIZ=${DOUG_CLIENTES_DIR:-/opt/doug-clientes}
 COTA_GB=${DOUG_CLIENT_QUOTA_GB:-40}
 REPO=${DOUG_IMAGE_REPO:-agentes-zim}
+PRINCIPAL=${DOUG_PRINCIPAL_CONTAINER:-agentes-chat-agentes-1}
+UNIDADE_PRINCIPAL=${DOUG_PRINCIPAL_UNIT:-doug-atualizar.service}
 SERVICO_SERVIDOR=${DOUG_SERVER_SERVICE:-agentes}
 SERVICO_BANCO=${DOUG_DB_SERVICE:-postgres}
 BANCO_USUARIO=${DOUG_DB_USER:-agentes}
@@ -48,19 +63,44 @@ BANCO_NOME=${DOUG_DB_NAME:-agentes}
 PARADA_S=${DOUG_PARADA_TIMEOUT_S:-900}
 SAUDE_S=${DOUG_SAUDE_TIMEOUT_S:-300}
 POLL_S=${DOUG_POLL_S:-5}
+FALHAS_LEITURAS=${DOUG_FALHAS_SEGUIDAS:-3}
 GUARDAR=${DOUG_BACKUPS_GUARDADOS:-3}
+DISJUNTOR=${DOUG_DISJUNTOR:-2}
+TRAVA_ESPERA_S=${DOUG_TRAVA_ESPERA_S:-0}
+DONO_UID=${DOUG_DONO_UID:-0}
 LOG_RAIZ=${DOUG_LOG_DIR:-$RAIZ/logs}
 REGISTRO=$RAIZ/clientes.tsv
+BACKUPS=$RAIZ/backups
+ESTADO=$RAIZ/atualizacao
+MARCAS=$ESTADO/marcas
+# O servidor deixa de acreditar que o aviso de troca foi recebido depois de tantas leituras sem a chave `restart`.
+readonly SEM_PARADA_LEITURAS=3
+SEP=$'\x1f'
 
 # Resultado de cada cliente (códigos de saída de atualizar_um).
-readonly R_ATUALIZOU=0 R_JA_ATUAL=10 R_VOLTOU=20 R_FALHOU=30
+readonly R_ATUALIZOU=0 R_JA_ATUAL=10 R_VOLTOU=20 R_FALHOU=30 R_RECUSOU=31 R_PULOU=40
+
+# O cliente em curso: o que o trap precisa para desfazer a troca se o script for morto no meio.
+C_CODIGO= C_DIR= C_ENV= C_GUARDA= C_NOVO= C_EM_CURSO=
+C_SINALIZADO=0 C_PRONTO=0 C_COMMITADO=0 C_RECRIADO=0
+LOG_ATUAL=
+BACKUP_FEITO=
 
 uso() {
   sed -n '2,/^set -uo/p' "${BASH_SOURCE[0]}" | sed '$d' | sed 's/^# \{0,1\}//'
 }
 
 hora() { date '+%Y-%m-%d %H:%M:%S'; }
-diz() { printf '[%s] %s\n' "$(hora)" "$*"; }
+# Uma linha no terminal e, quando há, no log do cliente em curso.
+diz() {
+  local linha
+  linha=$(printf '[%s] %s' "$(hora)" "$*")
+  printf '%s\n' "$linha"
+  [[ -z $LOG_ATUAL ]] || printf '%s\n' "$linha" >>"$LOG_ATUAL"
+}
+
+# Um texto vindo do registro, sem nada que um terminal interprete, para ir num log ou numa lista.
+limpo() { local v=${1:-}; printf '%s' "${v//[!A-Za-z0-9._-]/?}"; }
 
 # Lista de códigos de `--so`/`--exceto`: aceita vírgula, completa com zeros até 3 dígitos.
 juntar_codigos() {
@@ -85,42 +125,155 @@ contem() {
   return 1
 }
 
-# A tag mais recente de agentes-zim:doug-* (`docker image ls` lista a mais nova primeiro).
-imagem_mais_recente() {
-  local tag
-  tag=$(docker image ls --format '{{.Tag}}' "$REPO" 2>/dev/null | grep -E '^doug-' | head -n 1) || true
-  [[ -n $tag ]] && printf '%s:%s\n' "$REPO" "$tag"
-}
+# ─── .env ────────────────────────────────────────────────────────────────────
 
-# O valor de uma variável do .env (a última linha que a define).
+# O valor de uma variável do .env: a última linha que a define, com `export`, aspas duplas ou simples.
 env_valor() {
   local arquivo=$1 nome=$2
-  awk -F= -v n="$nome" '$1 == n { v = substr($0, length(n) + 2) } END { if (v != "") print v }' "$arquivo"
+  awk -v n="$nome" -v sq="'" '
+    function limpa(v,   q, i) {
+      sub(/^[ \t]+/, "", v)
+      q = substr(v, 1, 1)
+      if (q == "\"" || q == sq) {
+        v = substr(v, 2)
+        i = index(v, q)
+        if (i) v = substr(v, 1, i - 1)
+        return v
+      }
+      sub(/[ \t]+#.*$/, "", v)
+      sub(/[ \t]+$/, "", v)
+      return v
+    }
+    BEGIN { re = "^[ \t]*(export[ \t]+)?" n "[ \t]*=" }
+    { l = $0; sub(/\r$/, "", l) }
+    l ~ re { sub(re, "", l); v = limpa(l); achou = 1 }
+    END { if (achou && v != "") print v }
+  ' "$arquivo"
 }
 
-# Troca (ou acrescenta) DOUG_IMAGE no .env, mantendo o dono e as permissões do arquivo.
-env_trocar_imagem() {
-  local arquivo=$1 imagem=$2 tmp
-  tmp=$(mktemp "$arquivo.XXXXXX") || return 1
-  if grep -q '^DOUG_IMAGE=' "$arquivo"; then
-    awk -v v="$imagem" '/^DOUG_IMAGE=/ { print "DOUG_IMAGE=" v; next } { print }' "$arquivo" >"$tmp"
-  else
-    { cat "$arquivo"; printf 'DOUG_IMAGE=%s\n' "$imagem"; } >"$tmp"
-  fi || { rm -f "$tmp"; return 1; }
-  chmod --reference="$arquivo" "$tmp" 2>/dev/null || chmod 600 "$tmp"
-  mv -f "$tmp" "$arquivo"
+# O .env com DOUG_IMAGE trocada (ou acrescentada), na saída padrão. Termina sempre com quebra de linha.
+env_com_imagem() {
+  local arquivo=$1 imagem=$2
+  awk -v n=DOUG_IMAGE -v v="$imagem" '
+    BEGIN { re = "^[ \t]*(export[ \t]+)?" n "[ \t]*=" }
+    $0 ~ re { cr = ($0 ~ /\r$/) ? "\r" : ""; print n "=" v cr; feito = 1; next }
+    { print }
+    END { if (!feito) print n "=" v }
+  ' "$arquivo"
 }
 
-# A coluna `imagem` do registro, sob o mesmo lock da execução.
+# Copia `origem` sobre `destino` por um arquivo ao lado e um mv, com o dono e as permissões da origem.
+restaurar_env() {
+  local origem=$1 destino=$2 tmp
+  tmp=$(mktemp "$destino.XXXXXX") || return 1
+  if ! cp -p -- "$origem" "$tmp" 2>/dev/null; then rm -f "$tmp"; return 1; fi
+  mv -f "$tmp" "$destino"
+}
+
+# ─── caminhos ────────────────────────────────────────────────────────────────
+
+# A pasta é de quem deve ser e ninguém mais escreve nela.
+dono_ok() {
+  local caminho=$1 dono modo
+  dono=$(stat -c '%u' -- "$caminho" 2>/dev/null) || return 1
+  modo=$(stat -c '%a' -- "$caminho" 2>/dev/null) || return 1
+  if [[ $dono != "$DONO_UID" ]]; then
+    diz "FALHOU: $caminho é do usuário $dono, não do $DONO_UID"
+    return 1
+  fi
+  if ((8#$modo & 8#022)); then
+    diz "FALHOU: $caminho (modo $modo) deixa grupo ou outros escreverem"
+    return 1
+  fi
+}
+
+# Cria (se faltar) e confere uma pasta de uso do script: sem link simbólico, do dono certo, modo 0700.
+pasta_segura() {
+  local pasta=$1
+  if [[ -L $pasta ]]; then diz "FALHOU: $pasta é um link simbólico"; return 1; fi
+  [[ -d $pasta ]] || mkdir -m 700 -- "$pasta" 2>/dev/null || { diz "FALHOU: não criei $pasta"; return 1; }
+  [[ -d $pasta ]] || { diz "FALHOU: $pasta não é uma pasta"; return 1; }
+  dono_ok "$pasta"
+}
+
+sem_link() {
+  local p
+  for p in "$@"; do
+    if [[ -L $p ]]; then diz "FALHOU: $p é um link simbólico"; return 1; fi
+  done
+}
+
+# ─── imagem, registro ────────────────────────────────────────────────────────
+
+# A imagem que a instância principal roda agora.
+imagem_da_principal() {
+  local img
+  img=$(docker inspect --format '{{.Config.Image}}' "$PRINCIPAL" 2>/dev/null) || return 1
+  img=${img%%$'\n'*}
+  [[ -n $img ]] && printf '%s\n' "$img"
+}
+
+# Cada cliente do registro numa linha de campos separados por \x1f (um campo vazio não some). Aceita CRLF.
+ler_registro() {
+  awk -F'\t' -v OFS="$SEP" '
+    { sub(/\r$/, "") }
+    $0 == "" || $1 ~ /^#/ || $1 == "codigo" { next }
+    { print $1, $2, $3, $4, $5, $6 }
+  ' "$REGISTRO"
+}
+
+# A linha de um cliente: "slug porta", ou nada se saiu do registro.
+registro_do_cliente() {
+  awk -F'\t' -v OFS="$SEP" -v c="$1" '{ sub(/\r$/, "") } $1 == c { print $2, $4; exit }' "$REGISTRO"
+}
+
+# A coluna `imagem` do registro, sob a trava do cliente. Nunca troca o arquivo por um resultado incompleto.
 registro_trocar_imagem() {
-  local codigo=$1 imagem=$2 tmp
+  local codigo=$1 imagem=$2 tmp antes depois
+  if [[ -L $REGISTRO ]]; then return 1; fi
+  find "$RAIZ" -maxdepth 1 -name 'clientes.tsv.??????' -type f -delete 2>/dev/null
   tmp=$(mktemp "$REGISTRO.XXXXXX") || return 1
-  awk -F'\t' -v OFS='\t' -v c="$codigo" -v i="$imagem" '$1 == c { $5 = i } { print }' "$REGISTRO" >"$tmp" \
-    && chmod --reference="$REGISTRO" "$tmp" 2>/dev/null
+  if ! awk -F'\t' -v OFS='\t' -v c="$codigo" -v i="$imagem" '$1 == c { $5 = i } { print }' "$REGISTRO" >"$tmp"; then
+    rm -f "$tmp"
+    return 1
+  fi
+  antes=$(awk 'END { print NR }' "$REGISTRO")
+  depois=$(awk 'END { print NR }' "$tmp")
+  if [[ ! -s $tmp || $antes != "$depois" ]]; then
+    rm -f "$tmp"
+    return 1
+  fi
+  chmod --reference="$REGISTRO" "$tmp" 2>/dev/null || chmod 644 "$tmp"
+  chown --reference="$REGISTRO" "$tmp" 2>/dev/null || true
+  if ! cp -p -- "$REGISTRO" "$REGISTRO.anterior"; then
+    rm -f "$tmp"
+    return 1
+  fi
   mv -f "$tmp" "$REGISTRO"
 }
 
+# ─── Docker ──────────────────────────────────────────────────────────────────
+
+# O compose do cliente em curso. Os descritores das travas não vazam para o Docker.
+compose() {
+  docker compose -p "doug-$C_CODIGO" --project-directory "$C_DIR" -f "$C_DIR/compose.yml" --env-file "$C_ENV" "$@" 6>&- 7>&- 8>&- 9>&-
+}
+
+# A imagem em que o servidor do cliente roda de fato.
+imagem_rodando() {
+  local saida
+  saida=$(compose ps --format '{{.Image}}' "$SERVICO_SERVIDOR" 2>/dev/null) || return 1
+  printf '%s\n' "${saida%%$'\n'*}"
+}
+
 saude() { curl -fsS --max-time 5 "http://127.0.0.1:$1/api/health" 2>/dev/null; }
+
+# O servidor no ar conhece o aviso de troca? Mesma conferência da instância principal: o contrato da API cita o ADR.
+conhece_parada() {
+  local corpo
+  corpo=$(curl -fsS --max-time 5 "http://127.0.0.1:$1/api/openapi.json" 2>/dev/null) || return 1
+  [[ $corpo == *doug-0005* ]]
+}
 
 # Espera o health dizer ok, até o limite. 0 se disse.
 esperar_saude() {
@@ -134,22 +287,52 @@ esperar_saude() {
   done
 }
 
-# Anuncia a troca (SIGUSR2) e espera `restart: ready`. Sempre devolve 0: depois do limite troca assim mesmo.
+# Sobe o cliente com o .env como está e confere health e imagem. $1 porta, $2 imagem esperada.
+subir_e_conferir() {
+  local porta=$1 esperada=$2 rodando
+  C_RECRIADO=1
+  compose up -d >/dev/null 2>&1 || return 1
+  esperar_saude "$porta" "$SAUDE_S" || return 1
+  rodando=$(imagem_rodando) || return 1
+  if [[ $rodando != "$esperada" ]]; then
+    diz "o servidor roda $rodando, não $esperada"
+    return 1
+  fi
+}
+
+# Anuncia a troca (SIGUSR2), só a um servidor que a conhece, e espera `restart: ready`. Devolve sempre 0: sem ponto de
+# parada no limite (ou sem resposta do servidor) a troca segue, como na instância principal. Efeitos: C_SINALIZADO, C_PRONTO.
 esperar_parada() {
-  local porta=$1 fim corpo
-  if ! docker compose kill -s SIGUSR2 "$SERVICO_SERVIDOR" >/dev/null 2>&1; then
+  local porta=$1 fim corpo sem=0 falhas=0
+  C_SINALIZADO=0
+  C_PRONTO=0
+  if ! conhece_parada "$porta"; then
+    diz "o servidor no ar não conhece o aviso de troca (ADR doug-0005): troco sem avisar"
+    return 0
+  fi
+  if ! compose kill -s SIGUSR2 "$SERVICO_SERVIDOR" >/dev/null 2>&1; then
     diz "o servidor não recebeu o aviso de troca (parado?): troco sem esperar"
     return 0
   fi
+  C_SINALIZADO=1
   diz "aviso de troca enviado; esperando os agentes chegarem a um ponto de parada (até ${PARADA_S}s)"
   fim=$(($(date +%s) + PARADA_S))
   while :; do
-    if ! corpo=$(saude "$porta"); then
-      diz "o servidor não responde: nada a esperar"
-      return 0
-    fi
-    if [[ $corpo =~ \"restart\"[[:space:]]*:[[:space:]]*\"ready\" ]]; then
-      diz "ponto de parada: nada roda mais ali"
+    if corpo=$(saude "$porta"); then
+      falhas=0
+      if [[ $corpo =~ \"restart\"[[:space:]]*:[[:space:]]*\"ready\" ]]; then
+        C_PRONTO=1
+        diz "ponto de parada: nada roda mais ali"
+        return 0
+      fi
+      if [[ $corpo =~ \"restart\"[[:space:]]*:[[:space:]]*\"waiting\" ]]; then
+        sem=0
+      elif ((++sem >= SEM_PARADA_LEITURAS)); then
+        diz "AVISO: o servidor não confirmou o aviso em $SEM_PARADA_LEITURAS leituras (sem a chave restart no health); troco sem esperar"
+        return 0
+      fi
+    elif ((++falhas >= FALHAS_LEITURAS)); then
+      diz "o servidor não responde há $falhas leituras seguidas: nada a esperar"
       return 0
     fi
     if (($(date +%s) >= fim)); then
@@ -160,10 +343,28 @@ esperar_parada() {
   done
 }
 
+# Tira o servidor do aviso de troca quando a troca não vai acontecer (ADR doug-0005: o aviso só acaba com um
+# reinício ou depois de 30 minutos). Reinicia a mesma imagem só se nada roda mais ali; senão deixa o prazo correr.
+liberar_servidor() {
+  ((C_SINALIZADO)) || return 0
+  if ((C_PRONTO)); then
+    if compose restart "$SERVICO_SERVIDOR" >/dev/null 2>&1; then
+      diz "servidor reiniciado na mesma imagem: o aviso de troca acabou"
+    else
+      diz "AVISO: não reiniciei o servidor; o aviso de troca se solta sozinho em 30 minutos (ADR doug-0005)"
+    fi
+  else
+    diz "o aviso de troca se solta sozinho em 30 minutos (ADR doug-0005); não reinicio com trabalho rodando"
+  fi
+  C_SINALIZADO=0
+}
+
+# ─── cota, backups, marcas ───────────────────────────────────────────────────
+
 # Quantos GB os dados do cliente ocupam, arredondado para cima; confere a cota.
 conferir_cota() {
   local dir=$1 kb gb
-  kb=$(du -sk "$dir/dados" 2>/dev/null | cut -f1)
+  kb=$(du -skP "$dir/dados" 2>/dev/null | cut -f1)
   kb=${kb:-0}
   gb=$(((kb + 1024 * 1024 - 1) / (1024 * 1024)))
   if ((gb > COTA_GB)); then
@@ -174,109 +375,332 @@ conferir_cota() {
   diz "cota: ${gb} GB de ${COTA_GB} GB"
 }
 
-# pg_dump -Fc do banco do cliente em dados/backups/, guardando os últimos $GUARDAR.
+tag_de() { printf '%s' "${1//[!A-Za-z0-9._-]/_}"; }
+
+# pg_dump -Fc do banco do cliente em <raiz>/backups/<codigo>/pre-<imagem>-<data>.dump (nunca dentro de dados/, que o
+# cliente escreve). Não apaga nada: quem rotaciona é `rotacionar_backups`, depois de uma troca boa.
 fazer_backup() {
-  local dir=$1 codigo=$2 pasta destino parcial
-  pasta=$dir/dados/backups
-  destino=$pasta/$codigo-$(date +%Y%m%d-%H%M%S).dump
+  local codigo=$1 nova=$2 pasta destino parcial
+  pasta_segura "$BACKUPS" || return 1
+  pasta=$BACKUPS/$codigo
+  pasta_segura "$pasta" || return 1
+  destino=$pasta/pre-$(tag_de "$nova")-$(date +%Y%m%d-%H%M%S).dump
   parcial=$destino.parcial
-  mkdir -p "$pasta" || return 1
-  if ! docker compose exec -T "$SERVICO_BANCO" pg_dump -Fc -U "$BANCO_USUARIO" "$BANCO_NOME" >"$parcial" \
+  if [[ -e $destino || -L $destino || -e $parcial || -L $parcial ]]; then
+    diz "backup FALHOU: $destino já existe"
+    return 1
+  fi
+  if ! compose exec -T "$SERVICO_BANCO" pg_dump -Fc -U "$BANCO_USUARIO" "$BANCO_NOME" >"$parcial" 2>/dev/null \
     || [[ ! -s $parcial ]]; then
     rm -f "$parcial"
     diz "backup FALHOU: nada foi trocado"
     return 1
   fi
-  mv -f "$parcial" "$destino"
-  diz "backup: $destino ($(du -h "$destino" | cut -f1))"
-  # Os mais novos primeiro; o resto sai. O nome tem a data, então ordenar por nome basta.
-  local velhos
-  velhos=$(find "$pasta" -maxdepth 1 -name "$codigo-*.dump" -type f | sort -r | tail -n +"$((GUARDAR + 1))")
-  [[ -z $velhos ]] || xargs -r rm -f <<<"$velhos"
+  mv -f "$parcial" "$destino" || { rm -f "$parcial"; return 1; }
   BACKUP_FEITO=$destino
+  diz "backup: $destino ($(du -h "$destino" | cut -f1))"
+}
+
+# Os backups de trocas boas ficam em $GUARDAR; os de trocas que falharam ou voltaram (falhou-*) nunca saem.
+rotacionar_backups() {
+  local pasta=$BACKUPS/$1 velhos
+  [[ -d $pasta && ! -L $pasta ]] || return 0
+  velhos=$(find "$pasta" -maxdepth 1 -name 'pre-*.dump' -type f -printf '%T@ %p\n' | sort -rn | tail -n +"$((GUARDAR + 1))" | cut -d' ' -f2-)
+  [[ -z $velhos ]] || xargs -r -d '\n' rm -f -- <<<"$velhos"
+}
+
+# O backup de uma troca que não deu certo passa a falhou-*: fora da rotação.
+guardar_backup_da_falha() {
+  local arquivo=${BACKUP_FEITO:-} novo
+  [[ -n $arquivo && -f $arquivo ]] || return 0
+  novo=$(dirname "$arquivo")/falhou-${arquivo##*/pre-}
+  if mv -- "$arquivo" "$novo"; then BACKUP_FEITO=$novo; fi
+}
+
+marca_arquivo() { printf '%s/%s__%s' "$MARCAS" "$1" "$(tag_de "$2")"; }
+
+# O que ficou marcado para este cliente e esta imagem: voltou ou falhou (vazio se nada).
+marca_de() {
+  local arquivo resultado
+  arquivo=$(marca_arquivo "$1" "$2")
+  [[ -f $arquivo && ! -L $arquivo ]] || return 0
+  IFS=$'\t' read -r resultado _ <"$arquivo" || true
+  printf '%s' "$resultado"
+}
+
+marca_gravar() { # codigo imagem resultado backup
+  pasta_segura "$ESTADO" && pasta_segura "$MARCAS" || return 1
+  printf '%s\t%s\t%s\n' "$3" "$(hora)" "${4:-}" >"$(marca_arquivo "$1" "$2")"
+}
+
+marca_limpar() { find "$MARCAS" -maxdepth 1 -name "$1__*" -type f -delete 2>/dev/null; }
+
+# A trava do doug-cliente (`$RAIZ/.trava`, no descritor 8): 0 pegou, 1 está com outro, 2 não abriu.
+pegar_trava() {
+  exec 8>"$RAIZ/.trava" || return 2
+  if ((TRAVA_ESPERA_S > 0)); then flock -w "$TRAVA_ESPERA_S" 8 || return 1; else flock -n 8 || return 1; fi
+}
+
+# ─── um cliente ──────────────────────────────────────────────────────────────
+
+# Para o script morto no meio de uma troca (SIGTERM, fim do prazo da unidade, Ctrl-C): o .env volta ao que era e o
+# guarda sai, para o cliente não ficar apontando para uma imagem que ninguém conferiu.
+ao_interromper() {
+  trap '' TERM INT
+  # O trap roda no meio do comando que esperava, com as redirecionamentos dele: a saída volta ao terminal.
+  exec >&7 2>&6
+  if [[ -n $C_EM_CURSO ]]; then
+    diz "INTERROMPIDO durante o cliente $C_EM_CURSO: desfazendo a troca"
+    [[ -z $C_NOVO ]] || rm -f "$C_NOVO"
+    if [[ -n $C_GUARDA && -f $C_GUARDA ]]; then
+      if restaurar_env "$C_GUARDA" "$C_ENV"; then
+        rm -f "$C_GUARDA"
+        diz ".env restaurado"
+      else
+        diz "AVISO: não restaurei o .env; a cópia está em $C_GUARDA e a próxima rodada a restaura"
+      fi
+      if ((C_COMMITADO)); then
+        compose up -d >/dev/null 2>&1 && diz "servidor devolvido à imagem anterior" || diz "AVISO: o servidor pode estar na imagem nova"
+      fi
+    fi
+    ((C_COMMITADO)) || liberar_servidor
+  fi
+  exit "$1"
 }
 
 # Um cliente. Devolve um dos R_*.
-atualizar_um() {
-  local codigo=$1 slug=$2 porta=$3 nova=$4 simular=$5
-  local dir=$RAIZ/$codigo-$slug env atual
-  env=$dir/.env
-  diz "cliente $codigo ($slug): porta $porta"
+_atualizar_um() {
+  local codigo=$1 slug=$2 porta=$3 nova=$4 simular=$5 forcar=$6
+  local nome_curto
+  nome_curto="$(limpo "$codigo")-$(limpo "$slug")"
+  diz "cliente $nome_curto: porta $(limpo "$porta")"
 
+  if [[ ! $codigo =~ ^[0-9]{3}$ ]]; then diz "FALHOU: código inválido no registro"; return $R_RECUSOU; fi
+  if [[ ! $slug =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then diz "FALHOU: slug inválido no registro"; return $R_RECUSOU; fi
+  if [[ ! $porta =~ ^[0-9]+$ ]]; then diz "FALHOU: porta inválida no registro"; return $R_RECUSOU; fi
+
+  local dir=$RAIZ/$codigo-$slug env guarda raiz_real dir_real
+  env=$dir/.env
+  guarda=$env.antes-atualizar
   if [[ ! -d $dir || ! -f $dir/compose.yml || ! -f $env ]]; then
     diz "FALHOU: faltam compose.yml e .env em $dir"
-    return $R_FALHOU
+    return $R_RECUSOU
   fi
-  if [[ ! $porta =~ ^[0-9]+$ ]]; then
-    diz "FALHOU: porta inválida no registro: $porta"
-    return $R_FALHOU
+  sem_link "$dir" "$dir/compose.yml" "$env" "$dir/dados" || return $R_RECUSOU
+  raiz_real=$(realpath -e -- "$RAIZ") || return $R_RECUSOU
+  dir_real=$(realpath -e -- "$dir") || return $R_RECUSOU
+  if [[ $dir_real != "$raiz_real/$codigo-$slug" ]]; then
+    diz "FALHOU: $dir não fica dentro de $RAIZ"
+    return $R_RECUSOU
   fi
+  dono_ok "$dir" && dono_ok "$dir/compose.yml" && dono_ok "$env" || return $R_RECUSOU
+
+  C_CODIGO=$codigo C_DIR=$dir C_ENV=$env C_GUARDA= C_NOVO=
+  C_SINALIZADO=0 C_PRONTO=0 C_COMMITADO=0 C_RECRIADO=0
+
+  # A trava do doug-cliente: ele não cria nem remove este cliente enquanto o script o toca.
+  if ((simular == 0)); then
+    pegar_trava
+    case $? in
+      0) ;;
+      1) diz "FALHOU: o doug-cliente está com a trava ($RAIZ/.trava); fica para a próxima rodada"; return $R_RECUSOU ;;
+      *) diz "FALHOU: não abri a trava $RAIZ/.trava"; return $R_RECUSOU ;;
+    esac
+    local linha_atual
+    linha_atual=$(registro_do_cliente "$codigo")
+    if [[ $linha_atual != "$slug$SEP$porta" ]]; then
+      diz "o cliente saiu do registro (ou mudou) desde o começo da rodada: pulo"
+      return $R_PULOU
+    fi
+    find "$dir" -maxdepth 1 -name '.env.??????' -type f -delete 2>/dev/null
+    [[ ! -d $BACKUPS/$codigo ]] || find "$BACKUPS/$codigo" -maxdepth 1 -name '*.parcial' -type f -delete 2>/dev/null
+  fi
+
+  # Um guarda no disco é de uma execução que morreu no meio da troca.
+  if [[ -e $guarda || -L $guarda ]]; then
+    sem_link "$guarda" || return $R_RECUSOU
+    if cmp -s "$guarda" "$env"; then
+      if ((simular)); then
+        diz "[simulação] há um .env.antes-atualizar de uma execução interrompida, igual ao .env: removeria"
+      else
+        diz "AVISO: havia um .env.antes-atualizar de uma execução interrompida, igual ao .env: removi"
+        rm -f "$guarda"
+      fi
+    else
+      if ((simular)); then
+        diz "[simulação] há um .env.antes-atualizar de uma execução interrompida: restauraria o .env e conferiria o cliente"
+        return $R_VOLTOU
+      fi
+      diz "AVISO: havia um .env.antes-atualizar de uma execução interrompida: restaurei o .env e vou conferir o cliente"
+      if ! restaurar_env "$guarda" "$env"; then diz "FALHOU: não restaurei o .env"; return $R_FALHOU; fi
+      rm -f "$guarda"
+      local anterior
+      anterior=$(env_valor "$env" DOUG_IMAGE)
+      if [[ -n $anterior ]] && subir_e_conferir "$porta" "$anterior"; then
+        diz "VOLTOU: $anterior saudável; a troca interrompida não foi concluída (a próxima rodada tenta de novo)"
+        return $R_VOLTOU
+      fi
+      diz "FALHOU: depois de restaurar o .env o cliente não ficou saudável"
+      return $R_FALHOU
+    fi
+  fi
+
+  local atual
   atual=$(env_valor "$env" DOUG_IMAGE)
   if [[ -z $atual ]]; then
     diz "FALHOU: o .env não tem DOUG_IMAGE"
-    return $R_FALHOU
+    return $R_RECUSOU
   fi
   if [[ $atual == "$nova" ]]; then
-    diz "já está em $nova"
-    return $R_JA_ATUAL
+    local corpo
+    corpo=$(saude "$porta") || corpo=
+    if [[ $corpo =~ \"status\"[[:space:]]*:[[:space:]]*\"ok\" ]]; then
+      diz "já está em $nova (health ok)"
+      return $R_JA_ATUAL
+    fi
+    diz "FALHOU: o .env já tem $nova, mas o servidor não responde ok em /api/health"
+    return $R_RECUSOU
   fi
 
-  cd "$dir" || return $R_FALHOU
-  conferir_cota "$dir" || { diz "FALHOU: cota excedida (DOUG_QUOTA_ESTRITA=1)"; return $R_FALHOU; }
+  if ! docker image inspect "$atual" >/dev/null 2>&1; then
+    diz "FALHOU: a imagem atual $atual não existe nesta máquina: sem ela não há volta; não toquei no cliente"
+    return $R_RECUSOU
+  fi
+  if ! docker image inspect "$nova" >/dev/null 2>&1; then
+    diz "FALHOU: a imagem nova $nova não existe nesta máquina; não toquei no cliente"
+    return $R_RECUSOU
+  fi
+
+  local marca
+  marca=$(marca_de "$codigo" "$nova")
+  if [[ -n $marca && $forcar == 0 ]]; then
+    diz "PULADO: com $nova este cliente já $marca (veja o backup falhou-* e o log); --forcar tenta de novo"
+    return $R_PULOU
+  fi
+
+  conferir_cota "$dir" || { diz "FALHOU: cota excedida (DOUG_QUOTA_ESTRITA=1)"; return $R_RECUSOU; }
 
   if [[ $simular == 1 ]]; then
     diz "[simulação] $atual -> $nova"
-    diz "[simulação] backup em dados/backups/, guardando $GUARDAR"
-    diz "[simulação] aviso de troca (SIGUSR2) e espera até ${PARADA_S}s"
-    diz "[simulação] DOUG_IMAGE no .env e docker compose up -d; health em até ${SAUDE_S}s, senão volta para $atual"
+    diz "[simulação] .env novo preparado ao lado e o atual guardado em .env.antes-atualizar"
+    diz "[simulação] aviso de troca (SIGUSR2, se o servidor o conhece) e espera até ${PARADA_S}s"
+    diz "[simulação] backup em $BACKUPS/$codigo/, depois do ponto de parada"
+    diz "[simulação] mv do .env, docker compose up -d; health em até ${SAUDE_S}s, senão volta para $atual"
     return $R_ATUALIZOU
   fi
 
+  # Tudo o que a troca precisa, pronto antes do aviso: depois do ponto de parada, só o mv.
   BACKUP_FEITO=
-  fazer_backup "$dir" "$codigo" || return $R_FALHOU
+  C_EM_CURSO=$nome_curto
+  if ! cp -p -- "$env" "$guarda"; then
+    diz "FALHOU: não guardei o .env"
+    rm -f "$guarda"
+    return $R_RECUSOU
+  fi
+  C_GUARDA=$guarda
+  C_NOVO=$(mktemp "$env.XXXXXX") || { diz "FALHOU: não preparei o .env novo"; rm -f "$guarda"; return $R_RECUSOU; }
+  if ! env_com_imagem "$env" "$nova" >"$C_NOVO" || [[ $(env_valor "$C_NOVO" DOUG_IMAGE) != "$nova" ]]; then
+    diz "FALHOU: não preparei o .env novo"
+    rm -f "$C_NOVO" "$guarda"
+    return $R_RECUSOU
+  fi
+  chmod --reference="$env" "$C_NOVO" 2>/dev/null || chmod 600 "$C_NOVO"
+  chown --reference="$env" "$C_NOVO" 2>/dev/null || true
 
   esperar_parada "$porta"
 
-  local guarda=$env.antes-atualizar
-  cp -p "$env" "$guarda" || { diz "FALHOU: não guardei o .env"; return $R_FALHOU; }
-  if ! env_trocar_imagem "$env" "$nova"; then
-    diz "FALHOU: não troquei DOUG_IMAGE no .env"
-    cp -p "$guarda" "$env"
-    return $R_FALHOU
+  if ! fazer_backup "$codigo" "$nova"; then
+    liberar_servidor
+    rm -f "$C_NOVO" "$guarda"
+    return $R_RECUSOU
   fi
+
+  # O ponto sem volta barata: o mv do .env.
+  if ! mv -f "$C_NOVO" "$env"; then
+    diz "FALHOU: não troquei DOUG_IMAGE no .env"
+    liberar_servidor
+    rm -f "$C_NOVO" "$guarda"
+    return $R_RECUSOU
+  fi
+  C_NOVO=
+  C_COMMITADO=1
   diz "trocando $atual -> $nova"
 
-  if docker compose up -d >/dev/null 2>&1 && esperar_saude "$porta" "$SAUDE_S"; then
-    registro_trocar_imagem "$codigo" "$nova" || diz "AVISO: o registro não ganhou a imagem nova"
+  local migracoes ok=1
+  migracoes=$(env_valor "$env" RUN_MIGRATIONS_ON_BOOT)
+  case ${migracoes,,} in
+    false | 0 | off | no)
+      diz "o .env desliga as migrações no boot: rodando-as antes"
+      compose run --rm --no-deps -T "$SERVICO_SERVIDOR" migrate >/dev/null 2>&1 || { diz "as migrações falharam"; ok=0; }
+      ;;
+  esac
+  ((ok)) && { subir_e_conferir "$porta" "$nova" || ok=0; }
+
+  if ((ok)); then
+    registro_trocar_imagem "$codigo" "$nova" || diz "AVISO: o registro não ganhou a imagem nova (o clientes.tsv ficou como estava)"
     rm -f "$guarda"
+    C_GUARDA=
+    marca_limpar "$codigo"
+    rotacionar_backups "$codigo"
     diz "ATUALIZADO: $nova saudável"
     return $R_ATUALIZOU
   fi
 
   diz "a versão nova não ficou saudável em ${SAUDE_S}s: voltando para $atual"
-  cp -p "$guarda" "$env" || { diz "FALHOU: não restaurei o .env (cópia em $guarda)"; return $R_FALHOU; }
+  guardar_backup_da_falha
+  if ! restaurar_env "$guarda" "$env"; then
+    diz "FALHOU: não restaurei o .env (cópia em $guarda; a próxima rodada a restaura). Backup: ${BACKUP_FEITO}"
+    marca_gravar "$codigo" "$nova" falhou "$BACKUP_FEITO"
+    return $R_FALHOU
+  fi
   rm -f "$guarda"
-  if docker compose up -d >/dev/null 2>&1 && esperar_saude "$porta" "$SAUDE_S"; then
+  C_GUARDA=
+  C_COMMITADO=0
+  ((C_RECRIADO)) || liberar_servidor
+  if subir_e_conferir "$porta" "$atual"; then
+    marca_gravar "$codigo" "$nova" voltou "$BACKUP_FEITO"
     diz "VOLTOU: $atual saudável de novo. Backup, se a versão nova migrou o banco: ${BACKUP_FEITO}"
     return $R_VOLTOU
   fi
+  marca_gravar "$codigo" "$nova" falhou "$BACKUP_FEITO"
   diz "FALHOU: nem a imagem anterior ficou saudável. Backup: ${BACKUP_FEITO}"
   return $R_FALHOU
 }
 
+atualizar_um() {
+  local rc
+  _atualizar_um "$@"
+  rc=$?
+  C_EM_CURSO=
+  C_GUARDA=
+  C_NOVO=
+  exec 8>&-
+  return "$rc"
+}
+
+# A atualização da instância principal está em curso? (um oneshot fica `activating` enquanto roda)
+principal_atualizando() {
+  command -v systemctl >/dev/null 2>&1 || return 1
+  case $(systemctl is-active "$UNIDADE_PRINCIPAL" 2>/dev/null) in
+    active | activating | reloading) return 0 ;;
+  esac
+  return 1
+}
+
 main() {
-  local simular=0 tag= so=() exceto=()
+  local simular=0 forcar=0 tag= so=() exceto=() so_dado=0 exceto_dado=0
   while (($#)); do
     case $1 in
       -h | --help) uso; return 0 ;;
       --dry-run) simular=1 ;;
+      --forcar) forcar=1 ;;
       --so | --exceto)
         if (($# < 2)); then echo "doug-atualizar-clientes: $1 pede um código" >&2; return 2; fi
-        if [[ $1 == --so ]]; then juntar_codigos so "$2"; else juntar_codigos exceto "$2"; fi
+        if [[ $1 == --so ]]; then so_dado=1; juntar_codigos so "$2"; else exceto_dado=1; juntar_codigos exceto "$2"; fi
         shift
         ;;
-      --so=* ) juntar_codigos so "${1#*=}" ;;
-      --exceto=* ) juntar_codigos exceto "${1#*=}" ;;
+      --so=*) so_dado=1; juntar_codigos so "${1#*=}" ;;
+      --exceto=*) exceto_dado=1; juntar_codigos exceto "${1#*=}" ;;
       -*) echo "doug-atualizar-clientes: opção desconhecida: $1" >&2; return 2 ;;
       *)
         if [[ -n $tag ]]; then echo "doug-atualizar-clientes: só uma tag" >&2; return 2; fi
@@ -285,19 +709,45 @@ main() {
     esac
     shift
   done
+  # `--so ""` não pode virar "todos": um filtro dado e vazio é um erro de quem chamou.
+  if ((so_dado && ${#so[@]} == 0)) || ((exceto_dado && ${#exceto[@]} == 0)); then
+    echo "doug-atualizar-clientes: --so e --exceto pedem ao menos um código" >&2
+    return 2
+  fi
 
+  if ! command -v flock >/dev/null 2>&1; then
+    echo "doug-atualizar-clientes: falta o comando flock (sem ele duas execuções se atropelariam)" >&2
+    return 2
+  fi
+  if [[ ! -d $RAIZ ]]; then
+    echo "doug-atualizar-clientes: não achei $RAIZ" >&2
+    return 2
+  fi
+  if ! dono_ok "$RAIZ" >&2; then
+    echo "doug-atualizar-clientes: $RAIZ não é seguro para rodar como root" >&2
+    return 2
+  fi
   if [[ ! -f $REGISTRO ]]; then
     echo "doug-atualizar-clientes: não achei $REGISTRO" >&2
     return 2
   fi
+  if [[ -L $REGISTRO ]]; then
+    echo "doug-atualizar-clientes: $REGISTRO é um link simbólico" >&2
+    return 2
+  fi
 
-  # Duas atualizações ao mesmo tempo (o timer e uma à mão) se atropelariam.
-  if command -v flock >/dev/null 2>&1; then
-    exec 9>"$RAIZ/.atualizar.lock"
+  # Duas atualizações ao mesmo tempo (o timer e uma à mão) se atropelariam. A trava de cada cliente, a mesma do
+  # doug-cliente (`$RAIZ/.trava`), é pega depois, cliente a cliente.
+  if ((simular == 0)); then
+    exec 9>"$RAIZ/.atualizar.lock" || { echo "doug-atualizar-clientes: não abri $RAIZ/.atualizar.lock" >&2; return 2; }
     if ! flock -n 9; then
       echo "doug-atualizar-clientes: outra atualização está rodando" >&2
       return 2
     fi
+  fi
+  if principal_atualizando; then
+    echo "doug-atualizar-clientes: a instância principal está se atualizando ($UNIDADE_PRINCIPAL); tente depois" >&2
+    return 2
   fi
 
   local nova
@@ -305,24 +755,26 @@ main() {
     [[ $tag =~ ^[A-Za-z0-9_./:-]+$ ]] || { echo "doug-atualizar-clientes: tag inválida: $tag" >&2; return 2; }
     [[ $tag == *:* ]] && nova=$tag || nova=$REPO:$tag
   else
-    nova=$(imagem_mais_recente) || nova=
-    [[ -n $nova ]] || { echo "doug-atualizar-clientes: não achei nenhuma imagem $REPO:doug-* (passe a tag)" >&2; return 2; }
+    nova=$(imagem_da_principal) || nova=
+    [[ -n $nova ]] || { echo "doug-atualizar-clientes: não li a imagem do container $PRINCIPAL (passe a tag)" >&2; return 2; }
   fi
   if ! docker image inspect "$nova" >/dev/null 2>&1; then
     echo "doug-atualizar-clientes: a imagem $nova não existe nesta máquina" >&2
     return 2
   fi
 
-  # Os clientes do registro, já filtrados.
+  # Os clientes do registro, já filtrados. O doug-cliente o troca por um mv, então a leitura nunca pega um arquivo
+  # pela metade; uma linha que ele acrescentar agora fica para a próxima rodada.
   local -a linhas=() codigos=()
-  local codigo slug nome porta imagem criado
-  while IFS=$'\t' read -r codigo slug nome porta imagem criado || [[ -n ${codigo:-} ]]; do
-    [[ -z ${codigo:-} || $codigo == \#* || $codigo == codigo ]] && continue
+  local codigo slug nome porta imagem criado registro_lido
+  registro_lido=$(ler_registro)
+  while IFS=$SEP read -r codigo slug nome porta imagem criado; do
+    [[ -n $codigo || -n $slug || -n $porta ]] || continue
     codigos+=("$codigo")
     if ((${#so[@]})) && ! contem "$codigo" "${so[@]}"; then continue; fi
     if ((${#exceto[@]})) && contem "$codigo" "${exceto[@]}"; then continue; fi
-    linhas+=("$codigo"$'\t'"$slug"$'\t'"$porta")
-  done <"$REGISTRO"
+    linhas+=("$codigo$SEP$slug$SEP$porta")
+  done <<<"$registro_lido"
   local c
   for c in "${so[@]}"; do
     contem "$c" "${codigos[@]}" || { echo "doug-atualizar-clientes: $c não está em $REGISTRO" >&2; return 2; }
@@ -334,29 +786,49 @@ main() {
 
   local pasta_log=
   if ((simular == 0)); then
+    pasta_segura "$LOG_RAIZ" || { echo "doug-atualizar-clientes: $LOG_RAIZ não serve para logs" >&2; return 2; }
     pasta_log=$LOG_RAIZ/atualizacao-$(date +%Y%m%d-%H%M%S)
     mkdir -p "$pasta_log" || { echo "doug-atualizar-clientes: não criei $pasta_log" >&2; return 2; }
     find "$LOG_RAIZ" -maxdepth 1 -name 'atualizacao-*' -type d -mtime +60 -exec rm -rf {} + 2>/dev/null
+    if pasta_segura "$ESTADO" && pasta_segura "$MARCAS"; then
+      find "$MARCAS" -maxdepth 1 -type f -mtime +60 -delete 2>/dev/null
+    fi
+    exec 7>&1 6>&2
+    trap 'ao_interromper 143' TERM
+    trap 'ao_interromper 130' INT
   fi
 
   diz "imagem nova: $nova; ${#linhas[@]} cliente(s)$([[ $simular == 1 ]] && echo ' (simulação)')"
-  local -a atualizados=() ja=() voltaram=() falharam=()
-  local linha rc log
+  local -a atualizados=() ja=() voltaram=() falharam=() pulados=() parados=()
+  local linha rc nome_curto seguidas=0 parou=
   for linha in "${linhas[@]}"; do
-    IFS=$'\t' read -r codigo slug porta <<<"$linha"
-    if [[ -n $pasta_log ]]; then
-      log=$pasta_log/$codigo-$slug.log
-      atualizar_um "$codigo" "$slug" "$porta" "$nova" "$simular" 2>&1 | tee -a "$log"
-      rc=${PIPESTATUS[0]}
-    else
-      (atualizar_um "$codigo" "$slug" "$porta" "$nova" "$simular") 2>&1
-      rc=$?
+    IFS=$SEP read -r codigo slug porta <<<"$linha"
+    nome_curto="$(limpo "$codigo")-$(limpo "$slug")"
+    if [[ -n $parou ]]; then parados+=("$nome_curto"); continue; fi
+    if ((seguidas >= DISJUNTOR)); then
+      parou="$seguidas voltas ou falhas seguidas com $nova: a imagem é o problema; não inicio os outros"
+      diz "DISJUNTOR: $parou"
+      parados+=("$nome_curto")
+      continue
     fi
+    if ((simular == 0)) && principal_atualizando; then
+      parou="a instância principal começou a se atualizar"
+      diz "PAREI: $parou; os outros ficam para a próxima rodada"
+      parados+=("$nome_curto")
+      continue
+    fi
+    LOG_ATUAL=
+    [[ -z $pasta_log ]] || LOG_ATUAL=$pasta_log/$nome_curto.log
+    atualizar_um "$codigo" "$slug" "$porta" "$nova" "$simular" "$forcar"
+    rc=$?
+    LOG_ATUAL=
     case $rc in
-      "$R_ATUALIZOU") atualizados+=("$codigo-$slug") ;;
-      "$R_JA_ATUAL") ja+=("$codigo-$slug") ;;
-      "$R_VOLTOU") voltaram+=("$codigo-$slug") ;;
-      *) falharam+=("$codigo-$slug") ;;
+      "$R_ATUALIZOU") atualizados+=("$nome_curto"); seguidas=0 ;;
+      "$R_JA_ATUAL") ja+=("$nome_curto") ;;
+      "$R_VOLTOU") voltaram+=("$nome_curto"); ((seguidas++)) ;;
+      "$R_PULOU") pulados+=("$nome_curto") ;;
+      "$R_RECUSOU") falharam+=("$nome_curto") ;;
+      *) falharam+=("$nome_curto"); ((seguidas++)) ;;
     esac
   done
 
@@ -368,13 +840,16 @@ main() {
     echo "Já na imagem (${#ja[@]}): ${ja[*]:-nenhum}"
     echo "Voltaram para a anterior (${#voltaram[@]}): ${voltaram[*]:-nenhum}"
     echo "Falharam (${#falharam[@]}): ${falharam[*]:-nenhum}"
+    echo "Pulados (${#pulados[@]}): ${pulados[*]:-nenhum}"
+    echo "Sem iniciar (${#parados[@]}): ${parados[*]:-nenhum}"
+    [[ -z $parou ]] || echo "Parada: $parou"
     [[ -z $pasta_log ]] || echo "Logs: $pasta_log"
   }
   echo
   if [[ -n $pasta_log ]]; then resumo | tee "$pasta_log/resumo.txt"; else resumo; fi
 
-  ((${#falharam[@]})) && return 1
-  ((${#voltaram[@]})) && return 3
+  ((${#falharam[@]} || ${#parados[@]})) && return 1
+  ((${#voltaram[@]} || ${#pulados[@]})) && return 3
   return 0
 }
 

@@ -1,6 +1,8 @@
 [Unit]
-Description=DougBot SWAS: atualiza todos os clientes para a imagem agentes-zim:doug-* mais recente
-After=docker.service network-online.target doug-atualizar.service
+Description=DougBot SWAS: atualiza todos os clientes para a imagem que a instância principal roda
+# Só a ordem de subida. Que a atualização da instância principal não esteja rodando agora, o script confere sozinho
+# (`systemctl is-active doug-atualizar.service`): After= não impede duas execuções ao mesmo tempo.
+After=docker.service network-online.target
 Wants=network-online.target
 
 [Service]
@@ -8,7 +10,17 @@ Type=oneshot
 # Instalado por `install -m 0755 -o root -g root deploy/swas/doug-atualizar-clientes /usr/local/sbin/`: o serviço roda
 # como root, então o script não pode ser de um arquivo que outra conta altere. Ver deploy/swas/ATUALIZAR.md.
 ExecStart=/usr/local/sbin/doug-atualizar-clientes
-# Um cliente espera até 15 min pelo ponto de parada e 5 min pelo health (duas vezes, se voltar): sobra para dezenas.
-TimeoutStartSec=6h
-# Código de saída 1 ou 3 (algum cliente falhou ou voltou para a imagem anterior): o serviço aparece como falho, de propósito.
+# Esperar o doug-cliente soltar a trava de um cliente, em vez de deixá-lo para a próxima noite.
+Environment=DOUG_TRAVA_ESPERA_S=600
+# Um cliente espera até 15 min pelo ponto de parada e 5 min pelo health (duas vezes, se voltar): dezenas deles passam
+# de qualquer prazo fixo curto, e um prazo que mata o script no meio de uma troca é pior que nenhum. 12 h é o teto
+# de uma rodada travada.
+TimeoutStartSec=12h
+# O fim da rodada, por prazo ou por `systemctl stop`, chega primeiro ao script (SIGTERM, só a ele: `mixed`), que desfaz
+# a troca em curso (.env de volta, servidor devolvido). O resto do grupo só leva SIGKILL depois do TimeoutStopSec.
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=20min
+# Código de saída 1 ou 3 (algum cliente falhou, voltou para a imagem anterior ou foi pulado): o serviço aparece como
+# falho, de propósito.
 Nice=10
