@@ -61,7 +61,7 @@ import { STORAGE_KEYS, sessionStore, storage } from "@/lib/storage";
  * asks the app, which signs them in (ADR 0060 §6).
  */
 /** The steps where the terms line shows: the first of signing in and of signing up, and the new account's. */
-const SHOWS_TERMS = new Set<Step>(["email", "name", "password", "newPassword"]);
+const SHOWS_TERMS = new Set<Step>(["email", "newPassword"]);
 
 type Step =
   | "email"

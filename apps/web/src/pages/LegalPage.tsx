@@ -50,7 +50,8 @@ export function LegalPage({ kind, lang }: { kind: LegalDoc; lang: LegalLang }) {
   const t = usePageT(lang as LocaleCode);
   const { t: words } = useTranslation();
   const other: LegalDoc = kind === "terms" ? "privacy" : "terms";
-  const ready = facts !== undefined;
+  // A failed read still shows the text, with its company facts left to fill: never a skeleton forever.
+  const ready = facts !== undefined || loaded.isError;
   const text = useMemo(
     () => (ready ? stripDraftBanner(fillLegal(legalText(kind, lang), facts, lang)) : ""),
     [kind, lang, facts, ready],

@@ -96,6 +96,8 @@ export interface LegalSettings {
   APNS_KEY?: unknown;
   COMPOSIO_API_KEY?: string;
   EMBEDDINGS_PROVIDER: "none" | "voyage" | "openai";
+  VOYAGE_API_KEY?: string;
+  EMBEDDINGS_URL?: string;
   WHATSAPP_GATEWAY_URL?: string;
   WHATSAPP_GATEWAY_KEY?: string;
   SENTRY_DSN?: string;
@@ -154,7 +156,10 @@ export function legalFacts(config: LegalSettings): LegalFacts {
       // The relay carries a phone's push wherever the server has no credentials of its own for that platform.
       pushRelay: sender === "relay" || (sender === "auto" && !(direct.android && direct.ios)),
       composio: set(config.COMPOSIO_API_KEY),
-      embeddings: config.EMBEDDINGS_PROVIDER !== "none",
+      // As the server itself decides (start.ts): without its key or address, no vectors and nothing leaves.
+      embeddings:
+        (config.EMBEDDINGS_PROVIDER === "voyage" && set(config.VOYAGE_API_KEY)) ||
+        (config.EMBEDDINGS_PROVIDER === "openai" && set(config.EMBEDDINGS_URL)),
       whatsapp: set(config.WHATSAPP_GATEWAY_URL, config.WHATSAPP_GATEWAY_KEY),
       errors: set(config.SENTRY_DSN) || set(config.SENTRY_WEB_DSN),
       billing: set(config.BILLING_URL),
