@@ -152,6 +152,31 @@ export const en = {
     button: "Create my workspace",
     why: "You got this email because this account was given early access to DougBot.",
   },
+  companyRequestReceived: {
+    subject: (company: string) => `We got your request for DougBot at ${company}`,
+    preheader: "Someone from the team will talk to you, on WhatsApp.",
+    headline: "Your request is with us",
+    body: (company: string): Text => ["We got the request to bring ", { b: company }, " onto DougBot."],
+    next: "Someone from the team reads every request and talks to each company on WhatsApp. Nothing else is needed from you now.",
+    button: "See the page",
+    small: "You got this email because this address was left on the request form.",
+    why: "You got this email because this address was entered on the form that asks for DougBot for a company.",
+  },
+  companyRequestOwner: {
+    subject: (company: string) => `${company} asked for DougBot`,
+    preheader: "Read the request and talk to the company on WhatsApp.",
+    headline: "A company asked for DougBot",
+    facts: {
+      company: "Company",
+      person: "Person",
+      email: "Email",
+      whatsapp: "WhatsApp",
+      teamSize: "Team size",
+      interests: "What they want to automate",
+    },
+    button: "Open the list",
+    why: "You got this email because you run this DougBot server and asked to hear about new requests.",
+  },
   budget: {
     subject: {
       warning: "An agent passed 80% of its monthly budget",

@@ -123,6 +123,8 @@ describe("every email, in both languages", () => {
       waitlist_confirm: true,
       early_access: true,
       early_access_allowed: true,
+      company_request_received: true,
+      company_request_owner: true,
       budget: true,
       approval_digest: true,
       computer_ready: true,

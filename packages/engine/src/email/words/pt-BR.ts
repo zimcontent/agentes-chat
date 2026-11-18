@@ -119,6 +119,31 @@ export const ptBR: Words = {
     button: "Criar meu workspace",
     why: "Você recebeu este e-mail porque esta conta ganhou acesso antecipado ao DougBot.",
   },
+  companyRequestReceived: {
+    subject: (company) => `Recebemos seu pedido do DougBot para ${company}`,
+    preheader: "Alguém do time fala com você, pelo WhatsApp.",
+    headline: "Seu pedido chegou",
+    body: (company) => ["Recebemos o pedido para levar a ", { b: company }, " para o DougBot."],
+    next: "Alguém do time lê cada pedido e fala com cada empresa pelo WhatsApp. Agora não precisa de mais nada.",
+    button: "Ver a página",
+    small: "Você recebeu este e-mail porque este endereço foi deixado no formulário do pedido.",
+    why: "Você recebeu este e-mail porque este endereço foi informado no formulário que pede o DougBot para uma empresa.",
+  },
+  companyRequestOwner: {
+    subject: (company) => `${company} pediu o DougBot`,
+    preheader: "Leia o pedido e fale com a empresa pelo WhatsApp.",
+    headline: "Uma empresa pediu o DougBot",
+    facts: {
+      company: "Empresa",
+      person: "Pessoa",
+      email: "E-mail",
+      whatsapp: "WhatsApp",
+      teamSize: "Tamanho do time",
+      interests: "O que quer automatizar",
+    },
+    button: "Abrir a lista",
+    why: "Você recebeu este e-mail porque cuida deste servidor DougBot e pediu para saber dos pedidos novos.",
+  },
   budget: {
     subject: {
       warning: "Um agente passou de 80% do orçamento do mês",

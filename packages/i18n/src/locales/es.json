@@ -757,6 +757,98 @@
       "takenLead": "Inicia sesión con tu cuenta."
     }
   },
+  "companies": {
+    "page": {
+      "title": "Trae DougBot a tu empresa",
+      "lead": "Cuéntanos sobre tu empresa y qué quieres automatizar. El equipo lee cada solicitud y habla con cada empresa por WhatsApp.",
+      "formTitle": "Tu empresa",
+      "name": "Tu nombre",
+      "nameExample": "Ana Souza",
+      "email": "Correo electrónico",
+      "emailExample": "ana@empresa.com",
+      "whatsapp": "WhatsApp",
+      "whatsappExample": "+55 11 91234-5678",
+      "company": "Empresa",
+      "companyExample": "Panadería Aurora",
+      "teamSize": "Tamaño del equipo",
+      "interests": "Qué quieres automatizar",
+      "interestsHint": "Marca todo lo que aplique.",
+      "message": "Algo más",
+      "messageExample": "Publicamos dos videos a la semana a mano.",
+      "messageOptional": "Opcional",
+      "consent": "Acepto que DougBot guarde estas respuestas para contactarme, como se describe en la <link>Política de Privacidad</link>.",
+      "consentRequired": "Acepta la Política de Privacidad para continuar.",
+      "submit": "Enviar solicitud",
+      "sending": "Enviando…",
+      "doneTitle": "Recibimos tu solicitud",
+      "doneLead": "El equipo lee cada solicitud y habla con cada empresa por WhatsApp. También recibirás un correo.",
+      "again": "Enviar otra solicitud",
+      "failed": "No se pudo enviar la solicitud. Inténtalo de nuevo.",
+      "privacy": "Política de Privacidad"
+    },
+    "interests": {
+      "design": "Diseño",
+      "video": "Video",
+      "ads": "Publicidad",
+      "social": "Redes sociales",
+      "code": "Código",
+      "finance": "Finanzas"
+    },
+    "teamSizes": {
+      "1-5": "1 a 5 personas",
+      "6-20": "6 a 20 personas",
+      "21-50": "21 a 50 personas",
+      "51-200": "51 a 200 personas",
+      "200+": "Más de 200"
+    },
+    "list": {
+      "title": "Solicitudes de empresas",
+      "lead": "Empresas que pidieron DougBot en la página.",
+      "empty": "Aún no hay solicitudes.",
+      "search": "Buscar empresa, persona o correo",
+      "none": "No se encontró ninguna solicitud.",
+      "count": "{{count}} solicitudes",
+      "status": {
+        "new": "Nueva",
+        "talking": "En conversación",
+        "invited": "Invitada",
+        "deployed": "Cliente",
+        "discarded": "Descartada"
+      },
+      "filterAll": "Todas",
+      "person": "Persona",
+      "email": "Correo electrónico",
+      "whatsapp": "WhatsApp",
+      "teamSize": "Tamaño del equipo",
+      "interests": "Qué quiere automatizar",
+      "message": "Algo más",
+      "notes": "Notas",
+      "notesPlaceholder": "Lo que el equipo sabe de esta empresa.",
+      "notesSave": "Guardar notas",
+      "notesSaved": "Guardado.",
+      "clientCode": "Código de cliente",
+      "clientCodePlaceholder": "064",
+      "clientCodeSave": "Guardar código",
+      "clientCodeHint": "Tres dígitos, cuando la empresa se vuelve cliente.",
+      "invitedOn": "Invitada el {{date}}",
+      "invite": "Invitar",
+      "inviting": "Invitando…",
+      "inviteSent": "Invitación enviada.",
+      "inviteAllowed": "La cuenta que ya tiene puede crear un espacio de trabajo.",
+      "inviteAlreadySent": "Salió una invitación en los últimos dos minutos.",
+      "inviteSignedUp": "Esta dirección ya tiene cuenta.",
+      "statusChanged": "Paso cambiado.",
+      "setStatus": "Mover a",
+      "noEmail": "Este servidor no envía correo, así que no puede salir ninguna invitación.",
+      "codeTaken": "Otra empresa ya tiene este código.",
+      "codeInvalid": "El código de cliente tiene tres dígitos.",
+      "more": "Más"
+    },
+    "notice": {
+      "title": "{{company}} pidió DougBot",
+      "text": "{{name}} envió una solicitud desde la página."
+    }
+  },
   "invite": {
     "invitedYou": "{{name}} te invitó a {{org}}",
     "invitedYouNoName": "Te invitaron a {{org}}",
@@ -5396,7 +5488,8 @@
       "usageLimitReached": "<b>{{name}}</b> llegó al límite de {{amount}}",
       "usageLimitRequest": "<b>{{name}}</b> llegó al límite de {{amount}} y pide más",
       "usageLimitRaised": "<b>{{name}}</b> subió tu límite de este mes",
-      "usageLimitRefused": "<b>{{name}}</b> rechazó tu pedido de más uso"
+      "usageLimitRefused": "<b>{{name}}</b> rechazó tu pedido de más uso",
+      "companyRequest": "<b>{{company}}</b> pidió DougBot: una solicitud de <b>{{name}}</b>"
     },
     "usageLimit": {
       "runs_one": "{{count}} pedido este mes",
@@ -17439,7 +17532,8 @@
       "about": "Acerca de DougBot",
       "generalPersonal": "Sobre ti",
       "keysPersonal": "IA y apps",
-      "membersPersonal": "Personas"
+      "membersPersonal": "Personas",
+      "companies": "Solicitudes de empresas"
     },
     "advanced": "Avanzado",
     "tab": {
@@ -17472,7 +17566,8 @@
       "usagePersonal": "Cuánta IA usan tus agentes, y tu plan.",
       "connectorsPersonal": "Tus apps y servidores MCP, conectados una vez para tus agentes.",
       "membersPersonal": "Quién está aquí contigo.",
-      "rolesPersonal": "Lo que cada persona de aquí puede hacer. Quien es propietario puede hacerlo todo."
+      "rolesPersonal": "Lo que cada persona de aquí puede hacer. Quien es propietario puede hacerlo todo.",
+      "companies": "Empresas que pidieron DougBot en la página."
     },
     "about": {
       "basedOn": "Basado en <site>DougBot</site> de Codari Global, LLC · AGPL-3.0",

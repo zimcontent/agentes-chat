@@ -51701,5 +51701,248 @@
       "one": "Add {{count}} file",
       "other": "Add {{count}} files"
     }
+  },
+  "companies.page.title": {
+    "value": "Bring DougBot to your company"
+  },
+  "companies.page.lead": {
+    "value": "Tell us about your company and what you want to automate. The team reads every request and gets in touch on WhatsApp."
+  },
+  "companies.page.formTitle": {
+    "value": "Your company"
+  },
+  "companies.page.name": {
+    "value": "Your name"
+  },
+  "companies.page.nameExample": {
+    "value": "Ana Souza"
+  },
+  "companies.page.email": {
+    "value": "Email"
+  },
+  "companies.page.emailExample": {
+    "value": "ana@company.com"
+  },
+  "companies.page.whatsapp": {
+    "value": "WhatsApp"
+  },
+  "companies.page.whatsappExample": {
+    "value": "+55 11 91234-5678"
+  },
+  "companies.page.company": {
+    "value": "Company"
+  },
+  "companies.page.companyExample": {
+    "value": "Aurora Bakery"
+  },
+  "companies.page.teamSize": {
+    "value": "Team size"
+  },
+  "companies.page.interests": {
+    "value": "What you want to automate"
+  },
+  "companies.page.interestsHint": {
+    "value": "Pick everything that applies."
+  },
+  "companies.page.message": {
+    "value": "Anything else"
+  },
+  "companies.page.messageExample": {
+    "value": "We post two videos a week by hand."
+  },
+  "companies.page.messageOptional": {
+    "value": "Optional"
+  },
+  "companies.page.consent": {
+    "value": "I agree that DougBot may keep these answers to get in touch, as described in the <link>Privacy Policy</link>."
+  },
+  "companies.page.consentRequired": {
+    "value": "Accept the Privacy Policy to continue."
+  },
+  "companies.page.submit": {
+    "value": "Send request"
+  },
+  "companies.page.sending": {
+    "value": "Sending…"
+  },
+  "companies.page.doneTitle": {
+    "value": "Your request is with us"
+  },
+  "companies.page.doneLead": {
+    "value": "The team reads every request and talks to each company on WhatsApp. You'll get an email too."
+  },
+  "companies.page.again": {
+    "value": "Send another request"
+  },
+  "companies.page.failed": {
+    "value": "Couldn't send the request. Try again."
+  },
+  "companies.page.privacy": {
+    "value": "Privacy Policy"
+  },
+  "companies.interests.design": {
+    "value": "Design"
+  },
+  "companies.interests.video": {
+    "value": "Video"
+  },
+  "companies.interests.ads": {
+    "value": "Ads"
+  },
+  "companies.interests.social": {
+    "value": "Social media"
+  },
+  "companies.interests.code": {
+    "value": "Code"
+  },
+  "companies.interests.finance": {
+    "value": "Finance"
+  },
+  "companies.teamSizes.1-5": {
+    "value": "1 to 5 people"
+  },
+  "companies.teamSizes.6-20": {
+    "value": "6 to 20 people"
+  },
+  "companies.teamSizes.21-50": {
+    "value": "21 to 50 people"
+  },
+  "companies.teamSizes.51-200": {
+    "value": "51 to 200 people"
+  },
+  "companies.teamSizes.200+": {
+    "value": "More than 200"
+  },
+  "companies.list.title": {
+    "value": "Company requests"
+  },
+  "companies.list.lead": {
+    "value": "Companies that asked for DougBot on the page."
+  },
+  "companies.list.empty": {
+    "value": "No request yet."
+  },
+  "companies.list.search": {
+    "value": "Search company, person or email"
+  },
+  "companies.list.none": {
+    "value": "No request found."
+  },
+  "companies.list.count": {
+    "value": "{{count}} requests"
+  },
+  "companies.list.status.new": {
+    "value": "New"
+  },
+  "companies.list.status.talking": {
+    "value": "Talking"
+  },
+  "companies.list.status.invited": {
+    "value": "Invited"
+  },
+  "companies.list.status.deployed": {
+    "value": "Client"
+  },
+  "companies.list.status.discarded": {
+    "value": "Discarded"
+  },
+  "companies.list.filterAll": {
+    "value": "All"
+  },
+  "companies.list.person": {
+    "value": "Person"
+  },
+  "companies.list.email": {
+    "value": "Email"
+  },
+  "companies.list.whatsapp": {
+    "value": "WhatsApp"
+  },
+  "companies.list.teamSize": {
+    "value": "Team size"
+  },
+  "companies.list.interests": {
+    "value": "What they want to automate"
+  },
+  "companies.list.message": {
+    "value": "Anything else"
+  },
+  "companies.list.notes": {
+    "value": "Notes"
+  },
+  "companies.list.notesPlaceholder": {
+    "value": "What the team knows about this company."
+  },
+  "companies.list.notesSave": {
+    "value": "Save notes"
+  },
+  "companies.list.notesSaved": {
+    "value": "Saved."
+  },
+  "companies.list.clientCode": {
+    "value": "Client code"
+  },
+  "companies.list.clientCodePlaceholder": {
+    "value": "064"
+  },
+  "companies.list.clientCodeSave": {
+    "value": "Save code"
+  },
+  "companies.list.clientCodeHint": {
+    "value": "Three digits, once the company becomes one."
+  },
+  "companies.list.invitedOn": {
+    "value": "Invited on {{date}}"
+  },
+  "companies.list.invite": {
+    "value": "Invite"
+  },
+  "companies.list.inviting": {
+    "value": "Inviting…"
+  },
+  "companies.list.inviteSent": {
+    "value": "Invitation sent."
+  },
+  "companies.list.inviteAllowed": {
+    "value": "The account it already has can now make a workspace."
+  },
+  "companies.list.inviteAlreadySent": {
+    "value": "An invitation went out in the last two minutes."
+  },
+  "companies.list.inviteSignedUp": {
+    "value": "This address already has an account."
+  },
+  "companies.list.statusChanged": {
+    "value": "Step changed."
+  },
+  "companies.list.setStatus": {
+    "value": "Move to"
+  },
+  "companies.list.noEmail": {
+    "value": "This server sends no email, so no invitation can go out."
+  },
+  "companies.list.codeTaken": {
+    "value": "Another company already has this code."
+  },
+  "companies.list.codeInvalid": {
+    "value": "The client code has three digits."
+  },
+  "companies.notice.title": {
+    "value": "{{company}} asked for DougBot"
+  },
+  "companies.notice.text": {
+    "value": "{{name}} sent a request from the page."
+  },
+  "settings.section.companies": {
+    "value": "Company requests"
+  },
+  "settings.sectionText.companies": {
+    "value": "Companies that asked for DougBot on the page."
+  },
+  "notifications.what.companyRequest": {
+    "value": "<b>{{company}}</b> asked for DougBot: a request from <b>{{name}}</b>"
+  },
+  "companies.list.more": {
+    "value": "More"
   }
 }

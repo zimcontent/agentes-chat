@@ -1265,6 +1265,13 @@ export const envVars = {
     description: "Where `FEEDBACK_RELAY` sends a feedback (as JSON in a POST).",
     section: "Operator",
   },
+  COMPANY_REQUESTS_NOTIFY_EMAIL: {
+    schema: z.email().optional(),
+    description:
+      "Where a company's request from the page (`/empresas`, \"Quero o DougBot na minha empresa\") is emailed the moment it arrives, to whoever runs this server. The installation's owner sees the same in the app, under Configurações › Pedidos de empresas. Needs email (`MILLIONSEND_API_KEY` or `SMTP_URL`); unset (default): only the app's notice.",
+    section: "Operator",
+    example: "you@example.com",
+  },
   OPS_REPORT_EMAIL: {
     schema: z
       .string()

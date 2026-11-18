@@ -379,6 +379,31 @@ export const EXTRA_COLUMNS = [
   )`,
   `CREATE INDEX IF NOT EXISTS "media_generations_org" ON "media_generations" ("org_id", "created_at")`,
   `CREATE INDEX IF NOT EXISTS "media_generations_agent" ON "media_generations" ("agent_id", "created_at")`,
+  // The companies that asked for DougBot on the page ("Quero o DougBot na minha empresa"), and the team's list of them.
+  `CREATE TABLE IF NOT EXISTS "company_requests" (
+    "id" uuid PRIMARY KEY,
+    "name" text NOT NULL,
+    "email" text NOT NULL,
+    "whatsapp" text NOT NULL,
+    "company" text NOT NULL,
+    "team_size" text NOT NULL,
+    "interests" text[] NOT NULL DEFAULT '{}'::text[],
+    "message" text NOT NULL DEFAULT '',
+    "locale" text NOT NULL DEFAULT 'en',
+    "source" text NOT NULL DEFAULT 'companies',
+    "consent_at" timestamp with time zone NOT NULL,
+    "consent_version" text NOT NULL,
+    "status" text NOT NULL DEFAULT 'new',
+    "client_code" text,
+    "notes" text NOT NULL DEFAULT '',
+    "invited_at" timestamp with time zone,
+    "invited_by_user_id" text REFERENCES "users"("id") ON DELETE SET NULL,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now(),
+    "updated_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "company_requests_email" ON "company_requests" ("email")`,
+  `CREATE INDEX IF NOT EXISTS "company_requests_status" ON "company_requests" ("status", "created_at", "id")`,
+  `CREATE INDEX IF NOT EXISTS "company_requests_created" ON "company_requests" ("created_at", "id")`,
   // One agent in several workspaces, trained as one (ADR doug-0013).
   `CREATE TABLE IF NOT EXISTS "agent_twins" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,

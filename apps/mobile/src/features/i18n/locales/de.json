@@ -1012,7 +1012,9 @@
       "computer_no_chrome_one": "Ein Computer braucht Google Chrome. Lade es unter google.com/chrome herunter",
       "computer_no_chrome_other": "Computer brauchen Google Chrome. Lade es unter google.com/chrome herunter",
       "app_created_one": "Eine KI-App hat etwas für dich erstellt",
-      "app_created_other": "KI-Apps haben etwas für dich erstellt"
+      "app_created_other": "KI-Apps haben etwas für dich erstellt",
+      "company_request_one": "{{names}} hat DougBot für ein Unternehmen angefragt",
+      "company_request_other": "{{names}} haben DougBot für ein Unternehmen angefragt"
     },
     "markRead": "Als gelesen markieren",
     "markUnread": "Als ungelesen markieren",

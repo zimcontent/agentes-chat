@@ -743,6 +743,98 @@
       "takenLead": "Log in met je account."
     }
   },
+  "companies": {
+    "page": {
+      "title": "Haal DougBot naar je bedrijf",
+      "lead": "Vertel ons over je bedrijf en wat je wilt automatiseren. Het team leest elk verzoek en spreekt met elk bedrijf via WhatsApp.",
+      "formTitle": "Je bedrijf",
+      "name": "Je naam",
+      "nameExample": "Ana Souza",
+      "email": "E-mail",
+      "emailExample": "ana@bedrijf.nl",
+      "whatsapp": "WhatsApp",
+      "whatsappExample": "+55 11 91234-5678",
+      "company": "Bedrijf",
+      "companyExample": "Bakkerij Aurora",
+      "teamSize": "Teamgrootte",
+      "interests": "Wat je wilt automatiseren",
+      "interestsHint": "Vink alles aan wat van toepassing is.",
+      "message": "Nog iets",
+      "messageExample": "Wij posten twee video’s per week handmatig.",
+      "messageOptional": "Optioneel",
+      "consent": "Ik ga ermee akkoord dat DougBot deze antwoorden bewaart om contact met mij op te nemen, zoals beschreven in het <link>Privacybeleid</link>.",
+      "consentRequired": "Accepteer het Privacybeleid om verder te gaan.",
+      "submit": "Verzoek versturen",
+      "sending": "Versturen…",
+      "doneTitle": "Je verzoek is bij ons",
+      "doneLead": "Het team leest elk verzoek en praat met elk bedrijf via WhatsApp. Je krijgt ook een e-mail.",
+      "again": "Nog een verzoek versturen",
+      "failed": "Het verzoek kon niet worden verstuurd. Probeer het opnieuw.",
+      "privacy": "Privacybeleid"
+    },
+    "interests": {
+      "design": "Design",
+      "video": "Video",
+      "ads": "Advertenties",
+      "social": "Social media",
+      "code": "Code",
+      "finance": "Financiën"
+    },
+    "teamSizes": {
+      "1-5": "1 tot 5 personen",
+      "6-20": "6 tot 20 personen",
+      "21-50": "21 tot 50 personen",
+      "51-200": "51 tot 200 personen",
+      "200+": "Meer dan 200"
+    },
+    "list": {
+      "title": "Bedrijfsverzoeken",
+      "lead": "Bedrijven die DougBot via de pagina hebben aangevraagd.",
+      "empty": "Nog geen verzoek.",
+      "search": "Zoek bedrijf, persoon of e-mail",
+      "none": "Geen verzoek gevonden.",
+      "count": "{{count}} verzoeken",
+      "status": {
+        "new": "Nieuw",
+        "talking": "In gesprek",
+        "invited": "Uitgenodigd",
+        "deployed": "Klant",
+        "discarded": "Verworpen"
+      },
+      "filterAll": "Alle",
+      "person": "Persoon",
+      "email": "E-mail",
+      "whatsapp": "WhatsApp",
+      "teamSize": "Teamgrootte",
+      "interests": "Wat het wil automatiseren",
+      "message": "Nog iets",
+      "notes": "Notities",
+      "notesPlaceholder": "Wat het team van dit bedrijf weet.",
+      "notesSave": "Notities opslaan",
+      "notesSaved": "Opgeslagen.",
+      "clientCode": "Klantcode",
+      "clientCodePlaceholder": "064",
+      "clientCodeSave": "Code opslaan",
+      "clientCodeHint": "Drie cijfers, zodra het bedrijf klant wordt.",
+      "invitedOn": "Uitgenodigd op {{date}}",
+      "invite": "Uitnodigen",
+      "inviting": "Uitnodigen…",
+      "inviteSent": "Uitnodiging verstuurd.",
+      "inviteAllowed": "Het account dat het al heeft kan nu een werkruimte maken.",
+      "inviteAlreadySent": "Er ging in de laatste twee minuten een uitnodiging uit.",
+      "inviteSignedUp": "Dit adres heeft al een account.",
+      "statusChanged": "Stap gewijzigd.",
+      "setStatus": "Verplaats naar",
+      "noEmail": "Deze server verstuurt geen e-mail, dus er kan geen uitnodiging uitgaan.",
+      "codeTaken": "Een ander bedrijf heeft deze code al.",
+      "codeInvalid": "De klantcode heeft drie cijfers.",
+      "more": "Meer"
+    },
+    "notice": {
+      "title": "{{company}} vroeg DougBot aan",
+      "text": "{{name}} stuurde een verzoek via de pagina."
+    }
+  },
   "invite": {
     "invitedYou": "{{name}} heeft je uitgenodigd voor {{org}}",
     "invitedYouNoName": "Je bent uitgenodigd voor {{org}}",
@@ -5239,7 +5331,8 @@
       "usageLimitReached": "<b>{{name}}</b> heeft de limiet van {{amount}} bereikt",
       "usageLimitRequest": "<b>{{name}}</b> heeft de limiet van {{amount}} bereikt en vraagt om meer",
       "usageLimitRaised": "<b>{{name}}</b> heeft je limiet voor deze maand verhoogd",
-      "usageLimitRefused": "<b>{{name}}</b> heeft je verzoek om meer gebruik afgewezen"
+      "usageLimitRefused": "<b>{{name}}</b> heeft je verzoek om meer gebruik afgewezen",
+      "companyRequest": "<b>{{company}}</b> vroeg DougBot aan: een verzoek van <b>{{name}}</b>"
     },
     "usageLimit": {
       "runs_one": "{{count}} verzoek deze maand",
@@ -17035,7 +17128,8 @@
       "about": "Over DougBot",
       "generalPersonal": "Over jou",
       "keysPersonal": "AI en apps",
-      "membersPersonal": "Mensen"
+      "membersPersonal": "Mensen",
+      "companies": "Bedrijfsverzoeken"
     },
     "advanced": "Geavanceerd",
     "tab": {
@@ -17068,7 +17162,8 @@
       "usagePersonal": "Hoeveel AI je agents gebruiken, en je abonnement.",
       "connectorsPersonal": "Je apps en MCP-servers, één keer verbonden voor je agents.",
       "membersPersonal": "Wie hier met je is.",
-      "rolesPersonal": "Wat ieder hier kan doen. Eigenaren kunnen alles."
+      "rolesPersonal": "Wat ieder hier kan doen. Eigenaren kunnen alles.",
+      "companies": "Bedrijven die DougBot via de pagina hebben aangevraagd."
     },
     "about": {
       "basedOn": "Gebaseerd op <site>DougBot</site> van Codari Global, LLC · AGPL-3.0",

@@ -729,6 +729,98 @@
       "takenLead": "あなたのアカウントでログインしてください。"
     }
   },
+  "companies": {
+    "page": {
+      "title": "あなたの会社にDougBotを",
+      "lead": "会社のことと、自動化したいことを教えてください。チームが各依頼を読み、各社にWhatsAppで連絡します。",
+      "formTitle": "あなたの会社",
+      "name": "お名前",
+      "nameExample": "Ana Souza",
+      "email": "メールアドレス",
+      "emailExample": "ana@company.jp",
+      "whatsapp": "WhatsApp",
+      "whatsappExample": "+55 11 91234-5678",
+      "company": "会社名",
+      "companyExample": "オーロラベーカリー",
+      "teamSize": "チームの人数",
+      "interests": "自動化したいこと",
+      "interestsHint": "当てはまるものをすべて選んでください。",
+      "message": "その他",
+      "messageExample": "週に2本の動画を手作業で投稿しています。",
+      "messageOptional": "任意",
+      "consent": "DougBotがお問い合わせのためにこの回答を保存することに同意します。<link>プライバシーポリシー</link>のとおりです。",
+      "consentRequired": "続けるにはプライバシーポリシーに同意してください。",
+      "submit": "依頼を送る",
+      "sending": "送信中…",
+      "doneTitle": "依頼を受け付けました",
+      "doneLead": "チームが各依頼を読み、各社にWhatsAppで連絡します。メールも届きます。",
+      "again": "もう一件送る",
+      "failed": "依頼を送れませんでした。もう一度お試しください。",
+      "privacy": "プライバシーポリシー"
+    },
+    "interests": {
+      "design": "デザイン",
+      "video": "動画",
+      "ads": "広告",
+      "social": "SNS",
+      "code": "コード",
+      "finance": "財務"
+    },
+    "teamSizes": {
+      "1-5": "1〜5人",
+      "6-20": "6〜20人",
+      "21-50": "21〜50人",
+      "51-200": "51〜200人",
+      "200+": "200人超"
+    },
+    "list": {
+      "title": "会社からの依頼",
+      "lead": "ページからDougBotを依頼した会社。",
+      "empty": "依頼はまだありません。",
+      "search": "会社、担当者、メールで検索",
+      "none": "依頼が見つかりません。",
+      "count": "{{count}}件の依頼",
+      "status": {
+        "new": "新規",
+        "talking": "商談中",
+        "invited": "招待済み",
+        "deployed": "顧客",
+        "discarded": "見送り"
+      },
+      "filterAll": "すべて",
+      "person": "担当者",
+      "email": "メールアドレス",
+      "whatsapp": "WhatsApp",
+      "teamSize": "チームの人数",
+      "interests": "自動化したいこと",
+      "message": "その他",
+      "notes": "メモ",
+      "notesPlaceholder": "この会社についてチームが知っていること。",
+      "notesSave": "メモを保存",
+      "notesSaved": "保存しました。",
+      "clientCode": "顧客コード",
+      "clientCodePlaceholder": "064",
+      "clientCodeSave": "コードを保存",
+      "clientCodeHint": "顧客になったときの3桁の数字。",
+      "invitedOn": "{{date}}に招待",
+      "invite": "招待する",
+      "inviting": "招待中…",
+      "inviteSent": "招待を送りました。",
+      "inviteAllowed": "すでにあるアカウントでワークスペースを作れるようになりました。",
+      "inviteAlreadySent": "直近2分以内に招待を送っています。",
+      "inviteSignedUp": "このアドレスはすでにアカウントがあります。",
+      "statusChanged": "ステップを変更しました。",
+      "setStatus": "移動先",
+      "noEmail": "このサーバーはメールを送らないため、招待を送れません。",
+      "codeTaken": "別の会社がこのコードを使っています。",
+      "codeInvalid": "顧客コードは3桁です。",
+      "more": "もっと見る"
+    },
+    "notice": {
+      "title": "{{company}}がDougBotを依頼しました",
+      "text": "{{name}}がページから依頼を送りました。"
+    }
+  },
   "invite": {
     "invitedYou": "{{name}}さんから{{org}}に招待されました",
     "invitedYouNoName": "{{org}}に招待されました",
@@ -5045,7 +5137,8 @@
       "usageLimitReached": "<b>{{name}}</b>さんが上限{{amount}}に達しました",
       "usageLimitRequest": "<b>{{name}}</b>さんが上限{{amount}}に達し、追加を求めています",
       "usageLimitRaised": "<b>{{name}}</b>さんが今月のあなたの上限を引き上げました",
-      "usageLimitRefused": "<b>{{name}}</b>さんが追加利用のリクエストを断りました"
+      "usageLimitRefused": "<b>{{name}}</b>さんが追加利用のリクエストを断りました",
+      "companyRequest": "<b>{{company}}</b>がDougBotを依頼しました: <b>{{name}}</b>からの依頼です"
     },
     "usageLimit": {
       "runs_other": "今月{{count}}件のリクエスト",
@@ -16396,7 +16489,8 @@
       "about": "DougBot について",
       "generalPersonal": "あなたについて",
       "keysPersonal": "AIとアプリ",
-      "membersPersonal": "メンバー"
+      "membersPersonal": "メンバー",
+      "companies": "会社からの依頼"
     },
     "advanced": "詳細設定",
     "tab": {
@@ -16429,7 +16523,8 @@
       "usagePersonal": "エージェントが使うAIの量と、あなたのプラン。",
       "connectorsPersonal": "あなたのアプリとMCPサーバー。一度接続すればエージェントが使えます。",
       "membersPersonal": "ここで一緒にいる人。",
-      "rolesPersonal": "ここで各メンバーができること。オーナーはすべてできます。"
+      "rolesPersonal": "ここで各メンバーができること。オーナーはすべてできます。",
+      "companies": "ページからDougBotを依頼した会社。"
     },
     "about": {
       "basedOn": "Codari Global, LLC の <site>DougBot</site> をもとにしています · AGPL-3.0",

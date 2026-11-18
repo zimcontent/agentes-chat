@@ -214,6 +214,8 @@ export const askersOf = (n: Pick<AppNotification, "count" | "latest">) => ({
 export function workspaceHeadline(n: Pick<AppNotification, "kind" | "latest">) {
   if (n.kind === "computer_ready") return "computerSetup.notification.ready" as const;
   if (n.kind === "composio_limit") return "connectors.composio.limitNotice" as const;
+  // A company asked for DougBot on the installation's page (its owner alone hears it): the company and who asked.
+  if (n.kind === "company_request") return "companies.notice.title" as const;
   if (n.kind === "computer_disk_full") return "machines.shared.diskFullNotice" as const;
   if (n.kind === "computer_no_chrome") return "machines.chromeMissingNotice" as const;
   if (n.kind === "skill_update") {
@@ -409,7 +411,16 @@ export type OpenTarget =
   | {
       to: "/org/$orgId/settings/$section";
       params: {
-        section: "computers" | "members" | "invites" | "usage" | "connectors" | "billing" | "approvals" | "right_hand";
+        section:
+          | "computers"
+          | "members"
+          | "invites"
+          | "usage"
+          | "connectors"
+          | "billing"
+          | "approvals"
+          | "right_hand"
+          | "companies";
       };
     }
   | { to: "/org/$orgId/home"; search?: { widget: string } }
@@ -451,6 +462,8 @@ export function openTarget(n: AppNotification): OpenTarget | null {
   if (n.kind === "approval_cover") return { to: "/org/$orgId/settings/$section", params: { section: "approvals" } };
   // What the right hand does without asking is on its own page, which its old settings address opens.
   if (n.kind === "right_hand_paused") return { to: "/org/$orgId/settings/$section", params: { section: "right_hand" } };
+  // A company's request opens the installation's list, where it is read and invited.
+  if (n.kind === "company_request") return { to: "/org/$orgId/settings/$section", params: { section: "companies" } };
   // What the right hand found (ADR 0177 §1) opens where it is fixed: the plans, the connections, the agent whose
   // budget it is, the computer.
   const found = teamWatchOf(n);

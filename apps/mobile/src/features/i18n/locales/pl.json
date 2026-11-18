@@ -1160,7 +1160,9 @@
       "app_created_one": "Aplikacja AI coś dla ciebie utworzyła",
       "app_created_few": "Aplikacje AI coś dla ciebie utworzyły",
       "app_created_many": "Aplikacje AI coś dla ciebie utworzyły",
-      "app_created_other": "Aplikacje AI coś dla ciebie utworzyły"
+      "app_created_other": "Aplikacje AI coś dla ciebie utworzyły",
+      "company_request_one": "{{names}} poprosił o DougBot dla firmy",
+      "company_request_other": "{{names}} poprosili o DougBot dla firmy"
     },
     "markRead": "Oznacz jako przeczytane",
     "markUnread": "Oznacz jako nieprzeczytane",

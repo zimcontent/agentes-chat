@@ -1548,6 +1548,22 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         state.media = { ...state.media, voiceAvailable: false };
         return state.speechKey;
       },
+      companyRequests: async () => null,
+      companyRequest: async () => {
+        throw new ApiError(404, "not_found", "Not found");
+      },
+      setCompanyStatus: async () => {
+        throw new ApiError(404, "not_found", "Not found");
+      },
+      saveCompanyNotes: async () => {
+        throw new ApiError(404, "not_found", "Not found");
+      },
+      saveCompanyClientCode: async () => {
+        throw new ApiError(404, "not_found", "Not found");
+      },
+      inviteCompany: async () => {
+        throw new ApiError(404, "not_found", "Not found");
+      },
     },
     liveVoice: {
       get: async () => ({ state: "off", hint: null, editable: true, callNotes: "" }),

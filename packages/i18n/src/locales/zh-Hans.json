@@ -729,6 +729,98 @@
       "takenLead": "请用你的账号登录。"
     }
   },
+  "companies": {
+    "page": {
+      "title": "把 DougBot 带到你的公司",
+      "lead": "告诉我们你的公司情况以及想自动化的工作。团队会阅读每一份申请，并通过 WhatsApp 联系每家公司。",
+      "formTitle": "你的公司",
+      "name": "你的姓名",
+      "nameExample": "Ana Souza",
+      "email": "邮箱",
+      "emailExample": "ana@company.cn",
+      "whatsapp": "WhatsApp",
+      "whatsappExample": "+55 11 91234-5678",
+      "company": "公司",
+      "companyExample": "奥罗拉面包店",
+      "teamSize": "团队规模",
+      "interests": "你想自动化的工作",
+      "interestsHint": "选择所有适用的项目。",
+      "message": "其他",
+      "messageExample": "我们每周手工发布两条视频。",
+      "messageOptional": "选填",
+      "consent": "我同意 DougBot 保存这些回答以便与我联系，具体如 <link>隐私政策</link> 所述。",
+      "consentRequired": "接受隐私政策才能继续。",
+      "submit": "发送申请",
+      "sending": "发送中…",
+      "doneTitle": "我们已收到你的申请",
+      "doneLead": "团队会阅读每一份申请，并通过 WhatsApp 与每家公司沟通。你也会收到一封邮件。",
+      "again": "再发一份申请",
+      "failed": "申请未能发送。请重试。",
+      "privacy": "隐私政策"
+    },
+    "interests": {
+      "design": "设计",
+      "video": "视频",
+      "ads": "广告",
+      "social": "社交媒体",
+      "code": "代码",
+      "finance": "财务"
+    },
+    "teamSizes": {
+      "1-5": "1 至 5 人",
+      "6-20": "6 至 20 人",
+      "21-50": "21 至 50 人",
+      "51-200": "51 至 200 人",
+      "200+": "超过 200 人"
+    },
+    "list": {
+      "title": "公司申请",
+      "lead": "在页面上申请 DougBot 的公司。",
+      "empty": "还没有申请。",
+      "search": "搜索公司、联系人或邮箱",
+      "none": "没有找到申请。",
+      "count": "{{count}} 份申请",
+      "status": {
+        "new": "新",
+        "talking": "洽谈中",
+        "invited": "已邀请",
+        "deployed": "客户",
+        "discarded": "已忽略"
+      },
+      "filterAll": "全部",
+      "person": "联系人",
+      "email": "邮箱",
+      "whatsapp": "WhatsApp",
+      "teamSize": "团队规模",
+      "interests": "想自动化的工作",
+      "message": "其他",
+      "notes": "备注",
+      "notesPlaceholder": "团队对这家公司的了解。",
+      "notesSave": "保存备注",
+      "notesSaved": "已保存。",
+      "clientCode": "客户编号",
+      "clientCodePlaceholder": "064",
+      "clientCodeSave": "保存编号",
+      "clientCodeHint": "成为客户后的三位数字。",
+      "invitedOn": "{{date}} 邀请",
+      "invite": "邀请",
+      "inviting": "邀请中…",
+      "inviteSent": "邀请已发送。",
+      "inviteAllowed": "它已有的账户现在可以创建工作区了。",
+      "inviteAlreadySent": "最近两分钟内已发出一份邀请。",
+      "inviteSignedUp": "这个地址已有账户。",
+      "statusChanged": "阶段已更改。",
+      "setStatus": "移至",
+      "noEmail": "此服务器不发送邮件，因此无法发出邀请。",
+      "codeTaken": "另一家公司已使用此编号。",
+      "codeInvalid": "客户编号是三位数字。",
+      "more": "更多"
+    },
+    "notice": {
+      "title": "{{company}} 申请了 DougBot",
+      "text": "{{name}} 在页面上发送了申请。"
+    }
+  },
   "invite": {
     "invitedYou": "{{name}} 邀请你加入 {{org}}",
     "invitedYouNoName": "你受邀加入 {{org}}",
@@ -5048,7 +5140,8 @@
       "usageLimitReached": "<b>{{name}}</b> 已达到 {{amount}} 的额度",
       "usageLimitRequest": "<b>{{name}}</b> 已达到 {{amount}} 的额度并申请增加",
       "usageLimitRaised": "<b>{{name}}</b> 提高了你本月的额度",
-      "usageLimitRefused": "<b>{{name}}</b> 拒绝了你增加使用的申请"
+      "usageLimitRefused": "<b>{{name}}</b> 拒绝了你增加使用的申请",
+      "companyRequest": "<b>{{company}}</b> 申请了 DougBot：来自 <b>{{name}}</b> 的申请"
     },
     "usageLimit": {
       "runs_other": "本月 {{count}} 次请求",
@@ -16460,7 +16553,8 @@
       "about": "关于 DougBot",
       "generalPersonal": "关于你",
       "keysPersonal": "AI 和应用",
-      "membersPersonal": "成员"
+      "membersPersonal": "成员",
+      "companies": "公司申请"
     },
     "advanced": "高级",
     "tab": {
@@ -16493,7 +16587,8 @@
       "usagePersonal": "你的智能体用了多少 AI，以及你的套餐。",
       "connectorsPersonal": "你的应用和 MCP 服务器，连接一次即可供智能体使用。",
       "membersPersonal": "谁和你一起在这里。",
-      "rolesPersonal": "这里每个人可以做什么。所有者可以做任何事。"
+      "rolesPersonal": "这里每个人可以做什么。所有者可以做任何事。",
+      "companies": "在页面上申请 DougBot 的公司。"
     },
     "about": {
       "basedOn": "基于 Codari Global, LLC 的 <site>DougBot</site> · AGPL-3.0",

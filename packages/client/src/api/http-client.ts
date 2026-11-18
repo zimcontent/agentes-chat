@@ -98,6 +98,9 @@ import type {
   CliInstall,
   CodeSent,
   CommandApproval,
+  CompanyRequest,
+  CompanyRequestInvite,
+  CompanyRequestPage,
   ComposioUsage,
   ComputerDevice,
   ComputerQueue,
@@ -783,6 +786,21 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       speechKey: () => nullOn(404, () => request<SpeechKey>("/api/app/speech-key")),
       saveSpeechKey: (input) => request<SpeechKey>("/api/app/speech-key", { method: "PUT", json: input }),
       removeSpeechKey: () => request<SpeechKey>("/api/app/speech-key", { method: "DELETE" }),
+      companyRequests: (query = {}) => {
+        const params = new URLSearchParams();
+        for (const [k, v] of Object.entries(query)) if (v !== undefined && v !== "") params.set(k, String(v));
+        const qs = params.toString();
+        return nullOn(404, () => request<CompanyRequestPage>(`/api/app/companies${qs ? `?${qs}` : ""}`));
+      },
+      companyRequest: (id) => request<CompanyRequest>(`/api/app/companies/${id}`),
+      setCompanyStatus: (id, status) =>
+        request<CompanyRequest>(`/api/app/companies/${id}/status`, { method: "PUT", json: { status } }),
+      saveCompanyNotes: (id, notes) =>
+        request<CompanyRequest>(`/api/app/companies/${id}/notes`, { method: "PUT", json: { notes } }),
+      saveCompanyClientCode: (id, clientCode) =>
+        request<CompanyRequest>(`/api/app/companies/${id}/client-code`, { method: "PUT", json: { clientCode } }),
+      inviteCompany: (id) =>
+        request<CompanyRequestInvite>(`/api/app/companies/${id}/invite`, { method: "POST", json: {} }),
     },
     account: {
       authConfig: () => request<AuthConfig>("/api/app/auth-config"),

@@ -7549,5 +7549,11 @@
   },
   "brand.source": {
     "value": "DougBot source code"
+  },
+  "activity.kind.company_request": {
+    "value": {
+      "one": "{{names}} asked for DougBot for a company",
+      "other": "{{names}} asked for DougBot for a company"
+    }
   }
 }

@@ -335,7 +335,13 @@
       "ronda.title",
       "appIcon.faces.normal",
       "appIcon.names.night",
-      "onboarding.import.agenteschatName"
+      "onboarding.import.agenteschatName",
+      "companies.page.nameExample",
+      "companies.page.whatsapp",
+      "companies.page.whatsappExample",
+      "companies.interests.design",
+      "companies.interests.social",
+      "companies.list.whatsapp"
     ],
     "es": [
       "mediaGen.audioKind",
@@ -630,7 +636,13 @@
       "appIcon.faces.normal",
       "appIcon.names.night",
       "onboarding.import.agenteschatName",
-      "contextMenu.lookOurs"
+      "contextMenu.lookOurs",
+      "companies.page.nameExample",
+      "companies.page.whatsapp",
+      "companies.page.whatsappExample",
+      "companies.interests.video",
+      "companies.list.whatsapp",
+      "companies.list.clientCodePlaceholder"
     ],
     "fr": [
       "mediaGen.audioKind",
@@ -1107,7 +1119,17 @@
       "appIcon.faces.normal",
       "appIcon.names.night",
       "onboarding.import.agenteschatName",
-      "contextMenu.lookOurs"
+      "contextMenu.lookOurs",
+      "companies.page.nameExample",
+      "companies.page.whatsapp",
+      "companies.page.whatsappExample",
+      "companies.interests.design",
+      "companies.interests.code",
+      "companies.interests.finance",
+      "companies.list.status.deployed",
+      "companies.list.whatsapp",
+      "companies.list.notes",
+      "companies.list.clientCodePlaceholder"
     ],
     "de": [
       "mediaGen.audioKind",
@@ -1611,7 +1633,17 @@
       "appIcon.faces.normal",
       "appIcon.names.night",
       "onboarding.import.agenteschatName",
-      "contextMenu.lookOurs"
+      "contextMenu.lookOurs",
+      "companies.page.nameExample",
+      "companies.page.whatsapp",
+      "companies.page.whatsappExample",
+      "companies.page.messageOptional",
+      "companies.interests.design",
+      "companies.interests.video",
+      "companies.interests.code",
+      "companies.list.person",
+      "companies.list.whatsapp",
+      "companies.list.clientCodePlaceholder"
     ],
     "it": [
       "mediaGen.audioKind",
@@ -2028,7 +2060,17 @@
       "ronda.title",
       "appIcon.names.night",
       "onboarding.import.agenteschatName",
-      "contextMenu.lookOurs"
+      "contextMenu.lookOurs",
+      "companies.page.nameExample",
+      "companies.page.email",
+      "companies.page.whatsapp",
+      "companies.page.whatsappExample",
+      "companies.interests.design",
+      "companies.interests.video",
+      "companies.interests.social",
+      "companies.list.email",
+      "companies.list.whatsapp",
+      "companies.list.clientCodePlaceholder"
     ],
     "nl": [
       "mediaGen.audioKind",
@@ -2681,7 +2723,16 @@
       "appIcon.names.night",
       "onboarding.import.agenteschatName",
       "contextMenu.lookOurs",
-      "agentFront.ai"
+      "agentFront.ai",
+      "companies.page.nameExample",
+      "companies.page.whatsapp",
+      "companies.page.whatsappExample",
+      "companies.interests.design",
+      "companies.interests.video",
+      "companies.interests.social",
+      "companies.interests.code",
+      "companies.list.whatsapp",
+      "companies.list.clientCodePlaceholder"
     ],
     "ja": [
       "channel.tooLong.fileName",
@@ -2887,7 +2938,12 @@
       "appIcon.names.night",
       "onboarding.import.agenteschatName",
       "contextMenu.lookOurs",
-      "agentFront.ai"
+      "agentFront.ai",
+      "companies.page.nameExample",
+      "companies.page.whatsapp",
+      "companies.page.whatsappExample",
+      "companies.list.whatsapp",
+      "companies.list.clientCodePlaceholder"
     ],
     "ko": [
       "channel.tooLong.fileName",
@@ -3087,7 +3143,12 @@
       "appIcon.names.night",
       "onboarding.import.agenteschatName",
       "contextMenu.lookOurs",
-      "agentFront.ai"
+      "agentFront.ai",
+      "companies.page.nameExample",
+      "companies.page.whatsapp",
+      "companies.page.whatsappExample",
+      "companies.list.whatsapp",
+      "companies.list.clientCodePlaceholder"
     ],
     "zh-Hans": [
       "channel.tooLong.fileName",
@@ -3278,7 +3339,12 @@
       "appIcon.names.night",
       "onboarding.import.agenteschatName",
       "contextMenu.lookOurs",
-      "agentFront.ai"
+      "agentFront.ai",
+      "companies.page.nameExample",
+      "companies.page.whatsapp",
+      "companies.page.whatsappExample",
+      "companies.list.whatsapp",
+      "companies.list.clientCodePlaceholder"
     ],
     "id": [
       "agentFront.ai",
@@ -3630,7 +3696,15 @@
       "look.shapes.monitor",
       "appIcon.names.night",
       "onboarding.import.agenteschatName",
-      "contextMenu.lookOurs"
+      "contextMenu.lookOurs",
+      "companies.page.nameExample",
+      "companies.page.email",
+      "companies.page.whatsapp",
+      "companies.page.whatsappExample",
+      "companies.interests.video",
+      "companies.list.email",
+      "companies.list.whatsapp",
+      "companies.list.clientCodePlaceholder"
     ],
     "tr": [
       "mediaGen.nVideos",
@@ -3858,7 +3932,13 @@
       "appIcon.faces.normal",
       "appIcon.names.night",
       "onboarding.import.agenteschatName",
-      "contextMenu.lookOurs"
+      "contextMenu.lookOurs",
+      "companies.page.nameExample",
+      "companies.page.whatsapp",
+      "companies.page.whatsappExample",
+      "companies.interests.video",
+      "companies.list.whatsapp",
+      "companies.list.clientCodePlaceholder"
     ],
     "pl": [
       "mediaGen.audioKind",
@@ -4198,7 +4278,13 @@
       "appIcon.names.night",
       "onboarding.import.agenteschatName",
       "contextMenu.lookOurs",
-      "agentFront.ai"
+      "agentFront.ai",
+      "companies.page.nameExample",
+      "companies.page.whatsapp",
+      "companies.page.whatsappExample",
+      "companies.interests.design",
+      "companies.list.whatsapp",
+      "companies.list.clientCodePlaceholder"
     ],
     "ru": [
       "channel.tooLong.fileName",
@@ -4388,22 +4474,64 @@
       "portal.home.viewList",
       "appIcon.names.night",
       "onboarding.import.agenteschatName",
-      "contextMenu.lookOurs"
+      "contextMenu.lookOurs",
+      "companies.page.nameExample",
+      "companies.page.whatsapp",
+      "companies.page.whatsappExample",
+      "companies.list.whatsapp",
+      "companies.list.clientCodePlaceholder"
     ]
   },
   "mobile-base": {
-    "pt-BR": ["push.ask.minutes"],
-    "es": ["push.ask.minutes"],
-    "fr": ["a11y.agent", "a11y.agentPlain", "push.ask.minutes"],
-    "de": ["a11y.agentPlain", "auth.connect.on", "auth.server.line"],
-    "it": ["auth.connect.on", "auth.server.line", "push.ask.minutes"],
-    "nl": ["a11y.agent", "a11y.agentPlain", "auth.connect.on", "auth.server.line", "push.ask.minutes"],
-    "ja": ["auth.server.placeholder"],
-    "ko": ["auth.server.placeholder"],
-    "zh-Hans": ["auth.server.placeholder"],
-    "id": ["auth.connect.on", "auth.server.line"],
-    "pl": ["a11y.agent", "a11y.agentPlain", "push.ask.minutes"],
-    "ru": ["auth.server.placeholder"]
+    "pt-BR": [
+      "push.ask.minutes"
+    ],
+    "es": [
+      "push.ask.minutes"
+    ],
+    "fr": [
+      "a11y.agent",
+      "a11y.agentPlain",
+      "push.ask.minutes"
+    ],
+    "de": [
+      "a11y.agentPlain",
+      "auth.connect.on",
+      "auth.server.line"
+    ],
+    "it": [
+      "auth.connect.on",
+      "auth.server.line",
+      "push.ask.minutes"
+    ],
+    "nl": [
+      "a11y.agent",
+      "a11y.agentPlain",
+      "auth.connect.on",
+      "auth.server.line",
+      "push.ask.minutes"
+    ],
+    "ja": [
+      "auth.server.placeholder"
+    ],
+    "ko": [
+      "auth.server.placeholder"
+    ],
+    "zh-Hans": [
+      "auth.server.placeholder"
+    ],
+    "id": [
+      "auth.connect.on",
+      "auth.server.line"
+    ],
+    "pl": [
+      "a11y.agent",
+      "a11y.agentPlain",
+      "push.ask.minutes"
+    ],
+    "ru": [
+      "auth.server.placeholder"
+    ]
   },
   "mobile-features": {
     "pt-BR": [

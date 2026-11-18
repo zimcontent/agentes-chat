@@ -89,6 +89,7 @@ import { WhoPicksSection } from "@/components/ai/Jev";
 import { StandInOrderCard } from "@/components/ai/StandInOrder";
 import { BillingLinkButton } from "@/components/BillingLinkButton";
 import { BringOver } from "@/components/BringOver";
+import { CompanyRequestsSection } from "@/components/CompanyRequests";
 import { ConnectorsSection } from "@/components/Connectors";
 import { DeleteWorkspaceDialog } from "@/components/DeleteWorkspace";
 import type { ConnectStart } from "@/components/devices/ConnectDialog";
@@ -303,6 +304,7 @@ function Settings({
       )}
       {current === "import" && <ImportExportSection />}
       {current === "billing" && <BillingSection />}
+      {current === "companies" && <CompanyRequestsSection />}
       {current === "about" && <AboutSection />}
     </>
   );

@@ -757,6 +757,98 @@
       "takenLead": "Connectez-vous avec votre compte."
     }
   },
+  "companies": {
+    "page": {
+      "title": "Amenez DougBot dans votre entreprise",
+      "lead": "Parlez-nous de votre entreprise et de ce que vous voulez automatiser. L’équipe lit chaque demande et contacte chaque entreprise sur WhatsApp.",
+      "formTitle": "Votre entreprise",
+      "name": "Votre nom",
+      "nameExample": "Ana Souza",
+      "email": "E-mail",
+      "emailExample": "ana@entreprise.com",
+      "whatsapp": "WhatsApp",
+      "whatsappExample": "+55 11 91234-5678",
+      "company": "Entreprise",
+      "companyExample": "Boulangerie Aurora",
+      "teamSize": "Taille de l’équipe",
+      "interests": "Ce que vous voulez automatiser",
+      "interestsHint": "Cochez tout ce qui s’applique.",
+      "message": "Autre chose",
+      "messageExample": "Nous publions deux vidéos par semaine à la main.",
+      "messageOptional": "Facultatif",
+      "consent": "J’accepte que DougBot conserve ces réponses pour me contacter, comme décrit dans la <link>Politique de confidentialité</link>.",
+      "consentRequired": "Acceptez la Politique de confidentialité pour continuer.",
+      "submit": "Envoyer la demande",
+      "sending": "Envoi…",
+      "doneTitle": "Votre demande nous est parvenue",
+      "doneLead": "L’équipe lit chaque demande et parle à chaque entreprise sur WhatsApp. Vous recevrez aussi un e-mail.",
+      "again": "Envoyer une autre demande",
+      "failed": "Impossible d’envoyer la demande. Réessayez.",
+      "privacy": "Politique de confidentialité"
+    },
+    "interests": {
+      "design": "Design",
+      "video": "Vidéo",
+      "ads": "Publicité",
+      "social": "Réseaux sociaux",
+      "code": "Code",
+      "finance": "Finance"
+    },
+    "teamSizes": {
+      "1-5": "1 à 5 personnes",
+      "6-20": "6 à 20 personnes",
+      "21-50": "21 à 50 personnes",
+      "51-200": "51 à 200 personnes",
+      "200+": "Plus de 200"
+    },
+    "list": {
+      "title": "Demandes d’entreprises",
+      "lead": "Entreprises qui ont demandé DougBot sur la page.",
+      "empty": "Aucune demande pour l’instant.",
+      "search": "Rechercher une entreprise, une personne ou un e-mail",
+      "none": "Aucune demande trouvée.",
+      "count": "{{count}} demandes",
+      "status": {
+        "new": "Nouvelle",
+        "talking": "En discussion",
+        "invited": "Invitée",
+        "deployed": "Client",
+        "discarded": "Écartée"
+      },
+      "filterAll": "Toutes",
+      "person": "Personne",
+      "email": "E-mail",
+      "whatsapp": "WhatsApp",
+      "teamSize": "Taille de l’équipe",
+      "interests": "Ce qu’elle veut automatiser",
+      "message": "Autre chose",
+      "notes": "Notes",
+      "notesPlaceholder": "Ce que l’équipe sait de cette entreprise.",
+      "notesSave": "Enregistrer les notes",
+      "notesSaved": "Enregistré.",
+      "clientCode": "Code client",
+      "clientCodePlaceholder": "064",
+      "clientCodeSave": "Enregistrer le code",
+      "clientCodeHint": "Trois chiffres, quand l’entreprise devient cliente.",
+      "invitedOn": "Invitée le {{date}}",
+      "invite": "Inviter",
+      "inviting": "Invitation…",
+      "inviteSent": "Invitation envoyée.",
+      "inviteAllowed": "Le compte qu’elle a déjà peut créer un espace de travail.",
+      "inviteAlreadySent": "Une invitation est partie dans les deux dernières minutes.",
+      "inviteSignedUp": "Cette adresse a déjà un compte.",
+      "statusChanged": "Étape changée.",
+      "setStatus": "Déplacer vers",
+      "noEmail": "Ce serveur n’envoie pas d’e-mail, donc aucune invitation ne peut partir.",
+      "codeTaken": "Une autre entreprise a déjà ce code.",
+      "codeInvalid": "Le code client a trois chiffres.",
+      "more": "Plus"
+    },
+    "notice": {
+      "title": "{{company}} a demandé DougBot",
+      "text": "{{name}} a envoyé une demande depuis la page."
+    }
+  },
   "invite": {
     "invitedYou": "{{name}} vous invite à rejoindre {{org}}",
     "invitedYouNoName": "Vous avez une invitation pour rejoindre {{org}}",
@@ -5402,7 +5494,8 @@
       "usageLimitReached": "<b>{{name}}</b> a atteint sa limite de {{amount}}",
       "usageLimitRequest": "<b>{{name}}</b> a atteint sa limite de {{amount}} et en demande plus",
       "usageLimitRaised": "<b>{{name}}</b> a relevé votre limite pour ce mois",
-      "usageLimitRefused": "<b>{{name}}</b> a refusé votre demande d'utilisation supplémentaire"
+      "usageLimitRefused": "<b>{{name}}</b> a refusé votre demande d'utilisation supplémentaire",
+      "companyRequest": "<b>{{company}}</b> a demandé DougBot : une demande de <b>{{name}}</b>"
     },
     "usageLimit": {
       "runs_one": "{{count}} demande ce mois-ci",
@@ -17510,7 +17603,8 @@
       "about": "À propos d’DougBot",
       "generalPersonal": "À propos de vous",
       "keysPersonal": "IA et applications",
-      "membersPersonal": "Personnes"
+      "membersPersonal": "Personnes",
+      "companies": "Demandes d’entreprises"
     },
     "advanced": "Avancé",
     "tab": {
@@ -17543,7 +17637,8 @@
       "usagePersonal": "Combien d'IA vos agents utilisent, et votre abonnement.",
       "connectorsPersonal": "Vos applications et serveurs MCP, connectés une fois pour vos agents.",
       "membersPersonal": "Qui est ici avec vous.",
-      "rolesPersonal": "Ce que chaque personne ici peut faire. Les propriétaires peuvent tout faire."
+      "rolesPersonal": "Ce que chaque personne ici peut faire. Les propriétaires peuvent tout faire.",
+      "companies": "Entreprises qui ont demandé DougBot sur la page."
     },
     "about": {
       "basedOn": "Basé sur <site>DougBot</site> de Codari Global, LLC · AGPL-3.0",

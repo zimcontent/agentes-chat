@@ -729,6 +729,98 @@
       "takenLead": "Masuk dengan akunmu."
     }
   },
+  "companies": {
+    "page": {
+      "title": "Bawa DougBot ke perusahaanmu",
+      "lead": "Ceritakan tentang perusahaanmu dan apa yang ingin kamu otomatiskan. Tim membaca setiap permintaan dan menghubungi setiap perusahaan lewat WhatsApp.",
+      "formTitle": "Perusahaanmu",
+      "name": "Namamu",
+      "nameExample": "Ana Souza",
+      "email": "Email",
+      "emailExample": "ana@perusahaan.id",
+      "whatsapp": "WhatsApp",
+      "whatsappExample": "+55 11 91234-5678",
+      "company": "Perusahaan",
+      "companyExample": "Toko Roti Aurora",
+      "teamSize": "Ukuran tim",
+      "interests": "Apa yang ingin kamu otomatiskan",
+      "interestsHint": "Pilih semua yang sesuai.",
+      "message": "Hal lain",
+      "messageExample": "Kami mengunggah dua video per minggu secara manual.",
+      "messageOptional": "Opsional",
+      "consent": "Saya setuju DougBot menyimpan jawaban ini untuk menghubungi saya, seperti dijelaskan di <link>Kebijakan Privasi</link>.",
+      "consentRequired": "Setujui Kebijakan Privasi untuk melanjutkan.",
+      "submit": "Kirim permintaan",
+      "sending": "Mengirim…",
+      "doneTitle": "Permintaanmu sudah kami terima",
+      "doneLead": "Tim membaca setiap permintaan dan menghubungi setiap perusahaan lewat WhatsApp. Kamu juga akan menerima email.",
+      "again": "Kirim permintaan lain",
+      "failed": "Permintaan tidak terkirim. Coba lagi.",
+      "privacy": "Kebijakan Privasi"
+    },
+    "interests": {
+      "design": "Desain",
+      "video": "Video",
+      "ads": "Iklan",
+      "social": "Media sosial",
+      "code": "Kode",
+      "finance": "Keuangan"
+    },
+    "teamSizes": {
+      "1-5": "1 sampai 5 orang",
+      "6-20": "6 sampai 20 orang",
+      "21-50": "21 sampai 50 orang",
+      "51-200": "51 sampai 200 orang",
+      "200+": "Lebih dari 200"
+    },
+    "list": {
+      "title": "Permintaan perusahaan",
+      "lead": "Perusahaan yang meminta DougBot lewat halaman.",
+      "empty": "Belum ada permintaan.",
+      "search": "Cari perusahaan, orang, atau email",
+      "none": "Permintaan tidak ditemukan.",
+      "count": "{{count}} permintaan",
+      "status": {
+        "new": "Baru",
+        "talking": "Berdiskusi",
+        "invited": "Diundang",
+        "deployed": "Klien",
+        "discarded": "Dibuang"
+      },
+      "filterAll": "Semua",
+      "person": "Orang",
+      "email": "Email",
+      "whatsapp": "WhatsApp",
+      "teamSize": "Ukuran tim",
+      "interests": "Apa yang ingin diotomatiskan",
+      "message": "Hal lain",
+      "notes": "Catatan",
+      "notesPlaceholder": "Apa yang tim tahu tentang perusahaan ini.",
+      "notesSave": "Simpan catatan",
+      "notesSaved": "Tersimpan.",
+      "clientCode": "Kode klien",
+      "clientCodePlaceholder": "064",
+      "clientCodeSave": "Simpan kode",
+      "clientCodeHint": "Tiga digit, saat perusahaan menjadi klien.",
+      "invitedOn": "Diundang pada {{date}}",
+      "invite": "Undang",
+      "inviting": "Mengundang…",
+      "inviteSent": "Undangan terkirim.",
+      "inviteAllowed": "Akun yang sudah dimilikinya kini bisa membuat ruang kerja.",
+      "inviteAlreadySent": "Undangan terkirim dalam dua menit terakhir.",
+      "inviteSignedUp": "Alamat ini sudah punya akun.",
+      "statusChanged": "Tahap diubah.",
+      "setStatus": "Pindahkan ke",
+      "noEmail": "Server ini tidak mengirim email, jadi undangan tidak bisa terkirim.",
+      "codeTaken": "Perusahaan lain sudah memakai kode ini.",
+      "codeInvalid": "Kode klien terdiri dari tiga digit.",
+      "more": "Lainnya"
+    },
+    "notice": {
+      "title": "{{company}} meminta DougBot",
+      "text": "{{name}} mengirim permintaan lewat halaman."
+    }
+  },
   "invite": {
     "invitedYou": "{{name}} mengundangmu ke {{org}}",
     "invitedYouNoName": "Kamu diundang ke {{org}}",
@@ -5059,7 +5151,8 @@
       "usageLimitReached": "<b>{{name}}</b> mencapai batas {{amount}}",
       "usageLimitRequest": "<b>{{name}}</b> mencapai batas {{amount}} dan meminta tambahan",
       "usageLimitRaised": "<b>{{name}}</b> menaikkan batasmu bulan ini",
-      "usageLimitRefused": "<b>{{name}}</b> menolak permintaan tambahan pemakaianmu"
+      "usageLimitRefused": "<b>{{name}}</b> menolak permintaan tambahan pemakaianmu",
+      "companyRequest": "<b>{{company}}</b> meminta DougBot: permintaan dari <b>{{name}}</b>"
     },
     "usageLimit": {
       "runs_other": "{{count}} permintaan bulan ini",
@@ -16450,7 +16543,8 @@
       "about": "Tentang DougBot",
       "generalPersonal": "Tentang kamu",
       "keysPersonal": "AI dan aplikasi",
-      "membersPersonal": "Orang"
+      "membersPersonal": "Orang",
+      "companies": "Permintaan perusahaan"
     },
     "advanced": "Lanjutan",
     "tab": {
@@ -16483,7 +16577,8 @@
       "usagePersonal": "Seberapa banyak AI yang dipakai agen-agenmu, dan paketmu.",
       "connectorsPersonal": "Aplikasi dan server MCP-mu, dihubungkan sekali untuk agen-agenmu.",
       "membersPersonal": "Siapa yang ada di sini bersamamu.",
-      "rolesPersonal": "Apa yang bisa dilakukan setiap orang di sini. Pemilik bisa melakukan semuanya."
+      "rolesPersonal": "Apa yang bisa dilakukan setiap orang di sini. Pemilik bisa melakukan semuanya.",
+      "companies": "Perusahaan yang meminta DougBot lewat halaman."
     },
     "about": {
       "basedOn": "Berdasarkan <site>DougBot</site> oleh Codari Global, LLC · AGPL-3.0",

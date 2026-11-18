@@ -1038,6 +1038,8 @@ export const featureKeysEn = {
       invitation_accepted_other: "{{names}} accepted your invitation",
       composio_limit_one: "This workspace used its Composio calls for the month",
       composio_limit_other: "This workspace used its Composio calls for the month",
+      company_request_one: "{{names}} asked for DougBot for a company",
+      company_request_other: "{{names}} asked for DougBot for a company",
       change_request_one: "{{names}} asks for a change to the team",
       change_request_other: "{{names}} ask for a change to the team",
       usage_limit_warning: "You've used {{percent}}% of your limit this month",

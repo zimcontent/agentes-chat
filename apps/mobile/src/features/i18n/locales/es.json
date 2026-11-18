@@ -1086,7 +1086,9 @@
       "computer_no_chrome_other": "Computadoras necesitan Google Chrome. Descárgalo en google.com/chrome",
       "app_created_one": "Una app de IA creó cosas para ti",
       "app_created_many": "Una app de IA creó cosas para ti",
-      "app_created_other": "Una app de IA creó cosas para ti"
+      "app_created_other": "Una app de IA creó cosas para ti",
+      "company_request_one": "{{names}} pidió DougBot para una empresa",
+      "company_request_other": "{{names}} pidieron DougBot para una empresa"
     },
     "markRead": "Marcar como leído",
     "markUnread": "Marcar como no leído",

@@ -30,6 +30,7 @@ import { calendarRoutes } from "./routes/app/calendar";
 import { carryRoutes } from "./routes/app/carry";
 import { channelRoutes } from "./routes/app/channels";
 import { chatRoutes } from "./routes/app/chat";
+import { companyRequestRoutes, registerCompanyRequests } from "./routes/app/companies";
 import { connectorRoutes } from "./routes/app/connectors";
 import { customConnectorRoutes } from "./routes/app/connectors-custom";
 import { type AppDeps, agentDetailsGate, readOnlyWhileDeleting } from "./routes/app/context";
@@ -239,6 +240,7 @@ export function createApp(options: AppOptions) {
     api.route("/app", jevRoutes(deps));
     api.route("/app", feedbackRoutes(deps));
     api.route("/app", gifKeyRoutes(deps));
+    api.route("/app", companyRequestRoutes(deps));
     api.route("/app", speechKeyRoutes(deps));
     api.route("/app", voiceRoutes(deps));
     api.route("/app", whatsappRoutes(deps));
@@ -271,6 +273,7 @@ export function createApp(options: AppOptions) {
       }),
     );
     if (deps.config.LANDING_URL) registerWaitlist(api, deps);
+    registerCompanyRequests(api, deps);
     // The push relay for other installations' phone pushes (ADR 0152, ADR 0178), with this server's Firebase
     // account and APNs key.
     if (deps.config.PUSH_RELAY_SERVE === "on") {

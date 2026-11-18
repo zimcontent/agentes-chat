@@ -1,0 +1,81 @@
+/*
+ * The company request page ("Quero o DougBot na minha empresa", `/empresas`): the sign-in's look (the calm column, the
+ * horizon), with the form's fields in that same column. Tokens only, so light and dark follow the theme.
+ */
+.companies {
+  display: flex;
+  flex-direction: column;
+  gap: var(--form-gap);
+}
+.companies__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.companies__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--form-gap);
+}
+/* Name and company on one row while the column has room for both; each full width alone on a phone. */
+.companies__pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--field-gap);
+}
+@media (max-width: 560px) {
+  .companies__pair {
+    grid-template-columns: 1fr;
+  }
+}
+/* The size bands, as a wrap of pills that can be pressed (a radio group): one per line at a phone's width. */
+.companies__sizes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.companies__size {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-h-md);
+  padding-inline: var(--control-px-md);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-btn);
+  background: var(--raised);
+  color: var(--ink2);
+  font-size: var(--control-fs-md);
+  cursor: pointer;
+}
+.companies__size:has(input:checked) {
+  border-color: var(--action);
+  background: var(--chosen-bg);
+  color: var(--ink);
+}
+/* The radio itself is the pill's own: hidden from sight, its state drawn above, still reachable by keyboard. */
+.companies__size input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+}
+.companies__size:has(input:focus-visible) {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
+.companies__consent {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+  color: var(--ink2);
+}
+.companies__consent input {
+  margin-top: 0.15em;
+  accent-color: var(--action);
+}
+.companies__done {
+  display: flex;
+  justify-content: flex-start;
+}
