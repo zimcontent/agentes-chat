@@ -1,7 +1,7 @@
 import { type PortalClientAccount, type PortalClientColor, type PortalContact, useApi } from "@agenteschat/client";
 import { can } from "@agenteschat/client/lib/permissions";
 import { portalErrorText } from "@agenteschat/client/lib/portal";
-import { Button, Card, Dialog, DialogFooter, Field, Input, SettingNote, SettingsSection } from "@agenteschat/ui";
+import { Button, Card, Dialog, DialogFooter, Field, Input, Select, SettingNote, SettingsSection } from "@agenteschat/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -38,6 +38,18 @@ export function PortalClientsSection() {
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: key });
   const fail = (error: unknown) => toast.show(portalErrorText(t, error, i18n.language), "error");
+
+  // Which of the workspace's numbers tells the portal's clients why they're being written to, if the workspace chose one.
+  const noticesKey = ["portal-notices", org.id];
+  const notices = useQuery({
+    queryKey: noticesKey,
+    queryFn: () => portal.noticeSettings(org.id),
+  });
+  const setNumber = useMutation({
+    mutationFn: (number: string | null) => portal.setNoticeNumber(org.id, number),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: noticesKey }),
+    onError: fail,
+  });
 
   const save = useMutation({
     mutationFn: (input: { client: string; name: string; contacts: PortalContact[]; color: PortalClientColor | null }) =>
@@ -171,6 +183,27 @@ export function PortalClientsSection() {
               </Card>
             ))}
           </div>
+        )}
+      </SettingsSection>
+      {/* Which number tells the clients (ADR doug-0020 §7): e-mail always goes; WhatsApp only from a number the
+          workspace picks here. With none, a client is never texted from a number nobody chose. */}
+      <SettingsSection title={t("portalClients.noticesTitle")} description={t("portalClients.noticesLead")}>
+        <Field label={t("portalClients.noticesNumber")}>
+          <Select
+            value={notices.data?.number ?? "none"}
+            onValueChange={(value) => setNumber.mutate(value === "none" ? null : value)}
+            disabled={!changes || setNumber.isPending || (notices.data?.numbers.length ?? 0) === 0}
+            options={[
+              { value: "none", label: t("portalClients.noticesNone") },
+              ...(notices.data?.numbers ?? []).map((n) => ({
+                value: n.id,
+                label: n.phone ? `${n.label} · +${n.phone}` : n.label,
+              })),
+            ]}
+          />
+        </Field>
+        {(notices.data?.numbers.length ?? 0) === 0 && (
+          <SettingNote icon="info">{t("portalClients.noticesNoNumbers")}</SettingNote>
         )}
       </SettingsSection>
       {editing && (

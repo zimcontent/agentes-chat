@@ -21429,6 +21429,12 @@ export const en = {
     copyFailed: "Couldn't copy the link",
     revoked: "The link was revoked",
     linkStale: "This link has to be made again: make a new one to send",
+    noticesTitle: "WhatsApp notices",
+    noticesLead:
+      "A client's contacts are always told by e-mail. WhatsApp goes out only from the number you pick here: with none, nothing is sent on WhatsApp, and nobody's personal number is used.",
+    noticesNumber: "Number that tells them",
+    noticesNone: "None: e-mail only",
+    noticesNoNumbers: "No number connected yet. Connect one in Settings › WhatsApp to tell them there too.",
     newLink: "New link",
     revoke: "Revoke link",
   },

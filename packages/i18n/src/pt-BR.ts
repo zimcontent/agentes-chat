@@ -21377,6 +21377,12 @@ export const ptBR = {
     copyFailed: "Não deu para copiar o link",
     revoked: "O link foi revogado",
     linkStale: "O link precisa ser refeito: faça um novo para enviar",
+    noticesTitle: "Avisos por WhatsApp",
+    noticesLead:
+      "Os contatos do cliente são sempre avisados por e-mail. O WhatsApp só sai pelo número que você escolher aqui: sem escolha, nada é enviado por WhatsApp, e o número pessoal de ninguém é usado.",
+    noticesNumber: "Número que avisa",
+    noticesNone: "Nenhum: só e-mail",
+    noticesNoNumbers: "Nenhum número conectado ainda. Conecte um em Configurações › WhatsApp para avisar por lá também.",
     newLink: "Novo link",
     revoke: "Revogar link",
   },

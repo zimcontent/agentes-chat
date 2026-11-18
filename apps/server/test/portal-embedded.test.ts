@@ -45,7 +45,7 @@ test("the team makes a client with a contact, gets a link, and changes the clien
   expect(list.clients.map((c) => c.client)).toEqual(["padaria-aurora"]);
   // The list's rows carry no link of their own: an `assign_work` member is given them in `links`, by the client's id.
   expect(list.clients[0]?.link).toBeUndefined();
-  expect(list.links["padaria-aurora"]).toBe(client.link);
+  expect(list.links["padaria-aurora"] ?? null).toBe(client.link);
 });
 
 test("a new link revokes the old address; a revoked link answers 404 on its page", async () => {

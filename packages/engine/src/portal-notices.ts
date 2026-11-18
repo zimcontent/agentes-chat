@@ -191,8 +191,10 @@ export async function announcePortalPost(
       try {
         await queueEmail(deps.db, {
           orgId,
-          // One email per client, contact and hour: a second call in the same window adds nothing.
-          key: `portal-notice:${post.client}:${group.toISOString()}:${contact.id}`,
+          // The client, the hour's window, the contact, and which post versions it names: a repeat of the same notice
+          // adds nothing, while a new version of a post inside the window (the client asked a change, the team redid
+          // it) is a notice of its own — the rule the ADR states, `posts[]` and all.
+          key: `portal-notice:${post.client}:${group.toISOString()}:${contact.id}:${fresh.map((p) => `${p.id}v${p.version}`).join("+")}`,
           to: [contact.email],
           template: { kind: "portal_ready", locale, clientName: client.name, posts, url },
         });

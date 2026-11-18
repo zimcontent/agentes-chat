@@ -157,6 +157,42 @@ export function applyBootSwitches(config: Config) {
  * Shared by the self-hosted entrypoint (`src/main.ts`) and any entrypoint
  * that adds public modules (ADR 0002); only `modules` differ.
  */
+/**
+ * The approval portal's adapters (ADR 9001, docs/adr/doug-0020-embedded-approval-portal.md): the installation's bridge
+ * when it has one, else the portal kept in this server's own database. `APPROVAL_PORTAL_URL` without
+ * `APPROVAL_PORTAL_TOKEN` is a misconfiguration, never a reason to fall back to the embedded one: the server says so
+ * (a warning, once) and keeps the bridge's portal off, so nobody's surprise is another operation's portal. With both
+ * set, nothing of the embedded portal is made.
+ */
+function approvalPortalAdapters(
+  config: Config,
+  db: Parameters<typeof createEmbeddedApprovalPortal>[0]["db"],
+  blobs: Parameters<typeof createEmbeddedApprovalPortal>[0]["blobs"],
+  log: Logger,
+) {
+  if (config.APPROVAL_PORTAL_URL && config.APPROVAL_PORTAL_TOKEN) {
+    return {
+      approvalPortal: createBridgeApprovalPortal({ url: config.APPROVAL_PORTAL_URL, token: config.APPROVAL_PORTAL_TOKEN }),
+    };
+  }
+  if (config.APPROVAL_PORTAL_URL) {
+    log.warn("APPROVAL_PORTAL_URL is set with no APPROVAL_PORTAL_TOKEN: no approval portal is on", {
+      fix: "set APPROVAL_PORTAL_TOKEN, or unset APPROVAL_PORTAL_URL for the installation's own portal",
+    });
+    return { approvalPortal: null };
+  }
+  return {
+    approvalPortal: createEmbeddedApprovalPortal({
+      db,
+      blobs,
+      publicUrl: config.PUBLIC_URL,
+      secret: config.AGENTES_SECRET,
+      log,
+    }),
+    approvalPortalEmbedded: true,
+  };
+}
+
 export async function startServer(options: StartOptions) {
   let config: ReturnType<typeof loadConfig>;
   try {
@@ -303,24 +339,10 @@ async function boot(
         : null,
     // The approval portal (ADR 9001): through the installation's bridge when it has one, else the portal kept in this
     // server's own database (docs/adr/doug-0020-embedded-approval-portal.md), so every installation has its own, served
-    // at its own address.
-    ...(config.APPROVAL_PORTAL_URL && config.APPROVAL_PORTAL_TOKEN
-      ? {
-          approvalPortal: createBridgeApprovalPortal({
-            url: config.APPROVAL_PORTAL_URL,
-            token: config.APPROVAL_PORTAL_TOKEN,
-          }),
-        }
-      : {
-          approvalPortal: createEmbeddedApprovalPortal({
-            db: database.db,
-            blobs: platformBlobs,
-            publicUrl: config.PUBLIC_URL,
-            secret: config.AGENTES_SECRET,
-            log,
-          }),
-          approvalPortalEmbedded: true,
-        }),
+    // at its own address. An address without its token is a setup mistake, not "no bridge": the server says so and
+    // keeps the bridge's portal off, instead of quietly turning on the embedded one and reading another operation's
+    // portal differently than expected. With both set nothing of the embedded one is made.
+    ...approvalPortalAdapters(config, database.db, platformBlobs, log),
     // The Vault's external sources (ADR 0144): nothing reaches them until a person connects one. A self-hosted
     // Bitwarden's address is typed by a person, so its requests go only to public addresses, pinned at connect time.
     vaultSources: Object.fromEntries(
