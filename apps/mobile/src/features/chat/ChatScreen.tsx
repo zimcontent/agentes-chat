@@ -179,7 +179,7 @@ import { PushOfferLine } from "../push/PushOfferLine";
 import { FanStrip, QueueWaitRow } from "../queue/parts";
 import { DmQueueButton, QueueButton, useAgentsQueue, useOpenQueue } from "../queue/QueueSheet";
 import { RemindSheet } from "../reminders/RemindSheet";
-import { filePart } from "../review/media";
+import { FILE_PART_MAX_BYTES, filePart } from "../review/media";
 import { RightHandIntro } from "../right-hand/Intro";
 import { ConversationSearch } from "../search/ConversationSearch";
 import { hitTarget } from "../search/logic";
@@ -1248,7 +1248,17 @@ function Chat({
       // Nothing goes half sent: the ones that failed stay marked.
       const after = (f: PendingFile): PendingFile["state"] => (failed.has(f.id) ? "failed" : "waiting");
       setPending((now) => now.map((f) => ({ ...f, state: after(f) })));
-      toast({ title: t("mobile.chat.uploadFailed"), icon: "x" });
+      // A file over what the phone can send says so (and the most it can be), not just that it failed.
+      const tooLarge = results.find(
+        (r): r is PromiseRejectedResult =>
+          r.status === "rejected" && (r.reason as { status?: unknown })?.status === 413,
+      );
+      toast({
+        title: tooLarge
+          ? errorText(t, tooLarge.reason, i18n.language, { maxMb: FILE_PART_MAX_BYTES / 1024 / 1024 })
+          : t("mobile.chat.uploadFailed"),
+        icon: "x",
+      });
       return null;
     }
     return results.flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));

@@ -84,3 +84,13 @@ export function changesHintOf(
   if (!review.sender) return w.changesHint;
   return review.taskId ? w.editor.changesHint(review.sender.name) : w.team.changesHint(review.sender.name);
 }
+
+/**
+ * The most a file sent as a `filePart` (media.ts) may weigh. Its bytes are read whole into the app's memory and copied
+ * once more on their way out, so a long video from the library could get the app closed by the system: past this the
+ * upload fails as too large (the 413 the server would say) before a byte is read.
+ */
+export const FILE_PART_MAX_BYTES = 200 * 1024 * 1024;
+
+/** Whether a file of `size` bytes (unknown: the system couldn't say, and the server's limit decides) fits a `filePart`. */
+export const fitsFilePart = (size: number | null | undefined) => (size ?? 0) <= FILE_PART_MAX_BYTES;
