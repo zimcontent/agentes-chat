@@ -4,7 +4,8 @@
   "type": "module",
   "workspaces": [
     "apps/*",
-    "packages/*"
+    "packages/*",
+    "clients"
   ],
   "scripts": {
     "dev": "bun run --filter '@agenteschat/server' --filter '@agenteschat/web' dev",

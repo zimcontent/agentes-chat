@@ -27,6 +27,14 @@ export const EMAIL = /^[^\s@,;:<>()[\]"]+@[^\s@,;:<>()[\]"]+\.[^\s@,;:<>()[\]"]+
 export const isEmail = (value: string) => EMAIL.test(value.trim());
 
 /**
+ * The server's own address test (`z.email()` in the engine), mirrored here so a form refuses what it would: a comma
+ * or a query (`a,victim@x.com`, `a@b.co?cc=x`) is never an address, and a bare word is never a domain.
+ */
+export const STRICT_EMAIL =
+  /^(?:[A-Za-z0-9_+-]+\.)*[A-Za-z0-9_+-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9-]*\.)+[A-Za-z]{2,}$/;
+export const isStrictEmail = (value: string) => value.trim().length <= 254 && STRICT_EMAIL.test(value.trim());
+
+/**
  * Addresses typed or pasted, in order, once each, in lower case, each marked valid or not. Read the way mail apps
  * and spreadsheets copy them: `Ana Silva <ana@x.com>`, `"ana@x.com"`, `mailto:ana@x.com`. Once the text has an
  * address in brackets, the bare words around it are names, not addresses to check; a quoted name

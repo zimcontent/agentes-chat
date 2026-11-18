@@ -61,6 +61,7 @@ import {
   recoverStaleRuns,
   refreshPlanModels,
   releaseJobs,
+  sweepCompanyRequests,
   sweepEndedInboxes,
   sweepExpiredVoice,
   sweepFeedbackFiles,
@@ -156,6 +157,11 @@ export interface WorkerDeps {
   /** The database is the built-in one (one process): the alarms advise what fits it. */
   builtInDatabase?: boolean;
   /**
+   * Days a company's request from the page is kept after the team last moved it, when it never became an invitation
+   * or a client (`COMPANY_REQUESTS_RETENTION_DAYS`); absent or 0: kept forever.
+   */
+  companyRequestsRetentionDays?: number;
+  /**
    * What brings a connection or a skill into a workspace for a copy of an agent there (ADR doug-0013); absent, the
    * copies still sync, and what would need bringing is listed as missing.
    */
@@ -232,6 +238,8 @@ export const WORKER_INTERVALS_MS = {
    * with something new are synced; the owner's agents of the same handle are joined every tenth tick.
    */
   agentTwins: 60_000,
+  /** Company requests the team never made a client, past their retention (LGPD, `COMPANY_REQUESTS_RETENTION_DAYS`). */
+  companyRequests: 24 * 3600_000,
 };
 
 /**
@@ -378,6 +386,13 @@ export function startWorkers(deps: WorkerDeps) {
       log.info("workspace deletions due", { due, accounts });
       void ticks.get("outbox")?.();
     }
+  });
+
+  // The LGPD's retention of the page's company requests: the ones the team never invited or made a client. The
+  // address' confirmation is part of it: a request nobody confirmed goes once its link has expired.
+  every("companyRequests", WORKER_INTERVALS_MS.companyRequests, async () => {
+    const { swept } = await sweepCompanyRequests(db, deps.companyRequestsRetentionDays ?? 0);
+    if (swept > 0) log.info("old company requests deleted", { swept });
   });
 
   every("rightHandRondas", WORKER_INTERVALS_MS.rightHandRondas, async () => {

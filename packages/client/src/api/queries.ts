@@ -21,6 +21,7 @@ import { artifactRefs } from "../lib/artifacts";
 import { newerBlockState, stateChanges, stateForPage } from "../lib/blocks";
 import type { ChatPrefs } from "../lib/chat-look";
 import type { ChoiceAnswer } from "../lib/choices";
+import { type ClientLook, clientLookOf, productName } from "../lib/client-custom";
 import { newerSetup } from "../lib/computer";
 import { CONSULT_CONVERSATION_POLL_MS, CONSULT_GROUP_POLL_MS, exchangeIds } from "../lib/consult-group";
 import { forPeople } from "../lib/consultations";
@@ -117,6 +118,9 @@ import type {
   ChannelEvent,
   ChannelInput,
   ChannelOverride,
+  CompanyRequest,
+  CompanyRequestInvite,
+  CompanyRequestStatus,
   ComputerSetup,
   DatabaseActionName,
   DatabaseConnectionInput,
@@ -261,6 +265,24 @@ export const instanceQuery = (api: ApiClient) =>
 /** The company details the legal pages fill in (`LEGAL_*`): they change only with the installation's settings. */
 export const legalFactsQuery = (api: ApiClient) =>
   queryOptions({ queryKey: keys.legal, queryFn: () => api.system.legal(), staleTime: 60_000 });
+
+/**
+ * This server's client customizations (ADR doug-0032): its name and color (from `me`, with `/api/instance` as the
+ * fallback) and, once signed in, the tools it turns off and the onboarding's words. NO_CLIENT for a server with none,
+ * so every screen that reads it paints the product's own. `me` may be dropped from the cache by a sign-out: the hook
+ * then reads `null` and the instance again, which is public.
+ */
+export function useClientLook(): ClientLook {
+  const api = useApi();
+  const me = useQuery(meQuery(api)).data;
+  const instance = useQuery(instanceQuery(api)).data;
+  return useMemo(() => clientLookOf(me, instance), [me, instance]);
+}
+
+/** The product's name here, from `useClientLook`'s answer: a server with no client says the build's own. */
+export function useProductName(fallback: string): string {
+  return productName(useClientLook(), fallback);
+}
 export const channelsQuery = (api: ApiClient, orgId: string) =>
   queryOptions({
     queryKey: keys.channels(orgId),
@@ -432,6 +454,79 @@ function useSpeechKeyChange<T>(change: (api: ApiClient, input: T) => Promise<Spe
 export const useSaveSpeechKey = () =>
   useSpeechKeyChange((api, input: SpeechKeyInput) => api.system.saveSpeechKey(input), true);
 export const useRemoveSpeechKey = () => useSpeechKeyChange<void>((api) => api.system.removeSpeechKey());
+
+/**
+ * The company requests, for the installation's owner (`null` to everyone else, and on agentes.chat itself), one page
+ * at a time, filtered by step and by a search over the company, the person and the address.
+ */
+export const useCompanyRequests = (query: { status?: string; q?: string } = {}) => {
+  const api = useApi();
+  const key = JSON.stringify(query);
+  return useInfiniteQuery({
+    queryKey: keys.companyRequests(key),
+    queryFn: ({ pageParam }) => api.system.companyRequests({ ...query, cursor: pageParam }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last?.next ?? undefined,
+  });
+};
+
+/** One company request, read afresh as its notes or step change. */
+export const useCompanyRequest = (id: string) => {
+  const api = useApi();
+  return useQuery({ queryKey: keys.companyRequest(id), queryFn: () => api.system.companyRequest(id) });
+};
+
+/** Every write to a request: the list and the request are read again, so the counts and the card follow. */
+function useCompanyChange<T>(change: (api: ApiClient, input: T) => Promise<CompanyRequest>, silent = false) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: T) => change(api, input),
+    onSuccess: (request) => {
+      qc.setQueryData(keys.companyRequest(request.id), request);
+      void qc.invalidateQueries({ predicate: (q) => q.queryKey[0] === "companies" && q.queryKey.length === 2 });
+    },
+    ...(silent ? { meta: { silent: true } } : {}),
+  });
+}
+export const useSetCompanyStatus = () =>
+  useCompanyChange((api, input: { id: string; status: CompanyRequestStatus }) =>
+    api.system.setCompanyStatus(input.id, input.status),
+  );
+export const useSaveCompanyNotes = () =>
+  useCompanyChange((api, input: { id: string; notes: string }) => api.system.saveCompanyNotes(input.id, input.notes));
+export const useSaveCompanyClientCode = () =>
+  useCompanyChange((api, input: { id: string; clientCode: string | null }) =>
+    api.system.saveCompanyClientCode(input.id, input.clientCode),
+  );
+
+/** Erases a request and everything it holds (LGPD): the list and the counts are read again. */
+export const useDeleteCompanyRequest = () => {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.system.deleteCompanyRequest(id),
+    onSuccess: (_done, id) => {
+      qc.removeQueries({ queryKey: keys.companyRequest(id) });
+      void qc.invalidateQueries({ predicate: (q) => q.queryKey[0] === "companies" && q.queryKey.length === 2 });
+    },
+    meta: { silent: true },
+  });
+};
+
+/** The Invite: its answer's outcome is the caller's to read (an email sent, one too recent, an account allowed). */
+export const useInviteCompany = () => {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string): Promise<CompanyRequestInvite> => api.system.inviteCompany(id),
+    onSuccess: ({ request }) => {
+      qc.setQueryData(keys.companyRequest(request.id), request);
+      void qc.invalidateQueries({ predicate: (q) => q.queryKey[0] === "companies" && q.queryKey.length === 2 });
+    },
+    meta: { silent: true },
+  });
+};
 
 /** Whether calls with agents and "Ouvir" work in this workspace (ADR doug-0006). */
 export const useLiveVoice = (orgId: string) => {

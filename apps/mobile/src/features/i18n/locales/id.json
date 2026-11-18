@@ -940,7 +940,9 @@
       "plan_model_dropped_other": "{{model}} keluar dari {{plan}}. {{names}} memakai {{runs}} untuk sementara",
       "computer_disk_full_other": "Disk komputer hampir penuh",
       "computer_no_chrome_other": "Komputer memerlukan Google Chrome. Unduh di google.com/chrome",
-      "app_created_other": "Aplikasi AI membuat sesuatu untukmu"
+      "app_created_other": "Aplikasi AI membuat sesuatu untukmu",
+      "company_request_one": "{{names}} meminta DougBot untuk perusahaan",
+      "company_request_other": "{{names}} meminta DougBot untuk perusahaan"
     },
     "markRead": "Tandai sudah dibaca",
     "markUnread": "Tandai belum dibaca",

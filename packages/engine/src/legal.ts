@@ -51,7 +51,11 @@ export interface LegalFacts {
   storage: "s3" | "disk" | "database";
   /** This server is one of agentes.chat's own, where the usage report cannot be switched off. */
   telemetryForced: boolean;
-  /** Days a company's request to the waiting list is kept (`COMPANY_REQUESTS_RETENTION_DAYS`); null: no such form. */
+  /**
+   * Days a company's request to the waiting list is kept (`COMPANY_REQUESTS_RETENTION_DAYS`); null: no such form
+   * here, and the Policy's section 12 is left out. The form is self-hosting's own (agentes.chat Cloud serves none),
+   * and a retention of 0 keeps every request forever, which is no retention to promise either.
+   */
   companyRequestsRetentionDays: number | null;
   /** Each optional outside service: on when the setting that turns it on is there. */
   services: Record<LegalService, boolean>;
@@ -135,7 +139,10 @@ export function legalFacts(config: LegalSettings): LegalFacts {
     backup: set(config.S3_BACKUP_BUCKET),
     storage: s3 ? "s3" : set(config.FILES_DIR) ? "disk" : "database",
     telemetryForced: cloud,
-    companyRequestsRetentionDays: config.COMPANY_REQUESTS_RETENTION_DAYS ?? null,
+    // The form is self-hosting's own (Cloud serves none), and a missing or 0 retention promises none: neither leaves
+    // a §12, since neither has one to state. The schema refuses 0 at boot, so this is the older-row fallback alone.
+    companyRequestsRetentionDays:
+      cloud || !config.COMPANY_REQUESTS_RETENTION_DAYS ? null : config.COMPANY_REQUESTS_RETENTION_DAYS,
     services: {
       platformKey: set(config.PLATFORM_ANTHROPIC_API_KEY),
       jev: set(config.TYPESAFE_API_KEY),

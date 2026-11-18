@@ -236,6 +236,16 @@ export function Headline({
   );
   const own = workspaceHeadline(n);
   if (own === "computerSetup.notification.ready" && personal) return t("computerSetup.notification.readyPersonal");
+  // A company's request: the company is the label, who asked is `latest.text`.
+  if (n.kind === "company_request")
+    return (
+      <Trans
+        i18nKey="companies.notice.title"
+        values={{ company: n.source.label ?? "", name: n.latest.text ?? "" }}
+        components={{ b: <b /> }}
+        {...TYPED_VALUES}
+      />
+    );
   if (own) return t(own, { name: n.source.label });
   if (n.kind === "app_created") return appCreatedLine(t, n);
   if (deviceNoticeOf(n)) return <DeviceHeadline n={n} dir={dir} />;

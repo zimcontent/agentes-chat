@@ -194,7 +194,7 @@ Esta instalação não envia relatório de uso: o envio está desligado por conf
 {{#if companyRequests}}
 Esta instalação tem um formulário público em que uma empresa pede para entrar na lista de espera. O formulário coleta o nome da pessoa, o e-mail, o WhatsApp, a empresa, o tamanho do time, os interesses e o recado que ela escrever, e só vale com o consentimento dado ali mesmo (art. 7º, I). O pedido só é registrado depois que a pessoa confirma pelo e-mail que recebe.
 
-O Prestador é o controlador desses dados e os usa apenas para responder ao pedido e combinar a contratação. Eles são guardados por {{companyRequestsRetentionDays}} dias e depois apagados. Quem enviou pode apagar o pedido a qualquer momento pelo botão de apagar do e-mail de confirmação, ou pedir ao encarregado ({{dpoEmailLink}}), e pode retirar o consentimento da mesma forma.
+O Prestador é o controlador desses dados e os usa apenas para responder ao pedido e combinar a contratação. Um pedido que ninguém confirma pelo e-mail some poucos dias depois de o link vencer, sem nunca chegar ao time. Um pedido confirmado é guardado por {{companyRequestsRetentionDays}} dias sem movimento e depois apagado, menos o de uma empresa que o time convidou ou que virou cliente: esse é o registro de uma relação que continua. Quem enviou pode apagar o pedido a qualquer momento pelo link de apagar do e-mail de confirmação, que apaga tudo o que ele guarda, consentimento incluído, ou pedir ao encarregado ({{dpoEmailLink}}), e pode retirar o consentimento da mesma forma.
 {{else}}
 Esta instalação não tem formulário de lista de espera, e nada é coletado dessa forma.
 {{/if}}

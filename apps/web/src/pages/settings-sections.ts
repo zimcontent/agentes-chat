@@ -33,6 +33,7 @@ export type SettingsSection =
   | "media"
   | "voice"
   | "portal"
+  | "companies"
   | "support"
   | "about";
 
@@ -101,6 +102,12 @@ export const SETTINGS_SECTIONS: {
   { id: "import", icon: "archiveBox", allowed: (o) => can(o, "create_agents") },
   // What agents did and people changed: only for who may see it (it shows everyone's work).
   { id: "audit", icon: "shield", allowed: (o) => can(o, "view_audit") },
+  // The companies that asked for DougBot on the page: the installation's owner alone, on a self-hosted server.
+  {
+    id: "companies",
+    icon: "mail",
+    allowed: (_o, server) => !!server && !server.cloud && server.companyRequests === true,
+  },
   // AGPL-3.0's legal notices and the license's required attribution: for everyone on a self-hosted server, never
   // hidden there; none on agentes.chat Cloud (`showsAbout`).
   { id: "about", icon: "info", allowed: (_o, server) => showsAbout(server) },

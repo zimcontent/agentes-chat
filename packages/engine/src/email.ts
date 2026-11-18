@@ -14,6 +14,7 @@ import {
   schema,
   sql,
 } from "@agenteschat/db";
+import { serverText } from "@agenteschat/i18n";
 import { BRAND_NAME, brandText } from "@agenteschat/i18n/brand";
 import { formatMoneyUsd } from "@agenteschat/i18n/format";
 import { appLocale, localeInfo } from "@agenteschat/i18n/locale";
@@ -202,6 +203,34 @@ export type EmailTemplate =
   | { kind: "early_access"; locale: EmailLocale; email: string; url: string; days: number }
   /** Early access for the account `email` already has (ADR 0078): it may make workspaces now, from `url`. */
   | { kind: "early_access_allowed"; locale: EmailLocale; email: string; url: string }
+  /**
+   * Double opt-in for a company's request on the page, in the company's language: opening `url` confirms the
+   * address, and only then is the installation's owner told. Nothing is kept from it before that. `deleteUrl` is the
+   * person's own erasure, opened on the same page, which asks before it deletes (its own token, good for longer).
+   */
+  | { kind: "company_request_confirm"; locale: EmailLocale; company: string; url: string; deleteUrl: string }
+  /**
+   * A confirmed request's second form asked to change something: `url` confirms the new data, which replaces the
+   * request's once opened. The row keeps the first form's consent. No delete link: the confirmed request's first
+   * email already carried the one that works.
+   */
+  | { kind: "company_request_resend"; locale: EmailLocale; company: string; url: string }
+  /**
+   * A new company's request, to the installation's owner where they asked to hear it: the company and how to reach
+   * the person, with a link to the installation's list (`url`). Never the message they typed.
+   */
+  | {
+      kind: "company_request_owner";
+      locale: EmailLocale;
+      company: string;
+      person: string;
+      email: string;
+      whatsapp: string;
+      teamSize: string;
+      interests: string[];
+      message: string;
+      url: string;
+    }
   | {
       kind: "budget";
       locale?: EmailLocale;
@@ -682,6 +711,74 @@ function docOf(t: EmailTemplate, sender: string | null): EmailDoc {
         [{ p: c.body(inertText(t.email)) }, { button: c.button, url: t.url }, fallback(t.url)],
         c.why,
         { crew: ONBOARDING_CREW },
+      );
+    }
+    case "company_request_confirm": {
+      const c = w.companyRequestConfirm;
+      return doc(
+        c.subject(inertText(t.company)),
+        c.preheader,
+        c.headline,
+        [
+          { p: c.body(inertText(t.company)) },
+          // The person's own erasure, beside what confirms: the page it opens asks before deleting anything.
+          { button: c.button, url: t.url, also: { label: c.delete, url: t.deleteUrl, danger: true } },
+          { p: c.next },
+          { p: c.deleteLead },
+          { small: c.small },
+          fallback(t.url),
+        ],
+        c.why,
+      );
+    }
+    case "company_request_resend": {
+      const c = w.companyRequestResend;
+      return doc(
+        c.subject(inertText(t.company)),
+        c.preheader,
+        c.headline,
+        [
+          { p: c.body(inertText(t.company)) },
+          { button: c.button, url: t.url },
+          { p: c.next },
+          { small: c.small },
+          fallback(t.url),
+        ],
+        c.why,
+      );
+    }
+    case "company_request_owner": {
+      const c = w.companyRequestOwner;
+      // The codes the form sends, in the recipient's language, and what the team will read in the list.
+      const word = (key: string) => {
+        const text = serverText(lang, key);
+        return text === key ? null : text;
+      };
+      const interests = t.interests
+        .map((i) => word(`companies.interests.${i}`))
+        .filter((v): v is string => v !== null)
+        .join(", ");
+      const size = word(`companies.teamSizes.${t.teamSize}`) ?? inertText(t.teamSize, 20);
+      return doc(
+        c.subject(inertText(t.company)),
+        c.preheader,
+        c.headline,
+        [
+          {
+            facts: [
+              [c.facts.company, inertText(t.company, 120)],
+              [c.facts.person, inertText(t.person)],
+              [c.facts.email, inertText(t.email)],
+              [c.facts.whatsapp, inertText(t.whatsapp)],
+              [c.facts.teamSize, size],
+              ...(interests ? [[c.facts.interests, interests] as [string, string]] : []),
+            ],
+          },
+          // What they typed, inert and quoted: never a page of it.
+          ...(t.message.trim() ? [{ note: inertText(t.message, 600) }] : []),
+          { button: c.button, url: t.url },
+        ],
+        c.why,
       );
     }
     case "budget": {

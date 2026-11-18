@@ -1,5 +1,6 @@
-import { useApi, useMe } from "@agenteschat/client";
-import { Button, EmptyState } from "@agenteschat/ui";
+import { instanceQuery, meQuery, useApi, useClientLook, useMe } from "@agenteschat/client";
+import { Button, EmptyState, setClientProductName } from "@agenteschat/ui";
+import { useQuery } from "@tanstack/react-query";
 import { createRootRouteWithContext, Link, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,6 +10,7 @@ import { DesktopDragStrip } from "@/components/DesktopTitleBar";
 import { ErrorScreen } from "@/components/ErrorScreen";
 import { AccountDeletingScreen } from "@/components/Standing";
 import { useBackCloses } from "@/hooks/useBackCloses";
+import { rebrandLoaded } from "@/i18n";
 import { switchAccount } from "@/lib/accounts";
 import { askForPhone, asksForPhone, inDesktopApp, pageReadyAfterPaint, routeNewWindowLinks } from "@/lib/desktop";
 import { dispatchPushOpen } from "@/lib/push-open";
@@ -74,11 +76,51 @@ function SignedIn() {
   );
   return (
     <>
+      <ClientBrand />
       {inDesktopApp() && !inWorkspace && <DesktopDragStrip />}
       <ContextMenuHost />
       {deletion ? <AccountDeletingScreen dueAt={deletion.dueAt} /> : <Outlet />}
     </>
   );
+}
+
+/**
+ * This server's client customizations (ADR doug-0032), applied once they arrive: the product's name everywhere the app
+ * signs it (the signature, the tab's title, the strings it builds from then on: `setClientProductName`) and the
+ * highlight's color on the app's own `--db-verde-acento`-fed tokens. A server with no client draws nothing and changes
+ * nothing. Draws nothing at all: a side effect, kept in a component so it re-runs when `me` or the instance change.
+ */
+function ClientBrand() {
+  const { i18n } = useTranslation();
+  const api = useApi();
+  const client = useClientLook();
+  // Both answers decide the look, and both start out empty: until they are here, a null name or color means "not
+  // read yet", not "none", and clearing the name the boot already set (main.tsx) would flash the build's own on the
+  // signature. The color set on `<html>` is the boot's too, so a cleared one also waits for the answers.
+  const instance = useQuery(instanceQuery(api));
+  const me = useQuery(meQuery(api));
+  const known = instance.isSuccess || me.isSuccess;
+  useEffect(() => {
+    if (!known) return;
+    setClientProductName(client.name);
+    // The name that arrives after the strings were built (a boot whose `/api/instance` timed out, or a sign-in that
+    // answered late): every bundle already in the instance is branded again, as the boot does (ADR doug-0032).
+    rebrandLoaded(i18n);
+    const root = document.documentElement;
+    // The variable paints the highlight; the attribute lets it reach a part of the page that themes itself
+    // (doug.css), and is absent on a server with no client, which keeps the identity's green everywhere.
+    if (client.accent) {
+      root.style.setProperty("--client-accent", client.accent);
+      root.dataset.clientAccent = "";
+    } else {
+      root.style.removeProperty("--client-accent");
+      delete root.dataset.clientAccent;
+    }
+    // The tab's title follows by itself: `rebrandLoaded` announces the name as a language change, and
+    // `translateTabTitle` swaps the old default for the new wherever it shows, keeping a page's own title and the
+    // unread count in front of it.
+  }, [known, client.name, client.accent, i18n]);
+  return null;
 }
 
 function NotFound() {

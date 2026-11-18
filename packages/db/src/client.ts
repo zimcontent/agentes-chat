@@ -383,6 +383,63 @@ export const EXTRA_COLUMNS = [
   )`,
   `CREATE INDEX IF NOT EXISTS "media_generations_org" ON "media_generations" ("org_id", "created_at")`,
   `CREATE INDEX IF NOT EXISTS "media_generations_agent" ON "media_generations" ("agent_id", "created_at")`,
+  // The companies that asked for DougBot on the page ("Quero o DougBot na minha empresa"), and the team's list of them.
+  `CREATE TABLE IF NOT EXISTS "company_requests" (
+    "id" uuid PRIMARY KEY,
+    "name" text NOT NULL,
+    "email" text NOT NULL,
+    "whatsapp" text NOT NULL,
+    "company" text NOT NULL,
+    "team_size" text NOT NULL,
+    "interests" text[] NOT NULL DEFAULT '{}'::text[],
+    "message" text NOT NULL DEFAULT '',
+    "locale" text NOT NULL DEFAULT 'en',
+    "source" text NOT NULL DEFAULT 'companies',
+    "consent_at" timestamp with time zone NOT NULL,
+    "consent_version" text NOT NULL,
+    "confirmed_at" timestamp with time zone,
+    "confirm_token_hash" text,
+    "confirm_sent_at" timestamp with time zone,
+    "confirm_sends" integer NOT NULL DEFAULT 0,
+    "resend_at" timestamp with time zone,
+    "resend_token_hash" text,
+    "resend_data" jsonb,
+    "confirmed_updated_at" timestamp with time zone,
+    "delete_token_hash" text,
+    "delete_token_at" timestamp with time zone,
+    "status" text NOT NULL DEFAULT 'new',
+    "client_code" text,
+    "notes" text NOT NULL DEFAULT '',
+    "invited_at" timestamp with time zone,
+    "invited_by_user_id" text REFERENCES "users"("id") ON DELETE SET NULL,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now(),
+    "updated_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  // A server that already has the table gets the double opt-in's columns, and its requests as confirmed (the
+  // confirmation came after them: an owner's list of companies is not emptied by an update).
+  `ALTER TABLE "company_requests" ADD COLUMN IF NOT EXISTS "confirmed_at" timestamp with time zone`,
+  `ALTER TABLE "company_requests" ADD COLUMN IF NOT EXISTS "confirm_token_hash" text`,
+  `ALTER TABLE "company_requests" ADD COLUMN IF NOT EXISTS "confirm_sent_at" timestamp with time zone`,
+  `ALTER TABLE "company_requests" ADD COLUMN IF NOT EXISTS "confirm_sends" integer NOT NULL DEFAULT 0`,
+  `ALTER TABLE "company_requests" ADD COLUMN IF NOT EXISTS "resend_at" timestamp with time zone`,
+  `ALTER TABLE "company_requests" ADD COLUMN IF NOT EXISTS "resend_token_hash" text`,
+  `ALTER TABLE "company_requests" ADD COLUMN IF NOT EXISTS "resend_data" jsonb`,
+  `ALTER TABLE "company_requests" ADD COLUMN IF NOT EXISTS "confirmed_updated_at" timestamp with time zone`,
+  // The delete link the confirmation email carries (the person's own erasure, apart from the team's token).
+  `ALTER TABLE "company_requests" ADD COLUMN IF NOT EXISTS "delete_token_hash" text`,
+  `ALTER TABLE "company_requests" ADD COLUMN IF NOT EXISTS "delete_token_at" timestamp with time zone`,
+  // A request written before the confirmation existed counts as confirmed at its own date.
+  `UPDATE "company_requests" SET "confirmed_at" = "created_at", "confirmed_updated_at" = "created_at"
+     WHERE "confirmed_at" IS NULL`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "company_requests_email" ON "company_requests" ("email")`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "company_requests_client_code"
+     ON "company_requests" ("client_code") WHERE "client_code" IS NOT NULL`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "company_requests_confirm_token" ON "company_requests" ("confirm_token_hash")`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "company_requests_delete_token"
+     ON "company_requests" ("delete_token_hash") WHERE "delete_token_hash" IS NOT NULL`,
+  `CREATE INDEX IF NOT EXISTS "company_requests_status" ON "company_requests" ("status", "created_at", "id")`,
+  `CREATE INDEX IF NOT EXISTS "company_requests_created" ON "company_requests" ("created_at", "id")`,
+  `CREATE INDEX IF NOT EXISTS "company_requests_retention" ON "company_requests" ("status", "updated_at")`,
   // One agent in several workspaces, trained as one (ADR doug-0013).
   `CREATE TABLE IF NOT EXISTS "agent_twins" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,

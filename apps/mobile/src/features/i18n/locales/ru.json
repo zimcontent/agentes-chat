@@ -1162,7 +1162,9 @@
       "app_created_one": "Приложение ИИ кое-что создало для вас",
       "app_created_few": "Приложение ИИ кое-что создало для вас",
       "app_created_many": "Приложение ИИ кое-что создало для вас",
-      "app_created_other": "Приложение ИИ кое-что создало для вас"
+      "app_created_other": "Приложение ИИ кое-что создало для вас",
+      "company_request_one": "{{names}} запросил DougBot для компании",
+      "company_request_other": "{{names}} запросили DougBot для компании"
     },
     "markRead": "Отметить как прочитанное",
     "markUnread": "Отметить как непрочитанное",

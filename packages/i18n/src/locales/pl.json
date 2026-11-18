@@ -771,6 +771,119 @@
       "takenLead": "Zaloguj się na swoje konto."
     }
   },
+  "companies": {
+    "page": {
+      "title": "Przenieś DougBot do swojej firmy",
+      "lead": "Opowiedz nam o swojej firmie i o tym, co chcesz zautomatyzować. Zespół czyta każde zgłoszenie i rozmawia z każdą firmą przez WhatsApp.",
+      "formTitle": "Twoja firma",
+      "name": "Twoje imię",
+      "nameExample": "Ana Souza",
+      "email": "E-mail",
+      "emailExample": "ana@firma.pl",
+      "whatsapp": "WhatsApp",
+      "whatsappExample": "+55 11 91234-5678",
+      "company": "Firma",
+      "companyExample": "Piekarnia Aurora",
+      "teamSize": "Wielkość zespołu",
+      "interests": "Co chcesz zautomatyzować",
+      "interestsHint": "Zaznacz wszystko, co pasuje.",
+      "message": "Coś jeszcze",
+      "messageExample": "Publikujemy dwa filmy tygodniowo ręcznie.",
+      "messageOptional": "Opcjonalnie",
+      "consent": "Zgadzam się, aby DougBot przechowywał te odpowiedzi w celu kontaktu ze mną, jak opisano w <link>Polityce prywatności</link>.",
+      "consentRequired": "Zaakceptuj Politykę prywatności, aby kontynuować.",
+      "submit": "Wyślij zgłoszenie",
+      "sending": "Wysyłanie…",
+      "doneTitle": "Mamy twoje zgłoszenie",
+      "doneLead": "Zespół czyta każde zgłoszenie i rozmawia z każdą firmą przez WhatsApp. Otrzymasz też e-mail.",
+      "again": "Wyślij kolejne zgłoszenie",
+      "failed": "Nie udało się wysłać zgłoszenia. Spróbuj ponownie.",
+      "privacy": "Polityka prywatności",
+      "messageTooLong": "To dłuższe, niż przyjmuje formularz. Skróć to.",
+      "invalidField": "Sprawdź tę część formularza i spróbuj ponownie.",
+      "invalidEmail": "Użyj adresu e-mail, np. ana@firma.pl.",
+      "confirmTitle": "Potwierdzanie e-maila…",
+      "confirmLead": "Chwileczkę.",
+      "confirmFailedTitle": "Ten link jest nieznany lub wygasł",
+      "confirmFailedLead": "Wyślij formularz ponownie, aby otrzymać nowy link.",
+      "confirmAgain": "Wyślij formularz ponownie",
+      "deleteTitle": "Usunąć twoje zgłoszenie?",
+      "deleteLead": "To usuwa zgłoszenie i wszystko, co zawiera, łącznie ze zgodą, i nie da się tego cofnąć. Jeśli chciałeś tylko coś zmienić, wyślij formularz ponownie ze swojej wiadomości e-mail.",
+      "deleteConfirm": "Usuń moje zgłoszenie",
+      "deletedTitle": "Zgłoszenie usunięte",
+      "deletedLead": "Wszystko, co zawierało, przepadło. Nic więcej nie jest przechowywane.",
+      "deleteFailedTitle": "Ten link jest nieznany lub już użyty",
+      "deleteFailedLead": "Nie ma już czego nim usunąć albo wygasł."
+    },
+    "interests": {
+      "design": "Design",
+      "video": "Wideo",
+      "ads": "Reklamy",
+      "social": "Media społecznościowe",
+      "code": "Kod",
+      "finance": "Finanse"
+    },
+    "teamSizes": {
+      "1-5": "1 do 5 osób",
+      "6-20": "6 do 20 osób",
+      "21-50": "21 do 50 osób",
+      "51-200": "51 do 200 osób",
+      "200+": "Ponad 200"
+    },
+    "list": {
+      "title": "Zgłoszenia firm",
+      "lead": "Firmy, które poprosiły o DougBot na stronie.",
+      "empty": "Brak zgłoszeń.",
+      "search": "Szukaj firmy, osoby lub e-maila",
+      "none": "Nie znaleziono zgłoszenia.",
+      "count": "{{count}} zgłoszeń",
+      "status": {
+        "new": "Nowe",
+        "talking": "W rozmowie",
+        "invited": "Zaproszona",
+        "deployed": "Klient",
+        "discarded": "Odrzucone"
+      },
+      "filterAll": "Wszystkie",
+      "person": "Osoba",
+      "email": "E-mail",
+      "whatsapp": "WhatsApp",
+      "teamSize": "Wielkość zespołu",
+      "interests": "Co chce zautomatyzować",
+      "message": "Coś jeszcze",
+      "notes": "Notatki",
+      "notesPlaceholder": "Co zespół wie o tej firmie.",
+      "notesSave": "Zapisz notatki",
+      "notesSaved": "Zapisano.",
+      "clientCode": "Kod klienta",
+      "clientCodePlaceholder": "064",
+      "clientCodeSave": "Zapisz kod",
+      "clientCodeHint": "Trzy cyfry, gdy firma zostaje klientem.",
+      "invitedOn": "Zaproszona {{date}}",
+      "invite": "Zaproś",
+      "inviting": "Zapraszanie…",
+      "inviteSent": "Zaproszenie wysłane.",
+      "inviteAllowed": "Konto, które już ma, może teraz utworzyć przestrzeń roboczą.",
+      "inviteAlreadySent": "Zaproszenie wyszło w ciągu ostatnich dwóch minut.",
+      "inviteSignedUp": "Ten adres ma już konto.",
+      "statusChanged": "Zmieniono etap.",
+      "setStatus": "Przenieś do",
+      "noEmail": "Ten serwer nie wysyła e-maili, więc zaproszenie nie może wyjść.",
+      "codeTaken": "Inna firma ma już ten kod.",
+      "codeInvalid": "Kod klienta ma trzy cyfry.",
+      "more": "Więcej",
+      "pendingConfirm": "Ten adres ma nowy formularz do potwierdzenia: zespół widzi prośbę taką, jaka była, dopóki nie zostanie potwierdzona.",
+      "delete": "Usuń",
+      "deleteTitle": "Usunąć prośbę od {{company}}?",
+      "deleteText": "Wszystko, co zawiera, znika, łącznie ze zgodą, i nic nie wraca. Tego wymaga RODO, gdy firma prosi, by o niej zapomnieć.",
+      "deleted": "Prośba usunięta.",
+      "notesTooLong": "Notatki są dłuższe, niż się tu mieszczą. Skróć je."
+    },
+    "notice": {
+      "title": "{{company}} poprosiła o DougBot",
+      "text": "{{name}} wysłał zgłoszenie ze strony."
+    }
+  },
   "invite": {
     "invitedYou": "{{name}} zaprasza cię do {{org}}",
     "invitedYouNoName": "Masz zaproszenie do {{org}}",
@@ -5595,7 +5708,8 @@
       "usageLimitReached": "<b>{{name}}</b> osiąga limit {{amount}}",
       "usageLimitRequest": "<b>{{name}}</b> osiąga limit {{amount}} i prosi o więcej",
       "usageLimitRaised": "<b>{{name}}</b> podnosi Twój limit na ten miesiąc",
-      "usageLimitRefused": "<b>{{name}}</b> odrzuca Twoją prośbę o więcej użycia"
+      "usageLimitRefused": "<b>{{name}}</b> odrzuca Twoją prośbę o więcej użycia",
+      "companyRequest": "<b>{{company}}</b> poprosiła o DougBot: zgłoszenie od <b>{{name}}</b>"
     },
     "usageLimit": {
       "runs_one": "{{count}} prośba w tym miesiącu",
@@ -18071,7 +18185,8 @@
       "about": "O DougBot",
       "generalPersonal": "O tobie",
       "keysPersonal": "AI i aplikacje",
-      "membersPersonal": "Osoby"
+      "membersPersonal": "Osoby",
+      "companies": "Zgłoszenia firm"
     },
     "advanced": "Zaawansowane",
     "tab": {
@@ -18106,7 +18221,8 @@
       "usagePersonal": "Ile AI używają twoi agenci, i twój plan.",
       "connectorsPersonal": "Twoje aplikacje i serwery MCP, połączone raz dla twoich agentów.",
       "membersPersonal": "Kto jest tu z tobą.",
-      "rolesPersonal": "Co może robić każda osoba tutaj. Właściciel może wszystko."
+      "rolesPersonal": "Co może robić każda osoba tutaj. Właściciel może wszystko.",
+      "companies": "Firmy, które poprosiły o DougBot na stronie."
     },
     "support": {
       "title": "Skontaktuj się z pomocą",

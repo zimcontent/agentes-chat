@@ -176,6 +176,9 @@ export const SHOWN_ONLY: Record<Condition, readonly string[]> = {
     // and the link's refusals.
     "auth.forgotHere.",
     "errors.passwordLink.",
+    // The companies' requests (`/empresas`): agentes.chat's own servers serve neither the form nor the team's list
+    // (`!isAgentesCloud`), so its words, "this server sends no email" among them, are self-hosting's alone.
+    "companies.",
     // Continue on this Mac's refusals: only on the server the desktop app runs on the person's computer.
     "auth.desktopOwner.gone",
     "auth.desktopOwner.none",

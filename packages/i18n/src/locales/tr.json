@@ -743,6 +743,119 @@
       "takenLead": "Hesabınızla giriş yapın."
     }
   },
+  "companies": {
+    "page": {
+      "title": "DougBot’u şirketine getir",
+      "lead": "Şirketini ve neyi otomatikleştirmek istediğini anlat. Ekip her talebi okur ve her şirketle WhatsApp üzerinden konuşur.",
+      "formTitle": "Şirketin",
+      "name": "Adın",
+      "nameExample": "Ana Souza",
+      "email": "E-posta",
+      "emailExample": "ana@sirket.com.tr",
+      "whatsapp": "WhatsApp",
+      "whatsappExample": "+55 11 91234-5678",
+      "company": "Şirket",
+      "companyExample": "Aurora Fırını",
+      "teamSize": "Ekip büyüklüğü",
+      "interests": "Neyi otomatikleştirmek istiyorsun",
+      "interestsHint": "Uygun olan her şeyi işaretle.",
+      "message": "Başka bir şey",
+      "messageExample": "Haftada iki videoyu elle yayımlıyoruz.",
+      "messageOptional": "İsteğe bağlı",
+      "consent": "DougBot’un benimle iletişim kurmak için bu yanıtları saklamasını kabul ediyorum, <link>Gizlilik Politikası</link>nda açıklandığı gibi.",
+      "consentRequired": "Devam etmek için Gizlilik Politikasını kabul et.",
+      "submit": "Talep gönder",
+      "sending": "Gönderiliyor…",
+      "doneTitle": "Talebin bize ulaştı",
+      "doneLead": "Ekip her talebi okur ve her şirketle WhatsApp üzerinden konuşur. Ayrıca e-posta alacaksın.",
+      "again": "Başka bir talep gönder",
+      "failed": "Talep gönderilemedi. Tekrar dene.",
+      "privacy": "Gizlilik Politikası",
+      "messageTooLong": "Bu, formun kabul ettiğinden uzun. Kısaltın.",
+      "invalidField": "Formun bu bölümünü kontrol edip yeniden deneyin.",
+      "invalidEmail": "ana@sirket.com gibi bir e-posta yazın.",
+      "confirmTitle": "E-postanız onaylanıyor…",
+      "confirmLead": "Bir saniye.",
+      "confirmFailedTitle": "Bu bağlantı bilinmiyor ya da süresi dolmuş",
+      "confirmFailedLead": "Yeni bir bağlantı için formu yeniden gönderin.",
+      "confirmAgain": "Formu yeniden gönder",
+      "deleteTitle": "Talebinizi silmek istiyor musunuz?",
+      "deleteLead": "Bu, talebi ve içindeki her şeyi (rıza dahil) siler ve geri alınamaz. Yalnızca bir şeyleri değiştirmek istiyorsanız formu e-postanızdan yeniden gönderin.",
+      "deleteConfirm": "Talebimi sil",
+      "deletedTitle": "Talep silindi",
+      "deletedLead": "İçindeki her şey gitti. Başka bir şey saklanmıyor.",
+      "deleteFailedTitle": "Bu bağlantı bilinmiyor veya zaten kullanılmış",
+      "deleteFailedLead": "Onunla silinecek bir şey kalmadı ya da süresi doldu."
+    },
+    "interests": {
+      "design": "Tasarım",
+      "video": "Video",
+      "ads": "Reklam",
+      "social": "Sosyal medya",
+      "code": "Kod",
+      "finance": "Finans"
+    },
+    "teamSizes": {
+      "1-5": "1 ila 5 kişi",
+      "6-20": "6 ila 20 kişi",
+      "21-50": "21 ila 50 kişi",
+      "51-200": "51 ila 200 kişi",
+      "200+": "200’den fazla"
+    },
+    "list": {
+      "title": "Şirket talepleri",
+      "lead": "Sayfadan DougBot isteyen şirketler.",
+      "empty": "Henüz talep yok.",
+      "search": "Şirket, kişi veya e-posta ara",
+      "none": "Talep bulunamadı.",
+      "count": "{{count}} talep",
+      "status": {
+        "new": "Yeni",
+        "talking": "Görüşmede",
+        "invited": "Davet edildi",
+        "deployed": "Müşteri",
+        "discarded": "Bırakıldı"
+      },
+      "filterAll": "Tümü",
+      "person": "Kişi",
+      "email": "E-posta",
+      "whatsapp": "WhatsApp",
+      "teamSize": "Ekip büyüklüğü",
+      "interests": "Neyi otomatikleştirmek istiyor",
+      "message": "Başka bir şey",
+      "notes": "Notlar",
+      "notesPlaceholder": "Ekibin bu şirket hakkında bildikleri.",
+      "notesSave": "Notları kaydet",
+      "notesSaved": "Kaydedildi.",
+      "clientCode": "Müşteri kodu",
+      "clientCodePlaceholder": "064",
+      "clientCodeSave": "Kodu kaydet",
+      "clientCodeHint": "Şirket müşteri olunca üç hane.",
+      "invitedOn": "{{date}} tarihinde davet edildi",
+      "invite": "Davet et",
+      "inviting": "Davet ediliyor…",
+      "inviteSent": "Davet gönderildi.",
+      "inviteAllowed": "Zaten sahip olduğu hesap artık çalışma alanı oluşturabilir.",
+      "inviteAlreadySent": "Son iki dakika içinde bir davet gönderildi.",
+      "inviteSignedUp": "Bu adresin zaten hesabı var.",
+      "statusChanged": "Adım değişti.",
+      "setStatus": "Şuraya taşı",
+      "noEmail": "Bu sunucu e-posta göndermiyor, bu yüzden davet gidemez.",
+      "codeTaken": "Bu kodu başka bir şirket kullanıyor.",
+      "codeInvalid": "Müşteri kodu üç hanelidir.",
+      "more": "Daha fazla",
+      "pendingConfirm": "Bu adreste onaylanacak yeni bir form var: onaylanana kadar ekip talebi eskisi gibi görür.",
+      "delete": "Sil",
+      "deleteTitle": "{{company}} talebi silinsin mi?",
+      "deleteText": "İçindeki her şey, onay dahil, gider ve geri gelmez. KVKK bir şirket unutulmak istediğinde bunu ister.",
+      "deleted": "Talep silindi.",
+      "notesTooLong": "Notlar buraya sığandan uzun. Kısaltın."
+    },
+    "notice": {
+      "title": "{{company}} DougBot istedi",
+      "text": "{{name}} sayfadan bir talep gönderdi."
+    }
+  },
   "invite": {
     "invitedYou": "{{name}} sizi {{org}} çalışma alanına davet etti",
     "invitedYouNoName": "{{org}} çalışma alanına davet edildiniz",
@@ -5221,7 +5334,8 @@
       "usageLimitReached": "<b>{{name}}</b> {{amount}} limitine ulaştı",
       "usageLimitRequest": "<b>{{name}}</b> {{amount}} limitine ulaştı ve daha fazlasını istiyor",
       "usageLimitRaised": "<b>{{name}}</b> bu ayki limitini artırdı",
-      "usageLimitRefused": "<b>{{name}}</b> daha fazla kullanım isteğini reddetti"
+      "usageLimitRefused": "<b>{{name}}</b> daha fazla kullanım isteğini reddetti",
+      "companyRequest": "<b>{{company}}</b> DougBot istedi: <b>{{name}}</b> tarafından bir talep"
     },
     "usageLimit": {
       "runs_one": "Bu ay {{count}} istek",
@@ -16920,7 +17034,8 @@
       "about": "DougBot hakkında",
       "generalPersonal": "Hakkınızda",
       "keysPersonal": "Yapay zeka ve uygulamalar",
-      "membersPersonal": "Kişiler"
+      "membersPersonal": "Kişiler",
+      "companies": "Şirket talepleri"
     },
     "advanced": "Gelişmiş",
     "tab": {
@@ -16955,7 +17070,8 @@
       "usagePersonal": "Ajanlarınızın ne kadar yapay zeka kullandığı ve planınız.",
       "connectorsPersonal": "Uygulamalarınız ve MCP sunucularınız, ajanlarınız için bir kez bağlanır.",
       "membersPersonal": "Burada sizinle kimler var.",
-      "rolesPersonal": "Buradaki her kişinin neler yapabileceği. Sahip her şeyi yapabilir."
+      "rolesPersonal": "Buradaki her kişinin neler yapabileceği. Sahip her şeyi yapabilir.",
+      "companies": "Sayfadan DougBot isteyen şirketler."
     },
     "support": {
       "title": "Desteğe ulaş",

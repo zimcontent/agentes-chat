@@ -1265,7 +1265,7 @@ export const envVars = {
       .regex(/^\d{3}$/, "must be a three-digit client code such as 064")
       .optional(),
     description:
-      "This installation's client code, on a server a team runs for one client. The apps show it in Support, and an agent's `contact_support` and its email carry it, so whoever answers knows which installation to look at. Unset (default): an installation of its own, with no code.",
+      "This installation's client code, on a server a team runs for one client. The apps show it in Support, and an agent's `contact_support` and its email carry it, so whoever answers knows which installation to look at. It also names the client's folder under `clients/` of the source it was built from (`clients/064/`, ADR doug-0032): its `config.json` (today the product's name and the color the apps highlight; a color under 3:1 on either of the identity's stages is refused) and its `client.ts` (an `AgentesModule`) load at boot. A code with no such folder boots without overrides. Unset (default): no folder loads, and every server behaves the same.",
     section: "Operator",
     example: "064",
   },
@@ -1291,6 +1291,19 @@ export const envVars = {
   FEEDBACK_URL: {
     schema: z.url().default("https://app.agentes.chat/api/feedback/inbox"),
     description: "Where `FEEDBACK_RELAY` sends a feedback (as JSON in a POST).",
+    section: "Operator",
+  },
+  COMPANY_REQUESTS_NOTIFY_EMAIL: {
+    schema: z.email().optional(),
+    description:
+      "Where a company's request from the page (`/empresas`, \"Quero o DougBot na minha empresa\") is emailed once its address is confirmed, to whoever runs this server. The installation's owner sees the same in the app, under Configurações › Pedidos de empresas. Needs email (`MILLIONSEND_API_KEY` or `SMTP_URL`); unset (default): only the app's notice.",
+    section: "Operator",
+    example: "you@example.com",
+  },
+  COMPANY_REQUESTS_RETENTION_DAYS: {
+    schema: z.coerce.number().int().min(1).default(365),
+    description:
+      "Days a company's request from the page (`/empresas`) is kept after the team last moved it, while it is new, discarded or talking and never became a client (LGPD). After that it is deleted with everything it holds, the consent included; a request marked a client (`deployed`) and one already invited are kept, and so is one the person never confirmed past its link's expiry plus a week. At least 1: a value of 0 promised no retention at all, so the Policy's section 12 is left out. The form is self-hosting's own: agentes.chat's Cloud serves none, and the Policy says nothing of it there.",
     section: "Operator",
   },
   OPS_REPORT_EMAIL: {

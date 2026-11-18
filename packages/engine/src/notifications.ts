@@ -3,6 +3,7 @@ import {
   and,
   type Database,
   desc,
+  type Executor,
   eq,
   gt,
   gte,
@@ -226,6 +227,12 @@ export const NOTIFICATION_KINDS = [
    */
   "usage_limit",
   /**
+   * A company asked for DougBot on the installation's public page ("Quero o DougBot na minha empresa"): its owner,
+   * waiting, one row per request (`source.companyRequestId`), the company's name in `source.label`, the person's in
+   * `latest.title` and their name in `latest.text`. Never the rest of the form. Done once the team moves it on.
+   */
+  "company_request",
+  /**
    * "Quem aprova por mim" (ADR 0139): the person chosen to cover someone hears it (`latest.statusTo` the mode,
    * `always` or `while_out`, and `latest.expiresAt` its end), and the covered person hears when the cover said no
    * (`declined`) or an admin ended it (`ended`). The covered person or who ended it is the actor. Inbox only.
@@ -352,6 +359,8 @@ export interface NotificationSource {
   phoneId?: string;
   /** `device.in_use`, `device.waiting`, `device.access_request`: the agent's run on the device. */
   runId?: string;
+  /** `company_request`: the company's request on the installation's page (`GET …/companies/{id}`). */
+  companyRequestId?: string;
   /** Channel name, thread title, issue title, topic title, mission or routine name, widget or board title. */
   label?: string;
 }
@@ -928,6 +937,29 @@ export async function clearIssueNotifications(deps: NotificationDeps, orgId: str
   for (const r of rows)
     await publishUserEvent(deps.pubsub, orgId, r.userId, { type: "notification.removed", id: r.id });
   for (const userId of new Set(rows.map((r) => r.userId))) await publishCounts(deps, orgId, userId);
+}
+
+/**
+ * A company's request is gone (the team deleted it, the person erased it, or the retention sweep took it): every
+ * notice about it goes with it, wherever it lives, live. Erased for good, never merely resolved: what the notice said
+ * about the company is not kept anywhere after the request it stood for. Named the company's request's own, apart from
+ * `clearChannelNotifications` and `clearIssueNotifications`, so a call site reads which one it means.
+ */
+export async function clearCompanyNotifications(
+  deps: { db: Executor; pubsub?: PubSub },
+  requestIds: readonly string[],
+) {
+  if (requestIds.length === 0) return;
+  const rows = await deps.db
+    .delete(notifications)
+    .where(inArray(sql`${notifications.source}->>'companyRequestId'`, [...requestIds]))
+    .returning({ id: notifications.id, orgId: notifications.orgId, userId: notifications.userId });
+  for (const r of rows)
+    await publishUserEvent(deps.pubsub, r.orgId, r.userId, { type: "notification.removed", id: r.id });
+  // A request lives in the owner's workspace alone, but each row is counted for whoever had one.
+  const people = new Map(rows.map((r) => [`${r.orgId}/${r.userId}`, r] as const));
+  for (const r of people.values())
+    await publishCounts({ db: deps.db as Database, pubsub: deps.pubsub }, r.orgId, r.userId);
 }
 
 /**

@@ -42,7 +42,7 @@ describe("GET /api/app/legal", () => {
       backup: false,
       storage: "database",
       telemetryForced: false,
-      companyRequestsRetentionDays: null,
+      companyRequestsRetentionDays: 365,
       services: { ...NO_SERVICES, push: true, pushRelay: true, telemetry: true },
     });
     await t.close();
@@ -76,7 +76,7 @@ describe("GET /api/app/legal", () => {
       backup: false,
       storage: "database",
       telemetryForced: false,
-      companyRequestsRetentionDays: null,
+      companyRequestsRetentionDays: 365,
       services: { ...NO_SERVICES, push: true, pushRelay: true, telemetry: true },
     });
     await t.close();
@@ -170,6 +170,24 @@ describe("GET /api/app/legal", () => {
     };
     expect([forced.telemetryForced, forced.services.telemetry]).toEqual([true, true]);
     await t2.close();
+  });
+
+  test("the waiting list's retention reads as its setting: 365 by default, the value given, and none on the Cloud", async () => {
+    const daysOf = async (env: Record<string, string> = {}) => {
+      const t = await createTestServer({ env });
+      const facts = (await (await browser(t)("/api/app/legal")).json()) as {
+        companyRequestsRetentionDays: number | null;
+      };
+      await t.close();
+      return facts.companyRequestsRetentionDays;
+    };
+    expect(await daysOf()).toBe(365);
+    expect(await daysOf({ COMPANY_REQUESTS_RETENTION_DAYS: "180" })).toBe(180);
+    // The form is self-hosting's own: on agentes.chat's own servers the Policy says nothing of it, whatever the value.
+    expect(await daysOf({ PUBLIC_URL: "https://app.agentes.chat", COMPANY_REQUESTS_RETENTION_DAYS: "180" })).toBeNull();
+    // A retention of 0 promised nothing to erase, so the setting no longer takes it: below 1, the server refuses it at
+    // boot instead of quietly promising what the sweep wouldn't do.
+    await expect(createTestServer({ env: { COMPANY_REQUESTS_RETENTION_DAYS: "0" } })).rejects.toThrow();
   });
 
   test("it is listed in the OpenAPI document", async () => {

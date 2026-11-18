@@ -729,6 +729,119 @@
       "takenLead": "내 계정으로 로그인하세요."
     }
   },
+  "companies": {
+    "page": {
+      "title": "회사에 DougBot을 도입하세요",
+      "lead": "회사와 자동화하고 싶은 일을 알려 주세요. 팀이 모든 요청을 읽고 각 회사와 WhatsApp으로 이야기합니다.",
+      "formTitle": "회사 정보",
+      "name": "이름",
+      "nameExample": "Ana Souza",
+      "email": "이메일",
+      "emailExample": "ana@company.kr",
+      "whatsapp": "WhatsApp",
+      "whatsappExample": "+55 11 91234-5678",
+      "company": "회사",
+      "companyExample": "오로라 베이커리",
+      "teamSize": "팀 규모",
+      "interests": "자동화하고 싶은 일",
+      "interestsHint": "해당하는 것을 모두 선택하세요.",
+      "message": "그 밖에",
+      "messageExample": "주에 두 개의 영상을 직접 올립니다.",
+      "messageOptional": "선택 사항",
+      "consent": "DougBot이 연락을 위해 이 답변을 보관하는 데 동의합니다. <link>개인정보 처리방침</link>에 설명된 대로입니다.",
+      "consentRequired": "계속하려면 개인정보 처리방침에 동의하세요.",
+      "submit": "요청 보내기",
+      "sending": "보내는 중…",
+      "doneTitle": "요청을 받았습니다",
+      "doneLead": "팀이 모든 요청을 읽고 각 회사와 WhatsApp으로 이야기합니다. 이메일도 받게 됩니다.",
+      "again": "요청 하나 더 보내기",
+      "failed": "요청을 보내지 못했습니다. 다시 시도하세요.",
+      "privacy": "개인정보 처리방침",
+      "messageTooLong": "양식이 받을 수 있는 길이보다 깁니다. 줄여 주세요.",
+      "invalidField": "양식의 이 부분을 확인하고 다시 시도해 주세요.",
+      "invalidEmail": "ana@company.com 같은 이메일을 입력해 주세요.",
+      "confirmTitle": "이메일을 확인하는 중…",
+      "confirmLead": "잠시만요.",
+      "confirmFailedTitle": "알 수 없거나 만료된 링크입니다",
+      "confirmFailedLead": "새 링크를 받으려면 양식을 다시 보내 주세요.",
+      "confirmAgain": "양식 다시 보내기",
+      "deleteTitle": "요청을 삭제할까요?",
+      "deleteLead": "요청과 그 안에 담긴 모든 것(동의 포함)이 삭제되며 되돌릴 수 없습니다. 내용을 바꾸려는 것뿐이라면 이메일에서 양식을 다시 보내세요.",
+      "deleteConfirm": "내 요청 삭제",
+      "deletedTitle": "요청이 삭제되었습니다",
+      "deletedLead": "담겨 있던 모든 것이 사라졌습니다. 그 밖에는 아무것도 보관되지 않습니다.",
+      "deleteFailedTitle": "알 수 없는 링크이거나 이미 사용되었습니다",
+      "deleteFailedLead": "함께 삭제할 것이 남아 있지 않거나 링크가 만료되었습니다."
+    },
+    "interests": {
+      "design": "디자인",
+      "video": "영상",
+      "ads": "광고",
+      "social": "소셜 미디어",
+      "code": "코드",
+      "finance": "재무"
+    },
+    "teamSizes": {
+      "1-5": "1~5명",
+      "6-20": "6~20명",
+      "21-50": "21~50명",
+      "51-200": "51~200명",
+      "200+": "200명 이상"
+    },
+    "list": {
+      "title": "회사 요청",
+      "lead": "페이지에서 DougBot을 요청한 회사입니다.",
+      "empty": "아직 요청이 없습니다.",
+      "search": "회사, 담당자, 이메일 검색",
+      "none": "요청을 찾지 못했습니다.",
+      "count": "요청 {{count}}건",
+      "status": {
+        "new": "신규",
+        "talking": "상담 중",
+        "invited": "초대됨",
+        "deployed": "고객",
+        "discarded": "제외됨"
+      },
+      "filterAll": "전체",
+      "person": "담당자",
+      "email": "이메일",
+      "whatsapp": "WhatsApp",
+      "teamSize": "팀 규모",
+      "interests": "자동화하고 싶은 일",
+      "message": "그 밖에",
+      "notes": "메모",
+      "notesPlaceholder": "이 회사에 대해 팀이 아는 내용.",
+      "notesSave": "메모 저장",
+      "notesSaved": "저장했습니다.",
+      "clientCode": "고객 코드",
+      "clientCodePlaceholder": "064",
+      "clientCodeSave": "코드 저장",
+      "clientCodeHint": "고객이 되면 쓰는 세 자리 숫자.",
+      "invitedOn": "{{date}}에 초대",
+      "invite": "초대",
+      "inviting": "초대 중…",
+      "inviteSent": "초대를 보냈습니다.",
+      "inviteAllowed": "이미 있는 계정으로 이제 워크스페이스를 만들 수 있습니다.",
+      "inviteAlreadySent": "최근 2분 안에 초대가 나갔습니다.",
+      "inviteSignedUp": "이 주소는 이미 계정이 있습니다.",
+      "statusChanged": "단계를 바꿨습니다.",
+      "setStatus": "이동",
+      "noEmail": "이 서버는 이메일을 보내지 않으므로 초대를 보낼 수 없습니다.",
+      "codeTaken": "다른 회사가 이 코드를 이미 씁니다.",
+      "codeInvalid": "고객 코드는 세 자리입니다.",
+      "more": "더 보기",
+      "pendingConfirm": "이 주소에는 확인할 새 양식이 있습니다. 확인되기 전까지 팀은 이전 요청을 봅니다.",
+      "delete": "삭제",
+      "deleteTitle": "{{company}}의 요청을 삭제할까요?",
+      "deleteText": "동의를 포함해 저장된 모든 것이 사라지고 되돌릴 수 없습니다. 기업이 잊혀지기를 요청할 때 LGPD가 요구하는 일입니다.",
+      "deleted": "요청을 삭제했습니다.",
+      "notesTooLong": "메모가 여기에 들어갈 길이보다 깁니다. 줄여 주세요."
+    },
+    "notice": {
+      "title": "{{company}}님이 DougBot을 요청했습니다",
+      "text": "{{name}}님이 페이지에서 요청을 보냈습니다."
+    }
+  },
   "invite": {
     "invitedYou": "{{name}}님이 {{org}}에 초대했어요",
     "invitedYouNoName": "{{org}}에 초대받았어요",
@@ -5044,7 +5157,8 @@
       "usageLimitReached": "<b>{{name}}</b> 님이 {{amount}} 한도에 도달했어요",
       "usageLimitRequest": "<b>{{name}}</b> 님이 {{amount}} 한도에 도달해 추가를 요청했어요",
       "usageLimitRaised": "<b>{{name}}</b> 님이 이번 달 내 한도를 올렸어요",
-      "usageLimitRefused": "<b>{{name}}</b> 님이 추가 사용 요청을 거절했어요"
+      "usageLimitRefused": "<b>{{name}}</b> 님이 추가 사용 요청을 거절했어요",
+      "companyRequest": "<b>{{company}}</b>님이 DougBot을 요청했습니다: <b>{{name}}</b>님의 요청입니다"
     },
     "usageLimit": {
       "runs_other": "이번 달 요청 {{count}}건",
@@ -16400,7 +16514,8 @@
       "about": "DougBot 정보",
       "generalPersonal": "나에 대해",
       "keysPersonal": "AI와 앱",
-      "membersPersonal": "사람"
+      "membersPersonal": "사람",
+      "companies": "회사 요청"
     },
     "advanced": "고급",
     "tab": {
@@ -16435,7 +16550,8 @@
       "usagePersonal": "에이전트가 쓰는 AI의 양과 내 요금제예요.",
       "connectorsPersonal": "내 앱과 MCP 서버를 한 번 연결해 에이전트가 쓰게 해요.",
       "membersPersonal": "여기에 함께 있는 사람이에요.",
-      "rolesPersonal": "여기 있는 사람마다 할 수 있는 일. 소유자는 모든 걸 할 수 있어요."
+      "rolesPersonal": "여기 있는 사람마다 할 수 있는 일. 소유자는 모든 걸 할 수 있어요.",
+      "companies": "페이지에서 DougBot을 요청한 회사입니다."
     },
     "support": {
       "title": "지원팀에 연락",
