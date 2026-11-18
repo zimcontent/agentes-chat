@@ -51,7 +51,6 @@ import { IlhaCena } from "./ilha";
 import { Paineis, Paineis320, PaineisFormas } from "./paineis";
 import { PainelIa, PainelIa320, PainelIaFolha, PainelIaFolha320 } from "./painel-ia";
 import { PortalCartao, PortalCronograma, PortalCronograma320 } from "./portal";
-import { TimeDougComo, TimeDougMarca, TimeDougQuem } from "./time-doug";
 import {
   RevisaoConversa,
   RevisaoDesign,
@@ -60,6 +59,7 @@ import {
   RevisaoLista,
   RevisaoVideo,
 } from "./revisao";
+import { TimeDougComo, TimeDougMarca, TimeDougQuem } from "./time-doug";
 import { WhatsAppConversa, WhatsAppLista } from "./whatsapp";
 
 /** Sample photos served beside the board (`doug-mobile/fotos`): a person's and the groups' (JPG, as people send). */

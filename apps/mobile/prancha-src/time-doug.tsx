@@ -14,7 +14,12 @@ import { AuthScaffold } from "@/ui/auth/AuthScaffold";
 
 const ORG = "0198a4b2-0000-7000-8000-000000000001";
 
-const member = (handle: string, name: string, role: string, over: Partial<DougTemplateMember> = {}): DougTemplateMember => ({
+const member = (
+  handle: string,
+  name: string,
+  role: string,
+  over: Partial<DougTemplateMember> = {},
+): DougTemplateMember => ({
   handle,
   name,
   role,
@@ -34,9 +39,17 @@ const MEMBERS: DougTemplateMember[] = [
   member("rosa", "ROSA", "Diretora de arte"),
   member("sony", "SONY", "Vídeo e motion", { needsComputer: true }),
   member("mark", "MARK", "Líder do QG de Tráfego", { qg: "trafego" }),
-  ...["Copywriter", "Diretor de Criativo", "Estrategista de Mídia", "Analista de Resultado", "Humanizador", "Gestor de Contas", "Pesquisador", "Revisor", "Financeiro de Tráfego"].map(
-    (r, i) => member(`trafego-${i}`, r, r, { reportsTo: "mark" }),
-  ),
+  ...[
+    "Copywriter",
+    "Diretor de Criativo",
+    "Estrategista de Mídia",
+    "Analista de Resultado",
+    "Humanizador",
+    "Gestor de Contas",
+    "Pesquisador",
+    "Revisor",
+    "Financeiro de Tráfego",
+  ].map((r, i) => member(`trafego-${i}`, r, r, { reportsTo: "mark" })),
   member("chess", "CHESS", "Estrategista"),
   member("kiara", "KIARA", "Financeiro"),
   member("junin", "JUNIN", "Código e automações", { needsComputer: true }),
@@ -52,10 +65,12 @@ const DOUG = {
   members: MEMBERS,
 } as unknown as TeamTemplate & { members: DougTemplateMember[] };
 
-const TONES = ["Próximo", "Bem-humorado", "Sério", "Profissional", "Inspirador", "Direto", "Acolhedor", "Técnico"].map((label) => ({
-  id: label.toLowerCase(),
-  label,
-}));
+const TONES = ["Próximo", "Bem-humorado", "Sério", "Profissional", "Inspirador", "Direto", "Acolhedor", "Técnico"].map(
+  (label) => ({
+    id: label.toLowerCase(),
+    label,
+  }),
+);
 
 const fakeApi = (): ApiClient =>
   ({
@@ -67,7 +82,17 @@ const fakeApi = (): ApiClient =>
   }) as unknown as ApiClient;
 
 /** A phone as wide as the browser gives it, the sky and the right hand above, as in the first run. */
-function Phone({ title, subtitle, progress, children }: { title: string; subtitle: string; progress: string; children: ReactNode }) {
+function Phone({
+  title,
+  subtitle,
+  progress,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  progress: string;
+  children: ReactNode;
+}) {
   const [qc] = useState(() => new QueryClient({ defaultOptions: { queries: { retry: false } } }));
   const [api] = useState(fakeApi);
   return (
