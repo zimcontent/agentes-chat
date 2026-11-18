@@ -29,7 +29,7 @@ import { useOrgId, usePullRefresh } from "../shared/hooks";
 import { PushedHeader } from "../shared/parts";
 import { RetryLine } from "../shared/TeamSkyEmpty";
 import { usePortalWords } from "./hooks";
-import { boardColumns, boardPaint, cardOfItem, columnCount } from "./model";
+import { boardColumns, cardOfItem, columnCount } from "./model";
 import { PlanBoard } from "./PlanBoard";
 import { CardCover, HeaderCount, openCard, openPost, PortalNotice, StatusChip } from "./parts";
 import type { PortalWords } from "./words";
@@ -46,7 +46,7 @@ type Tab = "board" | "plan" | "posted" | "materials";
 export function ClientScreen({ client, initialTab = "board" }: { client: string; initialTab?: Tab }) {
   const w = usePortalWords();
   const orgId = useOrgId();
-  const { colors: c, scheme } = useTheme();
+  const { colors: c } = useTheme();
   const insets = useSafeAreaInsets();
   const barTop = useClearBarTop();
   const board = usePortalBoard(orgId, client);
@@ -59,12 +59,11 @@ export function ClientScreen({ client, initialTab = "board" }: { client: string;
   const posted = board.data?.items.posted.length;
   const lists = tab === "plan" || tab === "materials";
   const shown = lists ? plan : board;
-  const paint = boardPaint(scheme === "dark", c);
   const refresh = <RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} />;
   return (
     // The bar is clear on iOS (the route's scroll-under bar) and nothing here scrolls under it: the tabs and the
     // lists start below it, as on Tarefas (`IssuesScreen`). Android's bar is opaque and already holds its room.
-    <View style={[styles.screen, { backgroundColor: lists ? paint.board : c.grouped, paddingTop: barTop }]}>
+    <View style={[styles.screen, { backgroundColor: c.grouped, paddingTop: barTop }]}>
       <PushedHeader
         title={portalClientName(client)}
         {...(summary && summary.open > 0 ? { subtitle: w.open(summary.open) } : {})}
@@ -99,7 +98,7 @@ export function ClientScreen({ client, initialTab = "board" }: { client: string;
             <RetryLine onRetry={() => void shown.refetch()} />
           </View>
         ) : lists && plan.data ? (
-          <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
+          <View style={styles.screen}>
             <PortalNotice state={plan.data.state} />
             {tab === "materials" ? (
               <Text variant="footnote" tone="muted" style={styles.intro}>
