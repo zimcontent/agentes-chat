@@ -123,6 +123,13 @@ export function DougPinnedCard({
           </View>
         ) : null}
       </Pressable>
+      {/* His name under his face, with what he is up to: the card says who it is. */}
+      <Pressable onPress={onTalk} accessibilityElementsHidden importantForAccessibility="no" style={styles.who}>
+        <Text variant="callout" style={styles.name} numberOfLines={1}>
+          {name}
+          <Text variant="footnote" tone="muted">{`  ·  ${doing}`}</Text>
+        </Text>
+      </Pressable>
       <Pressable
         onPress={onStatus}
         disabled={!onStatus}
@@ -171,6 +178,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   moreText: { fontWeight: "600" },
+  who: { alignSelf: "center", paddingHorizontal: 4, marginTop: -2 },
+  name: { fontWeight: "700", textAlign: "center" },
   line: { alignSelf: "center", paddingHorizontal: 4 },
   lineText: { textAlign: "center" },
   status: { fontWeight: "600" },

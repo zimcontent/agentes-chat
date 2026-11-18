@@ -13,6 +13,7 @@ import {
   portalWhen,
   sortPortalClients,
 } from "@agenteschat/client/lib/portal";
+import { useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Pressable, RefreshControl, StyleSheet, View } from "react-native";
 import {
@@ -26,6 +27,7 @@ import {
   Text,
   useTheme,
 } from "@/ui";
+import { router } from "@/ui/navigation";
 import { useOrgId, usePullRefresh } from "../shared/hooks";
 import { RetryLine } from "../shared/TeamSkyEmpty";
 import { useTabHeader } from "../shared/tabHeader";
@@ -54,6 +56,10 @@ export function PortalScreen() {
   const logos = portalClientLogos(clients);
   const summaries = new Map(clients.map((c) => [c.client, c]));
   const entries = pipeline.data?.entries;
+  // Início's "Alterações" with several clients asking: only them, until "Ver todos".
+  const { alteracoes } = useLocalSearchParams<{ alteracoes?: string }>();
+  const onlyAsking = alteracoes === "1";
+  const asking = (client: string) => (summaries.get(client)?.counts.adjusting ?? 0) > 0;
   // The pipeline knows what is late; until it answers, the overview's counts say the rest.
   const rows = entries
     ? pipelineClients(
@@ -61,6 +67,7 @@ export function PortalScreen() {
         entries,
       ).map((r) => ({ client: r.client, status: r.status, own: r.entries as PortalPipelineEntry[] }))
     : sortPortalClients(clients).map((c) => ({ client: c.client, status: summaryStatus(c), own: null }));
+  const shown = onlyAsking ? rows.filter((r) => asking(r.client)) : rows;
   return (
     <LargeTitleScreen
       title={w.title}
@@ -83,9 +90,22 @@ export function PortalScreen() {
             <PortalNotice state={overview.data.state} />
             {entries && <Tiles entries={entries} />}
             <View>
-              <GroupedHeader aside={<HeaderCount count={rows.length} />}>{w.clients}</GroupedHeader>
+              <GroupedHeader aside={<HeaderCount count={shown.length} />}>
+                {onlyAsking ? w.asked : w.clients}
+              </GroupedHeader>
+              {onlyAsking ? (
+                <Pressable
+                  onPress={() => router.setParams({ alteracoes: undefined })}
+                  accessibilityRole="button"
+                  style={styles.seeAll}
+                >
+                  <Text variant="footnote" tone="muted">
+                    {w.seeAllClients}
+                  </Text>
+                </Pressable>
+              ) : null}
               <View style={styles.cards}>
-                {rows.map(({ client, status, own }) => {
+                {shown.map(({ client, status, own }) => {
                   const summary = summaries.get(client);
                   const next =
                     own && pipeline.data ? pipelineNextPost(own, pipeline.data.day) : (summary?.next ?? null);
@@ -230,6 +250,7 @@ const TILE_DOT: Record<(typeof PORTAL_FOCI)[number], string> = {
 };
 
 const styles = StyleSheet.create({
+  seeAll: { alignSelf: "flex-start", minHeight: 32, justifyContent: "center", marginBottom: 4 },
   in: { paddingHorizontal: 16, gap: 16 },
   tiles: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   tile: {
