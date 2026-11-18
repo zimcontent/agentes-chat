@@ -1,0 +1,11 @@
+# O Caddy dos clientes do DougBot, um por máquina: TLS automático (Let's Encrypt) para cada
+# <slug>.dougbot.app, cada um na porta local do servidor daquele cliente. Cada cliente tem o
+# seu arquivo em clientes/<slug>.caddy, escrito e removido pelo doug-cliente; a lista de
+# clientes não fica neste arquivo.
+{
+	# A API de administração do Caddy, de onde vem o `caddy reload`. Na rede do host ela fica
+	# no loopback da máquina: só quem já tem conta nela a alcança.
+	admin localhost:2019
+}
+
+import /etc/caddy/clientes/*.caddy

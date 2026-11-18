@@ -1,0 +1,71 @@
+# Um cliente do DougBot: o servidor, o Postgres só dele (com pgvector) e uma rede só dele.
+# O doug-cliente copia este arquivo para /opt/doug-clientes/<codigo>-<slug>/compose.yml e
+# escreve o .env ao lado (de cliente.env.example). Não edite a cópia à mão: mude este modelo
+# e rode `doug-cliente novo` de novo ou copie por cima.
+#
+# Os dados ficam em ./dados (o Postgres em dados/postgres, os arquivos em dados/files), para a
+# cota de disco do cliente ser uma pasta só. A porta do servidor só abre no loopback: quem
+# publica o cliente é o Caddy do host (deploy/swas/caddy), com TLS.
+name: "doug-${DOUG_CLIENT_CODE:?defina DOUG_CLIENT_CODE no .env}"
+
+services:
+  postgres:
+    # pgvector: a primeira migração cria a extensão vector.
+    image: pgvector/pgvector:0.8.7-pg18@sha256:2358fcba361ed2233a5ed81b5fe4ca779ccb304120ce531a3bf51c0ed7e2bc11
+    environment:
+      POSTGRES_USER: agentes
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env}"
+      POSTGRES_DB: agentes
+    volumes:
+      # As imagens do Postgres 18 guardam os dados em /var/lib/postgresql/18/docker, sob este ponto.
+      - ./dados/postgres:/var/lib/postgresql
+    networks: [cliente]
+    restart: unless-stopped
+    healthcheck:
+      # Por TCP: no primeiro boot o servidor de inicialização escuta só no socket Unix.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U agentes -d agentes"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    cpus: "${DOUG_PG_CPUS:-1}"
+    mem_limit: "${DOUG_PG_MEMORY:-1g}"
+    memswap_limit: "${DOUG_PG_MEMORY:-1g}"
+    stop_grace_period: 30s
+
+  agentes:
+    image: "${DOUG_IMAGE:?defina DOUG_IMAGE no .env}"
+    env_file: .env
+    environment:
+      DATABASE_URL: "postgres://agentes:${POSTGRES_PASSWORD}@postgres:5432/agentes"
+      FILES_DIR: /data/files
+    volumes:
+      # Pertence ao usuário `bun` da imagem (uid 1000): o doug-cliente ajusta ao criar.
+      - ./dados/files:/data/files
+    ports:
+      # Só no loopback: o Docker publica portas pelo iptables, por cima de qualquer firewall do host.
+      - "127.0.0.1:${DOUG_HOST_PORT:?defina DOUG_HOST_PORT no .env}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [cliente]
+    restart: unless-stopped
+    # Acima do limite, o kernel para só este contêiner e ele reinicia, em vez de a máquina
+    # entrar em swap e derrubar os outros clientes.
+    cpus: "${DOUG_CPUS:-2}"
+    mem_limit: "${DOUG_MEMORY:-3g}"
+    memswap_limit: "${DOUG_MEMORY:-3g}"
+    # Acima dos 20 s que as execuções em andamento têm para terminar no SIGTERM (RUN_DRAIN_MS).
+    stop_grace_period: 40s
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+
+networks:
+  # A rede é só deste cliente: nenhum outro cliente enxerga o Postgres dele.
+  cliente:
+    name: "doug-${DOUG_CLIENT_CODE}"
