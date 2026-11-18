@@ -12,7 +12,7 @@ import {
   type PortalStatus,
   type PortalType,
 } from "@agenteschat/adapters";
-import type { Database } from "@agenteschat/db";
+import { and, type Database, desc, eq, gte, isNull, lte, or, schema } from "@agenteschat/db";
 import { listPortalClients, upsertPortalClient } from "./approval-portal-clients";
 import {
   cardStage,
@@ -491,6 +491,146 @@ function boardTool(portal: ApprovalPortal): ToolDefinition {
   };
 }
 
+/**
+ * A message this long, over this many lines, is the work itself (a carousel's copy slide by slide, a script, a visual
+ * direction), not a line about it nor a request said in one breath. A card is what whoever makes the post reads, and
+ * the task made from it carries its description: a card made from a conversation that holds the work and says only
+ * "copy of the 6 slides" sends them back to look for it (ADR 9001, addendum 2026-11-18: a card carries the work).
+ */
+export const CONVERSATION_WORK_CHARS = 400;
+const CONVERSATION_WORK_LINES = 4;
+/** At a channel's top level, how far back a message still counts as the conversation's. */
+const CONVERSATION_WORK_WINDOW_MS = 6 * 60 * 60 * 1000;
+/** How many of the conversation's latest pieces of work a refusal offers. */
+const CONVERSATION_WORK_OFFERED = 6;
+/** Share of the work's words a description has to hold to carry it (a rewrite in another layout keeps most). */
+const CARRIES_SHARE = 0.7;
+/**
+ * At a channel's top level, where many posts are talked about at once, the rule holds when the request or the card
+ * speaks of the work; in a thread, always.
+ */
+const SPEAKS_OF_WORK =
+  /\b(copy|copys|legenda|legendas|caption|roteiro|script|texto|textos|dire[cç][aã]o visual|briefing|brief|slides?|l[aâ]minas?)\b/i;
+
+const ENVELOPE = /<\s*\/?\s*external_data\b[^>]*>/gi;
+/** A message's text as it goes on a card: a relayed answer's envelope and its "name:" line taken off. */
+const workText = (body: string) =>
+  body
+    .replace(ENVELOPE, "")
+    .replace(/^\s*[\w.-]{1,40}:\s*(?=\n)/, "")
+    .trim();
+const isWork = (text: string) =>
+  text.length >= CONVERSATION_WORK_CHARS &&
+  text.split("\n").filter((line) => line.trim()).length >= CONVERSATION_WORK_LINES;
+
+/** A message of the conversation by the end of its id, as a refusal names it. */
+export const workRef = (id: string) => id.replace(/-/g, "").slice(-10);
+
+export interface ConversationWork {
+  /** What was asked: the run's triggering message. */
+  asked: string;
+  /** Whether the run answers inside a thread. */
+  thread: boolean;
+  /** The conversation's pieces of work, latest first. */
+  pieces: { id: string; ref: string; text: string }[];
+}
+
+/**
+ * The work the conversation of this run holds: in a thread, its long messages (the root included, which is usually
+ * what "this" means when a person asks inside it); at a channel's top level, those of the last hours. The asking
+ * message counts: a person may paste the copy in the request itself.
+ */
+export async function conversationWork(
+  db: Database,
+  ctx: Pick<ToolContext, "orgId" | "channelId" | "threadRootId" | "triggerMessageId">,
+): Promise<ConversationWork | null> {
+  if (!ctx.triggerMessageId) return null;
+  const m = schema.messages;
+  const [trigger] = await db
+    .select({ createdAt: m.createdAt, body: m.body })
+    .from(m)
+    .where(and(eq(m.orgId, ctx.orgId), eq(m.id, ctx.triggerMessageId)));
+  if (!trigger) return null;
+  const thread = replyThreadOf(ctx);
+  const where = thread
+    ? and(eq(m.orgId, ctx.orgId), eq(m.channelId, ctx.channelId), or(eq(m.id, thread), eq(m.threadId, thread)))
+    : and(
+        eq(m.orgId, ctx.orgId),
+        eq(m.channelId, ctx.channelId),
+        isNull(m.threadId),
+        gte(m.createdAt, new Date(trigger.createdAt.getTime() - CONVERSATION_WORK_WINDOW_MS)),
+      );
+  const rows = await db
+    .select({ id: m.id, body: m.body })
+    .from(m)
+    .where(and(where, isNull(m.deletedAt), lte(m.createdAt, trigger.createdAt)))
+    .orderBy(desc(m.createdAt))
+    .limit(200);
+  const pieces = rows
+    .map((row) => ({ id: row.id, ref: workRef(row.id), text: workText(row.body ?? "") }))
+    .filter((piece) => isWork(piece.text));
+  return { asked: trigger.body ?? "", thread: Boolean(thread), pieces };
+}
+
+const wordsOf = (text: string) =>
+  new Set(
+    text
+      .toLowerCase()
+      .normalize("NFKD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .match(/[a-z0-9]{4,}/g) ?? [],
+  );
+
+/** Whether `description` holds the work: most of its words are there, in whatever order or layout. */
+export function carriesWork(description: string, work: string): boolean {
+  const wanted = wordsOf(work);
+  if (wanted.size === 0) return true;
+  const have = wordsOf(description);
+  let held = 0;
+  for (const word of wanted) if (have.has(word)) held++;
+  return held / wanted.size >= CARRIES_SHARE;
+}
+
+/**
+ * What a card's description becomes, or the refusal that sends the agent back for the work: `from` is a piece's ref
+ * (copied word for word under the agent's own text) or `none`.
+ */
+export function describedCard(
+  work: ConversationWork | null,
+  given: string,
+  from: string,
+  speaks: string,
+): { description?: string; carried?: number; refusal?: string } {
+  const pieces = work?.pieces ?? [];
+  if (from && from !== "none") {
+    const piece = pieces.find((p) => p.ref === from.trim().toLowerCase());
+    if (!piece) {
+      return {
+        refusal: pieces.length
+          ? `\`description_from\` names no long message of this conversation. The ones it holds are:\n${offer(pieces)}`
+          : "`description_from`: this conversation holds no long message to copy. Write the text in `description`.",
+      };
+    }
+    return { description: given ? `${given}\n\n${piece.text}` : piece.text, carried: piece.text.length };
+  }
+  if (from === "none" || !work || pieces.length === 0) return {};
+  if (!work.thread && !SPEAKS_OF_WORK.test(`${work.asked}\n${speaks}`)) return {};
+  if (pieces.some((piece) => carriesWork(given, piece.text))) return {};
+  return {
+    refusal:
+      "Whoever makes the post reads the card and its task, not this chat, and the description you gave doesn't carry the work this conversation holds" +
+      (given ? "" : " (you gave none)") +
+      `. Its long messages, latest first:\n${offer(pieces)}\n` +
+      "Call again with `description_from` set to the ref of the one that is this card's work (the copy, script or direction): it goes on the card word for word, under your `description`. Or write the whole text in `description` yourself. Only if none of them is this card's work, `description_from: \"none\"`.",
+  };
+}
+
+const offer = (pieces: ConversationWork["pieces"]) =>
+  pieces
+    .slice(0, CONVERSATION_WORK_OFFERED)
+    .map((p) => `- ref ${p.ref}: ${p.text.length} characters, "${p.text.replace(/\s+/g, " ").slice(0, 160)}…"`)
+    .join("\n");
+
 function cardTool(portal: ApprovalPortal): ToolDefinition {
   return {
     name: PORTAL_CARD_TOOL,
@@ -510,7 +650,18 @@ function cardTool(portal: ApprovalPortal): ToolDefinition {
         date: { type: "string", maxLength: 40, description: "When it should go out: YYYY-MM-DDTHH:MM." },
         owner: { type: "string", maxLength: 120, description: "Who makes it (a person's or an agent's name)." },
         note: { type: "string", maxLength: 2000 },
-        description: { type: "string", maxLength: 20000, description: "The brief: idea, script, references." },
+        description: {
+          type: "string",
+          maxLength: 20000,
+          description:
+            "What whoever makes the post reads on the card, and its task too: the work itself (the whole copy slide by slide, the script, the visual direction, the references), never a summary of it or a line saying where it is.",
+        },
+        description_from: {
+          type: "string",
+          maxLength: 40,
+          description:
+            "The ref of a long message of this conversation (a refusal lists them) to put on the card word for word, under your `description`: the copy, script or visual direction as it was written. `none`: no message of this conversation is this card's work.",
+        },
         list: { type: "string", maxLength: 80, description: "The schedule's list by name (a week); made if new." },
         position: {
           type: "integer",
@@ -563,6 +714,29 @@ function cardTool(portal: ApprovalPortal): ToolDefinition {
         if (fields.produceOn && !/^\d{4}-\d{2}-\d{2}$/.test(fields.produceOn)) {
           throw new ValidationError("`produce_on` is YYYY-MM-DD");
         }
+        // The work asked for goes on the card itself: a card made from a conversation that holds it never carries
+        // only a line about it (the task made from the card is what the person reads next).
+        const from = str(input.description_from).trim();
+        const writes = input.action === "create" || input.description !== undefined || Boolean(from);
+        let carried = 0;
+        if (writes && input.action !== "delete") {
+          const given = str(input.description).trim();
+          const work = from === "none" ? null : await conversationWork(ctx.db as Database, ctx);
+          const made = describedCard(work, given, from, `${str(input.title)}\n${given}`);
+          if (made.refusal) {
+            return {
+              content: `Not ${input.action === "create" ? "created" : "changed"}. ${made.refusal}`,
+              isError: true,
+            };
+          }
+          if (made.description !== undefined) {
+            fields.description = made.description;
+            carried = made.carried ?? 0;
+          }
+        }
+        const told = carried
+          ? ` Its description carries the conversation's work word for word (${carried} characters).`
+          : "";
         const listName = str(input.list).trim();
         const position = typeof input.position === "number" ? input.position : undefined;
         const listed = async (client: string) =>
@@ -578,7 +752,7 @@ function cardTool(portal: ApprovalPortal): ToolDefinition {
             { ...fields, ...(list ? { list } : {}), ...(order === undefined ? {} : { order }), title },
             by,
           );
-          return { content: `Created card ${card.id} for ${card.client}: "${card.title}" (${card.state}).` };
+          return { content: `Created card ${card.id} for ${card.client}: "${card.title}" (${card.state}).${told}` };
         }
         if (!str(input.card)) throw new ValidationError(`${String(input.action)} needs \`card\``);
         if (input.action === "delete") {
@@ -599,7 +773,7 @@ function cardTool(portal: ApprovalPortal): ToolDefinition {
               : {};
         }
         const card = await portal.updateCard(str(input.card), { ...fields, ...place }, by);
-        return { content: `Card ${card.id} is now "${card.title}" (${card.state}).` };
+        return { content: `Card ${card.id} is now "${card.title}" (${card.state}).${told}` };
       } catch (error) {
         return failed(error);
       }
