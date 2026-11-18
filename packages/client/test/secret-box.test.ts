@@ -30,3 +30,11 @@ describe("on a plain-http page", () => {
     expect(newClientId()).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
   });
 });
+
+describe("on the phone's Hermes, before its shim", () => {
+  test("a new client id is made with no `crypto` global at all", () => {
+    // Hermes has no `crypto`: reading the bare name threw a ReferenceError on every send.
+    Object.defineProperty(globalThis, "crypto", { configurable: true, value: undefined });
+    expect(newClientId()).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+  });
+});

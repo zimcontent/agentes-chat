@@ -1,3 +1,4 @@
+import "@/lib/crypto-global";
 import { keys, useApi, useAuthConfig, useMe } from "@agenteschat/client";
 import { ErrorBoundary } from "@agenteschat/client/lib/error-boundary";
 import { serverHost } from "@agenteschat/client/lib/server";

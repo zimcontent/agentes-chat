@@ -1814,8 +1814,13 @@ export function cacheAgentProposal(
  * only a UUID.
  */
 export const newClientId = (): string => {
-  if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
-  const b = crypto.getRandomValues(new Uint8Array(16));
+  // Read off `globalThis`: a runtime with no `crypto` at all (the phone's Hermes before its shim) throws on the bare name.
+  const c = (globalThis as { crypto?: Partial<Crypto> }).crypto;
+  if (typeof c?.randomUUID === "function") return c.randomUUID();
+  const b = new Uint8Array(16);
+  // Only a duplicate guard, never a secret: with no random source at all, `Math.random` is enough.
+  if (typeof c?.getRandomValues === "function") c.getRandomValues(b);
+  else for (let i = 0; i < b.length; i++) b[i] = Math.floor(Math.random() * 256);
   b[6] = ((b[6] ?? 0) & 0x0f) | 0x40;
   b[8] = ((b[8] ?? 0) & 0x3f) | 0x80;
   const h = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
