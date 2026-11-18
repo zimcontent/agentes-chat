@@ -90,7 +90,8 @@ export function DougPinnedCard({
       >
         {face}
         <View style={styles.words}>
-          <Text variant="callout" style={styles.name} numberOfLines={1}>
+          {/* Two lines at most: at 320 "Coordenando N agentes" wraps instead of losing its count to "…". */}
+          <Text variant="callout" style={styles.name} numberOfLines={2}>
             {name}
             <Text variant="footnote" tone="muted">{`  ·  ${doing}`}</Text>
           </Text>

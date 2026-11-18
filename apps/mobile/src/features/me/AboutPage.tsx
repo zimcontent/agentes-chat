@@ -33,7 +33,8 @@ export function AboutPage() {
         <Assinatura size={28} />
       </View>
       <GroupedList>
-        <GroupedRow label={t("settings.about.version")} value={instance.data?.version ?? "…"} />
+        {/* A deploy's version can be long (its `APP_VERSION`): under the label, whole. */}
+        <GroupedRow label={t("settings.about.version")} sub={instance.data?.version ?? "…"} subLines={2} />
         {/* The address under its label: side by side both were cut with "…" (ui-polish 17). */}
         <GroupedRow
           label={t("mobile.brand.source")}
