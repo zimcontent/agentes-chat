@@ -180,6 +180,14 @@ export const whatsappMessages = pgTable(
     sentByUserId: text().references(() => users.id, { onDelete: "set null" }),
     /** The agent that wrote it, when the number's agent answered. */
     sentByAgentId: uuid().references(() => agents.id, { onDelete: "set null" }),
+    /**
+     * What a received file shows or says, in words, for the number's agent (docs/adr/doug-0034-whatsapp-files.md): a
+     * picture or a document read by a model that sees, a video's frames and sound. Null: not looked at yet; empty:
+     * looked at, nothing could be made of it. Outside text, like the file.
+     */
+    seen: text(),
+    /** The Drive file a received file became, for a member's conversation with the agent; null: none yet. */
+    artifactId: uuid(),
     at: timestamp({ withTimezone: true }).notNull(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },

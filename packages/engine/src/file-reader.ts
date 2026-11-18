@@ -36,6 +36,8 @@ export interface ModelFile {
   note: string;
   /** An audio file: its words come from the speech service (`fileForModel`). */
   audio?: true;
+  /** A video: frames and its sound's words come from ffmpeg and the speech service where they are (`fileForModel`). */
+  video?: true;
 }
 
 const extensionOf = (name: string) => /\.([a-z0-9]+)$/i.exec(name)?.[1]?.toLowerCase() ?? "";
@@ -153,6 +155,7 @@ export function readForModel(file: { name: string; contentType: string; bytes: U
   if (isAudioFile(name, contentType)) return { audio: true, note: "" };
   if (isVideoFile(name, contentType)) {
     return {
+      video: true,
       note: `It is a video (${size}): no AI here watches videos, so it can't be shown to you. Tell the person exactly that: its sound as an audio file, or a few screenshots of it, would go through. With a computer, import_file copies it there, where ffmpeg makes pictures and sound of it.`,
     };
   }

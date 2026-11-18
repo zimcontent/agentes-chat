@@ -193,6 +193,10 @@ export const EXTRA_COLUMNS = [
   // The number's agent in groups, when called (docs/adr/doug-0007-whatsapp-groups.md).
   `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "lid" text`,
   `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "agent_session_until" timestamp with time zone`,
+  // Files received on a number, understood for its agent (docs/adr/doug-0034-whatsapp-files.md): what one shows or
+  // says, and the Drive file it became for a member's conversation with the agent.
+  `ALTER TABLE "whatsapp_messages" ADD COLUMN IF NOT EXISTS "seen" text`,
+  `ALTER TABLE "whatsapp_messages" ADD COLUMN IF NOT EXISTS "artifact_id" uuid`,
   // Live voice: calls with agents and messages told by voice (ADR doug-0006).
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "voice" text`,
   `CREATE TABLE IF NOT EXISTS "live_voice_keys" (

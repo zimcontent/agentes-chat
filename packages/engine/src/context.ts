@@ -2368,6 +2368,10 @@ export function taskNotice(m: Pick<Message, "body" | "meta">, current = false, p
  * maybe not in agentes.chat. "" for anything else.
  */
 function viaLine(m: Message, who: string): string {
+  // Written on WhatsApp and relayed here (docs/adr/doug-0034-whatsapp-files.md): the reply goes back there, files too.
+  if (m.authorType === "person" && m.meta?.whatsapp && typeof m.meta.whatsapp === "object") {
+    return `\n(sent by ${who} from WhatsApp: your reply goes back to them there, and every file you attach to it goes as WhatsApp shows it: a picture, a video, an audio as a voice message, a document)`;
+  }
   const via = m.authorType === "person" ? (m.meta?.via as { kind?: unknown; name?: unknown } | undefined) : undefined;
   if (via?.kind !== "app" || typeof via.name !== "string") return "";
   const app = via.name.replace(/[\p{Cc}\p{Cf}]/gu, "").slice(0, 64);

@@ -255,6 +255,7 @@ describe("the bridge: the agent in the workspace reads and writes WhatsApp", () 
       "whatsapp_conversations",
       "whatsapp_read",
       "whatsapp_search",
+      "whatsapp_open_file",
       "whatsapp_send",
     ]);
     const byName = new Map(tools.map((t) => [t.name, t]));
