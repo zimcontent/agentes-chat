@@ -41,9 +41,9 @@ export function useDougWords(): DougWords {
 export const DOUG_FACE = 48;
 
 /**
- * The card itself, with its data in props: the app's Início and the board draw the same one. Compact: his face in the
- * middle with the agents he coordinates now small around it, one line of what waits on you (the greeting before it
- * while both fit), and three buttons in a row, Conversar in the middle as the green one.
+ * Doug's section, with its data in props: the app's Início and the board draw the same one. No box, a texture behind
+ * it: his app icon, his name with what he is doing and the line of what waits on you (the greeting before it while
+ * both fit), Ligar as a phone at the row's end, and under it Conversar (the green one, wide) and Ver as decisões.
  */
 export function DougPinnedCard({
   face,
@@ -188,8 +188,8 @@ const styles = StyleSheet.create({
   icon: { overflow: "hidden" },
   name: { fontWeight: "700" },
   status: { fontWeight: "600" },
-  // Three buttons 8 apart: Ligar and Ver as decisões as wide as their words, Conversar takes the rest. On a narrow or
-  // enlarged screen the last one goes under, centered, never cut.
+  // Two buttons 8 apart: Ver as decisões as wide as its words, Conversar takes the rest. With the largest text the
+  // second goes under, never cut.
   actions: {
     flexDirection: "row",
     flexWrap: "wrap",
