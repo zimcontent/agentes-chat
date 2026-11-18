@@ -103,6 +103,58 @@ const MESSAGES: Message[] = [
   }),
 ];
 
+const FENCE = "```";
+/** The worst a bubble gets: what can't break, what is wide, lists, chips, marks (`/conversa-pior`). */
+const WORST: Message[] = [
+  msg(
+    "w1",
+    bot(SOCIAL),
+    "Abrir no portal: https://mydoug.io/portal/i/lexeer/up-08fdd3d7-abcdef0123456789-very-long-path",
+    60,
+  ),
+  msg("w2", person(ME), "Antidisestablishmentarianismoextraordinariamentecomprido123456", 58),
+  msg("w3", bot(SOCIAL), "Supercalifragilisticexpialidociousmentecomprida_sem_espaco_nenhum_aqui", 57),
+  msg(
+    "w4",
+    bot(SOCIAL),
+    "@doug @rosa @sony vejam a capa nova do reel da LEXEER antes de publicar amanhã cedo, por favor, e me digam se o lettering cobre a boca.",
+    56,
+  ),
+  msg("w5", person(ME), "@doug @rosa @sony", 55),
+  msg(
+    "w6",
+    bot(SOCIAL),
+    `Rode \`bun run --cwd apps/mobile typecheck --pretty false\` e depois:\n\n${FENCE}sh\ncurl -sS https://mydoug.io/api/app/orgs/0198a4b2-0000-7000-8000-000000000001/channels/0198a4b2-0000-7000-8000-000000000a01/messages?limit=200\n${FENCE}`,
+    54,
+  ),
+  msg(
+    "w7",
+    bot(SOCIAL),
+    "Para hoje:\n\n- Subir a capa nova do reel da LEXEER no portal com o lettering ajustado para não cobrir a boca\n- Avisar a ROSA para usar a mesma capa no carrossel da coleção de verão\n\n1. Exportar em 1080x1920 com a trilha nova e o corte aprovado ontem\n2. Agendar para amanhã às 9h no Instagram e no TikTok da LEXEER",
+    53,
+  ),
+  msg(
+    "w8",
+    bot(SOCIAL),
+    "⚠ Model produced invalid output. Não consigo subir só a capa no item up-08fdd3d7 (https://mydoug.io/portal/i/lexeer/up-08fdd3d7): a ferramenta de nova versão do portal exige enviar o vídeo do reel inteiro novamente.",
+    52,
+  ),
+  msg("w9", person(LETICIA), "🎉🎉🎉", 51),
+  msg("w10", person(ME), "🔥", 50),
+  msg(
+    "w11",
+    bot(SOCIAL),
+    "Veja [o item no portal da LEXEER com o nome bem comprido](https://mydoug.io/portal/i/lexeer/up-08fdd3d7) e me diga.",
+    49,
+  ),
+  msg(
+    "w12",
+    person(ME),
+    "Abrir no portal: https://mydoug.io/portal/i/lexeer/up-08fdd3d7-abcdef0123456789-very-long-path e `bun run --cwd apps/mobile typecheck`",
+    48,
+  ),
+];
+
 const CONSULTATIONS = [
   {
     id: "c1",
@@ -179,11 +231,11 @@ function fakeApi(): ApiClient {
   return new Proxy({}, { get: (_t, k) => (k === "then" ? undefined : area(String(k))) }) as unknown as ApiClient;
 }
 
-function Server({ children }: { children: ReactNode }) {
+function Server({ messages = MESSAGES, children }: { messages?: Message[]; children: ReactNode }) {
   const [qc] = useState(() => {
     const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     // The rows read the conversation's messages from the cache (which of a run's messages draws its pair row).
-    client.setQueryData(keys.messages(ORG, CHANNEL), MESSAGES);
+    client.setQueryData(keys.messages(ORG, CHANNEL), messages);
     return client;
   });
   const [api] = useState(fakeApi);
@@ -204,7 +256,7 @@ function Server({ children }: { children: ReactNode }) {
   );
 }
 
-function Rows() {
+function Rows({ messages = MESSAGES }: { messages?: Message[] }) {
   const look = useConversationLook(false);
   const { colors } = useTheme();
   return (
@@ -213,7 +265,7 @@ function Rows() {
         <ChatBackdrop accent={null} />
       </View>
       <ScrollView contentContainerStyle={styles.list}>
-        {MESSAGES.map((m) => (
+        {messages.map((m) => (
           <MessageRow key={m.id} message={m} grouped={false} meId={ME} />
         ))}
       </ScrollView>
@@ -226,6 +278,15 @@ export function ConversaAgentes() {
   return (
     <Server>
       <Rows />
+    </Server>
+  );
+}
+
+/** `/conversa-pior`: the worst a bubble holds, to check nothing leaves it (mine and the others'). */
+export function ConversaPior() {
+  return (
+    <Server messages={WORST}>
+      <Rows messages={WORST} />
     </Server>
   );
 }
