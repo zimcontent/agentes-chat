@@ -208,3 +208,68 @@ test("recent conversations: unread first, then the latest activity, channels I'm
   );
   expect(ids).toEqual(["unread", "new", "dm"]);
 });
+
+test("saves `saveAfterMs` after the first change, once for the changes in between", async () => {
+  const qc = new QueryClient();
+  let writes = 0;
+  const store = memory();
+  const counted: SnapshotStorage = {
+    ...store,
+    write: async (v) => {
+      writes++;
+      await store.write(v);
+    },
+  };
+  qc.setQueryData(keys.me, me("u1"));
+  const snapshot = createSnapshot(qc, counted, { saveAfterMs: 20 });
+  const stop = snapshot.start();
+  qc.setQueryData(keys.channels("o1"), [{ id: "c1" }]);
+  qc.setQueryData(keys.channels("o1"), [{ id: "c1" }, { id: "c2" }]);
+  await new Promise((r) => setTimeout(r, 5));
+  expect(writes).toBe(0);
+  await new Promise((r) => setTimeout(r, 60));
+  expect(writes).toBe(1);
+  expect(store.value()).toContain("c2");
+  stop();
+});
+
+test("with no idle callback on the platform (Hermes may lack it), a due save still runs", async () => {
+  const g = globalThis as { requestIdleCallback?: unknown };
+  const before = g.requestIdleCallback;
+  g.requestIdleCallback = undefined;
+  try {
+    const qc = new QueryClient();
+    const store = memory();
+    qc.setQueryData(keys.me, me("u1"));
+    const stop = createSnapshot(qc, store, { saveAfterMs: 1 }).start();
+    qc.setQueryData(keys.channels("o1"), [{ id: "c1" }]);
+    await new Promise((r) => setTimeout(r, 30));
+    expect(store.value()).not.toBeNull();
+    stop();
+  } finally {
+    g.requestIdleCallback = before;
+  }
+});
+
+test("a sign-out while a save is being written leaves nothing behind", async () => {
+  const qc = new QueryClient();
+  const store = memory();
+  let release: () => void = () => {};
+  const slow: SnapshotStorage = {
+    ...store,
+    write: async (v) => {
+      await new Promise<void>((r) => {
+        release = r;
+      });
+      await store.write(v);
+    },
+  };
+  qc.setQueryData(keys.me, me("u1"));
+  const snapshot = createSnapshot(qc, slow);
+  const saving = snapshot.flush();
+  await tick();
+  await snapshot.wipe();
+  release();
+  await saving;
+  expect(store.value()).toBeNull();
+});

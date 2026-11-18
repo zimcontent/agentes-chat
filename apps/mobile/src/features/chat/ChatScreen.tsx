@@ -179,6 +179,7 @@ import { PushOfferLine } from "../push/PushOfferLine";
 import { FanStrip, QueueWaitRow } from "../queue/parts";
 import { DmQueueButton, QueueButton, useAgentsQueue, useOpenQueue } from "../queue/QueueSheet";
 import { RemindSheet } from "../reminders/RemindSheet";
+import { filePart } from "../review/media";
 import { RightHandIntro } from "../right-hand/Intro";
 import { ConversationSearch } from "../search/ConversationSearch";
 import { hitTarget } from "../search/logic";
@@ -1230,9 +1231,8 @@ function Chat({
     addPending([{ uri: file.uri, name: file.name, type: "text/plain" }]);
   };
   const uploadOne = async (file: PendingFile): Promise<ArtifactRef> => {
-    // React Native's FormData sends `{ uri, name, type }` as a file part.
-    const part = { uri: file.uri, name: file.name, type: file.type };
-    const asFile = part as unknown as Parameters<typeof api.artifacts.upload>[1];
+    // Expo's fetch refuses React Native's `{ uri }` part: the part reads its bytes (`filePart`).
+    const asFile = filePart(file.uri, file.name, file.type) as unknown as Parameters<typeof api.artifacts.upload>[1];
     const saved: ArtifactDetail = await api.artifacts.upload(orgId, asFile, {
       channelId,
       ...(threadId ? { threadId } : {}),

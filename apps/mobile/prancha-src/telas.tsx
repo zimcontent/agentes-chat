@@ -20,7 +20,7 @@ import { AgentCallView } from "@/features/call/AgentCallView";
 import { ChatBackdrop } from "@/features/chat/ChatBackdrop";
 import { HeaderPill } from "@/features/chat/HeaderPill";
 import { ownBubble } from "@/features/chat/logic";
-import { DougPinnedCard, useDougWords } from "@/features/chats/DougPinnedCard";
+import { CREW_FACE, DOUG_FACE, DougPinnedCard, useDougWords } from "@/features/chats/DougPinnedCard";
 import { GlanceCard } from "@/features/chats/HomeGlance";
 import { CollapsibleSection } from "@/features/chats/HomeSection";
 import { ToolTile, WhatsAppMark } from "@/features/chats/HomeTools";
@@ -56,7 +56,18 @@ import { Arquivos, Senhas, SenhasItem, SenhasLogins } from "./arquivos-senhas";
 import { IlhaCena } from "./ilha";
 import { Paineis, Paineis320, PaineisFormas } from "./paineis";
 import { PainelIa, PainelIa320, PainelIaFolha, PainelIaFolha320 } from "./painel-ia";
-import { PortalCartao, PortalCronograma, PortalCronograma320 } from "./portal";
+import {
+  PortalAgendar,
+  PortalAgendarPost,
+  PortalCartao,
+  PortalClientes,
+  PortalCronograma,
+  PortalCronograma320,
+  PortalCronogramaPostados320,
+  PortalPostados,
+  PortalQuadro,
+  PortalQuadro320,
+} from "./portal";
 import {
   RevisaoConversa,
   RevisaoDesign,
@@ -368,15 +379,25 @@ export function Inicio({
     <Frame tabs="home" header={<TabHeader />} scrolledBy={scrolledBy} topInset={topInset} over={over}>
       {/* Doug pinned on top (docs/adr/doug-0016-doug-pinned.md), the same card the app draws. */}
       <DougPinnedCard
-        face={<AgentAvatar agent={DOUG} size={50} mode="run" name="Doug" />}
+        face={<AgentAvatar agent={DOUG} size={DOUG_FACE} mode="run" name="Doug" />}
+        left={[ROSA, MARK].map((a) => ({
+          id: a.name ?? "",
+          face: <AgentAvatar agent={a} size={CREW_FACE} mode="run" name={a.name} />,
+        }))}
+        right={[SONY, JUNIN].map((a) => ({
+          id: a.name ?? "",
+          face: <AgentAvatar agent={a} size={CREW_FACE} mode="run" name={a.name} />,
+        }))}
+        more={1}
         name="Doug"
-        status={w.coordinating(5)}
-        message={`Boa noite, Gabriel. ${w.decisions(2)}`}
-        primary={w.seeDecisions}
+        status={w.waiting(2)}
+        greeting=""
+        working={5}
         words={w}
-        live
-        onOpen={noop}
+        onTalk={noop}
         onCall={noop}
+        onDecisions={noop}
+        onStatus={noop}
       />
       <View style={styles.tools9}>
         {[
@@ -487,6 +508,42 @@ const TEAM: { a: AgentLookInput; mode: "idle" | "run" | "think" | "sleep"; state
   { a: JUNIN, mode: "run", state: "Trabalhando" },
   { a: NOVO, mode: "idle", state: "Disponível" },
 ];
+
+/** Doug pinned in its states: nothing waiting with the greeting and nobody working, one agent, many and a long count. */
+function DougFixado() {
+  const w = useDougWords();
+  const noop = () => {};
+  const crew = (list: AgentLookInput[]) =>
+    list.map((a) => ({ id: a.name ?? "", face: <AgentAvatar agent={a} size={CREW_FACE} mode="run" name={a.name} /> }));
+  const card = (
+    key: string,
+    o: { left: AgentLookInput[]; right: AgentLookInput[]; more: number; waiting: number; greeting: string },
+  ) => (
+    <DougPinnedCard
+      key={key}
+      face={<AgentAvatar agent={DOUG} size={DOUG_FACE} mode={o.right.length ? "run" : "idle"} name="Doug" />}
+      left={crew(o.left)}
+      right={crew(o.right)}
+      more={o.more}
+      name="Doug"
+      status={o.waiting > 0 ? w.waiting(o.waiting) : w.nothingWaiting}
+      greeting={o.greeting}
+      working={o.left.length + o.right.length + o.more}
+      words={w}
+      onTalk={noop}
+      onCall={noop}
+      onDecisions={noop}
+      {...(o.waiting > 0 ? { onStatus: noop } : {})}
+    />
+  );
+  return (
+    <Frame title="Doug fixado">
+      {card("calmo", { left: [], right: [], more: 0, waiting: 0, greeting: "Boa noite, Gabriel." })}
+      {card("um", { left: [], right: [SONY], more: 0, waiting: 1, greeting: "" })}
+      {card("muitos", { left: [ROSA, MARK], right: [SONY, JUNIN], more: 7, waiting: 12, greeting: "" })}
+    </Frame>
+  );
+}
 
 function Agentes() {
   return (
@@ -1144,6 +1201,8 @@ export const TELAS: Record<string, () => ReactNode> = {
   login: Login,
   servidor: Servidor,
   inicio: () => <Inicio />,
+  /** Doug pinned on Início in its states (docs/adr/doug-0016-doug-pinned.md). */
+  doug: DougFixado,
   /** "Tudo": from Início's "Mais", from a conversation's "+", and choosing the pins. */
   tudo: () => <Tudo from="home" />,
   "tudo-conversa": () => <Tudo from="conversation" />,
@@ -1179,6 +1238,13 @@ export const TELAS: Record<string, () => ReactNode> = {
   "portal-cronograma": PortalCronograma,
   "portal-cronograma-320": PortalCronograma320,
   "portal-cartao": PortalCartao,
+  "portal-quadro": PortalQuadro,
+  "portal-quadro-320": PortalQuadro320,
+  "portal-postados": PortalPostados,
+  "portal-clientes": PortalClientes,
+  "portal-agendar": PortalAgendar,
+  "portal-agendar-post": PortalAgendarPost,
+  "portal-postados-320": PortalCronogramaPostados320,
   whatsapp: WhatsAppLista,
   "whatsapp-conversa": WhatsAppConversa,
   arquivos: Arquivos,
