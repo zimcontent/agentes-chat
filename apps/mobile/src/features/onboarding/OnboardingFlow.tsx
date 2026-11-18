@@ -28,10 +28,18 @@ import { openWebPath } from "../links/open-web";
 import { ZoneList } from "../me/AccountPage";
 import { chooseAction } from "../settings/parts";
 import { usePersonPhoto } from "../shared/photo";
+import { askedComputer, keepComputerAsk } from "./computer";
 import { BrandStep, dougFailure, MembersStep, StartStep, useDougTeam } from "./doug";
 import {
+  type BrandForm,
+  brandFormOf,
+  brandStillWaits,
+  computerMembers,
+  computerOpens,
   dougOf,
   flowStepAt,
+  keepsComputerWanted,
+  keptHandles,
   orgNameFromEmail,
   otherTemplates,
   PURPOSES,
@@ -90,8 +98,14 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
   const [start, setStart] = useState<TeamStart>("doug");
   const [unchecked, setUnchecked] = useState<ReadonlySet<string>>(new Set());
   // "Conectar computador" taps: the computer's own flow opens once the workspace does (it needs the workspace chosen).
+  // It is only kept while the request still has a reason: an ask with no agent left that needs a computer clears.
   const [wantsComputer, setWantsComputer] = useState(false);
   const [dougFailed, setDougFailed] = useState<string | null>(null);
+  // How many agents the team actually made work on a computer (`applyTeamTemplate`'s answer), nil until it exists.
+  const [madeComputers, setMadeComputers] = useState<number | null>(null);
+  // The brand's form, held here so going back to the team and forward keeps what was typed, and the step's own busy.
+  const [brandForm, setBrandForm] = useState<BrandForm | null>(null);
+  const [brandBusy, setBrandBusy] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // The zone the person picked here, if they did; said in one line with Trocar beside it.
@@ -100,6 +114,8 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
   const orgName = name.trim();
   // A work address names its company: the field starts with it, selected, so typing replaces it (`suggested`).
   const [suggested, setSuggested] = useState<string | null>(null);
+  // A request for the computer made on another visit, before the app closed (features/onboarding/computer.ts).
+  const [resumedComputer, setResumedComputer] = useState(false);
 
   const unfinished = me.data?.organizations.find(settingUp);
   const target =
@@ -178,6 +194,22 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
   }, [another, orgId, name, suggested, email]);
   const unconfirmed =
     email !== "" && confirmationSentTo() === email.toLowerCase() && me.data?.user.emailVerified !== true;
+  // The computer asked for before the app closed, once the workspace exists: it comes back here, so "quem entra" shows
+  // the request still on and the opening goes to the computer as it would have. An ask kept before the team existed
+  // says nothing of what it made, so only a made one carries the count (`made`); the rest wait for the team's answer.
+  // An ask with no agent that needs one (the count is zero) is no ask at all and is dropped.
+  useEffect(() => {
+    if (resumedComputer || orgId === null) return;
+    setResumedComputer(true);
+    const ask = askedComputer(orgId);
+    if (ask === null) return;
+    if (ask.needs === 0) {
+      keepComputerAsk(null);
+      return;
+    }
+    setWantsComputer(true);
+    if (ask.made && madeComputers === null) setMadeComputers(ask.needs);
+  }, [orgId, resumedComputer, madeComputers]);
 
   const run = async (work: () => Promise<void>) => {
     setPending(true);
@@ -199,7 +231,15 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
     run(async () => {
       if (!target) return;
       const { orgId: id, generalChannelId } = target;
-      const done = await finishOnboarding(api, id);
+      let done: Awaited<ReturnType<typeof finishOnboarding>>;
+      try {
+        done = await finishOnboarding(api, id);
+      } catch (e) {
+        // The brand still waits (a team made on the web, or its answer lost here): `me` is read again so the flow
+        // shows the brand's step, and the person is not left on a screen whose button can never work.
+        if (brandStillWaits(e)) await qc.invalidateQueries({ queryKey: keys.me });
+        throw e;
+      }
       const landing = how === "import" ? null : landingOf(how, personal);
       const dm =
         landing === "rightHand" && done.agentId
@@ -216,8 +256,12 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
       else if (dm) void qc.invalidateQueries({ queryKey: keys.dms(id) });
       if (how === "import") router.push("/settings/import");
       else router.push(chatHref(dm?.channelId ?? generalChannelId));
-      // The computer the person asked to connect while picking who joins, over the workspace that just opened.
-      if (wantsComputer && how !== "import") router.push("/settings/devices/connect");
+      // The computer the person asked to connect while picking who joins, over the workspace that just opened, and
+      // only if an agent the team made works on one: an ask held on to after its agents left opens nothing.
+      if (how !== "import" && computerOpens(wantsComputer, madeComputers)) {
+        router.push("/settings/devices/connect");
+      }
+      keepComputerAsk(null);
     });
 
   /** Step 1: makes the workspace (or renames it, back here later), then the next step from its data. */
@@ -315,11 +359,13 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
   const inTeamScreens = dougScreens && teamPhase !== "how";
   const teamScreens = dougScreens && teamPhase !== "other";
   const onBack =
-    pending || makeDoug.isPending
+    pending || makeDoug.isPending || brandBusy
       ? undefined
       : inTeamScreens
         ? () => {
             setDougFailed(null);
+            // Leaving "who joins" for the way to start: the computer's ask was made for that list, so it goes with it.
+            setWantsComputer(false);
             setTeamPhase("how");
           }
         : before && before !== "brand"
@@ -543,7 +589,19 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
           }}
         />
       ) : view === "brand" && orgId ? (
-        <BrandStep orgId={orgId} company={workspace} onSaved={() => setPicked(null)} />
+        <BrandStep
+          orgId={orgId}
+          company={workspace}
+          form={brandForm ?? brandFormOf(null, workspace)}
+          // The step above keeps the form (a back and forward keeps what was typed); an update reads what it holds
+          // now, so two quick taps never write one over the other.
+          onForm={(update) =>
+            setBrandForm((f) => (typeof update === "function" ? update(f ?? brandFormOf(null, workspace)) : update))
+          }
+          seed={brandForm === null}
+          onSaved={() => setPicked(null)}
+          onBusy={setBrandBusy}
+        />
       ) : view === "team" && orgId && doug && teamScreens && teamPhase === "how" ? (
         <StartStep
           doug={doug}
@@ -561,9 +619,28 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
         <MembersStep
           doug={doug}
           unchecked={unchecked}
-          onToggle={(handle) => setUnchecked((s) => toggled(s, handle))}
+          onToggle={(handle) => {
+            const next = toggled(unchecked, handle);
+            setUnchecked(next);
+            // An ask that just lost its last computer agent is no ask at all: it goes with the row that took it away.
+            if (wantsComputer && !keepsComputerWanted(doug.members, keptHandles(doug.members, next))) {
+              setWantsComputer(false);
+              keepComputerAsk(null);
+            }
+          }}
           wantsComputer={wantsComputer}
-          onWantsComputer={setWantsComputer}
+          onWantsComputer={(wants) => {
+            setWantsComputer(wants);
+            // Asked now: kept for this workspace with the kept agents that need a computer, so a closing app doesn't
+            // lose it before the team is made (the ask goes on its own once that list is empty).
+            if (!wants || orgId === null) keepComputerAsk(null);
+            else
+              keepComputerAsk({
+                orgId,
+                needs: computerMembers(doug.members, keptHandles(doug.members, unchecked)),
+                made: false,
+              });
+          }}
           failed={dougFailed}
           creating={makeDoug.isPending}
           onCreate={(handles) => {
@@ -572,7 +649,16 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
               { handles, locale: i18n.language },
               {
                 // A step that failed: its reason here, and the same button tries again.
-                onSuccess: (out) => setDougFailed(dougFailure(t, out, i18n.language)),
+                onSuccess: (out) => {
+                  setDougFailed(dougFailure(t, out, i18n.language));
+                  // What the team really made decides whether the computer's flow opens at all.
+                  if (out.state === "created") {
+                    setMadeComputers(out.needsComputer?.length ?? 0);
+                    if (orgId !== null && wantsComputer) {
+                      keepComputerAsk({ orgId, needs: out.needsComputer ?? [], made: true });
+                    }
+                  }
+                },
                 onError: (e) => setDougFailed(stepFailedText(t, e, i18n.language)),
               },
             );

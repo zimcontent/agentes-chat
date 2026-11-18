@@ -2224,6 +2224,7 @@
     "membersTitle": "누가 팀에 들어올까요?",
     "membersLead": "모두 선택되어 있어요. 필요 없는 에이전트는 선택을 해제하세요.",
     "count_other": "에이전트 {{count}}명",
+    "countNew_other": "새 에이전트 {{count}}명 + {{name}}",
     "fixed": "항상 팀에 포함",
     "fixedA11y": "{{name}}은(는) 항상 팀에 포함돼요",
     "toggleHint": "두 번 탭해서 {{name}}을(를) 넣거나 뺍니다",

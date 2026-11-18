@@ -92,6 +92,8 @@ export const STORED = {
   voiceSpeed: "voice-speed",
   /** The person held the send button to stop an agent and send once: the composer's hint is over ("1"). */
   stopSendTaught: "stop-send-taught",
+  /** "Conectar computador" asked for on the first run, per workspace (JSON: `{ orgId, needs }`; features/onboarding). */
+  dougComputer: "doug-computer",
 } as const;
 
 export async function clearStoredValues(): Promise<void> {

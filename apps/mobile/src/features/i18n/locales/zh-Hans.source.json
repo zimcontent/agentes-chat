@@ -5751,6 +5751,12 @@
       "other": "{{count}} agents"
     }
   },
+  "dougOnb.countNew": {
+    "value": {
+      "one": "{{count}} new agent + {{name}}",
+      "other": "{{count}} new agents + {{name}}"
+    }
+  },
   "dougOnb.fixed": {
     "value": "always on the team"
   },

@@ -2224,6 +2224,7 @@
     "membersTitle": "Siapa yang masuk ke tim Anda?",
     "membersLead": "Semua sudah dicentang. Hapus centang untuk yang tidak Anda perlukan.",
     "count_other": "{{count}} agen",
+    "countNew_other": "{{count}} agen baru + {{name}}",
     "fixed": "selalu ada di tim",
     "fixedA11y": "{{name}} selalu ada di tim",
     "toggleHint": "Ketuk dua kali untuk menyertakan atau mengeluarkan {{name}}",

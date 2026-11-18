@@ -1,4 +1,11 @@
-import type { BrandInput, BrandView, DougTemplateMember, TeamTemplate, WorkspaceMode } from "@agenteschat/client";
+import {
+  ApiError,
+  type BrandInput,
+  type BrandView,
+  type DougTemplateMember,
+  type TeamTemplate,
+  type WorkspaceMode,
+} from "@agenteschat/client";
 import { knownErrorText } from "@agenteschat/client/lib/errors";
 import type { RailStep } from "@agenteschat/client/lib/onboarding";
 import { platformZoneName } from "@agenteschat/client/lib/routines";
@@ -26,6 +33,14 @@ export const workspaceAnswer = (t: TFunction, purpose: WorkspaceMode, name: stri
 /** A save that failed: what the server's code says (a refused workspace, a restriction), else that it didn't save. */
 export const stepFailedText = (t: TFunction, error: unknown, locale?: string) =>
   knownErrorText(t, error, locale) ?? t("mobile.onb.failed");
+
+/**
+ * The workspace refusing to finish because its brand still waits (`onboarding.brand_pending`, docs/adr/doug-0020-time-
+ * doug.md): a team was made elsewhere (on the web, or its answer lost here), so `me` has to be read again and the
+ * brand's step shown, or the person is stuck on a screen that can't go on.
+ */
+export const brandStillWaits = (error: unknown) =>
+  error instanceof ApiError && error.status === 409 && error.code === "onboarding.brand_pending";
 
 /** The phone's time zone ("America/Sao_Paulo"), or null. */
 export function phoneTimezone(): string | null {
@@ -135,6 +150,27 @@ export function memberTree(members: readonly DougTemplateMember[]) {
 export const keptHandles = (members: readonly DougTemplateMember[], unchecked: ReadonlySet<string>): string[] =>
   members.filter((m) => m.rightHand || !unchecked.has(m.handle)).map((m) => m.handle);
 
+/** The agents the team adds beyond the right hand, which already exists: what "quem entra" counts. */
+export const newMembers = (members: readonly DougTemplateMember[], kept: readonly string[]) =>
+  members.filter((m) => !m.rightHand && kept.includes(m.handle));
+
+/** The right hand in the template, whose check never comes off; null only in a template that names none. */
+export const rightHandMember = (members: readonly DougTemplateMember[]): DougTemplateMember | null =>
+  members.find((m) => m.rightHand) ?? null;
+
+/**
+ * "Quem entra" says how many agents the team adds: the right hand already exists, so it isn't counted and is named
+ * apart ("15 agentes novos + o DOUG"); a template that names no right hand counts alone.
+ */
+export const countText = (t: TFunction, adding: number, rightHand: string | null) =>
+  rightHand
+    ? t("mobile.dougOnb.countNew", { count: adding, name: rightHand })
+    : t("mobile.dougOnb.count", { count: adding });
+
+/** Its role, when it says something its name doesn't ("Copywriter" as both says nothing twice). */
+export const roleLine = (m: Pick<DougTemplateMember, "name" | "role">): string | null =>
+  m.role.trim().toLocaleLowerCase() === m.name.trim().toLocaleLowerCase() ? null : m.role;
+
 /** An agent besides the right hand is needed: with only the Doug, the team would still be empty. */
 export const hasAgents = (members: readonly DougTemplateMember[], kept: readonly string[]) =>
   members.some((m) => !m.rightHand && kept.includes(m.handle));
@@ -142,6 +178,46 @@ export const hasAgents = (members: readonly DougTemplateMember[], kept: readonly
 /** The kept agents that work on a computer, for the notice and its button. */
 export const computerMembers = (members: readonly DougTemplateMember[], kept: readonly string[]) =>
   members.filter((m) => m.needsComputer && kept.includes(m.handle));
+
+/**
+ * Whether the computer's own flow opens once the workspace does (docs/adr/doug-0020-time-doug.md): only when the person
+ * asked for it while picking who joins *and* an agent the team actually made works on a computer. A team that was not
+ * created, or one whose computer agents were unchecked, opens nothing.
+ */
+export const computerOpens = (asked: boolean, madeComputers: number | null | undefined) =>
+  asked && (madeComputers ?? 0) > 0;
+
+/** Whether the ask still has a reason: it goes as soon as no kept agent works on a computer. */
+export const keepsComputerWanted = (members: readonly DougTemplateMember[], kept: readonly string[]) =>
+  computerMembers(members, kept).length > 0;
+
+/** The ask as the phone keeps it while the app may close, and what a stored one says back. */
+export interface ComputerAsk {
+  /** How many agents work on a computer: the kept ones while the team is still being picked, the made ones after. */
+  needs: number;
+  /** The team was already made when this was kept, so `needs` is what it made, not a list still being checked. */
+  made: boolean;
+}
+
+/** The ask as the phone keeps it, for the workspace it was asked in. */
+export const storedComputerAsk = (orgId: string, needs: readonly unknown[], made: boolean) =>
+  JSON.stringify({ orgId, needs: needs.length, made });
+
+/** What a stored ask says for this workspace; null for anything else (another workspace's, garbage, no count). */
+export function computerAskOf(stored: string | null, orgId: string): ComputerAsk | null {
+  if (!stored) return null;
+  let saved: unknown;
+  try {
+    saved = JSON.parse(stored);
+  } catch {
+    return null;
+  }
+  if (typeof saved !== "object" || saved === null) return null;
+  const { orgId: savedOrg, needs, made } = saved as Record<string, unknown>;
+  // Another workspace's ask asks for nothing here; one whose count is no count is no ask either.
+  if (savedOrg !== orgId || typeof needs !== "number" || !Number.isInteger(needs) || needs < 0) return null;
+  return { needs, made: made === true };
+}
 
 /** A set with `handle` taken in or out. */
 export function toggled(set: ReadonlySet<string>, handle: string): Set<string> {

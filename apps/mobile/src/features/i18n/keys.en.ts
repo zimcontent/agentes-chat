@@ -2456,6 +2456,9 @@ export const featureKeysEn = {
     membersLead: "Everyone is checked. Uncheck anyone you don't need.",
     count_one: "{{count}} agent",
     count_other: "{{count}} agents",
+    /** The Doug team's count: the right hand already exists, so the new agents are counted and it is named apart. */
+    countNew_one: "{{count}} new agent + {{name}}",
+    countNew_other: "{{count}} new agents + {{name}}",
     /** After the right hand's role: its check can't be taken off. */
     fixed: "always part of the team",
     fixedA11y: "{{name}} is always part of the team",

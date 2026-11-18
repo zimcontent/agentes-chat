@@ -2224,6 +2224,7 @@
     "membersTitle": "谁加入你的团队？",
     "membersLead": "已全部勾选。取消勾选你不需要的智能体。",
     "count_other": "{{count}} 个智能体",
+    "countNew_other": "新增 {{count}} 个智能体 + {{name}}",
     "fixed": "始终在团队中",
     "fixedA11y": "{{name}} 始终在团队中",
     "toggleHint": "双击以加入或排除 {{name}}",

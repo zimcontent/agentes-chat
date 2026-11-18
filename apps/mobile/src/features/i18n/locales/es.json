@@ -2439,6 +2439,8 @@
     "count_one": "{{count}} agente",
     "count_many": "{{count}} agentes",
     "count_other": "{{count}} agentes",
+    "countNew_one": "{{count}} agente nuevo + {{name}}",
+    "countNew_other": "{{count}} agentes nuevos + {{name}}",
     "fixed": "siempre en el equipo",
     "fixedA11y": "{{name}} está siempre en el equipo",
     "toggleHint": "Toca dos veces para incluir o dejar fuera a {{name}}",

@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { View } from "react-native";
 import { BrandStep, MembersStep, StartStep } from "@/features/onboarding/doug";
+import { brandFormOf } from "@/features/onboarding/logic";
 import { ToastHost } from "@/ui";
 import { AuthScaffold } from "@/ui/auth/AuthScaffold";
 
@@ -162,13 +163,14 @@ export function TimeDougQuem() {
 }
 
 export function TimeDougMarca() {
+  const [form, setForm] = useState(() => brandFormOf(null, "Padaria Aurora"));
   return (
     <Phone
       title="Ensine a sua marca ao time"
       subtitle="Os agentes leem isto antes de escrever, desenhar ou publicar."
       progress="Passo 4 de 5 · Sua marca"
     >
-      <BrandStep orgId={ORG} company="Padaria Aurora" onSaved={() => {}} />
+      <BrandStep orgId={ORG} company="Padaria Aurora" form={form} onForm={setForm} seed={false} onSaved={() => {}} />
     </Phone>
   );
 }

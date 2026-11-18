@@ -2335,6 +2335,8 @@
     "membersLead": "Hepsi işaretli. İhtiyacınız olmayanların işaretini kaldırın.",
     "count_one": "{{count}} ajan",
     "count_other": "{{count}} ajan",
+    "countNew_one": "{{count}} yeni ajan + {{name}}",
+    "countNew_other": "{{count}} yeni ajan + {{name}}",
     "fixed": "her zaman ekipte",
     "fixedA11y": "{{name}} her zaman ekipte",
     "toggleHint": "{{name}} ekibe dahil etmek veya çıkarmak için iki kez dokunun",

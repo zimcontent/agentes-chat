@@ -2378,6 +2378,9 @@ export const featureKeysPtBR = {
     membersLead: "Todos vêm marcados. Tire quem você não precisa.",
     count_one: "{{count}} agente",
     count_other: "{{count}} agentes",
+    /** A contagem do Time Doug: o braço direito já existe, então os novos são contados e ele é nomeado à parte. */
+    countNew_one: "{{count}} agente novo + o {{name}}",
+    countNew_other: "{{count}} agentes novos + o {{name}}",
     /** Depois do papel do braço direito: a marca dele não sai. */
     fixed: "sempre no time",
     fixedA11y: "{{name}} está sempre no time",

@@ -13,7 +13,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as DocumentPicker from "expo-document-picker";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, View } from "react-native";
+import { AccessibilityInfo, Platform, Pressable, StyleSheet, View } from "react-native";
 import { AgentAvatar, Button, Chip, Icon, Locked, SkeletonList, Text } from "@/ui";
 import { AuthField } from "@/ui/auth/AuthField";
 import { CENTER } from "@/ui/auth/AuthScaffold";
@@ -27,11 +27,15 @@ import {
   brandInput,
   brandReady,
   computerMembers,
+  countText,
   DOUG_TEMPLATE,
   hasAgents,
   keptHandles,
   memberTree,
+  newMembers,
   phaseAfter,
+  rightHandMember,
+  roleLine,
   stepFailedText,
   TEAM_STARTS,
   type TeamStart,
@@ -66,6 +70,14 @@ export function useDougTeam(orgId: string) {
       // The workspace says its brand waits before the team shows, so the opening never runs ahead of it.
       await qc.invalidateQueries({ queryKey: keys.me });
       await qc.invalidateQueries({ queryKey: keys.agents(orgId) });
+    },
+    // A request that failed after the server made the team (the answer lost on the way back) leaves the workspace
+    // changed: the two asks the success reads again are read again here too, so a retry sees the team and the brand.
+    onError: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: keys.me }),
+        qc.invalidateQueries({ queryKey: keys.agents(orgId) }),
+      ]);
     },
   });
 }
@@ -224,6 +236,7 @@ function MemberRow({
 }) {
   const { t } = useTranslation();
   const c = useColors();
+  const line = roleLine(m);
   return (
     <Pressable
       disabled={m.rightHand}
@@ -247,9 +260,21 @@ function MemberRow({
         <Text variant={small ? "small" : "subhead"} style={styles.bold} numberOfLines={1}>
           {m.name}
         </Text>
-        <Text variant="footnote" tone="muted" numberOfLines={small ? 1 : 2}>
-          {m.rightHand ? `${m.role} · ${t("mobile.dougOnb.fixed")}` : m.role}
-        </Text>
+        {/* Its role only when it says more than its name: a "Copywriter" named after its role said it twice. */}
+        {line ? (
+          <Text variant="footnote" tone="muted" numberOfLines={small ? 1 : 2}>
+            {line}
+          </Text>
+        ) : null}
+        {/* Its own line, as the computer's is, rather than a third "·" on the role's: a chain reads dense. */}
+        {m.rightHand && !small ? (
+          <View style={styles.tag}>
+            <Icon name="lock" size={12} color={c.muted} />
+            <Text variant="caption" tone="muted">
+              {t("mobile.dougOnb.fixed")}
+            </Text>
+          </View>
+        ) : null}
         {m.needsComputer && on && !small ? (
           <View style={styles.tag}>
             <Icon name="server" size={12} color={c.muted} />
@@ -291,13 +316,29 @@ export function MembersStep({
   const { top, under } = memberTree(doug.members);
   const kept = keptHandles(doug.members, unchecked);
   const computers = computerMembers(doug.members, kept);
+  const adding = newMembers(doug.members, kept).length;
+  const rightHand = rightHandMember(doug.members);
+  const count = countText(t, adding, rightHand?.name ?? null);
   const [open, setOpen] = useState<ReadonlySet<string>>(new Set());
   const ready = hasAgents(doug.members, kept);
+  // A count that changes and a failure are said aloud on iOS: the line is quiet type, and VoiceOver reads a change
+  // here only when told. `accessibilityLiveRegion` is Android's; there has to be an announcement of its own.
+  const said = useRef({ count, failed });
+  useEffect(() => {
+    if (Platform.OS !== "ios") return;
+    if (said.current.count !== count) AccessibilityInfo.announceForAccessibility(count);
+    said.current.count = count;
+  }, [count]);
+  useEffect(() => {
+    if (Platform.OS !== "ios" || !failed || said.current.failed === failed) return;
+    AccessibilityInfo.announceForAccessibility(failed);
+    said.current.failed = failed;
+  }, [failed]);
   return (
     <>
       <Locked when={creating} style={styles.stack}>
         <Text variant="footnote" tone="faint" style={styles.count} accessibilityLiveRegion="polite">
-          {t("mobile.dougOnb.count", { count: kept.length })}
+          {count}
         </Text>
         <View style={styles.stack}>
           {top.map((m) => {
@@ -315,6 +356,7 @@ export function MembersStep({
                       <Pressable
                         onPress={() => setOpen((s) => toggled(s, m.handle))}
                         accessibilityRole="button"
+                        // A 32-point line: 8 of slop around it reaches past the 44-point target.
                         hitSlop={8}
                         style={styles.more}
                       >
@@ -348,12 +390,15 @@ export function MembersStep({
                   <Text variant="footnote" tone="muted" style={styles.noticeLine}>
                     {t("mobile.dougOnb.computerLater")}
                   </Text>
-                  <Button
-                    variant="text"
-                    size="sm"
-                    label={t("mobile.dougOnb.computerSkip")}
-                    onPress={() => onWantsComputer(false)}
-                  />
+                  {/* A 32-point text button has no plate to grow: it sits in a 44-point row instead. */}
+                  <View style={styles.skipRow}>
+                    <Button
+                      variant="text"
+                      size="sm"
+                      label={t("mobile.dougOnb.computerSkip")}
+                      onPress={() => onWantsComputer(false)}
+                    />
+                  </View>
                 </>
               ) : (
                 <View style={styles.noticeLine}>
@@ -445,25 +490,47 @@ function Labelled({ label, children }: { label: string; children: ReactNode }) {
  * "Ensine a sua marca ao time", required once the Doug team was chosen: the company's name and a tone of voice (tapped,
  * written or both) first, then what the agents may use when they have it: Instagram, the site, who the company sells
  * to and the brand manual (a file from the phone, or a link). It saves as one skill the agents read (`PUT …/brand`).
+ * What was typed lives in the step above (`form`/`onForm`): going back to the team and forward again keeps it.
  */
-export function BrandStep({ orgId, company, onSaved }: { orgId: string; company: string; onSaved: () => void }) {
+/** The brand's form as the step above keeps it: a value, or an update read from what it holds now (two quick taps). */
+export type BrandFormOf = (update: BrandForm | ((form: BrandForm) => BrandForm)) => void;
+
+export function BrandStep({
+  orgId,
+  company,
+  form,
+  onForm,
+  seed,
+  onSaved,
+  onBusy,
+}: {
+  orgId: string;
+  company: string;
+  form: BrandForm;
+  onForm: BrandFormOf;
+  /** Nothing was typed yet (the step above holds no form): what an earlier visit saved fills it. */
+  seed: boolean;
+  onSaved: () => void;
+  /** Told while a save or an upload runs: the step above turns Back off then, so nothing leaves mid-request. */
+  onBusy?: (busy: boolean) => void;
+}) {
   const { t, i18n } = useTranslation();
   const api = useApi();
   const qc = useQueryClient();
   const c = useColors();
   const brand = useBrandForm(orgId, i18n.language);
-  const [form, setForm] = useState<BrandForm>(() => brandFormOf(null, company));
   const seeded = useRef(false);
-  // What an earlier visit saved fills the form once; it never overwrites what is being typed.
+  // What an earlier visit saved fills the form once, and only while nothing was typed here: a form the step above
+  // already holds (a back and forward) is never overwritten.
   useEffect(() => {
-    if (seeded.current || !brand.data) return;
+    if (seeded.current || !seed || !brand.data) return;
     seeded.current = true;
-    if (brand.data.brand) setForm(brandFormOf(brand.data.brand, company));
-  }, [brand.data, company]);
+    if (brand.data.brand) onForm(brandFormOf(brand.data.brand, company));
+  }, [seed, brand.data, company, onForm]);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const set = <K extends keyof BrandForm>(key: K, value: BrandForm[K]) => {
-    setForm((f) => ({ ...f, [key]: value }));
+    onForm((f) => ({ ...f, [key]: value }));
     setError(null);
   };
   const save = useMutation({
@@ -480,21 +547,26 @@ export function BrandStep({ orgId, company, onSaved }: { orgId: string; company:
     if (res.canceled) return;
     setUploading(true);
     setError(null);
-    try {
-      const added: { id: string; title: string }[] = [];
-      for (const a of res.assets) {
-        // React Native's FormData sends `{ uri, name, type }` as a file part, as the Drive's upload does.
-        const file = { uri: a.uri, name: a.name, type: a.mimeType ?? "application/octet-stream" };
+    // Each file lands in the form as it is uploaded: a later one failing keeps the earlier ones.
+    for (const a of res.assets) {
+      // React Native's FormData sends `{ uri, name, type }` as a file part, as the Drive's upload does.
+      const file = { uri: a.uri, name: a.name, type: a.mimeType ?? "application/octet-stream" };
+      try {
         const saved = await api.artifacts.upload(orgId, file as unknown as Parameters<typeof api.artifacts.upload>[1]);
-        added.push({ id: saved.id, title: saved.title });
+        onForm((f) => ({ ...f, files: [...f.files, { id: saved.id, title: saved.title }] }));
+      } catch (e) {
+        setError(stepFailedText(t, e, i18n.language));
+        break;
       }
-      setForm((f) => ({ ...f, files: [...f.files, ...added] }));
-    } catch (e) {
-      setError(stepFailedText(t, e, i18n.language));
-    } finally {
-      setUploading(false);
     }
+    setUploading(false);
   };
+  const busy = save.isPending || uploading;
+  // The step above turns Back off while a request runs, and on again when it ends.
+  useEffect(() => {
+    onBusy?.(busy);
+    return () => onBusy?.(false);
+  }, [busy, onBusy]);
   if (brand.isPending)
     return (
       <View style={styles.stack}>
@@ -507,10 +579,11 @@ export function BrandStep({ orgId, company, onSaved }: { orgId: string; company:
         <Text variant="small" tone="danger" style={CENTER}>
           {t("common.loadFailed")}
         </Text>
-        <Button variant="text" size="sm" label={t("mobile.common.retry")} onPress={() => void brand.refetch()} />
+        <View style={styles.skipRow}>
+          <Button variant="text" size="sm" label={t("mobile.common.retry")} onPress={() => void brand.refetch()} />
+        </View>
       </View>
     );
-  const busy = save.isPending || uploading;
   return (
     <>
       <Locked when={busy} keepKeyboard style={styles.fields}>
@@ -682,6 +755,8 @@ const styles = StyleSheet.create({
   reports: { marginLeft: 22, paddingLeft: 12, borderLeftWidth: 2, gap: 4 },
   under: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44 },
   more: { minHeight: 32, justifyContent: "center", paddingLeft: 2 },
+  // The "Agora não" text button (32 tall, no plate) in a finger's own row.
+  skipRow: { minHeight: 44, alignSelf: "flex-start", justifyContent: "center" },
   tag: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 },
   notice: {
     flexDirection: "row",

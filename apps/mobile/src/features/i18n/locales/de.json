@@ -2335,6 +2335,8 @@
     "membersLead": "Alle sind angehakt. Nimm den Haken bei denen weg, die du nicht brauchst.",
     "count_one": "{{count}} Agent",
     "count_other": "{{count}} Agenten",
+    "countNew_one": "{{count}} neuer Agent + {{name}}",
+    "countNew_other": "{{count}} neue Agenten + {{name}}",
     "fixed": "immer im Team",
     "fixedA11y": "{{name}} ist immer im Team",
     "toggleHint": "Doppeltippen, um {{name}} aufzunehmen oder wegzulassen",

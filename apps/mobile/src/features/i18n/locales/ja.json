@@ -2224,6 +2224,7 @@
     "membersTitle": "チームに入るのは誰？",
     "membersLead": "全員にチェックが入っています。不要な人は外してください。",
     "count_other": "{{count}}人のエージェント",
+    "countNew_other": "新規エージェント{{count}}人 + {{name}}",
     "fixed": "常にチームに所属",
     "fixedA11y": "{{name}}は常にチームに所属します",
     "toggleHint": "ダブルタップで{{name}}を含める／外す",

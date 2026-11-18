@@ -2335,6 +2335,8 @@
     "membersLead": "Iedereen is aangevinkt. Haal het vinkje weg bij wie je niet nodig hebt.",
     "count_one": "{{count}} agent geselecteerd",
     "count_other": "{{count}} agents geselecteerd",
+    "countNew_one": "{{count}} nieuwe agent + {{name}}",
+    "countNew_other": "{{count}} nieuwe agenten + {{name}}",
     "fixed": "altijd in het team",
     "fixedA11y": "{{name}} zit altijd in het team",
     "toggleHint": "Tik twee keer om {{name}} wel of niet op te nemen",

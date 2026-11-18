@@ -2439,6 +2439,8 @@
     "count_one": "{{count}} agent sélectionné",
     "count_many": "{{count}} agents sélectionnés",
     "count_other": "{{count}} agents sélectionnés",
+    "countNew_one": "{{count}} nouvel agent + {{name}}",
+    "countNew_other": "{{count}} nouveaux agents + {{name}}",
     "fixed": "toujours dans l'équipe",
     "fixedA11y": "{{name}} est toujours dans l'équipe",
     "toggleHint": "Touchez deux fois pour inclure ou exclure {{name}}",
