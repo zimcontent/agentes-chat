@@ -1,0 +1,193 @@
+/*
+ * "Quem entra no seu time?" (docs/adr/doug-0030-time-doug.md): the Doug team's agents, every box checked, the QG de
+ * Tráfego's team under its MARK, and what they bring counted under the list. The step's own column (560), the kit's
+ * ruler: nothing beside the rows takes their width.
+ */
+.onb-who {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.onb-who__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/*
+ * A row: the box, the face, the name and role, then what it brings. A border, the card's plate: the whole row presses.
+ * 8 above and below, the controls' room from every edge (rule 9); the words take the row's width.
+ */
+.onb-who__row {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: var(--control-h-lg);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--raised);
+  cursor: pointer;
+}
+label.onb-who__row:hover {
+  border-color: var(--line-strong);
+}
+/* The right hand's row: it is already here, so it presses nothing. */
+.onb-who__row[data-fixed] {
+  background: var(--sunken);
+  cursor: default;
+}
+/* A QG's lead and, under it, its team: a hairline at the team's start, a smaller face, the whole line pressing. */
+.onb-who__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.onb-who__team {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0 0 0 var(--space-6);
+  padding: var(--space-1) 0 var(--space-1) var(--space-3);
+  border-left: 1px solid var(--line2);
+  list-style: none;
+}
+.onb-who__row[data-small] {
+  min-height: var(--control-h-sm);
+  padding: var(--space-2);
+  border-color: transparent;
+  background: transparent;
+}
+label.onb-who__row[data-small]:hover {
+  border-color: var(--line);
+}
+/* The row's first line: the box, the face, the words, and whatever ends the row (a count, "Stays"). */
+.onb-who__lead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  flex: 1;
+}
+/* What the row ends with at a glance, on the words' line while it's short. */
+.onb-who__tag {
+  flex: none;
+  white-space: nowrap;
+}
+/* The role, then what the agent brings and, where it only works on a computer, its button: the row's full width. */
+.onb-who__under {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: 1px;
+  padding-left: var(--space-6);
+}
+.onb-who__name {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+  font-weight: 600;
+  color: var(--ink);
+}
+.onb-who__qg {
+  flex: none;
+  color: var(--faint);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.onb-who__role {
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+/*
+ * The row's second line: the role, then what the agent brings. The role never shares the line with a button that keeps
+ * its width (it would wrap to a sliver): it leads the line, whole, and the button goes under it when both are there.
+ */
+.onb-who__under > .onb-who__role {
+  flex: 1 1 100%;
+}
+/* What an agent that only works on a computer needs, and the button beside it: never the words' room. */
+.onb-who__needs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: none;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.onb-who__needs .ac-iconline {
+  white-space: nowrap;
+}
+.onb-who__fixed {
+  flex: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--faint);
+}
+/*
+ * What the checked agents bring, under the list: three counts in a row on the step's own plate, then the note under a
+ * hairline. Beside the rows it would take their width (the step's column is 560).
+ */
+.onb-who__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--card-well);
+}
+/* The three counts in a row on a wide box; on a phone they stack, each the number then its name, rather than two by
+   two with the third alone. */
+.onb-who__counts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: var(--space-4);
+  margin: 0;
+}
+@media (max-width: 560px) {
+  .onb-who__counts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+  }
+  .onb-who__counts > div {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--space-3);
+  }
+}
+.onb-who__counts > div {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space-1) / 2);
+  min-width: 0;
+}
+.onb-who__counts dd {
+  order: -1;
+  margin: 0;
+  font-size: 24px;
+  font-weight: 650;
+  line-height: 1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.onb-who__counts dt {
+  font-size: 12.5px;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+.onb-who__note {
+  margin: 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--faint);
+}

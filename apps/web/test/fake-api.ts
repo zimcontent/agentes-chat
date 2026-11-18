@@ -23,6 +23,7 @@ import type {
   AuthConfig,
   Availability,
   BrainMachine,
+  BrandView,
   CarrySource,
   Channel,
   ChannelCategory,
@@ -35,6 +36,7 @@ import type {
   ConsultationConversation,
   Credential,
   DeviceAccount,
+  DougTeamTemplate,
   Edition,
   EmailChange,
   EndpointCheck,
@@ -113,6 +115,7 @@ import { ApiError } from "@agenteschat/client";
 import { moveInGroups } from "@agenteschat/client/lib/agent-groups";
 import { answersOthers, audienceOf, listsAllAgents } from "@agenteschat/client/lib/audience";
 import type { ChatPrefs } from "@agenteschat/client/lib/chat-look";
+import { DOUG_TEMPLATE } from "@agenteschat/client/lib/doug-team";
 import { ISSUES_VIEW_DEFAULT } from "@agenteschat/client/lib/issues-view";
 import { freeHandle, takenHandles } from "@agenteschat/client/lib/new-agent";
 import { stepIndex } from "@agenteschat/client/lib/onboarding";
@@ -143,6 +146,52 @@ import { createFakeThreads } from "./fakes/threads";
 import { createFakeWiki } from "./fakes/wiki";
 
 export const NOW = new Date("2026-10-14T13:44:00.000Z");
+/** `GET /api/app/legal`'s services on a fresh installation: every optional service off. */
+const NO_LEGAL_SERVICES: LegalFacts["services"] = {
+  platformKey: false,
+  jev: false,
+  giphy: false,
+  email: false,
+  media: false,
+  speech: false,
+  push: false,
+  pushDirect: false,
+  pushRelay: false,
+  composio: false,
+  embeddings: false,
+  whatsapp: false,
+  errors: false,
+  billing: false,
+  support: false,
+  telemetry: false,
+  driveBackup: false,
+};
+/** The brand's tones as the server sends them: ids fixed, words in pt-BR (the tests run in Portuguese). */
+const BRAND_TONES = [
+  "proximo",
+  "profissional",
+  "divertido",
+  "inspirador",
+  "direto",
+  "acolhedor",
+  "tecnico",
+  "sofisticado",
+  "ousado",
+  "educativo",
+] as const;
+const BRAND_TONE_LABEL: Record<(typeof BRAND_TONES)[number], string> = {
+  proximo: "Próximo",
+  profissional: "Profissional",
+  divertido: "Divertido",
+  inspirador: "Inspirador",
+  direto: "Direto",
+  acolhedor: "Acolhedor",
+  tecnico: "Técnico",
+  sofisticado: "Sofisticado",
+  ousado: "Ousado",
+  educativo: "Educativo",
+};
+
 export const ORG_ID = "00000000-0000-4000-8000-000000000001";
 export const GENERAL_ID = "00000000-0000-4000-8000-0000000000c1";
 export const ENG_ID = "00000000-0000-4000-8000-0000000000c2";
@@ -200,31 +249,22 @@ function fakePlanAccount(money: boolean): PlanAccountUsage {
   };
 }
 
-/** `GET /api/app/legal`'s services on a fresh installation: every optional service off. */
-const NO_LEGAL_SERVICES: LegalFacts["services"] = {
-  platformKey: false,
-  jev: false,
-  giphy: false,
-  email: false,
-  media: false,
-  speech: false,
-  push: false,
-  pushDirect: false,
-  pushRelay: false,
-  composio: false,
-  embeddings: false,
-  whatsapp: false,
-  errors: false,
-  billing: false,
-  support: false,
-  telemetry: false,
-  driveBackup: false,
-};
-
 export interface FakeState {
   me: Me | null;
-  /** "Ver modelos de time" (`agents.teamTemplates`; default none). */
+  /** "Ver modelos de time" (`agents.teamTemplates`; default none): the gallery alone, never the Doug team. */
   teamTemplates?: TeamTemplate[];
+  /** The Doug team's card apart (`agents.dougTemplate`, docs/adr/doug-0030-time-doug.md; default none). */
+  dougTemplate?: DougTeamTemplate;
+  /** Overrides `system.legal` (default: every field unset, as a fresh installation has them). */
+  legal?: Partial<LegalFacts>;
+  /** `agents.applyTeamTemplate` refuses the Doug team with 409 `doug_team.made` (made meanwhile, another tab). */
+  dougMade?: boolean;
+  /** `artifacts.upload` refuses a file whose name contains this (the brand manual's failure). */
+  uploadFails?: string;
+  /** `orgs.brand` fails with this error (the brand step's own failed read). */
+  brandError?: Error;
+  /** "Sua marca" (`orgs.brand`/`orgs.saveBrand`): what was saved, and whether the step waits (docs/adr/doug-0030-time-doug.md). */
+  brandState?: { brand: BrandView | null; pending: boolean };
   /** What a one-click proposed agent thinks with (default: what its draft suggested). */
   proposalAi?: "account" | "model" | "none";
   /** By agent: the mailboxes others gave it, which a wider audience would take (`agents.mailLoss`; default none). */
@@ -411,8 +451,6 @@ export interface FakeState {
   edition?: Edition;
   /** Overrides `system.instance` (default: agentes.chat Cloud). */
   instance?: Partial<Instance>;
-  /** Overrides `system.legal` (default: every field unset, as a fresh installation has them). */
-  legal?: Partial<LegalFacts>;
   /** `agents.brainMachines`: the computers a new agent could think on ("Criar agente"); unset = none. */
   brainMachines?: BrainMachine[];
   /** `agents.newAgentSetup`: what a new agent starts thinking with; unset = none ("Automático"). */
@@ -742,6 +780,13 @@ function mediaSettings(state: FakeState): Pick<OrgSettings, MediaSetting> {
 }
 
 /** A small in-memory backend with the design's demo data ("Acme"). */
+/**
+ * The Doug team in a gallery a test set whole, as a server older than `?with=doug` would still list it: the field
+ * apart (`dougTemplate`) is what the current one sends (docs/adr/doug-0030-time-doug.md).
+ */
+const dougInGallery = (list: TeamTemplate[] | undefined): DougTeamTemplate | undefined =>
+  list?.find((x) => x.id === DOUG_TEMPLATE) as DougTeamTemplate | undefined;
+
 /**
  * A DM of mine with a message in it, so the sidebar's "Mensagens diretas" lists it (`ago`: minutes since that
  * message). The person's are from the seed's members, the agent's from its agents.
@@ -1862,6 +1907,43 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         };
       },
       get: async (orgId) => ({ id: orgId, name: "Acme", role: "owner", context: "" }),
+      // As the server: the workspace's brand ("Sua marca"), the tones to tap, and whether the step waits.
+      brand: async (orgId, locale) => {
+        log("orgs.brand", orgId, locale);
+        if (state.brandError) throw state.brandError;
+        return {
+          pending: state.brandState?.pending ?? false,
+          brand: state.brandState?.brand ?? null,
+          skillId: state.brandState?.brand ? id("skill") : null,
+          tones: BRAND_TONES.map((tone) => ({ id: tone, label: BRAND_TONE_LABEL[tone] })),
+        };
+      },
+      // As the server: what was said becomes the brand, and the step no longer waits; `company` and a tone are required.
+      saveBrand: async (orgId, input) => {
+        log("orgs.saveBrand", orgId, input);
+        if (!input.company.trim()) throw new ApiError(400, "brand.company_required", "Say the company's name");
+        if ((input.tones ?? []).length === 0 && !input.tone?.trim())
+          throw new ApiError(400, "brand.tone_required", "Pick or write the tone of voice");
+        const brand: BrandView = {
+          company: input.company,
+          tones: input.tones ?? [],
+          tone: input.tone ?? null,
+          site: input.site ?? null,
+          instagram: input.instagram ?? null,
+          audience: input.audience ?? null,
+          // As the server: the manual's files, each id given back with a title (the fake has the uploads' ids, not
+          // their names here, so the id stands as the title).
+          files: (input.files ?? []).map((fileId) => ({ id: fileId, title: fileId })),
+          links: input.links ?? [],
+        };
+        state.brandState = { brand, pending: false };
+        // As the server: the workspace no longer waits, so `GET /me`'s `brandPending` goes too.
+        if (state.me)
+          state.me.organizations = state.me.organizations.map((o) =>
+            o.id === orgId && o.onboarding ? { ...o, onboarding: { ...o.onboarding, brandPending: false } } : o,
+          );
+        return { skillId: id("skill"), brand, pending: false };
+      },
       deletionCode: async (orgId) => {
         log("orgs.deletionCode", orgId);
         if (state.codeError) throw state.codeError;
@@ -2580,15 +2662,49 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         if (m) m.meta = { ...m.meta, actionCard: next };
         return { card: next };
       },
-      teamTemplates: async (orgId, locale) => {
-        log("agents.teamTemplates", orgId, locale);
-        return state.teamTemplates ?? [];
+      // As the server: the gallery never holds the Doug team, and `?with=doug` (`withDoug`) is the only call that
+      // gives it, apart (docs/adr/doug-0030-time-doug.md). A gallery set with the doug in it keeps working for the
+      // tests that predate the split, as an older server's would.
+      teamTemplates: async (orgId, locale, withDoug) => {
+        log("agents.teamTemplates", orgId, locale, ...(withDoug ? ["doug"] : []));
+        return (state.teamTemplates ?? []).filter((x) => x.id !== DOUG_TEMPLATE);
+      },
+      dougTemplate: async (orgId, locale) => {
+        log("agents.dougTemplate", orgId, locale);
+        return state.dougTemplate ?? dougInGallery(state.teamTemplates);
       },
       // As the server: the template's team is made at once (ADR 0155 §6).
-      applyTeamTemplate: async (orgId, templateId, locale) => {
-        log("agents.applyTeamTemplate", orgId, templateId, locale);
-        const template = state.teamTemplates?.find((x) => x.id === templateId);
-        const team = template?.team.agents ?? [];
+      applyTeamTemplate: async (orgId, templateId, locale, handles) => {
+        log("agents.applyTeamTemplate", orgId, templateId, locale, ...(handles ? [handles] : []));
+        // Already made in this workspace (another tab, a reload): the server refuses with 409 `doug_team.made`. It is
+        // made all the same, so its brand step waits, as `GET /me` reads once this page asks again.
+        if (templateId === "doug" && state.dougMade) {
+          state.brandState = { brand: state.brandState?.brand ?? null, pending: true };
+          if (state.me)
+            state.me.organizations = state.me.organizations.map((o) =>
+              o.id === orgId && o.onboarding ? { ...o, onboarding: { ...o.onboarding, brandPending: true } } : o,
+            );
+          throw new ApiError(409, "doug_team.made", "Already made");
+        }
+        // The gallery's own templates, and the Doug team apart: it is never in the list the server sends.
+        const doug =
+          templateId === DOUG_TEMPLATE ? (state.dougTemplate ?? dougInGallery(state.teamTemplates)) : undefined;
+        const template = doug ?? state.teamTemplates?.find((x) => x.id === templateId);
+        // The Doug team lists who it makes in `members` (the right hand makes none): the rest in `team.agents`.
+        const team = doug?.members.length
+          ? doug.members
+              .filter((m) => !m.rightHand && (!handles || handles.includes(m.handle)))
+              .map((m) => ({
+                name: m.name,
+                handle: m.handle,
+                role: m.role,
+                instructions: m.line,
+                appearance: null,
+                channel: m.channel,
+                routines: [],
+                firstTask: null,
+              }))
+          : (template?.team.agents ?? []);
         const agentIds: string[] = [];
         for (const a of team) {
           agentIds.push(id("agent"));
@@ -2633,7 +2749,31 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
           },
           createdAt: new Date().toISOString(),
         });
-        return { channelId, messageId, state: "created", error: null };
+        // The Doug team made here: the brand step waits for it (as the server answers and `GET /me` says).
+        if (templateId === "doug") {
+          state.brandState = { brand: state.brandState?.brand ?? null, pending: true };
+          if (state.me)
+            state.me.organizations = state.me.organizations.map((o) =>
+              o.id === orgId && o.onboarding ? { ...o, onboarding: { ...o.onboarding, brandPending: true } } : o,
+            );
+        }
+        return {
+          channelId,
+          messageId,
+          state: "created",
+          error: null,
+          ...(doug
+            ? {
+                needsComputer: doug.needsComputer.flatMap((handle) => {
+                  const at = doug.members.findIndex((x) => x.handle === handle);
+                  const m = doug.members[at];
+                  const agentId = agentIds[at];
+                  return m && agentId ? [{ agentId, handle, name: m.name }] : [];
+                }),
+                brandPending: true,
+              }
+            : {}),
+        };
       },
       decideCostly: async (orgId, signalId, decision) => {
         log("agents.decideCostly", orgId, signalId, decision);
@@ -4316,7 +4456,11 @@ export function createFakeApi(state: FakeState = seedState(), options: { seed?: 
     () => state.me?.user.id ?? null,
   );
   const apps = createFakeApps((method, ...args) => state.calls.push({ method, args }), ctx.now);
-  const artifacts = createMockArtifacts(ctx, (method, ...args) => state.calls.push({ method, args }));
+  const artifacts = createMockArtifacts(
+    ctx,
+    (method, ...args) => state.calls.push({ method, args }),
+    () => state.uploadFails,
+  );
   state.drive = artifacts;
   const client: ApiClient = {
     ...http,

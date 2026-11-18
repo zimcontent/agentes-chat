@@ -83,6 +83,9 @@ import type {
   BatchInviteResult,
   BlockState,
   BrainMachine,
+  BrandInput,
+  BrandToneWord,
+  BrandView,
   BrowserHandoff,
   BrowserProfile,
   CalendarEvent,
@@ -127,6 +130,7 @@ import type {
   DevicesList,
   DirectMessage,
   DmRead,
+  DougTeamTemplate,
   EmailChange,
   EndpointCheck,
   EndpointModel,
@@ -228,11 +232,14 @@ import type {
   Poll,
   PortalBoard,
   PortalCard,
+  PortalClientAccount,
+  PortalClientsList,
   PortalItem,
   PortalJob,
   PortalLabel,
   PortalList,
   PortalMine,
+  PortalNoticeNumber,
   PortalOverview,
   PortalPipeline,
   PortalPlan,
@@ -854,6 +861,16 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           }),
         ),
       get: (orgId) => request<Organization>(org(orgId)),
+      brand: (orgId, locale) =>
+        request<{ pending: boolean; brand: BrandView | null; skillId: string | null; tones: BrandToneWord[] }>(
+          `${org(orgId)}/brand`,
+          { ...(locale ? { query: { locale } } : {}) },
+        ),
+      saveBrand: (orgId, input: BrandInput) =>
+        request<{ skillId: string; brand: BrandView; pending: boolean }>(`${org(orgId)}/brand`, {
+          method: "PUT",
+          json: input,
+        }),
       deletionCode: (orgId) => request<CodeSent>(`${org(orgId)}/deletion/code`, { json: {} }),
       deleteWorkspace: async (orgId, input = {}) =>
         (await request<{ deletion: { dueAt: string } }>(`${org(orgId)}/deletion`, { json: input })).deletion,
@@ -1075,19 +1092,31 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           method: "PATCH",
           json: patch,
         }),
-      teamTemplates: async (orgId, locale) =>
+      teamTemplates: async (orgId, locale, withDoug) =>
         (
-          await request<{ templates: TeamTemplate[] }>(`${org(orgId)}/team-templates`, {
-            ...(locale ? { query: { locale } } : {}),
+          await request<{ templates: TeamTemplate[]; doug?: DougTeamTemplate }>(`${org(orgId)}/team-templates`, {
+            ...(locale || withDoug
+              ? { query: { ...(locale ? { locale } : {}), ...(withDoug ? { with: "doug" } : {}) } }
+              : {}),
           })
         ).templates,
-      applyTeamTemplate: (orgId, templateId, locale) =>
+      dougTemplate: async (orgId, locale) =>
+        (
+          await request<{ templates: TeamTemplate[]; doug?: DougTeamTemplate }>(`${org(orgId)}/team-templates`, {
+            query: { with: "doug", ...(locale ? { locale } : {}) },
+          })
+        ).doug,
+      applyTeamTemplate: (orgId, templateId, locale, handles) =>
         request<{
           channelId: string;
           messageId: string;
           state: TeamProposalCard["state"];
           error: TeamProposalCard["error"] | null;
-        }>(`${org(orgId)}/team-templates/${enc(templateId)}/use`, { json: locale ? { locale } : {} }),
+          needsComputer?: { agentId: string; handle: string; name: string }[];
+          brandPending?: boolean;
+        }>(`${org(orgId)}/team-templates/${enc(templateId)}/use`, {
+          json: { ...(locale ? { locale } : {}), ...(handles ? { handles } : {}) },
+        }),
       decideCostly: (orgId, signalId, decision) =>
         request<{ state: CostlyDecision }>(`${org(orgId)}/autonomy-proposals/${enc(signalId)}`, {
           json: { decision },
@@ -2059,6 +2088,38 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
             method: "DELETE",
           })
         ).card,
+      clients: async (orgId) => request<PortalClientsList>(`${org(orgId)}/portal-clients`),
+      saveClient: async (orgId, client, input) =>
+        (
+          await request<{ client: PortalClientAccount }>(`${org(orgId)}/portal-clients/${enc(client)}`, {
+            method: "PUT",
+            json: input,
+          })
+        ).client,
+      removeClient: async (orgId, client) => {
+        await request(`${org(orgId)}/portal-clients/${enc(client)}`, { method: "DELETE" });
+      },
+      newClientLink: async (orgId, client) =>
+        (
+          await request<{ link: string }>(`${org(orgId)}/portal-clients/${enc(client)}/link`, {
+            method: "POST",
+            json: {},
+          })
+        ).link,
+      revokeClientLink: async (orgId, client) => {
+        await request(`${org(orgId)}/portal-clients/${enc(client)}/link`, { method: "DELETE" });
+      },
+      noticeSettings: async (orgId) =>
+        request<{ number: string | null; numbers: PortalNoticeNumber[] }>(`${org(orgId)}/portal-notices`),
+      setNoticeNumber: async (orgId, number) => {
+        await request(`${org(orgId)}/portal-notices`, { method: "PUT", json: { number } });
+      },
+      markPublished: async (orgId, client, item, input = {}) => {
+        await request(`${org(orgId)}/portal/clients/${enc(client)}/items/${enc(item)}/published`, {
+          method: "POST",
+          json: input,
+        });
+      },
     },
     missions: ((): HttpApi["missions"] => {
       const one = (orgId: string, missionId: string) => `${org(orgId)}/missions/${enc(missionId)}`;

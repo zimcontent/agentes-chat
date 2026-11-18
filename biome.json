@@ -12,6 +12,7 @@
       "!**/*.html",
       "!docs/design",
       "!**/routeTree.gen.ts",
+      "!packages/engine/src/doug-team/files.gen.ts",
       "!**/src-tauri/target",
       "!**/src-tauri/gen",
       "!packages/engine/eval/out",
@@ -51,7 +52,7 @@
       }
     },
     {
-      "includes": ["apps/web/public/brands/*.svg"],
+      "includes": ["apps/web/public/brands/**/*.svg"],
       "linter": {
         "rules": {
           "a11y": {

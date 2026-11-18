@@ -1,5 +1,5 @@
 import { listsAgent } from "@agenteschat/client/lib/audience";
-import { AvatarStack, type AvatarProps } from "@agenteschat/ui";
+import { type AvatarProps, AvatarStack } from "@agenteschat/ui";
 import { ActorAvatar } from "@/components/AgentAvatar";
 import { useOrg } from "@/components/org-context";
 import { useDirectory } from "@/hooks/useDirectory";

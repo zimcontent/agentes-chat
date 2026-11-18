@@ -14,6 +14,7 @@
     "nextMonth": "Sonraki ay",
     "chooseDate": "Bir tarih seçin",
     "cancel": "İptal",
+    "remove": "Kaldır",
     "save": "Kaydet",
     "back": "Geri",
     "continue": "Devam",
@@ -762,6 +763,9 @@
       "message": "Başka bir şey",
       "messageExample": "Haftada iki videoyu elle yayımlıyoruz.",
       "messageOptional": "İsteğe bağlı",
+      "messageTooLong": "Bu, formun kabul ettiğinden uzun. Kısaltın.",
+      "invalidField": "Formun bu bölümünü kontrol edip yeniden deneyin.",
+      "invalidEmail": "ana@sirket.com gibi bir e-posta yazın.",
       "consent": "DougBot’un benimle iletişim kurmak için bu yanıtları saklamasını kabul ediyorum, <link>Gizlilik Politikası</link>nda açıklandığı gibi.",
       "consentRequired": "Devam etmek için Gizlilik Politikasını kabul et.",
       "submit": "Talep gönder",
@@ -769,11 +773,6 @@
       "doneTitle": "Talebin bize ulaştı",
       "doneLead": "Ekip her talebi okur ve her şirketle WhatsApp üzerinden konuşur. Ayrıca e-posta alacaksın.",
       "again": "Başka bir talep gönder",
-      "failed": "Talep gönderilemedi. Tekrar dene.",
-      "privacy": "Gizlilik Politikası",
-      "messageTooLong": "Bu, formun kabul ettiğinden uzun. Kısaltın.",
-      "invalidField": "Formun bu bölümünü kontrol edip yeniden deneyin.",
-      "invalidEmail": "ana@sirket.com gibi bir e-posta yazın.",
       "confirmTitle": "E-postanız onaylanıyor…",
       "confirmLead": "Bir saniye.",
       "confirmFailedTitle": "Bu bağlantı bilinmiyor ya da süresi dolmuş",
@@ -785,7 +784,9 @@
       "deletedTitle": "Talep silindi",
       "deletedLead": "İçindeki her şey gitti. Başka bir şey saklanmıyor.",
       "deleteFailedTitle": "Bu bağlantı bilinmiyor veya zaten kullanılmış",
-      "deleteFailedLead": "Onunla silinecek bir şey kalmadı ya da süresi doldu."
+      "deleteFailedLead": "Onunla silinecek bir şey kalmadı ya da süresi doldu.",
+      "failed": "Talep gönderilemedi. Tekrar dene.",
+      "privacy": "Gizlilik Politikası"
     },
     "interests": {
       "design": "Tasarım",
@@ -809,6 +810,7 @@
       "search": "Şirket, kişi veya e-posta ara",
       "none": "Talep bulunamadı.",
       "count": "{{count}} talep",
+      "more": "Daha fazla",
       "status": {
         "new": "Yeni",
         "talking": "Görüşmede",
@@ -843,7 +845,6 @@
       "noEmail": "Bu sunucu e-posta göndermiyor, bu yüzden davet gidemez.",
       "codeTaken": "Bu kodu başka bir şirket kullanıyor.",
       "codeInvalid": "Müşteri kodu üç hanelidir.",
-      "more": "Daha fazla",
       "pendingConfirm": "Bu adreste onaylanacak yeni bir form var: onaylanana kadar ekip talebi eskisi gibi görür.",
       "delete": "Sil",
       "deleteTitle": "{{company}} talebi silinsin mi?",
@@ -1012,6 +1013,7 @@
       "context": "Bağlam",
       "import": "Ajanlarınızı getirin",
       "agents": "Ajanlar",
+      "brand": "Markanız",
       "computer": "Bilgisayar",
       "ai": "Yapay zeka",
       "team": "Ekip",
@@ -1034,11 +1036,15 @@
         "business": "Ne yapıyorsunuz",
         "you": "Hakkında",
         "team": "Ekibin",
+        "who": "Kimler katılıyor",
+        "brand": "Markan",
         "plan": "Ekibi başlat",
         "ai": "Yapay zeka bağla",
         "people": "Kişileri davet et",
         "namePersonal": "Ne için kullanacaksın",
         "teamPersonal": "Ajanların",
+        "whoPersonal": "Kimler katılıyor",
+        "brandPersonal": "Markan",
         "planPersonal": "Ajanları başlat",
         "aiPersonal": "Yapay zeka bağla"
       },
@@ -1049,6 +1055,8 @@
         "team": "Ben olsam bu ekibi kurardım. Her şeyi sonra değiştirebilirsin.",
         "teamMade": "Ekip zaten kuruldu. Hazır olduğunuzda devam ederiz.",
         "teamMadePersonal": "Ajanlarınız zaten burada. Hazır olduğunuzda devam ederiz.",
+        "who": "Doug Ekibi mesleği zaten biliyor. Şimdi kimlerin katılacağını seç, gerisi sonra gelebilir.",
+        "brand": "Onları işe koşmadan önce: markanı öğrensinler. ROSA ve SONY her parçadan önce onu okur.",
         "plan": "Plandan sonra sadece bir yapay zeka bağlamak kalıyor. Nerede olduğunu gösteririm.",
         "planThen": "Plan başlayınca sıradaki ekranda yapay zekanı bağlayacaksın.",
         "you": "Ekipten önce biraz senden bahsedelim.",
@@ -1111,7 +1119,13 @@
           "scratchText": "Sadece {{name}}, sağ kolun. Her ajanı sonra kendi tarzınla oluşturursun.",
           "scratchWho": "{{name}} ve senin oluşturacakların",
           "see": "Hazır ekibi gör",
-          "scratchGo": "Sadece {{name}} ile devam et"
+          "scratchGo": "Sadece {{name}} ile devam et",
+          "doug": "Doug Ekibi ile başla",
+          "dougBadge": "Önerilen",
+          "dougText": "Doug'un operasyonunu yürüten ekip: tasarım, video, reklam, strateji, sosyal medya, kod ve finans. Hiçbir anı olmadan gelirler, şirketini öğrenmeye hazırdırlar.",
+          "dougWho_one": "{{count}} ajan",
+          "dougWho_other": "{{count}} ajan",
+          "dougGo": "Kimlerin gireceğini seç"
         },
         "ask": {
           "title": "Başka bir uygulamada zaten ajanın var mı?",
@@ -1147,6 +1161,56 @@
           "bring": "Ekibi getir",
           "bringPersonal": "Ajanları getir"
         }
+      },
+      "who": {
+        "title": "Ekibine kimler katılıyor?",
+        "lead": "Şimdi ihtiyacın olmayanın işaretini kaldır. Hepsini sonra Ekip › Yeni ajan'dan çağırabilirsin.",
+        "fixed": "Kalır",
+        "teamOf_one": "ekibinde {{count}} kişi",
+        "teamOf_other": "ekibinde {{count}} kişi",
+        "countAgents_one": "ekipte ajan",
+        "countAgents_other": "ekipte ajan",
+        "countSkills_one": "meslek becerisi",
+        "countSkills_other": "meslek becerisi",
+        "countRoutines_one": "hazır rutin, sen açana kadar duraklatılmış",
+        "countRoutines_other": "hazır rutin, sen açana kadar duraklatılmış",
+        "skillsCount_one": "{{count}} meslek becerisi",
+        "skillsCount_other": "{{count}} meslek becerisi",
+        "note": "Hiçbiri başka bir şirketin anısıyle, müşterisiyle ya da dosyasıyla gelmez.",
+        "qg": "{{channel}} içinde",
+        "needsComputer": "bağlı bir bilgisayar gerektirir",
+        "connectComputer": "Bilgisayar kullan",
+        "computerPending": "Bağlı bir bilgisayar eksik: {{names}}.",
+        "create": "Ekibi oluştur",
+        "required": "Zorunlu"
+      },
+      "brand": {
+        "title": "Ekibine markanı öğret",
+        "lead": "ROSA kimliği buradan alır, SONY videoların stilini, Sosyal Medya ise tonu. Her şey yalnızca çalışma alanında kalır.",
+        "company": "Şirket adı",
+        "companyPlaceholder": "Aurora Fırını",
+        "site": "Web sitesi",
+        "instagram": "Instagram",
+        "instagramPlaceholder": "@sirket",
+        "audience": "Hedef kitle",
+        "audiencePlaceholder": "Senden kim satın alıyor?",
+        "tone": "Konuşma tonu",
+        "toneOwn": "Kendininkini yaz",
+        "tonePlaceholder": "Kendi sözlerinle: marka nasıl konuşur",
+        "manual": "Marka kılavuzu, logo, yazı tipleri ve renkler",
+        "manualText": "Bir PDF, Figma, görseller ya da bir bağlantı. Tüm ekibin «Marka {{company}}» becerisine dönüşür.",
+        "manualPick": "Dosya seç",
+        "manualLink": "Bağlantı yapıştır",
+        "manualLinkPlaceholder": "https://drive.google.com/…",
+        "manualAdd": "Ekle",
+        "required": "Zorunlu",
+        "saved": "Yüklendi",
+        "failed": "Yüklenmedi: {{reason}}",
+        "missingCompany": "Şirketin adını yaz.",
+        "missingTone": "Bir ses tonu seç ya da kendi sözlerinle yaz.",
+        "removeSaved": "Kayıtlı markadan da çıkar. Kaldırayım mı?",
+        "madeTitle": "Ekip markanı öğrendi",
+        "made": "«Marka {{company}}» artık ROSA, SONY, Sosyal Medya ve CHESS'in okuduğu beceri."
       },
       "plan": {
         "title": "Ekibini başlat",
@@ -5326,6 +5390,7 @@
       "adminAskCreate": "<b>{{name}}</b>, ajan oluşturabilmek istiyor",
       "adminAskWebhook": "<b>{{name}}</b>, rutinler için {{service}} webhook'unu kurmanızı istiyor",
       "invitationAccepted": "<b>{{name}}</b> davetinizi kabul etti ve {{org}} çalışma alanına katıldı",
+      "companyRequest": "<b>{{company}}</b> DougBot istedi: <b>{{name}}</b> tarafından bir talep",
       "invitationAcceptedAny": "<b>{{name}}</b> davetinizi kabul etti",
       "reaction_one": "<b>{{names}}</b> mesajınıza tepki verdi",
       "reaction_other": "<b>{{names}}</b> mesajınıza tepki verdi",
@@ -5334,8 +5399,7 @@
       "usageLimitReached": "<b>{{name}}</b> {{amount}} limitine ulaştı",
       "usageLimitRequest": "<b>{{name}}</b> {{amount}} limitine ulaştı ve daha fazlasını istiyor",
       "usageLimitRaised": "<b>{{name}}</b> bu ayki limitini artırdı",
-      "usageLimitRefused": "<b>{{name}}</b> daha fazla kullanım isteğini reddetti",
-      "companyRequest": "<b>{{company}}</b> DougBot istedi: <b>{{name}}</b> tarafından bir talep"
+      "usageLimitRefused": "<b>{{name}}</b> daha fazla kullanım isteğini reddetti"
     },
     "usageLimit": {
       "runs_one": "Bu ay {{count}} istek",
@@ -15329,6 +15393,21 @@
     "teamProposal": {
       "undoExpired": "Bu ekip oluşturulalı bir günden fazla oldu, bu yüzden burada geri alınamaz. Ajanları kendi sayfalarından arşivle."
     },
+    "dougTeam": {
+      "made": "Bu çalışma alanında zaten Doug Ekibi var.",
+      "none": "Ekibe katılması için en az bir ajanı işaretle.",
+      "unknown": "Doug Ekibi'nde {{handles}} yok.",
+      "ownPath": "Doug Ekibi, bu kartından değil, katılım sırasında kendi kartından oluşturulur."
+    },
+    "brand": {
+      "pending": "Bitirmeden önce ekibine markanı öğret: şirket adı ve konuşma tonu.",
+      "companyRequired": "Şirket adını söyle.",
+      "toneRequired": "Konuşma tonunu seç ya da yaz.",
+      "unknownTone": "Seçilen tonlardan biri artık yok. Yeniden yükle ve tekrar seç.",
+      "invalidLink": "Bu site ya da bağlantı geçerli bir adrese benzemiyor. Kontrol et ve tekrar dene.",
+      "invalidInstagram": "Bu Instagram profili geçerli görünmüyor: @birsey yaz.",
+      "fileMissing": "Kılavuzun dosyalarından biri artık Drive'ında değil. Yeniden yükle."
+    },
     "agentProposal": {
       "decided": "Bu öneri hakkında zaten biri karar verdi.",
       "expired": "Bu önerinin süresi doldu: bir gün içinde kimse karar vermedi.",
@@ -16842,6 +16921,14 @@
     "change": {
       "mergedWithoutAsking": "{{repo}} içinde sormadan birleştirdi",
       "portalApprovedForClient": "Portalda “{{title}}” öğesini müşteri adına onayladı",
+      "portalClient": {
+        "renamed": "Portalda {{client}} müşterisini yeniden adlandırdı",
+        "hidden": "{{client}} müşterisini portalın listelerinden kaldırdı",
+        "shown": "{{client}} müşterisini portalda yeniden gösterdi",
+        "color": "Portalda {{client}} müşterisinin rengini değiştirdi",
+        "logo": "Portalda {{client}} müşterisinin logosunu değiştirdi",
+        "logoRemoved": "Portalda {{client}} müşterisinin logosunu kaldırdı"
+      },
       "pattern": "{{verb}}: {{area}}",
       "approval": {
         "approved": "Bir isteği onayladı",
@@ -17021,12 +17108,13 @@
       "voice": "Ses",
       "apps": "Yapay zeka uygulamaları",
       "approvals": "Onaylar",
+      "portal": "Portal müşterileri",
+      "companies": "Şirket talepleri",
       "support": "Destek",
       "about": "DougBot hakkında",
       "generalPersonal": "Hakkınızda",
       "keysPersonal": "Yapay zeka ve uygulamalar",
-      "membersPersonal": "Kişiler",
-      "companies": "Şirket talepleri"
+      "membersPersonal": "Kişiler"
     },
     "advanced": "Gelişmiş",
     "tab": {
@@ -17054,14 +17142,15 @@
       "voice": "Konuşmalardaki sesli mesajlar ve sesi metne kimin dönüştürdüğü.",
       "apps": "Claude, Cursor ve diğer uygulamalardan ajanlara görev verin.",
       "approvals": "Bir ajan onayınızı istediğinde sizin yerinize kimin karar verdiği.",
+      "portal": "Gönderilerini onaylayan müşteriler ve her birinin açtığı bağlantı.",
+      "companies": "Sayfadan DougBot isteyen şirketler.",
       "support": "Bu kurulumu yönetenler ve onlara nasıl ulaşılır.",
       "about": "Kimin yaptığı, lisansı ve kaynak kodunun yeri.",
       "generalPersonal": "Ajanlarınızın sizin hakkınızda bildikleri ve bu çalışma alanının nasıl işlediği.",
       "usagePersonal": "Ajanlarınızın ne kadar yapay zeka kullandığı ve planınız.",
       "connectorsPersonal": "Uygulamalarınız ve MCP sunucularınız, ajanlarınız için bir kez bağlanır.",
       "membersPersonal": "Burada sizinle kimler var.",
-      "rolesPersonal": "Buradaki her kişinin neler yapabileceği. Sahip her şeyi yapabilir.",
-      "companies": "Sayfadan DougBot isteyen şirketler."
+      "rolesPersonal": "Buradaki her kişinin neler yapabileceği. Sahip her şeyi yapabilir."
     },
     "support": {
       "title": "Desteğe ulaş",
@@ -20262,6 +20351,7 @@
       "createdYouPersonal": "Ajanları sen oluşturdun",
       "skillsWait": "Skill'ler bir yöneticiyi bekliyor.",
       "weeklyWait": "Haftalık değerlendirmem, rutinlerimi yöneten kişiyi bekliyor.",
+      "rightHandWait": "DOUG’un yönetici rolü bir yöneticiyi bekliyor.",
       "undone": "Ekip geri alındı",
       "dismissed": "Ekip bırakıldı",
       "undonePersonal": "Ajanlar geri alındı",
@@ -20872,6 +20962,44 @@
       "spent": "Bu ay {{monthly}} krediden {{spent}} kullanıldı"
     }
   },
+  "portalClients": {
+    "title": "Portal müşterileri",
+    "lead": "Her müşteri gönderilerini kendi bağlantısından onaylar, hesap gerekmez. Bir gönderi onları beklediğinde müşterinin kişileri e-posta ve WhatsApp ile bilgilendirilir.",
+    "add": "Müşteri ekle",
+    "addTitle": "Yeni müşteri",
+    "edit": "Düzenle",
+    "editTitle": "Müşteri",
+    "remove": "Kaldır",
+    "removeTitle": "Bu müşteri kaldırılsın mı?",
+    "removeText": "Bağlantısı çalışmayı bırakır ve gönderileri sayfasından çıkar. İş panoda kalır.",
+    "loading": "Yükleniyor…",
+    "empty": "Henüz müşteri yok. Gönderebileceğin bir bağlantı için bir tane ekle.",
+    "noContacts": "Henüz kişi yok: bir gönderi beklerken kimseye haber verilmez.",
+    "id": "Müşteri kimliği (küçük harf, boşluksuz)",
+    "name": "Ad",
+    "contactName": "Kişi adı",
+    "email": "E-posta",
+    "whatsapp": "Ülke kodlu WhatsApp",
+    "addContact": "Kişi ekle",
+    "dropContact": "Kişiyi kaldır",
+    "link": "Müşteri bağlantısı",
+    "copy": "Bağlantıyı kopyala",
+    "copied": "Bağlantı kopyalandı",
+    "copyFailed": "Bağlantı kopyalanamadı",
+    "revoked": "Bağlantı iptal edildi",
+    "linkStale": "Bu bağlantının yeniden yapılması gerekiyor: göndermek için yeni bir tane oluşturun",
+    "noticesTitle": "WhatsApp bildirimleri",
+    "noticesLead": "Bir müşterinin kişileri her zaman e-postayla haberdar edilir. WhatsApp yalnızca burada seçtiğiniz numaradan gider: hiçbiri seçilmemişse WhatsApp’tan hiçbir şey gönderilmez ve kimsenin kişisel numarası kullanılmaz.",
+    "noticesNumber": "Haberdar eden numara",
+    "noticesNone": "Yok: yalnızca e-posta",
+    "noticesNoNumbers": "Henüz bağlı numara yok. Ayarlar › WhatsApp bölümünden bir tane bağlayın, oradan da haberdar edin.",
+    "locale": "{{language}} bildirilir",
+    "localeLabel": "Dil",
+    "localeHint": "Bu müşterinin kişilerine giden e-posta ve mesajların dili. Bir addan asla tahmin edilmez; burada seçilmezse ekibinizin dili kullanılır.",
+    "localeOwner": "Ekibinizin dili",
+    "newLink": "Yeni bağlantı",
+    "revoke": "Bağlantıyı iptal et"
+  },
   "portal": {
     "title": "Portal",
     "subtitle": "Müşterilerinizin onayladıkları, müşteri bazında",
@@ -20948,6 +21076,19 @@
       "remove": "Logoyu kaldır",
       "saved": "Logo kaydedildi",
       "removed": "Logo kaldırıldı"
+    },
+    "clientEdit": {
+      "rename": "Müşteriyi yeniden adlandır",
+      "renameTitle": "Müşteriyi yeniden adlandır",
+      "renameHelp": "Ekibinizin her yerde gördüğü ad. “{{id}}” adına dönmek için boş bırakın.",
+      "name": "Ad",
+      "renamed": "Ad kaydedildi",
+      "hide": "Müşteriyi kaldır",
+      "hideTitle": "“{{name}}” kaldırılsın mı?",
+      "hideText": "Buradaki her listeden ve sayımdan çıkar. Gönderileri ve kartları portalda kalır ve Gizli müşteriler bölümünden geri getirebilirsiniz.",
+      "hidden": "“{{name}}” kaldırıldı",
+      "hiddenTitle": "Gizli müşteriler",
+      "show": "Yeniden göster"
     },
     "clientColor": {
       "label": "Müşterinin rengi",
@@ -21041,7 +21182,10 @@
       "toMaterials": "Müşteri materyallerine taşı",
       "toPlan": "Takvime geri al",
       "movedToMaterials": "“{{name}}” Müşteri materyallerine taşındı.",
-      "movedToPlan": "“{{name}}” takvime geri döndü."
+      "movedToPlan": "“{{name}}” takvime geri döndü.",
+      "cardToMaterials": "“{{title}}” Müşteri materyallerine, {{list}} listesine taşındı.",
+      "cardToPlan": "“{{title}}” takvime, {{list}} listesine geri döndü.",
+      "newListName": "Genel"
     },
     "plan": {
       "tab": "Stratejik takvim",
@@ -21208,6 +21352,123 @@
       "more": "Daha fazla göster",
       "add_one": "{{count}} dosya ekle",
       "add_other": "{{count}} dosya ekle"
+    }
+  },
+  "dougTeam": {
+    "name": "Doug Ekibi",
+    "sub": "Tasarım, video, reklam, strateji, sosyal medya, kod ve finans",
+    "desc": "Evin bütün ekibi, her ajan kendi zanaatı, rutinleri ve becerileriyle, her merkez için bir kanalla.",
+    "lead": "{{org}} için Doug ekibi, her merkez kendi kanalında. Bütün rutinler duraklatılmış olarak başlar.",
+    "approvals": "Harcama, yayın ve dışarıya gönderim onayınızı bekler.",
+    "channels": {
+      "design": "merkez-tasarim",
+      "video": "merkez-video",
+      "trafego": "merkez-reklam",
+      "estrategia": "merkez-strateji",
+      "social": "merkez-sosyal",
+      "codigo": "merkez-kod",
+      "financeiro": "merkez-finans"
+    },
+    "agents": {
+      "doug": {
+        "role": "Operasyon yöneticisi",
+        "line": "Ekibi koordine eder, son tarihleri izler, talepleri dağıtır, teslimleri gözden geçirir ve doğru anda onay ister.",
+        "hello": "Merhaba. Ekibi yürütürüm ve size yalnızca sizi gerektireni getiririm."
+      },
+      "rosa": {
+        "role": "Sanat yönetmeni",
+        "line": "Ajans seviyesinde kapak, karusel, gönderi, hikâye, küçük resim ve sunum hazırlar, her zaman müşterinin marka kimliğiyle.",
+        "hello": "Merhaba. Kapaklar, karuseller ve gönderiler bende, her zaman markaya uygun."
+      },
+      "sony": {
+        "role": "Video editörü",
+        "line": "Prodüksiyon şirketi seviyesinde video kurgular, keser ve canlandırır, ham görüntüden onaylı Reels'e kadar, her zaman müşterinin marka kimliğiyle.",
+        "hello": "Merhaba. Ham görüntüyü gönderin, kurgulanmış videoyu geri getireyim."
+      },
+      "mark": {
+        "role": "Reklam merkezinin lideri",
+        "line": "Ücretli reklamları reklam ekibiyle baştan sona yürütür ve ne kadar harcandığını, ne kadar girdiğini ve sırada ne olduğunu anlatır.",
+        "hello": "Merhaba. Reklam ekibini yönetir, ne harcandığını ve ne girdiğini anlatırım."
+      },
+      "analistaResultado": {
+        "role": "Reklam merkezinin sonuç analisti",
+        "line": "Reklam hesabını ve gerçek satışları okur, satış başına maliyeti, kasaya dönüşü ve yorgunluğu ölçer, neyin kesileceğini ve neyin büyütüleceğini söyler.",
+        "hello": "Merhaba. Rakamları okur, neyin kesileceğini ve neyin büyütüleceğini söylerim."
+      },
+      "copywriter": {
+        "role": "Reklam merkezinin metin yazarı",
+        "line": "Reklam metinlerini, başlıkları, açıklamaları, kancaları ve kısa senaryoları açıya göre ve yalnızca kanıtı olan iddialarla yazar.",
+        "hello": "Merhaba. Reklam metinleri ve kancalar bende, yalnızca kanıtlı iddialarla."
+      },
+      "diretorCriativo": {
+        "role": "Reklam merkezinin kreatif direktörü",
+        "line": "Hipotezleri ve metinleri video ve tasarım brifine çevirir, farklı konseptleri yayında tutar ve her parçayı incelemeye hazır kurar.",
+        "hello": "Merhaba. Fikirleri brife ve incelemeye hazır parçalara çeviririm."
+      },
+      "estrategistaMidia": {
+        "role": "Reklam merkezinin medya stratejisti",
+        "line": "Kampanyaların yapısını kurar, haftanın testlerini seçer ve tavan içinde kesme ve büyütme talimatlarını yazar.",
+        "hello": "Merhaba. Kampanyaları ve haftanın testlerini tavan içinde planlarım."
+      },
+      "financeiroTrafego": {
+        "role": "Reklam merkezinin finansı",
+        "line": "Her projenin hesabını yapar, günlük ve aylık tavanı korur, bütçeyi kontrol eder ve kasaya gerçek dönüşü ölçer.",
+        "hello": "Merhaba. Bütçeyi tavan içinde tutar ve gerçek dönüşü ölçerim."
+      },
+      "humanizador": {
+        "role": "Metnin son dokunuşu",
+        "line": "Gerçekleri, iddiaları, sınırları ve biçimi değiştirmeden metne insan gibi duyulsun diye son dokunuşu yapar.",
+        "hello": "Merhaba. Her metne insan gibi duyulsun diye son dokunuşu yaparım."
+      },
+      "operador": {
+        "role": "Reklam merkezinin operatörü",
+        "line": "Onaylanan talimatları reklam hesabında tek tek uygular ve sonucu tam geldiği gibi geri verir.",
+        "hello": "Merhaba. Onaylanan talimatları reklam hesabında tek tek uygularım."
+      },
+      "pesquisadorGrowth": {
+        "role": "Reklam merkezinin büyüme araştırmacısı",
+        "line": "Pazardaki kancaları, kreatifleri ve reklam stratejilerini araştırır ve bulduklarını test hipotezi kartlarına çevirir.",
+        "hello": "Merhaba. Pazarda işe yarayanı araştırır, test edilecek hipotezler getiririm."
+      },
+      "revisorPolitica": {
+        "role": "Reklam merkezinin politika denetçisi",
+        "line": "Her reklamı yayından önce platform kurallarına, yasaya ve projenin iddialarına göre kontrol eder ve geçer, uyarı ya da engel der.",
+        "hello": "Merhaba. Her reklamı yayından önce kurallara göre kontrol ederim."
+      },
+      "chess": {
+        "role": "Pazarlama stratejisti",
+        "line": "Markayı ve anı okur, nişte işe yarayanı araştırır ve her parçanın stratejisini ve metnini tez, kanca ve gerekçesiyle teslim eder.",
+        "hello": "Merhaba. Her parçanın stratejisi ve metni bende, her zaman gerekçesiyle."
+      },
+      "socialMedia": {
+        "role": "Sosyal medya yöneticisi",
+        "line": "Markaların takvimini ve hesaplarını yönetir, içerik fikirleri getirir, her gönderi için onay alır ve onaylananı planlar.",
+        "hello": "Merhaba. Takvim ve hesaplar bende, onaysız hiçbir şey çıkmaz."
+      },
+      "junin": {
+        "role": "Yapay zekâyla kod yazan geliştirici",
+        "line": "Şirketin sitelerini, sayfalarını, otomasyonlarını ve entegrasyonlarını yapar ve korur, test eder, onayla yayınlar ve sonucu sade bir dille anlatır.",
+        "hello": "Merhaba. Siteler, sayfalar ve otomasyonlar bende, yalnızca onayınızla yayınlanır."
+      },
+      "kiara": {
+        "role": "Finans",
+        "line": "Faturaları, tahsilatları, banka uyarılarını, vadeleri ve satış raporlarını yönetir, göndermeden önce her zaman onay alır.",
+        "hello": "Merhaba. Faturalar ve tahsilatlar bende, göndermeden önce her zaman onayınızla."
+      }
+    },
+    "brand": {
+      "tones": {
+        "proximo": "Samimi",
+        "profissional": "Profesyonel",
+        "divertido": "Eğlenceli",
+        "inspirador": "İlham verici",
+        "direto": "Dolaysız",
+        "acolhedor": "Sıcak",
+        "tecnico": "Teknik",
+        "sofisticado": "Zarif",
+        "ousado": "Cesur",
+        "educativo": "Öğretici"
+      }
     }
   }
 }

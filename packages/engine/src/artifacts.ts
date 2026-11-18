@@ -1,5 +1,11 @@
 import { createHash } from "node:crypto";
-import { type BlobStoreResolver, firstWords, type PubSub, type SpeechEngine } from "@agenteschat/adapters";
+import {
+  type BlobStoreResolver,
+  firstWords,
+  type GlanceVideo,
+  type PubSub,
+  type SpeechEngine,
+} from "@agenteschat/adapters";
 import {
   and,
   type Database,
@@ -231,6 +237,8 @@ export interface ArtifactDeps {
   pubsub?: PubSub;
   /** Speech to text, for the words of an audio file an agent opens (`fileForModel`); absent: none on this server. */
   speech?: () => SpeechEngine[];
+  /** A video's frames and sound (ffmpeg), for an agent that opens one (`fileForModel`); absent: videos aren't shown. */
+  glance?: GlanceVideo | null;
 }
 
 /** Limits per kind (bytes are UTF-8 of the stored form). */
@@ -1690,13 +1698,48 @@ export async function fileForModel(
   if (v.size > MODEL_FILE_READ_BYTES) return { note: tooBigToReadNote(name, v.contentType, v.size) };
   const { body } = await readVersion(deps, a, v);
   const read = readForModel({ name, contentType: v.contentType, bytes: body });
+  if (read.video && deps.glance) return videoForModel(deps, a, v, body, read);
   return read.audio ? audioForModel(deps, a, v, body) : read;
+}
+
+/**
+ * A video as an AI takes it in (docs/adr/doug-0034-whatsapp-files.md): frames spread over it, shown in order, and its
+ * sound in words, kept beside its bytes like an audio file's. ffmpeg that fails leaves the note `readForModel` wrote.
+ */
+async function videoForModel(
+  deps: ArtifactDeps,
+  a: ArtifactRow,
+  v: VersionRow,
+  video: Uint8Array,
+  fallback: ModelFile,
+): Promise<ModelFile> {
+  const glance = await deps.glance?.(video).catch(() => null);
+  if (!glance || glance.frames.length === 0) return fallback;
+  const length = glance.seconds !== null ? ` of ${Math.round(glance.seconds)} s` : "";
+  const shown = `It is a video${length}: ${glance.frames.length} frames spread over it are shown to you, in order`;
+  const images = glance.frames.map((frame) => ({
+    mediaType: "image/jpeg",
+    data: Buffer.from(frame).toString("base64"),
+  }));
+  if (!glance.audio) return { images, note: `${shown}. It has no sound.` };
+  const heard = await audioForModel(deps, a, v, glance.audio, "audio/mpeg");
+  if (heard.text !== undefined) {
+    return { images, text: heard.text, note: `${shown}; what is said in it, transcribed, follows.` };
+  }
+  return { images, note: `${shown}. ${heard.note.replace(/^It is an audio file/, "Its sound")}` };
 }
 
 /** The most audio an agent hears at once: what a voice note may be. */
 const AUDIO_MAX_BYTES = 25 * 1024 * 1024;
 
-async function audioForModel(deps: ArtifactDeps, a: ArtifactRow, v: VersionRow, audio: Uint8Array): Promise<ModelFile> {
+async function audioForModel(
+  deps: ArtifactDeps,
+  a: ArtifactRow,
+  v: VersionRow,
+  audio: Uint8Array,
+  /** The sound's own type when it isn't the file's (a video's track, `videoForModel`). */
+  soundType?: string,
+): Promise<ModelFile> {
   const store = await deps.blobs.forConfig(a.orgId, v.storageConfigId);
   const kept = await store.get(transcriptKey(v.blobKey)).catch(() => null);
   const heard = (text: string): ModelFile => ({
@@ -1716,7 +1759,7 @@ async function audioForModel(deps: ArtifactDeps, a: ArtifactRow, v: VersionRow, 
     };
   }
   // A recording's type as stored: `.webm` and `.mp4` arrive typed as video though they hold sound here.
-  const contentType = v.contentType.replace(/^video\//, "audio/");
+  const contentType = soundType ?? v.contentType.replace(/^video\//, "audio/");
   try {
     const words = await firstWords(engines, { audio, contentType, language: null, terms: [], orgId: a.orgId }, 30_000);
     if (!words) {
@@ -2748,7 +2791,21 @@ export async function artifactFile(
   artifactId: string,
   options: { version?: number; format?: "csv" | "patch" | "pdf" | "docx" } = {},
 ): Promise<{ body: Uint8Array; contentType: string; filename: string }> {
-  const a = await readable(deps, { type: "person", userId }, orgId, artifactId);
+  return artifactFileAs(deps, { type: "person", userId }, orgId, artifactId, options);
+}
+
+/**
+ * `artifactFile` for any reader, an agent included (what it may read, `readable`): a file sent on from the Drive, as
+ * WhatsApp's tools do (docs/adr/doug-0034-whatsapp-files.md).
+ */
+export async function artifactFileAs(
+  deps: ArtifactDeps,
+  actor: ArtifactActor,
+  orgId: string,
+  artifactId: string,
+  options: { version?: number; format?: "csv" | "patch" | "pdf" | "docx" } = {},
+): Promise<{ body: Uint8Array; contentType: string; filename: string }> {
+  const a = await readable(deps, actor, orgId, artifactId);
   const v = await versionRow(deps.db, a, options.version);
   if (a.kind === "file") {
     // Uploaded files download as they are: original bytes, name and type.

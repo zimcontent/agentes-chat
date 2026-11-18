@@ -48,7 +48,14 @@ import {
 } from "../lib/notifications";
 import { workspaceUsesApi } from "../lib/plan-usage";
 import { learnPlanModels } from "../lib/plans";
-import { movedInPlan, type PortalMove, rememberPortalClientNames, renumberedInPlan } from "../lib/portal";
+import {
+  movedInPlan,
+  type PortalMove,
+  portalListAcross,
+  portalOrderAt,
+  rememberPortalClientNames,
+  renumberedInPlan,
+} from "../lib/portal";
 import { setMyReaction } from "../lib/reactions";
 import { recentConversations } from "../lib/recent";
 import { replyOf } from "../lib/reply";
@@ -1105,17 +1112,50 @@ export function useTeamTemplates(orgId: string, locale: string, enabled = true) 
   });
 }
 
+/** "Sua marca" (docs/adr/doug-0030-time-doug.md): the brand, the tones to tap in this language, and whether it waits. */
+export function useBrand(orgId: string, locale: string, enabled = true) {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.brand(orgId, locale),
+    queryFn: () => api.orgs.brand(orgId, locale),
+    enabled,
+  });
+}
+
+/**
+ * The Doug team's card (docs/adr/doug-0030-time-doug.md): not a gallery template, so it is asked for apart. `enabled`
+ * false (an app that doesn't draw it) asks for nothing.
+ */
+export function useDougTemplate(orgId: string, locale: string, enabled = true) {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.dougTemplate(orgId, locale),
+    // A server from before the Doug team sends none: `null`, never `undefined` (which the query reads as an error).
+    queryFn: async () => (await api.agents.dougTemplate(orgId, locale)) ?? null,
+    enabled,
+    staleTime: 60_000,
+  });
+}
+
 /**
  * "Usar este modelo": its card and the right hand's first question land in the person's DM with it. Made, it stays
  * pending until the team is in the agents' list, its routines and channels read before it: a screen that shows the
  * team (the onboarding's last step, the sidebar) finds them there, and nothing on it changes while it arrives.
+ * `handles`: the Doug team's agents chosen (docs/adr/doug-0030-time-doug.md), every one when absent.
  */
 export function useApplyTeamTemplate(orgId: string) {
   const api = useApi();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ templateId, locale }: { templateId: string; locale?: string }) =>
-      api.agents.applyTeamTemplate(orgId, templateId, locale),
+    mutationFn: ({
+      templateId,
+      locale,
+      handles,
+    }: {
+      templateId: string;
+      locale?: string;
+      handles?: readonly string[];
+    }) => api.agents.applyTeamTemplate(orgId, templateId, locale, handles),
     onSuccess: async ({ channelId, state }) => {
       void qc.invalidateQueries({ queryKey: keys.messages(orgId, channelId) });
       if (state === "created")
@@ -7755,6 +7795,42 @@ export function useMovePortalCard(orgId: string, client: string) {
     onSettled: () => refreshPortal(qc, orgId),
   });
 }
+
+/**
+ * Moves a card to the other part of the client's page (ADR 9001 §20), dropped on that part's tab: to the end of the
+ * list there named as the one it left, else of the first list there. With no list there yet, the schedule takes it in
+ * no list, and the materials in a new list named `newList` (the portal answers a list of a name it has with that
+ * one, so a new one can't take the name of the list the card left). The schedule is read first, since the board that
+ * drops it may not show the other part. Answers the list it went to, null for none.
+ */
+export function useMovePortalCardAcross(orgId: string, client: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { cardId: string; kind: PortalListKind; newList: string }) => {
+      const portal = portalOf(api);
+      const plan = await qc.fetchQuery({
+        queryKey: keys.portalPlan(orgId, client),
+        queryFn: () => portal.plan(orgId, client),
+        staleTime: 5_000,
+      });
+      const found = portalListAcross(plan, input.kind, planListOf(plan, input.cardId));
+      const list =
+        found ?? (input.kind === "plan" ? null : await portal.createList(orgId, client, input.newList, input.kind));
+      const cards = (found ? found.cards : list ? [] : plan.unlisted).filter((c) => c.id !== input.cardId);
+      await portal.updateCard(orgId, input.cardId, {
+        list: list?.id ?? null,
+        order: portalOrderAt(cards, cards.length),
+      });
+      return list;
+    },
+    meta: { silent: true },
+    onSettled: () => refreshPortal(qc, orgId),
+  });
+}
+
+const planListOf = (plan: PortalPlan, cardId: string) =>
+  plan.lists.find((l) => l.cards.some((c) => c.id === cardId))?.id ?? null;
 
 /** Creates, renames, reorders or deletes a list of a client's schedule. */
 export function usePortalLists(orgId: string, client: string) {

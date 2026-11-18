@@ -11,7 +11,7 @@ import {
   shiftDay,
 } from "./approval-portal-watch";
 import { openPersonAgentDm } from "./dms";
-import { queueEditorFinals, syncEditorStages, taskReviewOf } from "./editor-delivery";
+import { editorPosts, queueEditorFinals, syncEditorStages, taskReviewOf } from "./editor-delivery";
 import { publishMessageCreated } from "./events";
 import { projectByName } from "./issue-projects";
 import {
@@ -55,6 +55,12 @@ export interface PortalTaskDeps {
   db: Database;
   pubsub?: PubSub;
   log?: { warn: (message: string, details?: Record<string, unknown>) => void };
+  /**
+   * The portal is this server's own (docs/adr/doug-0031-embedded-approval-portal.md): its clients are in this database,
+   * so a workspace that made none has nothing to put in step and the pass is skipped. Absent for a bridge's portal,
+   * whose clients live at the bridge: its cards and posts are always read.
+   */
+  embedded?: boolean;
 }
 
 interface Side {
@@ -140,6 +146,23 @@ export async function portalWorkspace(db: Database): Promise<string | null> {
   if (has) return has.orgId;
   const [first] = await db.select({ id: organizations.id }).from(organizations).orderBy(asc(organizations.createdAt));
   return first?.id ?? null;
+}
+
+/**
+ * Whether the installation's portal has a client at all (the portal's own tables, `approval-portal-clients.ts`): a
+ * workspace that made none has nothing to put in step, so `portalTasksTick` skips the pass instead of reading every
+ * card and post for nothing. A workspace whose portal is a bridge's makes no client here, and its task of the portal
+ * (from a card before) keeps the pass going.
+ */
+async function hasPortalClients(db: Database): Promise<boolean> {
+  const [client] = await db.select({ id: schema.portalClients.id }).from(schema.portalClients).limit(1);
+  if (client) return true;
+  const [task] = await db
+    .select({ id: issues.id })
+    .from(issues)
+    .where(sql`${issues.source}->>'type' = 'portal'`)
+    .limit(1);
+  return Boolean(task);
 }
 
 /**
@@ -991,21 +1014,33 @@ export function portalTasksTick(deps: PortalTaskDeps, portal: ApprovalPortal): P
   const tick = ticks.then(async () => {
     const orgId = await portalWorkspace(deps.db);
     if (!orgId) return null;
+    // A server whose own portal has no client yet has nothing to put in step: the pass is a read of every card and post
+    // for nothing, every twenty seconds. Once a client is there (or a task of the portal is) the pass runs again. A
+    // bridge's portal keeps reading, as it always did: its clients aren't in this database to be asked.
+    if (deps.embedded && !(await hasPortalClients(deps.db))) return null;
     const result = await syncPortalTasks(deps, portal, orgId);
     await announcePortalStages(deps, orgId, result.changes);
-    // What the client wrote at the portal on an editor's post comes into its review, at the second they marked.
-    await portal
-      .items()
-      .then(async (items) => {
-        // Each editor's post keeps where it stands with the client: a task may have several (doug-0012 §13).
-        await syncEditorStages(deps.db, orgId, items);
-        return bringClientNotes(deps.db, orgId, items);
-      })
-      .catch((error: unknown) =>
-        deps.log?.warn("approval portal: the client's notes could not be brought to the reviews", {
-          error: error instanceof Error ? error.message : String(error),
-        }),
-      );
+    // What the client wrote at the portal on an editor's post comes into its review, at the second they marked. The
+    // posts are read once, already narrowed to the ones an editor's delivery named (the only ones either step looks
+    // at), so a workspace with hundreds of posts reads a handful inside the tick instead of every one of them. A
+    // workspace with no post under an editor's review is not even read: `items()` is the portal's whole list, and
+    // every twenty seconds for nothing.
+    const reviewing = await editorPosts(deps.db, orgId);
+    if (reviewing.size > 0) {
+      await portal
+        .items()
+        .then(async (all) => {
+          const items = all.filter((item) => reviewing.has(`${item.client}/${item.id}`));
+          // Each editor's post keeps where it stands with the client: a task may have several (doug-0012 §13).
+          await syncEditorStages(deps.db, orgId, items);
+          return bringClientNotes(deps.db, orgId, items);
+        })
+        .catch((error: unknown) =>
+          deps.log?.warn("approval portal: the client's notes could not be brought to the reviews", {
+            error: error instanceof Error ? error.message : String(error),
+          }),
+        );
+    }
     // A post the client approved: an editor's original is kept as the final and backed up (doug-0012).
     await queueEditorFinals(deps.db, orgId).catch((error: unknown) =>
       deps.log?.warn("approval portal: the finals of approved posts could not be queued", {

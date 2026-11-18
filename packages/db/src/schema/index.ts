@@ -20,6 +20,7 @@ export * from "./media";
 export * from "./missions";
 export * from "./notifications";
 export * from "./operator";
+export * from "./portal";
 export * from "./push";
 export * from "./runtime";
 export * from "./sandbox";

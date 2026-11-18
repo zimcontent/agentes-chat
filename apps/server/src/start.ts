@@ -57,6 +57,8 @@ import {
   allowsPrivateEndpoints,
   backfillMemoryTrust,
   composioUsageHook,
+  // The approval portal kept in this server's own database (docs/adr/doug-0031-embedded-approval-portal.md).
+  createEmbeddedApprovalPortal,
   createGifKey,
   createLocalKeyWrapper,
   defaultEmailFrom,
@@ -165,6 +167,44 @@ export function applyBootSwitches(config: Config) {
  * Shared by the self-hosted entrypoint (`src/main.ts`) and any entrypoint
  * that adds public modules (ADR 0002); only `modules` differ.
  */
+/**
+ * The approval portal's adapters (ADR 9001, docs/adr/doug-0031-embedded-approval-portal.md): the installation's bridge
+ * when it has one, else the portal kept in this server's own database. `APPROVAL_PORTAL_URL` without
+ * `APPROVAL_PORTAL_TOKEN` is a misconfiguration, never a reason to fall back to the embedded one: the server says so
+ * (a warning, once) and keeps the bridge's portal off, so nobody's surprise is another operation's portal. With both
+ * set, nothing of the embedded portal is made.
+ */
+function approvalPortalAdapters(
+  config: Config,
+  db: Parameters<typeof createEmbeddedApprovalPortal>[0]["db"],
+  blobs: Parameters<typeof createEmbeddedApprovalPortal>[0]["blobs"],
+  log: Logger,
+) {
+  if (config.APPROVAL_PORTAL_URL && config.APPROVAL_PORTAL_TOKEN) {
+    return {
+      approvalPortal: createBridgeApprovalPortal({
+        url: config.APPROVAL_PORTAL_URL,
+        token: config.APPROVAL_PORTAL_TOKEN,
+      }),
+    };
+  }
+  if (config.APPROVAL_PORTAL_URL) {
+    log.warn("APPROVAL_PORTAL_URL is set with no APPROVAL_PORTAL_TOKEN: no approval portal is on", {
+      fix: "set APPROVAL_PORTAL_TOKEN, or unset APPROVAL_PORTAL_URL for the installation's own portal",
+    });
+    return { approvalPortal: null };
+  }
+  return {
+    approvalPortal: createEmbeddedApprovalPortal({
+      db,
+      blobs,
+      publicUrl: config.PUBLIC_URL,
+      secret: config.AGENTES_SECRET,
+    }),
+    approvalPortalEmbedded: true,
+  };
+}
+
 export async function startServer(options: StartOptions) {
   let config: ReturnType<typeof loadConfig>;
   try {
@@ -295,6 +335,9 @@ async function boot(
   // The GIPHY key its owner may add in Settings (ADR 0091, amended 2026-10-31), made below once modules had their
   // say on the key wrappers; the GIF provider asks it on every call.
   let gifKey: GifKey | null = null;
+  // The installation's own file store, made before the adapters that share it: the approval portal keeps a post's
+  // files there (docs/adr/doug-0031-embedded-approval-portal.md).
+  const platformBlobs = platformBlobStore(config, database.db);
   const defaults: Adapters = {
     search: createPostgresSearchResolver(database.db),
     // PGlite (native mode) is one process: nothing to tell other replicas.
@@ -307,7 +350,7 @@ async function boot(
     platformCredentials: envPlatformCredentials({
       anthropic: { apiKey: config.PLATFORM_ANTHROPIC_API_KEY, workspaceId: config.PLATFORM_ANTHROPIC_WORKSPACE_ID },
     }),
-    platformBlobs: platformBlobStore(config, database.db),
+    platformBlobs,
     // Phone app push (ADR 0035, ADR 0152, ADR 0178): only devices that registered get anything. Android straight
     // to Firebase and iPhones straight to Apple, or through the push relay (`PUSH_SENDER`).
     push: createPhonePushSender({ android: phoneSender("android"), ios: phoneSender("ios") }),
@@ -334,11 +377,12 @@ async function boot(
       config.ZIM_MEDIA_URL && config.ZIM_MEDIA_SECRET
         ? createZimMedia({ url: config.ZIM_MEDIA_URL, secret: config.ZIM_MEDIA_SECRET })
         : null,
-    // The approval portal (ADR 9001), only with its bridge's address and token.
-    approvalPortal:
-      config.APPROVAL_PORTAL_URL && config.APPROVAL_PORTAL_TOKEN
-        ? createBridgeApprovalPortal({ url: config.APPROVAL_PORTAL_URL, token: config.APPROVAL_PORTAL_TOKEN })
-        : null,
+    // The approval portal (ADR 9001): through the installation's bridge when it has one, else the portal kept in this
+    // server's own database (docs/adr/doug-0031-embedded-approval-portal.md), so every installation has its own, served
+    // at its own address. An address without its token is a setup mistake, not "no bridge": the server says so and
+    // keeps the bridge's portal off, instead of quietly turning on the embedded one and reading another operation's
+    // portal differently than expected. With both set nothing of the embedded one is made.
+    ...approvalPortalAdapters(config, database.db, platformBlobs, log),
     // The Vault's external sources (ADR 0144): nothing reaches them until a person connects one. A self-hosted
     // Bitwarden's address is typed by a person, so its requests go only to public addresses, pinned at connect time.
     vaultSources: Object.fromEntries(
@@ -565,6 +609,7 @@ async function boot(
     approvalDigest: { publicUrl: config.PUBLIC_URL, afterHours: config.APPROVAL_REMINDER_HOURS },
     mail: { deps: engine.mail, pollSeconds: config.MAIL_POLL_SECONDS },
     approvalPortal: adapters.approvalPortal ?? undefined,
+    ...(adapters.approvalPortalEmbedded ? { approvalPortalEmbedded: true } : {}),
     browserLive: engine.browserLive,
     desktops: engine.desktops,
     machines: engine.machineHub,

@@ -88,6 +88,7 @@ import { registerHealth } from "./routes/health";
 import { registerInstance } from "./routes/instance";
 import { machineAppRoutes, registerMachinePublicRoutes } from "./routes/machines";
 import { type AppsRouteOptions, registerAppsRoot, registerOauthRoutes } from "./routes/oauth";
+import { registerPortalPublicRoutes } from "./routes/portal-public";
 import { pushRelayRoutes } from "./routes/push-relay";
 import { registerWaitlist } from "./routes/waitlist";
 import { registerRoutineHooks, registerWebhookReceiver, webhookAdminRoutes } from "./routes/webhooks";
@@ -364,6 +365,9 @@ export function createApp(options: AppOptions) {
     await next();
     if (!c.res.headers.has("cache-control")) c.res.headers.set("cache-control", "no-store");
   });
+  // The client's own page of the installation's approval portal (docs/adr/doug-0031-embedded-approval-portal.md): no
+  // account, outside `/api/`, its whole access the link's token.
+  if (options.services) registerPortalPublicRoutes(app, options.services);
   // A link a person opens in a browser that the API refuses: our page, never the JSON on screen (ADR 0157).
   app.use("/api/*", errorPages(options.services?.config.PUBLIC_URL));
   app.route("/api", api);

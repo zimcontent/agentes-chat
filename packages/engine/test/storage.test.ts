@@ -9,6 +9,7 @@ import {
   createPostgresBlobStore,
   createS3BlobStore,
   StorageError,
+  s3Error,
 } from "@agenteschat/adapters";
 import { eq, rowsOf, schema, sql } from "@agenteschat/db";
 import {
@@ -120,6 +121,35 @@ describe("S3 client against the fake server", () => {
     const error = await wrong.get("x").catch((e) => e);
     expect(error).toBeInstanceOf(StorageError);
     expect((error as StorageError).code).toBe("auth");
+  });
+
+  test("a store that answers the whole object to a ranged read is cut here: the part is always the one asked for", async () => {
+    f = await setup();
+    const store = createS3BlobStore(
+      { ...bucket(), accessKeyId: "AKIATEST", secretAccessKey: SECRET },
+      { fetch: f.s3.fetch },
+    );
+    await store.put("a/long.mp4", new TextEncoder().encode("0123456789"), { contentType: "video/mp4" });
+    // A bucket behind a proxy that ignores `Range` answers `200` with every byte: `getRange` still answers just the
+    // part, and its `total` is the whole object's length.
+    const read = await store.getRange?.("a/long.mp4", 2, 5);
+    expect(new TextDecoder().decode(read?.body)).toBe("2345");
+    expect(read?.total).toBe(10);
+    // A part before the first byte is refused, as every store refuses it.
+    await expect(store.getRange?.("a/long.mp4", -1, 4)).rejects.toThrow(RangeError);
+  });
+
+  test("a part past the object's end is the bucket's `416`, not an unexpected error", () => {
+    // S3 answers a part past the object's end with `416 InvalidRange`: the caller's range, whose `416` the portal's
+    // file route has to answer, never a failure of the bucket turned into an unexpected error.
+    const error = s3Error(
+      416,
+      "<Error><Code>InvalidRange</Code><Message>The requested range is not satisfiable</Message></Error>",
+    );
+    expect(error.code).toBe("range_not_satisfiable");
+    expect(error.status).toBe(416);
+    // One that comes without the code, only the status, is the same answer.
+    expect(s3Error(416, "").code).toBe("range_not_satisfiable");
   });
 });
 

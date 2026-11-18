@@ -112,15 +112,24 @@ export function PortalPage() {
                 {
                   value: "plan",
                   // On a phone the short name, so the tabs and the schedule's two views share one row.
+                  // On the materials, a card or a list dragged onto it goes back to the schedule (ADR 9001 §20).
                   label: (
-                    <>
+                    <span data-drop-away={changes && tab === "materials" ? "plan" : undefined}>
                       <span className="portal-tab__long">{t("portal.plan.tab")}</span>
                       <span className="portal-tab__short">{t("portal.plan.tabShort")}</span>
-                    </>
+                    </span>
                   ),
                 },
                 { value: "posted", label: t("portal.columns.posted"), count: board.data.items.posted.length },
-                { value: "materials", label: t("portal.materials.tab") },
+                {
+                  value: "materials",
+                  // A card or a list dragged onto it from the board or the schedule goes to the materials.
+                  label: (
+                    <span data-drop-away={changes && tab !== "materials" ? "materials" : undefined}>
+                      {t("portal.materials.tab")}
+                    </span>
+                  ),
+                },
               ]}
             />
             {/* The schedule's two views, at the end of its tabs' row: its lists, or a calendar. */}

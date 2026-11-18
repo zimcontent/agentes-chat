@@ -7,6 +7,7 @@ import {
   announceMembers,
   announceProfile,
   avatarFile,
+  brandPendingIn,
   CODE_LENGTH,
   can,
   canCreateWorkspace,
@@ -256,6 +257,10 @@ export function accountRoutes(deps: AppDeps) {
     ]);
     if (verified === null) return null;
     const onboardingOf = (orgId: string) => unfinished.find((u) => u.organization.id === orgId);
+    const brandWaits = await brandPendingIn(
+      db,
+      unfinished.map((u) => u.organization.id),
+    );
     const deletions = await workspaceDeletions(
       db,
       memberships.flatMap((m) => (m.standing?.deletionDueAt ? [m.orgId] : [])),
@@ -313,7 +318,13 @@ export function accountRoutes(deps: AppDeps) {
             ? { standing: { state: m.standing.state, reason: toldReason(m.standing), ...cloudNotice() } }
             : {}),
           ...(setup
-            ? { onboarding: { step: setup.organization.onboardingStep, generalChannelId: setup.general.id } }
+            ? {
+                onboarding: {
+                  step: setup.organization.onboardingStep,
+                  generalChannelId: setup.general.id,
+                  ...(brandWaits.has(m.orgId) ? { brandPending: true } : {}),
+                },
+              }
             : {}),
           ...(deleting
             ? {
@@ -427,6 +438,10 @@ export function accountRoutes(deps: AppDeps) {
               description:
                 "This server has an approval portal (APPROVAL_PORTAL_URL, ADR 9001): the apps show the Portal page.",
             }),
+            approvalPortalEmbedded: z.boolean().openapi({
+              description:
+                "The portal is this server's own (docs/adr/doug-0031-embedded-approval-portal.md), not a bridge's: the workspace manages its clients and their links here.",
+            }),
             zimMedia: z.boolean().openapi({
               description:
                 "This server generates images and videos from a credit wallet (ZIM_MEDIA_URL, ADR doug-0011): the apps show the Mídia page.",
@@ -488,6 +503,7 @@ export function accountRoutes(deps: AppDeps) {
           workspaceComputer: config.MACHINE_PROVISIONING === "external",
           billingUrl: config.BILLING_URL ?? null,
           approvalPortal: Boolean(deps.adapters.approvalPortal),
+          approvalPortalEmbedded: Boolean(deps.adapters.approvalPortalEmbedded),
           zimMedia: Boolean(deps.adapters.zimMedia),
           cloud: isAgentesCloud(config.PUBLIC_URL),
           companyRequests: await signedInOwner(c),
@@ -1477,10 +1493,18 @@ export function accountRoutes(deps: AppDeps) {
       security,
       summary: "Save how far you got in setting up your workspace",
       description:
-        "Its owner only (403 for anyone else). `step`: the furthest step reached, saved as each one is passed (a skipped one counts); it only moves forward, so an earlier one changes nothing. `finished`: the onboarding is over, for good; the answer then says where the workspace opens (`rightHandId`) and carries `GET /me` as it is now. Until then the apps open the onboarding instead of the workspace (`onboarding` in `GET /me`).",
+        "Its owner only (403 for anyone else). `step`: the furthest step reached, saved as each one is passed (a skipped one counts); it only moves forward, so an earlier one changes nothing. `finished`: the onboarding is over, for good; the answer then says where the workspace opens (`rightHandId`) and carries `GET /me` as it is now. Until then the apps open the onboarding instead of the workspace (`onboarding` in `GET /me`). `holdBrand` (docs/adr/doug-0030-time-doug.md): the app draws the brand step itself and asks to be held by it, which answers 409 `onboarding.brand_pending` while the Doug team's brand still waits; without it the workspace finishes, and the brand is then asked for in the DM.",
       request: {
         params: OrgParams,
-        body: body(z.object({ step: z.enum(ONBOARDING_STEPS).optional(), finished: z.literal(true).optional() })),
+        body: body(
+          z.object({
+            step: z.enum(ONBOARDING_STEPS).optional(),
+            finished: z.literal(true).optional(),
+            holdBrand: z.literal(true).optional().openapi({
+              description: "The app draws the brand step: 409 while it still waits, instead of finishing.",
+            }),
+          }),
+        ),
       },
       responses: {
         200: json(

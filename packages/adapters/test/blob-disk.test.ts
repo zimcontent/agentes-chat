@@ -82,3 +82,18 @@ test("a file on disk is copied to its key as is, never read whole: a conversatio
   });
   expect((await stat(join(dir, "store/orgs/o1/artifacts/a1/v1"))).mode & 0o777).toBe(0o600);
 });
+
+test("a part that begins before the first byte is refused the same way by every store", async () => {
+  const store = createDiskBlobStore(dir);
+  await store.put("orgs/o1/part", bytes("0123456789"), { contentType: "video/mp4" });
+  expect(await store.getRange?.("orgs/o1/part", 2, 5)).toEqual({
+    body: bytes("2345"),
+    contentType: "video/mp4",
+    total: 10,
+  });
+  // A negative offset, or an end before its start, is a caller's mistake: `RangeError`, never a silent read of the
+  // file's beginning.
+  await expect(store.getRange?.("orgs/o1/part", -1, 4)).rejects.toThrow(RangeError);
+  await expect(store.getRange?.("orgs/o1/part", 5, 2)).rejects.toThrow(RangeError);
+  await expect(store.getRange?.("orgs/o1/part", 1.5, 2)).rejects.toThrow(RangeError);
+});

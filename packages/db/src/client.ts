@@ -92,6 +92,8 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "machine_accounts" ADD COLUMN IF NOT EXISTS "stand_in_rank" integer`,
   // The sidebar's tools an admin took out of a workspace (`organization_settings.hidden_tools`).
   `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "hidden_tools" text[] NOT NULL DEFAULT '{}'::text[]`,
+  // The Doug team made here (`organization_settings.doug_team`, docs/adr/doug-0030-time-doug.md).
+  `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "doug_team" jsonb`,
   // WhatsApp numbers and their conversations (`schema/whatsapp.ts`).
   `CREATE TABLE IF NOT EXISTS "whatsapp_accounts" (
     "id" uuid PRIMARY KEY,
@@ -191,6 +193,10 @@ export const EXTRA_COLUMNS = [
   // The number's agent in groups, when called (docs/adr/doug-0007-whatsapp-groups.md).
   `ALTER TABLE "whatsapp_accounts" ADD COLUMN IF NOT EXISTS "lid" text`,
   `ALTER TABLE "whatsapp_chats" ADD COLUMN IF NOT EXISTS "agent_session_until" timestamp with time zone`,
+  // Files received on a number, understood for its agent (docs/adr/doug-0034-whatsapp-files.md): what one shows or
+  // says, and the Drive file it became for a member's conversation with the agent.
+  `ALTER TABLE "whatsapp_messages" ADD COLUMN IF NOT EXISTS "seen" text`,
+  `ALTER TABLE "whatsapp_messages" ADD COLUMN IF NOT EXISTS "artifact_id" uuid`,
   // Live voice: calls with agents and messages told by voice (ADR doug-0006).
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "voice" text`,
   `CREATE TABLE IF NOT EXISTS "live_voice_keys" (
@@ -466,6 +472,173 @@ export const EXTRA_COLUMNS = [
   `CREATE INDEX IF NOT EXISTS "agent_run_steps_tool_call_run_idx" ON "agent_run_steps" USING btree ("run_id","seq") WHERE "agent_run_steps"."kind" = 'tool_call'`,
   `CREATE INDEX IF NOT EXISTS "agent_runs_org_id_brain_session_id_index" ON "agent_runs" USING btree ("org_id","brain_session_id") WHERE "agent_runs"."brain_session_id" is not null`,
   `CREATE INDEX IF NOT EXISTS "agent_scopes_connection_id_index" ON "agent_scopes" USING btree ("connection_id") WHERE "agent_scopes"."connection_id" is not null`,
+  // The approval portal kept in this server (docs/adr/doug-0031-embedded-approval-portal.md, `schema/portal.ts`).
+  // The WhatsApp number its notices go out as, and how long two notices of the same client wait to become one.
+  `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "portal_notice_number" uuid`,
+  // Who chose that number: a person's id, with no foreign key here as its number's own added column has none.
+  `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "portal_notice_number_by" text`,
+  `CREATE TABLE IF NOT EXISTS "portal_notices" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "client" text NOT NULL,
+    "channel" text NOT NULL,
+    "contact_id" text,
+    "post_id" uuid,
+    "version" integer,
+    "at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS "portal_notices_client" ON "portal_notices" ("org_id", "client", "at")`,
+  `CREATE INDEX IF NOT EXISTS "portal_notices_outcome" ON "portal_notices" ("org_id", "client", "channel", "contact_id", "at")`,
+  `CREATE TABLE IF NOT EXISTS "portal_clients" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "client" text NOT NULL,
+    "name" text NOT NULL,
+    "contacts" jsonb NOT NULL DEFAULT '[]'::jsonb,
+    "color" text,
+    "logo" text,
+    "created_by" text REFERENCES "users"("id") ON DELETE SET NULL,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now(),
+    "updated_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "portal_clients_org_client" ON "portal_clients" ("org_id", "client")`,
+  // The language a client's notices are written in (docs/adr/doug-0031-embedded-approval-portal.md §8): null is the
+  // workspace owner's own.
+  `ALTER TABLE "portal_clients" ADD COLUMN IF NOT EXISTS "locale" text`,
+  `CREATE TABLE IF NOT EXISTS "portal_client_links" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "client_id" uuid NOT NULL REFERENCES "portal_clients"("id") ON DELETE CASCADE,
+    "token_hash" text NOT NULL,
+    "created_by" text REFERENCES "users"("id") ON DELETE SET NULL,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now(),
+    "last_used_at" timestamp with time zone,
+    "revoked_at" timestamp with time zone
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "portal_client_links_token" ON "portal_client_links" ("token_hash")`,
+  `CREATE INDEX IF NOT EXISTS "portal_client_links_client" ON "portal_client_links" ("org_id", "client_id")`,
+  `CREATE TABLE IF NOT EXISTS "portal_posts" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "client" text NOT NULL,
+    "title" text NOT NULL DEFAULT '',
+    "type" text NOT NULL DEFAULT 'image',
+    "status" text NOT NULL DEFAULT 'sent',
+    "caption" text NOT NULL DEFAULT '',
+    "editor" text,
+    "video" boolean NOT NULL DEFAULT false,
+    "version" integer NOT NULL DEFAULT 1,
+    "scheduled_for" timestamp with time zone,
+    "released" boolean NOT NULL DEFAULT false,
+    "published_at" timestamp with time zone,
+    "post_url" text,
+    "card" text,
+    "seen_at" timestamp with time zone,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now(),
+    "updated_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS "portal_posts_client" ON "portal_posts" ("org_id", "client", "updated_at")`,
+  `CREATE TABLE IF NOT EXISTS "portal_post_files" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "post_id" uuid NOT NULL REFERENCES "portal_posts"("id") ON DELETE CASCADE,
+    "version" integer NOT NULL DEFAULT 1,
+    "position" integer NOT NULL DEFAULT 0,
+    "role" text NOT NULL DEFAULT 'media',
+    "name" text NOT NULL,
+    "content_type" text NOT NULL,
+    "size" integer NOT NULL DEFAULT 0,
+    "blob_key" text NOT NULL,
+    "storage_config_id" uuid,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS "portal_post_files_post" ON "portal_post_files" ("post_id", "version", "role", "position")`,
+  `CREATE TABLE IF NOT EXISTS "portal_post_notes" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "post_id" uuid NOT NULL REFERENCES "portal_posts"("id") ON DELETE CASCADE,
+    "version" integer NOT NULL DEFAULT 1,
+    "at_seconds" real,
+    "page" integer,
+    "x" real,
+    "y" real,
+    "text" text NOT NULL,
+    "files" jsonb NOT NULL DEFAULT '[]'::jsonb,
+    "by" text,
+    "kind" text,
+    "at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS "portal_post_notes_post" ON "portal_post_notes" ("post_id", "at")`,
+  `CREATE TABLE IF NOT EXISTS "portal_cards" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "client" text NOT NULL,
+    "title" text NOT NULL DEFAULT '',
+    "type" text NOT NULL DEFAULT 'image',
+    "state" text NOT NULL DEFAULT 'todo',
+    "caption" text NOT NULL DEFAULT '',
+    "date" text,
+    "produce_on" text,
+    "editor" text,
+    "owner" text,
+    "note" text NOT NULL DEFAULT '',
+    "files" jsonb NOT NULL DEFAULT '[]'::jsonb,
+    "list" uuid,
+    "order" integer NOT NULL DEFAULT 0,
+    "description" text NOT NULL DEFAULT '',
+    "labels" jsonb NOT NULL DEFAULT '[]'::jsonb,
+    "members" jsonb NOT NULL DEFAULT '[]'::jsonb,
+    "checklist" jsonb NOT NULL DEFAULT '[]'::jsonb,
+    "comments" jsonb NOT NULL DEFAULT '[]'::jsonb,
+    "item" text,
+    "task" text,
+    "done" boolean NOT NULL DEFAULT false,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now(),
+    "updated_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS "portal_cards_org_client" ON "portal_cards" ("org_id", "client", "order")`,
+  `CREATE TABLE IF NOT EXISTS "portal_lists" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "client" text NOT NULL,
+    "name" text NOT NULL,
+    "kind" text NOT NULL DEFAULT 'plan',
+    "position" integer NOT NULL DEFAULT 0,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS "portal_lists_org_client" ON "portal_lists" ("org_id", "client", "position")`,
+  `CREATE TABLE IF NOT EXISTS "portal_labels" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "name" text NOT NULL,
+    "color" text NOT NULL DEFAULT 'gray',
+    "created_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS "portal_labels_org" ON "portal_labels" ("org_id", "created_at")`,
+  `CREATE TABLE IF NOT EXISTS "portal_jobs" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "state" text NOT NULL DEFAULT 'done',
+    "client" text NOT NULL,
+    "item" text,
+    "title" text,
+    "missing" jsonb NOT NULL DEFAULT '[]'::jsonb,
+    "error" text,
+    "key" text,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "portal_jobs_key" ON "portal_jobs" ("org_id", "key")`,
+  `CREATE TABLE IF NOT EXISTS "portal_uploads" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "name" text NOT NULL,
+    "content_type" text NOT NULL,
+    "size" integer NOT NULL DEFAULT 0,
+    "blob_key" text NOT NULL,
+    "storage_config_id" uuid,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS "portal_uploads_org" ON "portal_uploads" ("org_id", "created_at")`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

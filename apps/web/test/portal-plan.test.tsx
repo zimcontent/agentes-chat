@@ -862,6 +862,74 @@ describe("the client's materials (ADR 9001 §20)", () => {
     expect((calls(state, "portal.updateCard")[0]?.[2] as { list: string } | undefined)?.list).toBe("l-000001");
   });
 
+  /** The tab that takes a drop, given a box on screen (the test's page lays nothing out). */
+  const tabBox = (name: RegExp) => {
+    const tab = within(main()).getByRole("radio", { name });
+    expect(tab.querySelector("[data-drop-away]")).not.toBeNull();
+    tab.getBoundingClientRect = () => new DOMRect(600, 10, 160, 40);
+    return tab;
+  };
+  /** A mouse presses `el`, goes past the slop, then over the tab and lets go there. */
+  const dragOnto = async (el: HTMLElement, tab: HTMLElement) => {
+    await act(async () => {
+      fireEvent.pointerDown(el, { button: 0, pointerId: 1, pointerType: "mouse", clientX: 100, clientY: 300 });
+      fireEvent.pointerMove(document, { pointerId: 1, pointerType: "mouse", clientX: 120, clientY: 290 });
+      fireEvent.pointerMove(document, { pointerId: 1, pointerType: "mouse", clientX: 680, clientY: 30 });
+    });
+    await settle(2);
+    expect(tab.hasAttribute("data-drop-over")).toBe(true);
+    await act(async () => {
+      fireEvent.pointerUp(document, { pointerId: 1, pointerType: "mouse", clientX: 680, clientY: 30 });
+      await new Promise((r) => setTimeout(r, 520));
+    });
+    await settle(6);
+    expect(tab.hasAttribute("data-drop-over")).toBe(false);
+  };
+
+  test("a card dragged onto the Materiais do cliente tab goes to the end of a list there", async () => {
+    const { state } = await go(PLAN, withPortal(), withMaterials);
+    await dragOnto(card("Story de enquete"), tabBox(/Materiais do cliente/));
+    const [moved] = calls(state, "portal.updateCard");
+    expect(moved?.[1]).toBe("c-000003");
+    const sent = moved?.[2] as { list: string; order: number };
+    expect(sent.list).toBe("l-0000aa");
+    expect(sent.order).toBeGreaterThan(1);
+    expect(screen().getByText("“Story de enquete” foi para Materiais do cliente, na lista Acessos.")).toBeTruthy();
+    expect(cardsIn("Semana 09 a 13/11")).toEqual([]);
+  });
+
+  test("with no list in the materials yet, the drop makes one, Geral, and the card goes into it", async () => {
+    const { state, portal } = await go(PLAN);
+    await dragOnto(card("Story de enquete"), tabBox(/Materiais do cliente/));
+    expect(calls(state, "portal.createList")).toEqual([[ORG_ID, "acme", "Geral", "materials"]]);
+    const made = portal.lists.find((l) => l.name === "Geral");
+    expect(made?.kind).toBe("materials");
+    expect((calls(state, "portal.updateCard")[0]?.[2] as { list: string }).list).toBe(made?.id as string);
+    expect(screen().getByText("“Story de enquete” foi para Materiais do cliente, na lista Geral.")).toBeTruthy();
+  });
+
+  test("a whole list dragged by its head onto the tab goes to the materials with its cards", async () => {
+    const { state } = await go(PLAN, withPortal(), withMaterials);
+    const head = list("Semana 09 a 13/11").querySelector(".issues-col__head") as HTMLElement;
+    await dragOnto(head, tabBox(/Materiais do cliente/));
+    expect(calls(state, "portal.setListKind")).toEqual([[ORG_ID, "l-000002", "materials"]]);
+    expect(calls(state, "portal.orderLists")).toEqual([]);
+  });
+
+  test("from the materials, a card dragged onto the schedule's tab goes back there", async () => {
+    const { state } = await go(MATERIALS, withPortal(), withMaterials);
+    await dragOnto(card("Login do Instagram"), tabBox(/Cronograma estratégico/));
+    expect((calls(state, "portal.updateCard")[0]?.[2] as { list: string } | undefined)?.list).toBe("l-000001");
+  });
+
+  test("on the Quadro, a team card dragged onto the tab goes to the materials", async () => {
+    const { state } = await go("portal?client=acme", withPortal(), withMaterials);
+    const face = within(main()).getByRole("article", { name: "Ideia solta" });
+    await dragOnto(face, tabBox(/Materiais do cliente/));
+    expect(calls(state, "portal.updateCard")[0]?.slice(1, 2)).toEqual(["c-000004"]);
+    expect((calls(state, "portal.updateCard")[0]?.[2] as { list: string } | undefined)?.list).toBe("l-0000aa");
+  });
+
   test("a whole list moves to the materials from its menu; a list added there is one of materials", async () => {
     const { state } = await go(PLAN, withPortal(), withMaterials);
     const menu = await openMenu(

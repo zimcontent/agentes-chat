@@ -158,6 +158,29 @@ export async function taskDelivery(deps: Pick<Deps, "db">, userId: string, orgId
 /** The title of one of a task's videos once it has more than one. */
 const partTitle = (task: string, part: number) => `${task.slice(0, 180)} · Vídeo ${part}`;
 
+/**
+ * The portal's posts an editor's delivery names, as `<client>/<post>`: the only ones the portal's tick looks at
+ * (`syncEditorStages` and `bringClientNotes` both skip every other post), so the tick reads its items narrowed to them.
+ */
+export async function editorPosts(db: Database, orgId: string): Promise<Set<string>> {
+  const rows = await db
+    .select({ client: videoReviews.portalClient, delivery: videoReviews.delivery })
+    .from(videoReviews)
+    .where(
+      and(
+        eq(videoReviews.orgId, orgId),
+        sql`${videoReviews.senderUserId} is not null`,
+        sql`${videoReviews.delivery}->>'item' is not null`,
+      ),
+    );
+  const named = new Set<string>();
+  for (const row of rows) {
+    const item = (row.delivery as { item?: unknown } | null)?.item;
+    if (typeof item === "string" && item) named.add(`${row.client}/${item}`);
+  }
+  return named;
+}
+
 /** The portal's tick: each editor's post at the portal keeps where it stands there, read from the post itself. */
 export async function syncEditorStages(db: Database, orgId: string, items: PortalItem[]) {
   const rows = await db

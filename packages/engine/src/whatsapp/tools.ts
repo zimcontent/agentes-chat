@@ -1,12 +1,17 @@
 import { bareJid, type WhatsAppMessage } from "@agenteschat/adapters";
 import { and, desc, eq, inArray, isNotNull, lt, or, schema, sql } from "@agenteschat/db";
+import { type ArtifactDeps, createFileArtifact, fileForModel } from "../artifacts";
 import { runPerson } from "../authority";
 import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "../tools/types";
 import { untrustedBlock } from "../untrusted";
 import { accountToken, publishWhatsAppChanged, type WhatsAppAccountRow, type WhatsAppDeps } from "./accounts";
 import { whatsappAgentState } from "./agent";
 import { WHATSAPP_TEXT_MAX } from "./conversations";
+import { fetchWhatsAppFile, sendWhatsAppArtifact, WHATSAPP_FILE_KINDS, whatsappFileName } from "./files";
 import { storeWhatsAppMessage } from "./inbound";
+
+/** The tools' deps: the Drive too, for files both ways (docs/adr/doug-0034-whatsapp-files.md). */
+export type WhatsAppToolDeps = WhatsAppDeps & { artifacts?: ArtifactDeps };
 
 /**
  * The bridge between the workspace and its WhatsApp numbers (docs/adr/doug-0004-whatsapp-bridge.md): an agent in
@@ -105,7 +110,11 @@ function messageLine(
   else who = "The team (from the phone)";
   const words = row.body.trim();
   const what = row.kind === "text" ? words : words ? `[${row.kind}] ${words}` : `[${row.kind}]`;
-  return `${when(row.at)} ${who}: ${what.length > 1500 ? `${what.slice(0, 1500)} […]` : what}`;
+  // A file: what it shows when it was looked at for the number's agent, and how to open it (`whatsapp_open_file`).
+  const file = (WHATSAPP_FILE_KINDS as readonly string[]).includes(row.kind)
+    ? `${row.seen?.trim() ? ` (seen: ${row.seen.trim().slice(0, 1500)})` : ""} [file: message ${row.id}]`
+    : "";
+  return `${when(row.at)} ${who}: ${what.length > 1500 ? `${what.slice(0, 1500)} […]` : what}${file}`;
 }
 
 function chatLine(account: WhatsAppAccountRow, chat: typeof schema.whatsappChats.$inferSelect, many: boolean) {
@@ -316,25 +325,36 @@ function searchTool(): ToolDefinition {
   };
 }
 
-function sendTool(deps: WhatsAppDeps): ToolDefinition {
+function sendTool(deps: WhatsAppToolDeps): ToolDefinition {
   return {
     name: "whatsapp_send",
     description:
-      "Send a text message, as the number, into an existing WhatsApp conversation on a number you may see (never a new contact). A person approves it first. Write like a person on a phone: short, plain, in the contact's language, no Markdown. It goes as yours: the number's agent reads it in the conversation afterwards.",
+      "Send a message, as the number, into an existing WhatsApp conversation on a number you may see (never a new contact): text, a file from the Drive (a picture, a video, an audio that goes as a voice message, a PDF or any document), or both (the text goes as the file's caption). A person approves it first. Write like a person on a phone: short, plain, in the contact's language, no Markdown. It goes as yours: the number's agent reads it in the conversation afterwards.",
     scope: "",
     sensitive: true,
     inputSchema: {
       type: "object",
-      required: ["conversation", "text"],
+      required: ["conversation"],
       properties: {
         conversation: { type: "string", description: "The conversation's id." },
-        text: { type: "string", description: "The message, as the contact will read it." },
+        text: { type: "string", description: "The message, as the contact will read it; with a file, its caption." },
+        file: {
+          type: "string",
+          description:
+            "A Drive file's artifact id to send (an image, a video, an audio, a document). A written document or a table goes as its PDF.",
+        },
       },
       additionalProperties: false,
     },
     describe(input) {
       const text = str(input.text);
-      return { title: "Send a WhatsApp message", detail: text.length > 400 ? `${text.slice(0, 400)}…` : text };
+      const file = str(input.file);
+      return {
+        title: file ? "Send a file on WhatsApp" : "Send a WhatsApp message",
+        detail: [file ? `File ${file}` : "", text.length > 400 ? `${text.slice(0, 400)}…` : text]
+          .filter(Boolean)
+          .join("\n"),
+      };
     },
     async execute(input, ctx) {
       try {
@@ -345,27 +365,42 @@ function sendTool(deps: WhatsAppDeps): ToolDefinition {
         const { chat, account } = found;
         if (account.status !== "connected") return { content: "That number isn't connected now.", isError: true };
         const text = str(input.text);
-        if (!text) return { content: "Write the message.", isError: true };
+        const fileId = str(input.file);
+        if (!text && !fileId) return { content: "Write the message or name the file.", isError: true };
         if (text.length > WHATSAPP_TEXT_MAX) {
           return { content: `A message has at most ${WHATSAPP_TEXT_MAX} characters.`, isError: true };
         }
+        if (fileId) {
+          if (!UUID.test(fileId)) return { content: "Name the file by its artifact id.", isError: true };
+          const sent = await sendWhatsAppArtifact(
+            deps,
+            account,
+            chat,
+            {
+              artifactId: fileId,
+              actor: { type: "agent", agentId: ctx.agentId, channelId: ctx.channelId, runId: ctx.runId },
+              caption: text,
+            },
+            { agentId: ctx.agentId },
+          );
+          // A voice message takes no caption: the words go as their own message after it.
+          if (text && sent.kind === "audio") {
+            await gateway
+              .sendText(await accountToken(deps, account), { to: chat.jid, text })
+              .then((out) =>
+                storeWhatsAppMessage(ctx.db, account, textMessage(account, chat, out, text), { agentId: ctx.agentId }),
+              );
+          }
+          await publishWhatsAppChanged(deps, account, { chatId: chat.id });
+          return {
+            content: `Sent the file (as ${sent.kind === "audio" ? "a voice message" : `a ${sent.kind}`}) to ${chat.name || phoneOf(chat.jid) || "the contact"} on "${account.label}".`,
+            data: { whatsappChatId: chat.id, whatsappMessageId: sent.id },
+          };
+        }
         const sent = await gateway.sendText(await accountToken(deps, account), { to: chat.jid, text });
-        const message: WhatsAppMessage = {
-          id: sent.id,
-          chat: bareJid(chat.jid),
-          sender: account.jid ?? "",
-          senderName: account.pushName,
-          fromMe: true,
-          group: chat.group,
-          groupName: "",
-          at: sent.at,
-          kind: "text",
-          text,
-          replyTo: null,
-          media: null,
-          raw: null,
-        };
-        const stored = await storeWhatsAppMessage(ctx.db, account, message, { agentId: ctx.agentId });
+        const stored = await storeWhatsAppMessage(ctx.db, account, textMessage(account, chat, sent, text), {
+          agentId: ctx.agentId,
+        });
         if (!stored.fresh) {
           // The gateway's own event came first and read as someone on the phone: it is this agent's.
           await ctx.db
@@ -389,18 +424,114 @@ function sendTool(deps: WhatsAppDeps): ToolDefinition {
   };
 }
 
+/** A text the number sent, as stored. */
+function textMessage(
+  account: WhatsAppAccountRow,
+  chat: typeof schema.whatsappChats.$inferSelect,
+  sent: { id: string; at: Date },
+  text: string,
+): WhatsAppMessage {
+  return {
+    id: sent.id,
+    chat: bareJid(chat.jid),
+    sender: account.jid ?? "",
+    senderName: account.pushName,
+    fromMe: true,
+    group: chat.group,
+    groupName: "",
+    at: sent.at,
+    kind: "text",
+    text,
+    replyTo: null,
+    media: null,
+    raw: null,
+  };
+}
+
+/**
+ * A file someone sent on a number, opened for the agent: fetched from WhatsApp, kept as a Drive file of this run (to
+ * send on or attach), and shown as `read_artifact` shows one (a picture seen, an audio or a video's sound heard, a
+ * document read).
+ */
+function openFileTool(deps: WhatsAppToolDeps): ToolDefinition {
+  return {
+    name: "whatsapp_open_file",
+    description: `Open a file sent in a WhatsApp conversation (a picture, a sticker, a video, a voice message or a document): the message id is in brackets after it in whatsapp_read ("[file: message …]"). You see it as with read_artifact, and get its artifact id to send it on or attach it. ${NUMBERS_LINE}`,
+    scope: "",
+    readsOutside: true,
+    inputSchema: {
+      type: "object",
+      required: ["message"],
+      properties: { message: { type: "string", description: "The message's id." } },
+      additionalProperties: false,
+    },
+    async execute(input, ctx) {
+      try {
+        if (!deps.gateway || !deps.artifacts)
+          return { content: "Files can't be opened on this server.", isError: true };
+        const id = str(input.message);
+        const numbers = await whatsappNumbersFor(ctx);
+        if (!UUID.test(id) || numbers.length === 0) return { content: "No such message.", isError: true };
+        const [row] = await ctx.db
+          .select()
+          .from(schema.whatsappMessages)
+          .where(
+            and(
+              eq(schema.whatsappMessages.id, id),
+              inArray(
+                schema.whatsappMessages.accountId,
+                numbers.map((n) => n.id),
+              ),
+            ),
+          );
+        const account = row ? numbers.find((n) => n.id === row.accountId) : undefined;
+        if (!row || !account) return { content: "No such message on a number you may see.", isError: true };
+        if (account.status !== "connected") return { content: "That number isn't connected now.", isError: true };
+        const file = await fetchWhatsAppFile(deps, account, row);
+        if (!file) return { content: "That message carries no file.", isError: true };
+        const name = whatsappFileName(row);
+        const actor = { type: "agent" as const, agentId: ctx.agentId, channelId: ctx.channelId, runId: ctx.runId };
+        const made = await createFileArtifact(deps.artifacts, actor, ctx.orgId, {
+          title: name,
+          name,
+          contentType: file.mimeType.split(";")[0]?.trim() || null,
+          channelId: ctx.channelId,
+          byProduct: true,
+          bytes: file.bytes,
+        });
+        const opened = await fileForModel({ ...deps.artifacts, db: ctx.db }, actor, ctx.orgId, made.id);
+        const caption = row.body.trim();
+        return {
+          content: [
+            `"${name}" (artifact ${made.id}), sent on WhatsApp ${when(row.at)}.`,
+            caption ? untrustedBlock("whatsapp", `Caption: ${caption}`, 4000) : "",
+            opened.note,
+            opened.text ? untrustedBlock("whatsapp file", opened.text, 40_000) : "",
+          ]
+            .filter(Boolean)
+            .join("\n\n"),
+          ...(opened.images?.length ? { images: opened.images } : {}),
+          data: { artifactId: made.id, whatsappMessageId: row.id },
+        };
+      } catch (error) {
+        return failed(error);
+      }
+    },
+  };
+}
+
 /**
  * The WhatsApp tools for a run: listed only when the agent may see a number. A run nobody is behind (a routine) reads;
  * sending needs a person behind the run as well as their approval.
  */
-export function createWhatsAppToolSource(deps: WhatsAppDeps | null): ToolSource {
+export function createWhatsAppToolSource(deps: WhatsAppToolDeps | null): ToolSource {
   return {
     name: "whatsapp",
     async tools(ctx) {
       if (!deps || !ctx.runId) return [];
       const numbers = await whatsappNumbersFor(ctx).catch(() => []);
       if (numbers.length === 0) return [];
-      const reads = [listTool(), readTool(), searchTool()];
+      const reads = [listTool(), readTool(), searchTool(), openFileTool(deps)];
       if (ctx.background) return reads;
       return [...reads, sendTool(deps)];
     },

@@ -1,5 +1,6 @@
 import { bareJid, type WhatsAppMessage } from "@agenteschat/adapters";
 import { and, desc, eq, gt, lt, schema, sql } from "@agenteschat/db";
+import type { ArtifactDeps } from "../artifacts";
 import { recordAudit } from "../audit";
 import { openPersonAgentDm } from "../dms";
 import { ForbiddenError, NotFoundError, ValidationError } from "../errors";
@@ -12,6 +13,7 @@ import {
   type WhatsAppDeps,
   whatsappGateway,
 } from "./accounts";
+import { keepWhatsAppFile, sendWhatsAppArtifact, WHATSAPP_CAPTION_MAX, WHATSAPP_FILE_KINDS } from "./files";
 import { storeWhatsAppMessage } from "./inbound";
 import { sendVoiceNote, speaksNow } from "./voice-notes";
 
@@ -157,56 +159,85 @@ async function unanswered(deps: Pick<WhatsAppDeps, "db">, chat: ChatRow) {
     .orderBy(desc(messages.at))
     .limit(1);
   const rows = await deps.db
-    .select({ kind: messages.kind, body: messages.body })
+    .select()
     .from(messages)
     .where(
       and(eq(messages.chatId, chat.id), eq(messages.fromMe, false), lastOut ? gt(messages.at, lastOut.at) : undefined),
     )
     .orderBy(desc(messages.at))
     .limit(10);
-  return (
-    rows
-      .reverse()
-      // A voice message heard (`whatsapp/transcribe.ts`) reads as what was said; any other file as its kind.
-      .map((m) =>
-        m.kind === "text"
-          ? m.body.trim()
-          : m.kind === "audio" && m.body.trim()
-            ? `(áudio) ${m.body.trim()}`
-            : `[${m.kind}]${m.body.trim() ? ` ${m.body.trim()}` : ""}`,
-      )
-      .filter(Boolean)
-  );
+  return rows.reverse();
+}
+
+/** How a file reads in the member's conversation with the agent, beside the file itself. */
+const FILE_WORD: Record<string, string> = {
+  image: "foto",
+  sticker: "figurinha",
+  video: "vídeo",
+  audio: "áudio",
+  document: "documento",
+};
+const hasFile = (kind: string) => (WHATSAPP_FILE_KINDS as readonly string[]).includes(kind);
+
+/**
+ * One message as it reads in the member's conversation with the agent: a text as written; a file as its kind and
+ * its words (a caption, a voice message heard by `whatsapp/transcribe.ts`), the file itself attached beside it.
+ */
+export function relayLine(m: { kind: string; body: string }, attached: boolean) {
+  const words = m.body.trim();
+  if (m.kind === "text") return words;
+  const word = FILE_WORD[m.kind];
+  if (!word) return `[${m.kind}]${words ? ` ${words}` : ""}`;
+  const mark = attached || m.kind === "audio" ? `(${word})` : `(${word} que não pôde ser aberto aqui)`;
+  return words ? `${mark} ${words}` : mark;
 }
 
 /**
  * A member wrote from WhatsApp: what they wrote goes to their own conversation with the number's agent, as theirs, and
- * the agent answers there as it does any message of theirs. `post` is `postPersonMessage` (kept out of this module's
- * imports). Null: nothing to relay.
+ * the agent answers there as it does any message of theirs. Every file they sent goes with it as a Drive file of
+ * theirs (`keepWhatsAppFile`), which the agent opens as any file in the app: a picture seen, a voice message or a
+ * video's sound heard, a document read. `post` is `postPersonMessage` (kept out of this module's imports). Null:
+ * nothing to relay.
  */
 export async function relayToMember(
-  deps: WhatsAppDeps,
+  deps: WhatsAppDeps & { artifacts?: ArtifactDeps },
   account: WhatsAppAccountRow,
   chat: ChatRow,
   post: (
     userId: string,
     orgId: string,
     channelId: string,
-    input: { body: string; meta: Record<string, unknown> },
+    input: { body: string; meta: Record<string, unknown>; attachments?: string[] },
   ) => Promise<unknown>,
 ) {
   if (!chat.memberUserId || !account.agentId) return null;
-  const said = await unanswered(deps, chat);
-  if (said.length === 0) return null;
-  // They spoke: the agent's answer goes back as a voice note when it is short and sayable (`whatsapp/voice-notes.ts`).
-  const spoke = said.some((line) => line.startsWith("(áudio) ") || line.startsWith("[audio]"));
+  const rows = await unanswered(deps, chat);
+  if (rows.length === 0) return null;
   const dm = await openPersonAgentDm(deps.db, account.orgId, chat.memberUserId, account.agentId);
+  const attachments: string[] = [];
+  const said: string[] = [];
+  for (const row of rows) {
+    const kept =
+      hasFile(row.kind) && attachments.length < MAX_RELAY_FILES
+        ? await keepWhatsAppFile(deps, account, row, { userId: chat.memberUserId, channelId: dm.id })
+        : null;
+    if (kept && !attachments.includes(kept)) attachments.push(kept);
+    const line = relayLine(row, kept !== null);
+    if (line) said.push(line);
+  }
+  if (said.length === 0 && attachments.length === 0) return null;
+  // They spoke: the agent's answer goes back as a voice note when it is short and sayable (`whatsapp/voice-notes.ts`).
+  const spoke = rows.some((m) => m.kind === "audio");
   await post(chat.memberUserId, account.orgId, dm.id, {
     body: said.join("\n"),
     meta: { whatsapp: { accountId: account.id, chatId: chat.id, ...(spoke ? { voice: true } : {}) } },
+    ...(attachments.length > 0 ? { attachments } : {}),
   });
   return dm.id;
 }
+
+/** The most files one relayed message carries (a message takes ten). */
+const MAX_RELAY_FILES = 10;
 
 /** WhatsApp's own marks for what Markdown says: bold is one asterisk, a heading a bold line, no links' brackets. */
 export function whatsappText(markdown: string) {
@@ -239,14 +270,18 @@ export function whatsappPieces(text: string): string[] {
  * agent's. Anything the person writes in the app afterwards keeps the answers in the app. Returns how many went.
  */
 export async function mirrorAgentReply(
-  deps: WhatsAppDeps,
+  deps: WhatsAppDeps & { artifacts?: ArtifactDeps },
   message: Pick<
     typeof schema.messages.$inferSelect,
     "id" | "orgId" | "channelId" | "threadId" | "authorType" | "authorAgentId" | "body" | "createdAt"
-  >,
+  > &
+    Partial<Pick<typeof schema.messages.$inferSelect, "meta">>,
   now = new Date(),
 ) {
-  if (message.authorType !== "agent" || !message.authorAgentId || message.threadId || !message.body.trim()) return 0;
+  // The files the agent attached go too (docs/adr/doug-0034-whatsapp-files.md): a picture, a video, an audio, a document.
+  const files = filesOf(message.meta);
+  if (message.authorType !== "agent" || !message.authorAgentId || message.threadId) return 0;
+  if (!message.body.trim() && files.length === 0) return 0;
   const { messages } = schema;
   const [asked] = await deps.db
     .select({ meta: messages.meta, at: messages.createdAt, userId: messages.authorUserId })
@@ -288,6 +323,7 @@ export async function mirrorAgentReply(
   // They asked by voice: a short, sayable answer goes back as a voice note; a voice that fails is written.
   const said = whatsappText(message.body);
   if (
+    files.length === 0 &&
     from.voice === true &&
     (await speaksNow(deps, account, chat.id, { text: said, wanted: false })) &&
     (await sendVoiceNote(deps, account, chat, message.authorAgentId, said).then(
@@ -298,10 +334,29 @@ export async function mirrorAgentReply(
     await publishWhatsAppChanged(deps, account, { chatId: chat.id });
     return 1;
   }
+  let sent = 0;
+  // One file and a short text: the text is its caption, as a person sends a picture with a line. Else the words first.
+  let caption = files.length === 1 && said && said.length <= WHATSAPP_CAPTION_MAX ? said : "";
+  if (caption) {
+    const out = await sendWhatsAppArtifact(
+      deps,
+      account,
+      chat,
+      { artifactId: files[0] as string, actor: { type: "person", userId: asked.userId }, caption },
+      { agentId: message.authorAgentId },
+    ).catch(() => null);
+    if (out) {
+      sent++;
+      // A voice message takes no caption: its words go after it.
+      if (out.kind !== "audio") {
+        await publishWhatsAppChanged(deps, account, { chatId: chat.id });
+        return sent;
+      }
+    } else caption = "";
+  }
   const gateway = whatsappGateway(deps);
   const token = await accountToken(deps, account);
-  let sent = 0;
-  for (const text of whatsappPieces(whatsappText(message.body))) {
+  for (const text of said ? whatsappPieces(said) : []) {
     const out = await gateway.sendText(token, { to: chat.jid, text });
     const stored: WhatsAppMessage = {
       id: out.id,
@@ -332,6 +387,54 @@ export async function mirrorAgentReply(
     }
     sent++;
   }
+  // The files after the words (or the one whose caption didn't go): each as WhatsApp shows its type. One that can't go
+  // (too large, gone, refused) is said in a line, so the person knows to look in the app.
+  for (const artifactId of caption ? [] : files) {
+    const out = await sendWhatsAppArtifact(
+      deps,
+      account,
+      chat,
+      { artifactId, actor: { type: "person", userId: asked.userId } },
+      { agentId: message.authorAgentId },
+    ).catch(() => null);
+    if (out) sent++;
+    else {
+      const title = files.length > 1 ? "Um dos arquivos" : "O arquivo";
+      const text = `${title} não pôde ir por aqui: está na nossa conversa no app.`;
+      await gateway
+        .sendText(token, { to: chat.jid, text })
+        .then((note) =>
+          storeWhatsAppMessage(
+            deps.db,
+            account,
+            {
+              id: note.id,
+              chat: bareJid(chat.jid),
+              sender: account.jid ?? "",
+              senderName: account.pushName,
+              fromMe: true,
+              group: false,
+              groupName: "",
+              at: note.at,
+              kind: "text",
+              text,
+              replyTo: null,
+              media: null,
+              raw: null,
+            },
+            { agentId: message.authorAgentId as string },
+          ),
+        )
+        .catch(() => null);
+    }
+  }
   await publishWhatsAppChanged(deps, account, { chatId: chat.id });
   return sent;
+}
+
+/** The ids of the files on a message (`meta.artifacts`), in order. */
+function filesOf(meta: unknown): string[] {
+  const list = (meta as { artifacts?: unknown } | null | undefined)?.artifacts;
+  if (!Array.isArray(list)) return [];
+  return list.flatMap((f) => (f && typeof (f as { id?: unknown }).id === "string" ? [(f as { id: string }).id] : []));
 }

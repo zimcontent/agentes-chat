@@ -463,6 +463,11 @@ function TeamCardView({ message: m, card }: { message: Message; card: TeamPropos
               {t("teamPlan.card.skillsWait")}
             </Text>
           ) : null}
+          {card.created?.skipped.includes("rightHand") ? (
+            <Text variant="footnote" tone="muted">
+              {t("teamPlan.card.rightHandWait")}
+            </Text>
+          ) : null}
           {waveFrom !== undefined ? (
             <View style={styles.wave} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
               {plan.agents.map((a) => (

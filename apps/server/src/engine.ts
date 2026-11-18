@@ -3,6 +3,7 @@ import {
   type BrainTurnRequest,
   createFfmpegLightCopy,
   createFfmpegVideoCopies,
+  createFfmpegVideoGlance,
   createGarageStorageHost,
   createGoogleDriveBackup,
   type ErrorReporter,
@@ -510,7 +511,14 @@ export function buildEngine(o: EngineOptions) {
       createPassToolSource(),
       createArtifactToolSource(artifacts),
       // The approval portal's board and `send_for_approval` (ADR 9001): listed only with a portal.
-      createPortalToolSource({ portal: adapters.approvalPortal ?? null, artifacts }),
+      createPortalToolSource({
+        portal: adapters.approvalPortal ?? null,
+        artifacts,
+        // On a server that keeps its own portal, an agent may add a client and answer its link (docs/adr/doug-0031).
+        ...(adapters.approvalPortalEmbedded
+          ? { clients: { publicUrl: config.PUBLIC_URL, secret: config.AGENTES_SECRET } }
+          : {}),
+      }),
       // Images and videos paid from the workspace's wallet (ADR doug-0011): listed only with the Zim Mídia service.
       createMediaGenerationToolSource(media),
       // A video an agent edited, sent for the team's review (docs/adr/doug-0007-video-review.md).
@@ -526,6 +534,8 @@ export function buildEngine(o: EngineOptions) {
               keyWrappers,
               pubsub: adapters.pubsub,
               hookBase: (config.WHATSAPP_HOOK_URL ?? config.PUBLIC_URL).replace(/\/+$/, ""),
+              // Files both ways: opened from a conversation, sent from the Drive (docs/adr/doug-0034-whatsapp-files.md).
+              artifacts,
             }
           : null,
       ),
@@ -831,6 +841,8 @@ export function buildEngine(o: EngineOptions) {
   });
   // An audio file an agent opens is heard by the same engines as a voice message.
   artifacts.speech = speech.chain;
+  // A video an agent opens: frames and its sound's words, where ffmpeg is installed (the image has it).
+  artifacts.glance = createFfmpegVideoGlance();
   const voice: VoiceDeps = {
     db,
     pubsub: adapters.pubsub,
@@ -890,6 +902,11 @@ export function buildEngine(o: EngineOptions) {
         voiceOut: whatsappVoiceOut(config.ELEVENLABS_API_KEY),
         // A GIF now and then, from the same search as the app's (docs/adr/doug-0008-whatsapp-gif.md).
         gifs: adapters.gifs ?? null,
+        // Pictures, stickers, videos and documents they send, understood before the agent answers; a member's go to
+        // their conversation as Drive files, and the agent's files go back (docs/adr/doug-0034-whatsapp-files.md).
+        artifacts,
+        smallModel: (orgId) => smallModelFor({ db, gateway }, orgId, smallModels),
+        glance: artifacts.glance ?? null,
         // A member's messages go to their conversation with the agent, as theirs (addendum 2026-11-15).
         relay: (userId, orgId, channelId, input) =>
           postPersonMessage({ db, pubsub: adapters.pubsub }, userId, orgId, channelId, input),
@@ -904,6 +921,27 @@ export function buildEngine(o: EngineOptions) {
     videoReviews,
     // The agent answering a WhatsApp number, with its own brain: its API model, or its plan on its computer.
     ...(whatsappAgent ? { whatsapp: whatsappAgent } : {}),
+    // The clients of the installation's own approval portal are told a post waits on them (docs/adr/
+    // doug-0031-embedded-approval-portal.md): e-mail, and a text from the workspace's number when it has one.
+    ...(adapters.approvalPortalEmbedded
+      ? {
+          portalNotify: {
+            db,
+            publicUrl: config.PUBLIC_URL,
+            secret: config.AGENTES_SECRET,
+            email: adapters.email,
+            whatsapp: adapters.whatsapp
+              ? {
+                  gateway: adapters.whatsapp,
+                  keyWrappers,
+                  pubsub: adapters.pubsub,
+                  hookBase: (config.WHATSAPP_HOOK_URL ?? config.PUBLIC_URL).replace(/\/+$/, ""),
+                }
+              : null,
+            log: o.log,
+          },
+        }
+      : {}),
     db,
     gateway,
     pubsub: adapters.pubsub,

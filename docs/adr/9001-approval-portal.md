@@ -264,3 +264,18 @@ list a client once the portal has a post or a card of it. So:
 - **Creating a client** is not offered, rather than faked: the portal would need a call that makes a tenant (its slug
   and name, answering the slug) and a read that lists every tenant, even one with no post or card yet. Until it has
   them, a new client is made at the portal itself and shows here with its first post or card.
+
+## Addendum 2026-11-18: dropped on the other part's tab
+
+A person who wants a card or a list in the client's materials drags it there: to the tab "Materiais do cliente", which
+the menus alone didn't let them do. While a card or a list moves, that tab shows a dashed edge, and lights up like a
+column when the drop would go there. From the materials the schedule's tab takes them back the same way.
+
+- **A list** dropped there goes with its cards, as from its menu.
+- **A card** goes to the end of the list there named as the one it left (case and spaces aside), else of the first
+  list there. The materials with no list yet get one, "Geral", since the portal answers a list of a name it already
+  has with that one and the card's own list would come back. The schedule with no list takes it in no list.
+- The Quadro's team cards drop on the tab too. The keyboard keeps the menus.
+- The places outside a board are marked `[data-drop-away]` (`apps/web/src/lib/drop-away.ts`), read by the task
+  board's drag (`away` in `issue-drag.ts`) and the lists' (`onAway` in `useListDrag`); the move is
+  `useMovePortalCardAcross`.

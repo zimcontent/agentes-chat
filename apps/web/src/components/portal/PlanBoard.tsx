@@ -1,10 +1,11 @@
 import type { PlanCard, PortalLabel, PortalList, PortalListKind, PortalPlan } from "@agenteschat/client";
-import { useMovePortalCard, usePortalLists, useSavePortalCard } from "@agenteschat/client";
+import { useMovePortalCard, useMovePortalCardAcross, usePortalLists, useSavePortalCard } from "@agenteschat/client";
 import {
   PORTAL_NO_LIST,
   portalChecks,
   portalErrorText,
   portalLink,
+  portalMovedAcross,
   portalOrderAt,
   portalPlaceAt,
   portalWhen,
@@ -25,6 +26,7 @@ import { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
 import { contextMenuHandler, type MenuEntry } from "@/lib/context-menu";
+import { awayOf } from "@/lib/drop-away";
 import { useToast } from "@/lib/toast";
 import { useIssueDrag } from "@/pages/issue-drag";
 import {
@@ -57,7 +59,8 @@ export type CardMoveTo = { id: string; name: string; group: string; away: boolea
  *
  * The same board draws the client's materials (ADR 9001 §20, `section="materials"`): `plan` then holds only the lists
  * of that part, and `elsewhere` the other part's, so a card's menus (its "…" and a right click) move it to any list of
- * either, and a list's menu moves it, with its cards, to the other part.
+ * either, and a list's menu moves it, with its cards, to the other part. Dragged onto the other part's tab, a card
+ * goes there (`useMovePortalCardAcross`) and a list goes there with its cards.
  */
 export function PlanBoard({
   plan,
@@ -77,6 +80,7 @@ export function PlanBoard({
   const toast = useToast();
   const helpId = useId();
   const move = useMovePortalCard(org.id, plan.client);
+  const across = useMovePortalCardAcross(org.id, plan.client);
   const lists = usePortalLists(org.id, plan.client);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<Column | null>(null);
@@ -101,9 +105,31 @@ export function PlanBoard({
       { onError: failed },
     );
   };
+  /** A list, with its cards, to the other part of the page. */
+  const sendList = (list: { id: string; name: string }) =>
+    lists.kind.mutate(
+      { listId: list.id, kind: otherKind },
+      {
+        onError: failed,
+        onSuccess: () =>
+          toast.show(
+            t(otherKind === "materials" ? "portal.materials.movedToMaterials" : "portal.materials.movedToPlan", {
+              name: list.name,
+            }),
+          ),
+      },
+    );
   const onDrop = ({ id, from, to, index, fromIndex }: CardMove): DropResult => {
     const card = columns.flatMap((c) => c.cards).find((c) => c.id === id);
     if (!changes || !card || (from === to && index === fromIndex)) return { changed: false };
+    const away = awayOf(to);
+    if (away === "plan" || away === "materials") {
+      across.mutate(
+        { cardId: card.id, kind: away, newList: t("portal.materials.newListName") },
+        { onError: failed, onSuccess: (list) => toast.show(portalMovedAcross(t, away, card.title, list)) },
+      );
+      return { changed: true };
+    }
     moveTo(card, to, index);
     return { changed: true };
   };
@@ -111,6 +137,7 @@ export function PlanBoard({
     groups: columns.map((c) => ({ id: c.id, items: c.cards })),
     layout: "board",
     onDrop,
+    away: changes,
     words: {
       picked: (c) => t("portal.plan.drag.picked", { title: c.title }),
       moved: (c, group, position, total) =>
@@ -132,7 +159,15 @@ export function PlanBoard({
     [next[i], next[j]] = [next[j] as string, id];
     reorder(next);
   };
-  const listDrag = useListDrag({ ids, enabled: changes, onOrder: reorder });
+  const listDrag = useListDrag({
+    ids,
+    enabled: changes,
+    onOrder: reorder,
+    onAway: (id, where) => {
+      const list = plan.lists.find((l) => l.id === id);
+      if (list && where === otherKind) sendList(list);
+    },
+  });
 
   return (
     <div ref={dnd.root} className="plan">
@@ -208,26 +243,7 @@ export function PlanBoard({
                       {t("portal.plan.moveRight")}
                     </MenuItem>
                     <MenuSeparator />
-                    <MenuItem
-                      icon={otherKind === "materials" ? "archive" : "calendar"}
-                      onSelect={() =>
-                        lists.kind.mutate(
-                          { listId: col.id, kind: otherKind },
-                          {
-                            onError: failed,
-                            onSuccess: () =>
-                              toast.show(
-                                t(
-                                  otherKind === "materials"
-                                    ? "portal.materials.movedToMaterials"
-                                    : "portal.materials.movedToPlan",
-                                  { name: col.name },
-                                ),
-                              ),
-                          },
-                        )
-                      }
-                    >
+                    <MenuItem icon={otherKind === "materials" ? "archive" : "calendar"} onSelect={() => sendList(col)}>
                       {t(otherKind === "materials" ? "portal.materials.toMaterials" : "portal.materials.toPlan")}
                     </MenuItem>
                     <MenuSeparator />

@@ -34,7 +34,8 @@ concurrency:
 jobs:
   cla:
     name: CLA
-    runs-on: ubuntu-latest
+    # Runs on our own runner: the GitHub-hosted one is blocked by the account's Actions billing (#199).
+    runs-on: ${{ vars.CI_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 5
     # Of a pull request's events: no label but `cla` starts a run, and a close only when it merged (the action
     # locks the conversation on every close, and a contributor must still be able to comment on a pull request

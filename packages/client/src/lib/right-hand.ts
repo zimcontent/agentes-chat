@@ -205,10 +205,13 @@ export interface OpenedAt {
 /**
  * Ends a workspace's onboarding, for good, in one call, and says where it opens: its right hand's DM (ADR 0137), which
  * takes the setup on from there; the workspace itself (`agentId` null) when there is none to open. An older server
- * doesn't say: its agents do.
+ * doesn't say: its agents do. The web draws the brand step, so it asks to be held by it (`holdBrand`) while it waits.
  */
-export async function finishOnboarding(api: ApiClient, orgId: string): Promise<OpenedAt> {
-  const done = await api.orgs.saveOnboarding(orgId, { finished: true });
+export async function finishOnboarding(api: ApiClient, orgId: string, holdBrand = false): Promise<OpenedAt> {
+  const done = await api.orgs.saveOnboarding(
+    orgId,
+    holdBrand ? { finished: true, holdBrand: true } : { finished: true },
+  );
   const agentId =
     done?.rightHandId !== undefined
       ? done.rightHandId
