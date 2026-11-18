@@ -345,6 +345,8 @@
     "closed": "ditutup",
     "options": "Opsi",
     "profile": "Profil",
+    "call": "Telepon",
+    "toneGreen": "Hijau",
     "here_other": "{{count}} di sini",
     "headerAgent": "{{who}}. Buka profil",
     "headerChannel": "{{who}}. Opsi",
@@ -1120,7 +1122,9 @@
       "suggested": "Disarankan",
       "all": "Semua",
       "none": "Tidak ada zona waktu dengan nama itu"
-    }
+    },
+    "groupAlerts": "Peringatan dan persetujuan",
+    "groupLook": "Tampilan dan suara"
   },
   "delete": {
     "intro": "Ini tidak bisa dibatalkan.",
@@ -1412,7 +1416,28 @@
   },
   "homeTools": {
     "title": "Alat",
-    "more": "Lainnya"
+    "more": "Lainnya",
+    "all": "Semua",
+    "edit": "Ubah pintasan",
+    "done": "Selesai",
+    "editHint": "Ketuk untuk menyematkan hingga 4 di Beranda",
+    "full": "Beranda sudah punya 4. Lepas satu dulu.",
+    "search": "Cari percakapan, file, orang",
+    "searchTile": "Cari",
+    "pinned": "disematkan di Beranda",
+    "attach": "Lampirkan ke percakapan",
+    "here": "Di percakapan ini",
+    "create": "Buat",
+    "newAgent": "Agen baru",
+    "newChat": "Percakapan baru",
+    "mission": "Misi",
+    "summary": "Ringkasan",
+    "remind": "Pengingat",
+    "calendar": "Kalender",
+    "people": "Orang",
+    "computer": "Komputer",
+    "vault": "Brankas",
+    "settings": "Pengaturan"
   },
   "homeNow": {
     "working_other": "{{count}} sedang bekerja",
@@ -1457,7 +1482,11 @@
       "today": "hari ini pukul {{time}}",
       "tomorrow": "besok pukul {{time}}",
       "later": "{{day}} pukul {{time}}"
-    }
+    },
+    "needsYou": "Menunggu kamu",
+    "running": "Sedang bekerja",
+    "runningAll": "Lihat semua",
+    "steps": "{{done}} dari {{total}}"
   },
   "agentLite": {
     "uses": "Bisa memakai",
@@ -2972,5 +3001,14 @@
   "brand": {
     "basedOn": "Berbasis DougBot oleh Codari Global, LLC · AGPL-3.0",
     "source": "Kode sumber DougBot"
+  },
+  "toSchedule": {
+    "title": "Siap dijadwalkan",
+    "row": "Postingan disetujui, ketuk untuk menjadwalkan",
+    "untitled": "Postingan tanpa judul",
+    "sheetTitle": "Jadwalkan postingan",
+    "confirm": "Jadwalkan",
+    "when": "Terbit {{when}}",
+    "past": "Pilih waktu yang belum lewat"
   }
 }

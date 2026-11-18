@@ -22,6 +22,7 @@ import { useOrg } from "@/components/org-context";
 import { ChannelPhoto, ImageCropDialog } from "@/components/ProfilePhoto";
 import { useReviewWords } from "@/components/video-review/words";
 import { useToast } from "@/lib/toast";
+import { HideClientDialog, RenameClientDialog } from "./client-edit";
 
 /** Each client's colour (ADR 9001 §13), from the overview every portal page already reads. */
 export function usePortalClientColors(): ReadonlyMap<string, PortalClientColor> {
@@ -73,9 +74,11 @@ export function ClientMark({
 
 /**
  * How a client is known, on the client's own page: its colour, picked from a menu with the chosen one on the button,
- * and its logo, set in the square picture dialog. A choice applies at once, for everyone, wherever the client shows.
+ * its logo, set in the square picture dialog, and its name; and "Remove client", which hides it from every list
+ * (ADR 9001, addendum 2026-11-18; `onHidden` once it is). A choice applies at once, for everyone, wherever the client
+ * shows.
  */
-export function ClientColorMenu({ client }: { client: string }) {
+export function ClientColorMenu({ client, onHidden }: { client: string; onHidden: () => void }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const toast = useToast();
@@ -84,6 +87,8 @@ export function ClientColorMenu({ client }: { client: string }) {
   const set = useSetPortalClientColor(org.id);
   const setLogo = useSetPortalClientLogo(org.id, client);
   const [choosingLogo, setChoosingLogo] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [hiding, setHiding] = useState(false);
   // What "Aprovar" in the Revisor does for this client (docs/adr/doug-0010-design-review.md §8).
   const w = useReviewWords().design.afterApproveMenu;
   const afterApprove = usePortalAfterApprove(org.id).data?.get(client) ?? "portal";
@@ -144,6 +149,9 @@ export function ClientColorMenu({ client }: { client: string }) {
         <MenuItem icon="image" onSelect={() => setChoosingLogo(true)}>
           {t("portal.clientLogo.menu")}
         </MenuItem>
+        <MenuItem icon="edit" onSelect={() => setRenaming(true)}>
+          {t("portal.clientEdit.rename")}
+        </MenuItem>
         <MenuSeparator />
         <MenuHeading>{w.title}</MenuHeading>
         {(["portal", "direct"] as const).map((value) => (
@@ -156,7 +164,22 @@ export function ClientColorMenu({ client }: { client: string }) {
             {w[value]}
           </MenuItem>
         ))}
+        <MenuSeparator />
+        <MenuItem icon="trash" danger onSelect={() => setHiding(true)}>
+          {t("portal.clientEdit.hide")}
+        </MenuItem>
       </Menu>
+      {/* Mounted while open, so the name field starts from the name shown now. */}
+      {renaming && <RenameClientDialog open client={client} onClose={() => setRenaming(false)} />}
+      <HideClientDialog
+        open={hiding}
+        client={client}
+        onClose={() => setHiding(false)}
+        onHidden={() => {
+          setHiding(false);
+          onHidden();
+        }}
+      />
       <ImageCropDialog
         open={choosingLogo}
         onClose={() => setChoosingLogo(false)}

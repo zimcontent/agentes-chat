@@ -383,6 +383,10 @@ export const featureKeysEn = {
     closed: "closed",
     options: "Options",
     profile: "Profile",
+    /** The "…" sheet's call tile. */
+    call: "Call",
+    /** Chat look: my bubble's color, the brand's green. */
+    toneGreen: "In green",
     here_one: "{{count}} here",
     here_other: "{{count}} here",
     headerAgent: "{{who}}. Open the profile",
@@ -1133,6 +1137,9 @@ export const featureKeysEn = {
     added: "{{name}} joined the group",
   },
   me: {
+    /** Ajustes' groups: alerts and approvals, then the app's look and sound. */
+    groupAlerts: "Alerts and approvals",
+    groupLook: "Look and sound",
     title: "You",
     role: {
       owner: "owner",
@@ -1353,6 +1360,9 @@ export const featureKeysEn = {
     /** The two views on Tarefas' segmented control. */
     viewList: "List",
     viewBoard: "Board",
+    /** The first view: each person's and agent's lane (owners and admins), or the person's own ("Mine"). */
+    viewTeam: "Team",
+    viewMine: "Mine",
     search: "Search tasks",
     noMatch: "No task by that name.",
     /** The list's sections, in order. */
@@ -1385,6 +1395,38 @@ export const featureKeysEn = {
       canceled: "Canceled",
     },
     until: "due {{date}}",
+    /** The Team view: one card per person or agent, what they do now and what comes next in their queue. */
+    team: {
+      today: "Today",
+      week: "Week",
+      everyone: "Everyone",
+      people: "People",
+      agents: "Agents",
+      clear: "Nobody has open tasks",
+      mineClear: "You're all caught up",
+      clearToday: "Nothing under way, late or due today.",
+      clearWeek: "Nothing under way, late or due this week.",
+      working_one: "{{count}} working",
+      working_other: "{{count}} working",
+      lateCount_one: "{{count}} late",
+      lateCount_other: "{{count}} late",
+      blockedCount_one: "{{count}} blocked",
+      blockedCount_other: "{{count}} blocked",
+      doingCount_one: "Working on {{count}}",
+      doingCount_other: "Working on {{count}}",
+      notStarted: "Nothing under way",
+      free: "Free",
+      queued_one: "{{count}} in the queue",
+      queued_other: "{{count}} in the queue",
+      expand: "Shows the whole queue",
+      collapse: "Shows only what's next",
+      now: "Now",
+      next: "Next",
+      more_one: "+{{count}} in the queue",
+      more_other: "+{{count}} in the queue",
+      blocked: "Blocked",
+      lateOn: "Late since {{date}}",
+    },
     loadFailed: "Couldn't load the tasks.",
     createdBy: "created by {{name}}",
     fromMessage: "from a message",
@@ -1578,7 +1620,33 @@ export const featureKeysEn = {
     stopBody_female: "{{name}} stops now and tells the conversation what was done so far.",
   },
   // intentional: chats/activity/ui
-  homeTools: { title: "Tools", more: "More" },
+  homeTools: {
+    title: "Tools",
+    more: "More",
+    /** The sheet with every place the app opens (Home's "More", the conversation's "+"). */
+    all: "Everything",
+    edit: "Edit shortcuts",
+    done: "Done",
+    editHint: "Tap to pin up to 4 on Home",
+    full: "Home already has 4. Unpin one first.",
+    search: "Search conversations, files, people",
+    searchTile: "Search",
+    /** Read after a tile's name by the screen reader. */
+    pinned: "pinned to Home",
+    attach: "Attach to the conversation",
+    here: "In this conversation",
+    create: "Create",
+    newAgent: "New agent",
+    newChat: "New conversation",
+    mission: "Mission",
+    summary: "Summary",
+    remind: "Reminder",
+    calendar: "Calendar",
+    people: "People",
+    computer: "Computer",
+    vault: "Vault",
+    settings: "Settings",
+  },
   homeNow: {
     working_one: "{{count}} working",
     working_other: "{{count}} working",
@@ -1601,6 +1669,11 @@ export const featureKeysEn = {
     },
   },
   activityNow: {
+    /** Pendentes' sections: what needs a decision, then what agents are on now. */
+    needsYou: "Needs you",
+    running: "Working now",
+    runningAll: "See all",
+    steps: "{{done}} of {{total}}",
     kind: {
       approval: "Approve",
       question: "Question",
@@ -1628,6 +1701,16 @@ export const featureKeysEn = {
   // end intentional: chats/activity/ui
   // intentional: agents
   /** An agent's light profile and settings on the phone, and where the rest of its setup is. */
+  /** Pendentes' "Ready to schedule": approved posts at the portal nobody scheduled yet, and the sheet that does it. */
+  toSchedule: {
+    title: "Ready to schedule",
+    row: "Approved post, tap to schedule",
+    untitled: "Untitled post",
+    sheetTitle: "Schedule post",
+    confirm: "Schedule",
+    when: "Goes out {{when}}",
+    past: "Pick a time that hasn't passed yet",
+  },
   agentLite: {
     uses: "Can use",
     usesNone: "Nothing yet",

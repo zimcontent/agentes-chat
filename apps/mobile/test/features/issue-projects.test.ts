@@ -36,8 +36,8 @@ describe("Tarefas' projects on the phone", () => {
     expect(screen).toContain('row("", t("issues.projects.all")');
     expect(screen).toContain("...projectFilterRows(projects).map(");
     expect(screen).toContain('p.archived ? t("issues.projects.archivedMark") : undefined');
-    // No project in the workspace: no chip, the screen as it was.
-    expect(screen).toContain("{projects.length > 0 ? (");
+    // No project in the workspace: no chip, the screen as it was. Equipe (who is doing what) shows no project chip.
+    expect(screen).toContain('{projects.length > 0 && view !== "team" ? (');
   });
 
   test("a deleted project's filter falls back to every task; none and an archived one stay", () => {

@@ -191,7 +191,7 @@ function Home() {
       {failed || empty || list.loading ? null : (
         <>
           {/* Doug pinned on top: what the team is doing, what waits on you, his conversation and a call. */}
-          <DougPinned rows={list.rows} working={new Set(work.map((x) => x.agentId)).size} waiting={waitingCount} />
+          <DougPinned rows={list.rows} waiting={waitingCount} />
           {/* The tools beside the tab bar's five (WhatsApp, Mídia, Buscar, Tarefas, and "Mais" with the rest). */}
           <HomeTools />
           {/* Under the tools, small cards: threads, the editor now, clients' changes. */}

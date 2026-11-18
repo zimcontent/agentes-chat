@@ -58,6 +58,15 @@ export function auditActorName(t: TFunction, row: AuditRow): string | null {
   return row.actor.name ?? t("audit.removed");
 }
 
+const PORTAL_CLIENT_AUDIT: Record<string, "renamed" | "hidden" | "shown" | "color" | "logo" | "logoRemoved"> = {
+  "portal.client_renamed": "renamed",
+  "portal.client_hidden": "hidden",
+  "portal.client_shown": "shown",
+  "portal.client_color_set": "color",
+  "portal.client_logo_set": "logo",
+  "portal.client_logo_removed": "logoRemoved",
+};
+
 /** "Usou o Gmail", "Criou uma tarefa", "Aprovou um pedido", "Criou uma rotina". */
 export function auditPhrase(t: TFunction, row: AuditRow, locale?: string): string {
   if (row.action === TOOL_CALL) {
@@ -81,6 +90,10 @@ export function auditPhrase(t: TFunction, row: AuditRow, locale?: string): strin
   if (row.action === "portal.approved_for_client") {
     return t("audit.change.portalApprovedForClient", { title: auditStr(row.details.title) ?? "" });
   }
+  // How one of the approval portal's clients is known (ADR 9001, addendum 2026-11-18).
+  const portalClient = PORTAL_CLIENT_AUDIT[row.action];
+  if (portalClient)
+    return t(`audit.change.portalClient.${portalClient}`, { client: auditStr(row.details.client) ?? "" });
   const [area = "", rest = ""] = row.action.split(".");
   if (area === "approval") {
     const status = (["approved", "refused", "expired"] as const).find((s) => s === rest);

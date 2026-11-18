@@ -1,33 +1,31 @@
-import { LinearGradient } from "expo-linear-gradient";
-import type { ReactNode } from "react";
+import { type ReactNode, useId } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, View } from "react-native";
-import { Button, Icon, Text, useTheme } from "@/ui";
-import { chosenSurface, chosenWash, PANEL_RADIUS, pillSurface, surfaceStyle } from "@/ui/surfaces";
+import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
+import Svg, { Circle, Defs, Mask, Pattern, RadialGradient, Rect, Stop, SvgXml } from "react-native-svg";
+import { iconSvg } from "@/brand/doug-icons.js";
+import { Button, IconButton, Text, useTheme } from "@/ui";
 
 /** This fork's own words, in Portuguese and English (any other language reads English). */
 const WORDS = {
   pt: {
-    pinned: "Fixado",
     coordinating: (n: number) => (n === 1 ? "Coordenando 1 agente" : `Coordenando ${n} agentes`),
     ready: "Pronto quando você precisar",
-    decisions: (n: number) => (n === 1 ? "Tenho 1 decisão para você." : `Tenho ${n} decisões para você.`),
-    calm: "Tudo em dia. Me chame quando precisar.",
+    nothingWaiting: "Nada esperando você",
+    waiting: (n: number) => (n === 1 ? "1 decisão esperando você" : `${n} decisões esperando você`),
     seeDecisions: "Ver as decisões",
+    decisions: "Decisões",
     talk: "Conversar",
     call: "Ligar",
-    needsKey: (name: string) => `Para ligar para ${name}`,
   },
   en: {
-    pinned: "Pinned",
     coordinating: (n: number) => (n === 1 ? "Coordinating 1 agent" : `Coordinating ${n} agents`),
     ready: "Ready when you need",
-    decisions: (n: number) => (n === 1 ? "I have 1 decision for you." : `I have ${n} decisions for you.`),
-    calm: "All caught up. Call me when you need.",
+    nothingWaiting: "Nothing waiting on you",
+    waiting: (n: number) => (n === 1 ? "1 decision waiting on you" : `${n} decisions waiting on you`),
     seeDecisions: "See the decisions",
+    decisions: "Decisions",
     talk: "Talk",
     call: "Call",
-    needsKey: (name: string) => `To call ${name}`,
   },
 } as const;
 
@@ -39,105 +37,168 @@ export function useDougWords(): DougWords {
   return WORDS[i18n.language?.startsWith("pt") ? "pt" : "en"];
 }
 
-/** The card itself, with its data in props: the app's Início and the board draw the same one. */
+/** Doug's icon beside his words. */
+export const DOUG_FACE = 48;
+
+/**
+ * Doug's section, with its data in props: the app's Início and the board draw the same one. No box, a texture behind
+ * it: his app icon, his name with what he is doing and the line of what waits on you (the greeting before it while
+ * both fit), Ligar as a phone at the row's end, and under it Conversar (the green one, wide) and Ver as decisões.
+ */
 export function DougPinnedCard({
   face,
   name,
   status,
-  message,
-  primary,
+  greeting,
+  working,
   words,
-  live,
-  onOpen,
   onTalk,
   onCall,
+  onDecisions,
+  onStatus,
 }: {
   face: ReactNode;
   name: string;
+  /** "Nada esperando você" or "N decisões esperando você". */
   status: string;
-  message: string;
-  primary: string;
+  /** "Boa noite, Gabriel." when it fits on the status's line, else empty. */
+  greeting: string;
+  /** How many agents work now, for the screen reader ("Coordenando 3 agentes"). */
+  working: number;
   words: DougWords;
-  live: boolean;
-  /** The main button. */
-  onOpen: () => void;
-  /** His face and name: his conversation (default: the main button's). */
-  onTalk?: () => void;
+  onTalk: () => void;
   onCall: () => void;
+  /** What he decided and did without asking. */
+  onDecisions: () => void;
+  /** The line itself, when something waits: Pendentes. */
+  onStatus?: (() => void) | undefined;
 }) {
-  const { colors, scheme } = useTheme();
-  const pill = pillSurface(scheme);
+  const { scheme } = useTheme();
+  // Two buttons fit on every iPhone; only with the largest text "Ver as decisões" says "Decisões".
+  const { fontScale } = useWindowDimensions();
+  const short = fontScale > 1.3;
+  const doing = working > 0 ? words.coordinating(working) : words.ready;
   return (
-    <View style={[styles.card, surfaceStyle(chosenSurface(scheme), PANEL_RADIUS)]}>
-      <LinearGradient
-        colors={chosenWash(scheme)}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0.75, y: 0.75 }}
-        style={[StyleSheet.absoluteFill, { borderRadius: PANEL_RADIUS }]}
-        pointerEvents="none"
-      />
+    <View style={styles.section}>
+      {/* No box: the brand's texture behind him, a lime glow and the site's dot grid fading out at the edges. */}
+      <DougTexture dark={scheme === "dark"} />
       <Pressable
-        onPress={onTalk ?? onOpen}
+        onPress={onTalk}
         accessibilityRole="button"
-        accessibilityLabel={`${name}, ${status}`}
-        style={styles.top}
+        accessibilityLabel={`${name}, ${doing}`}
+        style={styles.head}
       >
         {face}
-        <View style={styles.who}>
-          <Text variant="title" style={styles.name} numberOfLines={1}>
+        <View style={styles.words}>
+          {/* Two lines at most: at 320 "Coordenando N agentes" wraps instead of losing its count to "…". */}
+          <Text variant="callout" style={styles.name} numberOfLines={2}>
             {name}
+            <Text variant="footnote" tone="muted">{`  ·  ${doing}`}</Text>
           </Text>
-          <View style={styles.statusLine}>
-            {live ? <View style={[styles.dot, { backgroundColor: colors.green }]} /> : null}
-            <Text variant="footnote" tone="muted" numberOfLines={1} style={styles.status}>
-              {status}
+          <Pressable
+            onPress={onStatus}
+            disabled={!onStatus}
+            accessibilityRole={onStatus ? "button" : "text"}
+            hitSlop={6}
+          >
+            <Text variant="subhead" numberOfLines={2}>
+              {greeting ? (
+                <Text variant="subhead" tone="muted">
+                  {`${greeting} `}
+                </Text>
+              ) : null}
+              <Text variant="subhead" style={styles.status}>
+                {status}
+              </Text>
             </Text>
-          </View>
+          </Pressable>
         </View>
-        <View style={styles.pin}>
-          <Icon name="pin" size={12} color={colors.muted} />
-          <Text variant="caption" tone="muted">
-            {words.pinned}
-          </Text>
-        </View>
+        {/* Ligar as a small phone beside him: the row below is for talking and his decisions. */}
+        <IconButton icon="handset" label={words.call} plate onPress={onCall} />
       </Pressable>
-      <Text variant="body" style={styles.message}>
-        {message}
-      </Text>
       <View style={styles.actions}>
-        <View style={styles.grow}>
-          <Button variant="primary" label={primary} onPress={onOpen} wide />
+        <View style={styles.main}>
+          <Button variant="primary" size="sm" label={words.talk} onPress={onTalk} wide />
         </View>
-        <Pressable
-          onPress={onCall}
-          accessibilityRole="button"
-          accessibilityLabel={words.call}
-          hitSlop={4}
-          style={({ pressed }) => [styles.call, surfaceStyle(pill, 22), pressed && styles.pressed]}
-        >
-          <Icon name="handset" size={17} color={colors.ink} />
-          <Text variant="subhead" style={styles.callLabel}>
-            {words.call}
-          </Text>
-        </Pressable>
+        <Button
+          variant="secondary"
+          size="sm"
+          label={short ? words.decisions : words.seeDecisions}
+          hint={words.seeDecisions}
+          onPress={onDecisions}
+        />
       </View>
     </View>
   );
 }
 
+/** Doug's own app icon (the lime ground, him peeking from the corner), drawn once: no animation, nothing per frame. */
+const DOUG_ICON_XML = iconSvg({ ground: "day", color: "green", face: "normal", pose: "peek" });
+
+export function DougIcon({ size = DOUG_FACE }: { size?: number }) {
+  return (
+    <View style={[styles.icon, { width: size, height: size, borderRadius: Math.round(size * 0.24) }]}>
+      <SvgXml xml={DOUG_ICON_XML} width={size} height={size} />
+    </View>
+  );
+}
+
+/**
+ * The section's backdrop: a soft lime glow behind Doug and the site's dot grid, both fading to nothing before the
+ * edges (both ellipses reach zero exactly at the section's sides), so there is no box. One static drawing the size of the section (which never changes while it shows).
+ */
+function DougTexture({ dark }: { dark: boolean }) {
+  const id = useId().replace(/[^a-zA-Z0-9]/g, "");
+  const lime = dark ? "#9CFA05" : "#5A9A00";
+  return (
+    <View
+      style={StyleSheet.absoluteFill}
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no"
+    >
+      <Svg width="100%" height="100%">
+        <Defs>
+          <RadialGradient id={`g${id}`} cx="50%" cy="50%" rx="50%" ry="50%" fx="22%" fy="40%">
+            <Stop offset="0" stopColor={lime} stopOpacity={dark ? 0.16 : 0.14} />
+            <Stop offset="1" stopColor={lime} stopOpacity={0} />
+          </RadialGradient>
+          <RadialGradient id={`f${id}`} cx="50%" cy="50%" rx="50%" ry="50%">
+            <Stop offset="0" stopColor="#FFFFFF" stopOpacity={1} />
+            <Stop offset="1" stopColor="#FFFFFF" stopOpacity={0} />
+          </RadialGradient>
+          <Pattern id={`d${id}`} width={14} height={14} patternUnits="userSpaceOnUse">
+            <Circle cx={7} cy={7} r={1} fill={dark ? "#FFFFFF" : "#0A0A0A"} fillOpacity={dark ? 0.1 : 0.08} />
+          </Pattern>
+          <Mask id={`m${id}`}>
+            <Rect x="0" y="0" width="100%" height="100%" fill={`url(#f${id})`} />
+          </Mask>
+        </Defs>
+        <Rect x="0" y="0" width="100%" height="100%" fill={`url(#g${id})`} />
+        <Rect x="0" y="0" width="100%" height="100%" fill={`url(#d${id})`} mask={`url(#m${id})`} />
+      </Svg>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  card: { marginHorizontal: 16, marginTop: 12, padding: 14, gap: 12, overflow: "hidden" },
-  top: { flexDirection: "row", alignItems: "center", gap: 12 },
-  who: { flex: 1, minWidth: 0, gap: 2 },
-  name: { fontWeight: "800" },
-  statusLine: { flexDirection: "row", alignItems: "center", gap: 6 },
-  dot: { width: 7, height: 7, borderRadius: 4 },
-  status: { flexShrink: 1, fontWeight: "500" },
-  pin: { flexDirection: "row", alignItems: "center", gap: 4, alignSelf: "flex-start" },
-  message: { lineHeight: 22 },
-  actions: { flexDirection: "row", alignItems: "center", gap: 8 },
-  grow: { flex: 1 },
-  call: { height: 44, flexDirection: "row", alignItems: "center", gap: 7, paddingHorizontal: 18 },
-  callLabel: { fontWeight: "600" },
-  pressed: { opacity: 0.7 },
+  // No card: the section sits on the screen, its texture behind it.
+  section: { marginHorizontal: 16, marginTop: 8, paddingTop: 8, paddingBottom: 8, paddingHorizontal: 4, gap: 12 },
+  head: { flexDirection: "row", alignItems: "center", gap: 12 },
+  words: { flex: 1, minWidth: 0, gap: 2 },
+  icon: { overflow: "hidden" },
+  name: { fontWeight: "700" },
+  status: { fontWeight: "600" },
+  // Two buttons 8 apart: Ver as decisões as wide as its words, Conversar takes the rest. With the largest text the
+  // second goes under, never cut.
+  actions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    columnGap: 8,
+    rowGap: 8,
+    marginTop: 4,
+  },
+  main: { flexGrow: 1 },
 });

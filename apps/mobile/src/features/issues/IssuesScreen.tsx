@@ -5,9 +5,12 @@ import {
   useIssueProjects,
   useIssues,
   useMissionList,
+  useTeamAgenda,
 } from "@agenteschat/client";
 import { dueLabel } from "@agenteschat/client/lib/format";
 import { liveProjectFilter, NO_PROJECT, projectFilterRows } from "@agenteschat/client/lib/issue-projects";
+import { can } from "@agenteschat/client/lib/permissions";
+import { localDay } from "@agenteschat/client/lib/team-agenda";
 import { Fragment, type ReactNode, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -59,6 +62,16 @@ import {
   useCardState,
   useColumnLabel,
 } from "./parts";
+import { LaneFilters, TeamLanes } from "./TeamLanes";
+import {
+  agendaTasks,
+  type LaneRange,
+  type LaneTask,
+  type LaneWho,
+  myLaneTasks,
+  teamLanes,
+  WEEK_DAYS,
+} from "./team-board";
 
 /** Cards and rows whose agent moves (a long list stays light). */
 const LIVE_CARDS = 8;
@@ -68,10 +81,11 @@ const PEEK = 41;
 /** The list's leading column: the check sits where a row's face would. */
 const CHECK_BOX = 52;
 
-type TaskView = "list" | "board";
+type TaskView = "team" | "list" | "board";
 
 /**
- * Tasks, pushed from Você, in two views on one segmented control under the title. Lista (the default): the large
+ * Tasks, pushed from Você, in three views on one segmented control under the title. Equipe (the default; Minhas
+ * for who doesn't administer, see `TeamView`). Lista: the large
  * title and the search of the system, then one list by state, "Para você" first; each row the check in the face's
  * column of 52, the title, who has it (an agent alive while it works) and its state or due date in words; done is the
  * green check. Quadro: the stages side by side, swiped one at a time with the next one showing at the edge, the tabs
@@ -94,7 +108,9 @@ function Tasks() {
   const sheet = useSheet();
   const issues = useIssues(orgId);
   const projects = useIssueProjects(orgId).data?.projects ?? [];
-  const [view, setView] = useState<TaskView>("list");
+  const admin = can(useOrg().org, "administrator");
+  // Equipe first (Minhas for who doesn't administer): who is doing what, and what comes next.
+  const [view, setView] = useState<TaskView>("team");
   // "": every task. A project's id, or `none`.
   const [filter, setFilter] = useState("");
   // A project deleted while it was picked: every task again.
@@ -143,13 +159,14 @@ function Tasks() {
         <Segmented
           wide
           items={[
+            { key: "team", label: t(admin ? "mobile.issues.viewTeam" : "mobile.issues.viewMine") },
             { key: "list", label: t("mobile.issues.viewList") },
             { key: "board", label: t("mobile.issues.viewBoard") },
           ]}
           value={view}
           onChange={(k) => setView(k as TaskView)}
         />
-        {projects.length > 0 ? (
+        {projects.length > 0 && view !== "team" ? (
           <View style={styles.project}>
             <PropChip
               label={t("issues.projects.label")}
@@ -163,6 +180,7 @@ function Tasks() {
       <MissionsRow />
     </>
   );
+  if (view === "team" && !empty) return <TeamView right={right} views={views} admin={admin} />;
   if (view === "board" && !empty) return <Board right={right} views={views} mayNew={mayNew} project={shown} />;
   return <TaskList right={right} views={views} empty={empty} mayNew={mayNew} onNew={openNew} project={shown} />;
 }
@@ -484,6 +502,63 @@ function Column({
         ))}
       </LayoutAnimationConfig>
     </ScrollView>
+  );
+}
+
+/**
+ * Equipe (owners and admins): a lane per person and agent from the team agenda, what each is doing now and the next
+ * ones in their queue, in the order the server sends (the queue's), with who has something late or blocked first.
+ * Minhas (everyone else, who can't read the agenda): their own lane from their tasks, in the same look. Hoje or Semana
+ * pick the range; the agenda is read once for the week and cut here, so switching is instant.
+ */
+function TeamView({ right, views, admin }: { right: ReactNode; views: ReactNode; admin: boolean }) {
+  const { t } = useTranslation();
+  const orgId = useOrgId();
+  const meId = useMeId();
+  const dir = useDirectory();
+  const today = localDay(new Date());
+  const [range, setRange] = useState<LaneRange>("week");
+  const [who, setWho] = useState<LaneWho>("all");
+  // Only owners and admins ask for the agenda (the server refuses anyone else).
+  const agenda = useTeamAgenda(orgId, today, WEEK_DAYS, admin);
+  const issues = useIssues(orgId);
+  const source = admin ? agenda : issues;
+  const pull = usePullRefresh(source.refetch);
+  const tasks = useMemo(
+    () => (admin ? agendaTasks(agenda.data) : myLaneTasks(issues.data, meId)),
+    [admin, agenda.data, issues.data, meId],
+  );
+  const lanes = useMemo(
+    () => teamLanes(tasks, { today, range, who: admin ? who : "all", name: (a) => dir.nameOf(a) ?? "" }),
+    [tasks, today, range, who, admin, dir],
+  );
+  const open = (task: LaneTask) => router.push(`/issues/${task.number}`);
+  return (
+    <PushedLargeTitle
+      title={t("mobile.issues.title")}
+      {...(right ? { right } : {})}
+      refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} />}
+    >
+      {views}
+      <LaneFilters range={range} onRange={setRange} {...(admin ? { who, onWho: setWho } : {})} />
+      {source.isLoading || (!source.data && !source.isError) ? (
+        <SkeletonList rows={4} />
+      ) : source.isError && !source.data ? (
+        <View style={styles.center}>
+          <Text tone="muted" style={styles.centerText}>
+            {t("mobile.issues.loadFailed")}
+          </Text>
+          <Button
+            variant="secondary"
+            size="sm"
+            label={t("mobile.common.retry")}
+            onPress={() => void source.refetch()}
+          />
+        </View>
+      ) : (
+        <TeamLanes lanes={lanes} today={today} range={range} mine={!admin} onOpen={open} />
+      )}
+    </PushedLargeTitle>
   );
 }
 

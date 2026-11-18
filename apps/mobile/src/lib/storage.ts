@@ -92,6 +92,8 @@ export const STORED = {
   voiceSpeed: "voice-speed",
   /** The person held the send button to stop an agent and send once: the composer's hint is over ("1"). */
   stopSendTaught: "stop-send-taught",
+  /** The tools pinned to Início's front row, per workspace (JSON by workspace id: tool keys; features/chats/all-tools). */
+  homePins: "home-pins",
 } as const;
 
 export async function clearStoredValues(): Promise<void> {

@@ -18,7 +18,6 @@ import { useOrg } from "@/providers/org";
 import { Button, Text, useReducedMotion } from "@/ui";
 import { AgentFace } from "../shared/Face";
 import { useColors } from "../shared/hooks";
-import { agentLook } from "../shared/logic";
 import { tapHaptic } from "../shared/parts";
 import { agentIntro, firstAskKind, firstAsks, isNewAgent } from "./intent";
 import { CHAT_TEXT_MAX_SCALE, chatNameOf, chatTimeOf, MSG_AVATAR, MSG_GAP, MSG_INSET } from "./logic";
@@ -77,7 +76,7 @@ export function FirstDay({
   const me = useMe();
   const { org } = useOrg();
   const reduced = useReducedMotion();
-  const look = useConversationLook(true, agentLook(agent).color);
+  const look = useConversationLook(true);
   const text = look.text ?? undefined;
   const nameSize = look.text ? chatNameOf(look.text) : undefined;
   const timeSize = look.text ? chatTimeOf(look.text) : undefined;
@@ -195,7 +194,7 @@ export function FirstDay({
                 </Text>
               </View>
               {bubbled ? (
-                <View style={[lookRows.bubble, { backgroundColor: c.bubbleTheirs, boxShadow: c.bubbleTheirsRim }]}>
+                <View style={[lookRows.bubble, { backgroundColor: c.bubbleTheirs, borderColor: c.bubbleTheirsEdge }]}>
                   {body}
                 </View>
               ) : (
