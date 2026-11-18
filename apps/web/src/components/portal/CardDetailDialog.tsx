@@ -191,7 +191,16 @@ function Detail({
               <div className="portal-detail__props">
                 <Group label={t("portal.detail.stage")}>
                   <span className="portal-detail__chips" title={t("portal.detail.stageHint")}>
-                    <StageChip stage={card.stage} />
+                    <StageChip stage={card.stage} review={card.review} />
+                    {card.review && (
+                      <Link
+                        className="ac-link small"
+                        to="/org/$orgId/review/$reviewId"
+                        params={{ orgId: org.id, reviewId: card.review.reviewId }}
+                      >
+                        {t("portal.teamReview.open")}
+                      </Link>
+                    )}
                     {taskNumber !== undefined && (
                       <Link
                         className="ac-link small tabular"

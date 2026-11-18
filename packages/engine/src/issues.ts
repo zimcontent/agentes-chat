@@ -817,6 +817,20 @@ export async function publishToTaskReaders(
 const announce = (deps: IssueDeps, orgId: string, issue: IssueView, type: "issue.created" | "issue.updated") =>
   publishToTaskReaders(deps, orgId, issue, { type, issue });
 
+/**
+ * A task's place on its board column, set by the code that owns its order (a portal card's task follows the client's
+ * schedule, ADR 9001 addendum 2026-11-18): only `board_rank`, so it leaves no activity and doesn't count as a change
+ * (`updatedAt` stays). Whoever reads the board hears it.
+ */
+export async function rankIssue(deps: IssueDeps, orgId: string, issueId: string, boardRank: number) {
+  const [row] = await deps.db
+    .update(issues)
+    .set({ boardRank })
+    .where(and(eq(issues.orgId, orgId), eq(issues.id, issueId)))
+    .returning();
+  if (row && deps.pubsub) await announce(deps, orgId, await one(deps.db, row), "issue.updated");
+}
+
 /** Creates an issue with the next number of the org. */
 export async function createIssue(
   deps: IssueDeps,

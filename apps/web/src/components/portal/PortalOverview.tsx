@@ -66,7 +66,7 @@ const FACES = 4;
 const statusText = (t: TFunction, status: PortalClientStatus) =>
   status.kind === "adjusting"
     ? t("portal.adjustments", { count: status.count })
-    : status.kind === "late" || status.kind === "schedule" || status.kind === "client"
+    : status.kind === "late" || status.kind === "send" || status.kind === "schedule" || status.kind === "client"
       ? t(`portal.home.status.${status.kind}`, { count: status.count })
       : status.kind === "making"
         ? t("portal.columns.doing")

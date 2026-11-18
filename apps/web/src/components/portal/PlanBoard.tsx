@@ -8,6 +8,7 @@ import {
   portalMovedAcross,
   portalOrderAt,
   portalPlaceAt,
+  portalReadyToSend,
   portalWhen,
 } from "@agenteschat/client/lib/portal";
 import {
@@ -42,7 +43,7 @@ import {
 import { useCopyCardLink } from "./card-link";
 import { MemberFaces } from "./members";
 import { DeleteCardDialog } from "./PortalBoard";
-import { LabelChip, StageChip, stageName } from "./stage";
+import { LabelChip, StageChip, stageWords } from "./stage";
 
 type Column = { id: string; name: string; cards: PlanCard[]; list: boolean };
 
@@ -66,12 +67,15 @@ export function PlanBoard({
   plan,
   changes,
   onOpen,
+  onSend,
   section = "plan",
   elsewhere = [],
 }: {
   plan: PortalPlan;
   changes: boolean;
   onOpen: (cardId: string) => void;
+  /** "Send for approval" on a card the team approved in Review: the send dialog, with the card's files. */
+  onSend?: (card: PlanCard) => void;
   section?: PortalListKind;
   elsewhere?: (PortalList & { cards: PlanCard[] })[];
 }) {
@@ -265,6 +269,7 @@ export function PlanBoard({
                     picked={picked}
                     drag={changes ? { ...dnd.card(card, col.id), help: helpId } : undefined}
                     onOpen={() => onOpen(card.id)}
+                    onSend={changes && onSend ? () => onSend(card) : undefined}
                     onDelete={changes ? () => setDeletingCard(card) : undefined}
                     moves={
                       changes
@@ -456,6 +461,10 @@ function AddCard({ client, list, cards }: { client: string; list: string; cards:
  * at the line's end; and, once it was sent, the way to its post at the portal. A press opens it; its menu (the "…" and
  * a right click) copies its link, moves it to another list (`moves`, the way that needs neither a drag nor the
  * arrows, to the schedule's lists and the client's materials alike) and deletes it. A material has no stage.
+ *
+ * A card the team has in Review says so on its stage chip ("In the team's review", "Approved by the team"), and one
+ * the team approved that hasn't gone up carries "Send for approval" (`onSend`, plated: green stays with the page's one
+ * main action), so what is ready to go to the client is found on the schedule itself (ADR 9001, addendum 2026-11-18).
  */
 export function PlanCardFace({
   card,
@@ -464,6 +473,7 @@ export function PlanCardFace({
   drag,
   moves = [],
   onOpen,
+  onSend,
   onDelete,
 }: {
   card: PlanCard;
@@ -472,6 +482,8 @@ export function PlanCardFace({
   drag?: CardDrag;
   moves?: CardMoveTo[];
   onOpen: () => void;
+  /** Who may change the board sends a card the team approved, from its face. */
+  onSend?: () => void;
   /** Who may change the board deletes it, at hand and from its menu. */
   onDelete?: () => void;
 }) {
@@ -555,7 +567,7 @@ export function PlanCardFace({
     <CardFace
       id={card.id}
       title={card.title}
-      label={`${card.title}, ${stageName(t, card.stage)}`}
+      label={`${card.title}, ${stageWords(t, card.stage, card.review)}`}
       className="plan-card"
       data-stage={card.stage}
       picked={picked}
@@ -611,7 +623,7 @@ export function PlanCardFace({
       chips={
         <>
           <Chip>{t(`portal.types.${card.type}`)}</Chip>
-          {!card.material && <StageChip stage={card.stage} />}
+          {!card.material && <StageChip stage={card.stage} review={card.review} />}
           {mine.map((label) => (
             <LabelChip key={label.id} label={label} />
           ))}
@@ -625,6 +637,11 @@ export function PlanCardFace({
           {t("portal.openAtPortal")}
           <Icon name="external" size={14} />
         </a>
+      )}
+      {onSend && portalReadyToSend(card) && !card.item && (
+        <Button size="sm" icon="send" block onClick={onSend}>
+          {t("portal.send")}
+        </Button>
       )}
     </CardFace>
   );

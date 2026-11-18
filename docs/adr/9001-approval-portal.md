@@ -279,3 +279,34 @@ column when the drop would go there. From the materials the schedule's tab takes
 - The places outside a board are marked `[data-drop-away]` (`apps/web/src/lib/drop-away.ts`), read by the task
   board's drag (`away` in `issue-drag.ts`) and the lists' (`onAway` in `useListDrag`); the move is
   `useMovePortalCardAcross`.
+
+## Addendum 2026-11-18: what the team approved in Review shows on the card, and the schedule orders each person's work
+
+Two of an editor's videos approved in Review stayed "To make" on the schedule and the board: the approval put the
+video on the card (doug-0019 §4) and nothing else, since a card's stage was its own until it was sent. Nobody could
+find what was ready to go to the client, the client's "Approved" column showed only what the client approved, and the
+tasks stayed "to do". The editor's work also came in the order the cards were made, not the order the team put them
+in on the schedule.
+
+- **A card's review** (`approval-portal-reviews.ts`, `cardReviews`) is read, never typed: the reviews of a card not
+  sent yet, by the review's own card, else the task it was sent from, else the task's room or thread. `in_review` while
+  one waits on the team, `changes` while one was sent back, `approved` once every one is approved. A review whose post
+  is at the portal or on its way (a delivery not failed) is the client's and is left out.
+- **The stage follows it** (`cardStage`): approved by the team, the card is `approved`, ready to go up; in Review or
+  sent back, `doing`. Plan cards, the pipeline and each person's work carry `review`; the board keeps each card in its
+  own column with `review` (an app from before reads it there) and the apps draw an approved one under Approved, above
+  the posts the client approved. The overview counts it there. The words say whose approval it is: "Approved by the
+  team", never "Approved", which is the client's.
+- **"Send for approval" on the card itself**, on the schedule and the board, for whoever may change the portal; the
+  send starts on a reel when the card is at the default type and holds one video. The card's send is the person's
+  (doug-0019 §3); once the card is at the portal, the next pass marks its approved review sent with the post
+  (`tieSentCards`), so a change the client asks for and the final are read from it as when Review sends (doug-0012).
+- **The pass never tells it as the client's.** The tasks' pass keeps the portal's own stage (a team review is not a
+  stage change, so no "the client approved" line), and moves the task once per decision: in Review and approved it is
+  in review, sent back it is in progress. A person who moves the task afterwards is not moved back.
+- **Each person's work in the schedule's order.** Home's work (`myPortalWork`) sorts by production day, then the
+  card's place in its client's schedule (`schedulePlace`: its list's position, then its order there), and a card
+  approved by the team leaves it: it waits on whoever sends it. The tasks of the portal take the same order on the
+  task board: the pass sets `board_rank` (`scheduleRank`, always above zero, so a task a person put on top of a column
+  stays there) without activity and without changing `updatedAt` (`rankIssue`). The schedule owns that order: a
+  portal task dragged on the task board goes back to its card's place at the next pass.

@@ -28,9 +28,11 @@ import {
   portalOrderAt,
   portalPlaceAt,
   portalPostedByMonth,
+  portalReadyToSend,
   portalScheduling,
   portalSendDate,
   portalSendProblem,
+  portalSendType,
   portalStatusWaits,
   portalTaskNumbers,
   portalTextParts,
@@ -404,6 +406,29 @@ describe("the overview's pipeline (ADR 9001 §10)", () => {
     expect(portalStatusWaits({ kind: "adjusting", count: 1 })).toBe(true);
     expect(portalStatusWaits({ kind: "late", count: 1 })).toBe(true);
     expect(portalStatusWaits({ kind: "schedule", count: 3 })).toBe(false);
+  });
+
+  test("a card the team approved and nobody sent waits on the team, not on a date (ADR 9001, addendum 2026-11-18)", () => {
+    const ready = entry({
+      stage: "approved",
+      review: { status: "approved", reviewId: "r1", approved: 1, total: 1 },
+    });
+    const byClient = entry({ stage: "approved" });
+    expect(portalReadyToSend(ready)).toBe(true);
+    expect(portalReadyToSend(byClient)).toBe(false);
+    expect(pipelineTiles([ready, byClient])).toMatchObject({ you: 1, schedule: 1 });
+    expect(pipelineClientStatus([ready, byClient, entry({ stage: "approval" })])).toEqual({ kind: "send", count: 1 });
+    expect(pipelineClientStatus([ready, entry({ late: true })])).toEqual({ kind: "late", count: 1 });
+    expect(portalStatusWaits({ kind: "send", count: 1 })).toBe(true);
+  });
+
+  test("a card's send starts on its type, and on a reel when it holds one video at the default type", () => {
+    const video = [{ id: "a", name: "pool.mp4" }];
+    expect(portalSendType(null)).toBe("reel");
+    expect(portalSendType({ type: "image", files: video })).toBe("reel");
+    expect(portalSendType({ type: "image", files: [{ id: "a", name: "capa.png" }] })).toBe("image");
+    expect(portalSendType({ type: "story", files: video })).toBe("story");
+    expect(portalSendType({ type: "image", files: [...video, { id: "b", name: "b.mp4" }] })).toBe("image");
   });
 
   test("a client's line: every stage in the pipeline's order, with how many sit at each", () => {

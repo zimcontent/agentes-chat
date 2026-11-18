@@ -1,4 +1,4 @@
-import type { PortalItem, PortalListKind, PortalPlan } from "@agenteschat/client";
+import type { PlanCard, PortalItem, PortalListKind, PortalPlan } from "@agenteschat/client";
 import { usePortalPlan } from "@agenteschat/client";
 import { portalLink } from "@agenteschat/client/lib/portal";
 import { EmptyState } from "@agenteschat/ui";
@@ -25,12 +25,15 @@ export function PortalPlanTab({
   view,
   changes,
   onOpen,
+  onSend,
   section = "plan",
 }: {
   client: string;
   view: "board" | "calendar";
   changes: boolean;
   onOpen: (cardId: string) => void;
+  /** A card the team approved in Review, sent from its face. */
+  onSend?: (card: PlanCard) => void;
   section?: PortalListKind;
 }) {
   const { t } = useTranslation();
@@ -79,7 +82,14 @@ export function PortalPlanTab({
             </p>
           )}
           {(!empty || changes) && (
-            <PlanBoard plan={shown} changes={changes} onOpen={onOpen} section={section} elsewhere={elsewhere} />
+            <PlanBoard
+              plan={shown}
+              changes={changes}
+              onOpen={onOpen}
+              onSend={onSend}
+              section={section}
+              elsewhere={elsewhere}
+            />
           )}
         </>
       )}

@@ -1,4 +1,10 @@
-import type { PortalBoard as Board, PortalCard, PortalCardState, PortalItem } from "@agenteschat/client";
+import type {
+  PortalBoard as Board,
+  PortalCard,
+  PortalCardReview,
+  PortalCardState,
+  PortalItem,
+} from "@agenteschat/client";
 import { useDeletePortalCard, useMovePortalCardAcross, useMovePortalCardState } from "@agenteschat/client";
 import { can } from "@agenteschat/client/lib/permissions";
 import {
@@ -42,10 +48,15 @@ import { useCopyCardLink } from "./card-link";
 import { ItemDialog } from "./ItemDialog";
 import { COLUMN_ICON } from "./PortalOverview";
 import { ScheduleDialog } from "./ScheduleDialog";
+import { StageChip } from "./stage";
 
 /** The two columns the team's own cards move between; the others are the portal's to fill. */
 const TEAM_COLUMNS: readonly PortalCardState[] = ["todo", "doing"];
 const isTeam = (column: string): column is PortalCardState => (TEAM_COLUMNS as readonly string[]).includes(column);
+
+type BoardCard = PortalCard & { review?: PortalCardReview | null };
+/** A card the team approved in Review (ADR 9001, addendum 2026-11-18): it sits under Approved, ready to go up. */
+const teamApproved = (card: BoardCard) => card.review?.status === "approved";
 
 /**
  * One client's board (ADR 9001), in the task board's columns: To do and In production hold the team's cards, the
@@ -55,6 +66,10 @@ const isTeam = (column: string): column is PortalCardState => (TEAM_COLUMNS as r
  * while one moves, the portal's columns show they take none, since the portal decides what is in them. The board's
  * empty space drags it sideways. `changes`: the person may give agents work, so the cards carry their actions and
  * move; everyone else reads.
+ *
+ * A card the team approved in Review and nobody sent yet leaves its column for Approved, above the posts the client
+ * approved, with "Approved by the team" and "Send for approval" (ADR 9001, addendum 2026-11-18): what is ready to go
+ * up is where a person looks for what was approved.
  */
 export function PortalBoard({
   board,
@@ -85,8 +100,14 @@ export function PortalBoard({
       { cardId: card.id, state },
       { onError: (error) => toast.show(portalErrorText(t, error, i18n.language), "error") },
     );
+  // The team's columns hold what the team is still making: an approved card is drawn under Approved.
+  const making = {
+    todo: board.cards.todo.filter((c) => !teamApproved(c)),
+    doing: board.cards.doing.filter((c) => !teamApproved(c)),
+  };
+  const ready = [...board.cards.todo, ...board.cards.doing].filter(teamApproved);
   const onDrop = ({ id, from, to }: CardMove): DropResult => {
-    const card = [...board.cards.todo, ...board.cards.doing].find((c) => c.id === id);
+    const card = [...making.todo, ...making.doing].find((c) => c.id === id);
     // Dropped on the "Materiais do cliente" tab: it leaves the board for the client's materials (ADR 9001 §20).
     if (changes && card && awayOf(to) === "materials") {
       across.mutate(
@@ -105,7 +126,7 @@ export function PortalBoard({
   };
   const name = (column: string) => t(`portal.columns.${column as PortalCardState}`);
   const dnd = useIssueDrag<PortalCard>({
-    groups: TEAM_COLUMNS.map((id) => ({ id, items: board.cards[id] })),
+    groups: TEAM_COLUMNS.map((id) => ({ id, items: making[id] })),
     layout: "board",
     onDrop,
     away: changes,
@@ -159,13 +180,26 @@ export function PortalBoard({
               key={column}
               name={name(column)}
               icon={COLUMN_ICON[column]}
-              count={board.items[column].length}
+              count={board.items[column].length + (column === "approved" ? ready.length : 0)}
               // A card is moving: the portal's columns take none.
               closed={dnd.active}
               data-attention={(column === "adjusting" && board.items[column].length > 0) || undefined}
             >
               <div className="issues-col__cards">
-                {board.items[column].length > 0 ? (
+                {column === "approved" &&
+                  ready.map((card) => (
+                    <TeamCard
+                      key={card.id}
+                      card={card}
+                      changes={changes}
+                      picked={false}
+                      onOpen={() => onOpen(card.id)}
+                      onMove={() => moveTo(card, card.state === "todo" ? "doing" : "todo")}
+                      onDelete={() => setDeleting(card)}
+                      onSend={() => onSend(card)}
+                    />
+                  ))}
+                {board.items[column].length > 0 || (column === "approved" && ready.length > 0) ? (
                   board.items[column].map((item) => (
                     <PostCard
                       key={item.id}
@@ -211,7 +245,7 @@ function TeamCard({
   onDelete,
   onSend,
 }: {
-  card: PortalCard;
+  card: BoardCard;
   changes: boolean;
   picked: boolean;
   drag?: CardDrag;
@@ -270,11 +304,13 @@ function TeamCard({
             <MenuItem icon="link" onSelect={() => copyLink(card)}>
               {t("portal.card.copyLink")}
             </MenuItem>
+            {changes && !teamApproved(card) && (
+              <MenuItem icon="move" onSelect={onMove}>
+                {t("portal.moveTo", { column: t(`portal.columns.${other}`) })}
+              </MenuItem>
+            )}
             {changes && (
               <>
-                <MenuItem icon="move" onSelect={onMove}>
-                  {t("portal.moveTo", { column: t(`portal.columns.${other}`) })}
-                </MenuItem>
                 <MenuItem icon="edit" onSelect={onOpen}>
                   {t("portal.edit")}
                 </MenuItem>
@@ -287,7 +323,12 @@ function TeamCard({
           </Menu>
         </>
       }
-      chips={<Chip>{t(`portal.types.${card.type}`)}</Chip>}
+      chips={
+        <>
+          <Chip>{t(`portal.types.${card.type}`)}</Chip>
+          {card.review && <StageChip stage={teamApproved(card) ? "approved" : "doing"} review={card.review} />}
+        </>
+      }
       facts={facts}
     >
       {changes && (

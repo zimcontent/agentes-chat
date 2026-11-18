@@ -6,12 +6,14 @@ import {
   PORTAL_LIST_KINDS,
   PORTAL_STATUSES,
   PORTAL_TYPES,
+  type PortalCard,
 } from "@agenteschat/adapters";
 import {
   AFTER_APPROVE,
   approveForClient,
   can,
   cancelPortalTask,
+  cardReviews,
   getPortalClient,
   listPortalClients,
   makeClientLink,
@@ -160,7 +162,26 @@ const Card = z
     updatedAt: z.number(),
   })
   .openapi("PortalCard");
+const CardReview = z
+  .object({
+    status: z.enum(["in_review", "changes", "approved"]).openapi({
+      description:
+        "`in_review`: the team still has to decide; `changes`: the team asked for some; `approved`: ready to go up.",
+    }),
+    reviewId: z
+      .string()
+      .openapi({ description: "The review to open: the one still waiting, else the newest approved." }),
+    approved: z.number().int(),
+    total: z.number().int(),
+  })
+  .nullable()
+  .openapi("PortalCardReview", {
+    description:
+      "What the team decided in Review of a card not sent yet (ADR 9001, addendum 2026-11-18); null: nothing in Review.",
+  });
+const BoardCard = Card.extend({ review: CardReview }).openapi("PortalBoardCard");
 const PlanCard = Card.extend({
+  review: CardReview,
   stage: z.enum(PORTAL_COLUMNS).openapi({
     description: "Where the post is: the card's own stage, or the portal's once it was sent. Never typed.",
   }),
@@ -237,6 +258,8 @@ export function portalRoutes(deps: AppDeps) {
   app.use("/organizations/*", requireSession(deps.auth));
   app.use("/portal-logos/*", requireSession(deps.auth));
 
+  /** Each card's review in Review, read in this workspace (ADR 9001, addendum 2026-11-18). */
+  const reviewsOf = (orgId: string) => (cards: PortalCard[]) => cardReviews(db, orgId, cards);
   const portalOff = <C extends Context>(c: C) => apiError(c, 404, "portal.off", "This server has no approval portal");
   // The portal is one workspace's operation (ADR 9001 §18): every other workspace on this server answers as if there
   // were none, so a second business never sees the first one's clients and posts.
@@ -354,7 +377,10 @@ export function portalRoutes(deps: AppDeps) {
       const portal = adapters.approvalPortal;
       if (!portal) return portalOff(c);
       try {
-        const [summaries, naming] = await Promise.all([portalOverview(portal), portalClientNaming(db, orgId)]);
+        const [summaries, naming] = await Promise.all([
+          portalOverview(portal, reviewsOf(orgId)),
+          portalClientNaming(db, orgId),
+        ]);
         return c.json(
           {
             clients: summaries
@@ -388,7 +414,7 @@ export function portalRoutes(deps: AppDeps) {
           z.object({
             client: z.string(),
             state: State,
-            cards: z.object({ todo: z.array(Card), doing: z.array(Card) }),
+            cards: z.object({ todo: z.array(BoardCard), doing: z.array(BoardCard) }),
             items: z.object({
               approval: z.array(Item),
               adjusting: z.array(Item),
@@ -409,7 +435,7 @@ export function portalRoutes(deps: AppDeps) {
       const portal = adapters.approvalPortal;
       if (!portal) return portalOff(c);
       try {
-        return await (async () => c.json(await portalBoard(portal, client), 200))();
+        return await (async () => c.json(await portalBoard(portal, client, reviewsOf(orgId)), 200))();
       } catch (error) {
         return refused(c, error);
       }
@@ -758,6 +784,7 @@ export function portalRoutes(deps: AppDeps) {
                 late: z.boolean(),
                 note: z.string().nullable(),
                 link: z.string().nullable(),
+                review: CardReview,
                 updatedAt: z.number(),
               }),
             ),
@@ -771,7 +798,7 @@ export function portalRoutes(deps: AppDeps) {
     async (c) => {
       const { orgId } = c.req.valid("param");
       await requirePermission(db, c.get("user").id, orgId, "read");
-      const out = await guarded(c, (portal) => portalPipeline(portal));
+      const out = await guarded(c, (portal) => portalPipeline(portal, undefined, undefined, reviewsOf(orgId)));
       if (!out.ok) return out.response;
       const { hidden } = await portalClientNaming(db, orgId);
       return c.json({ ...out.value, entries: out.value.entries.filter((e) => !hidden.has(e.client)) }, 200);
@@ -828,7 +855,7 @@ export function portalRoutes(deps: AppDeps) {
     async (c) => {
       const { orgId, client } = c.req.valid("param");
       await requirePermission(db, c.get("user").id, orgId, "read");
-      const out = await guarded(c, (portal) => portalPlan(portal, client));
+      const out = await guarded(c, (portal) => portalPlan(portal, client, reviewsOf(orgId)));
       return out.ok ? c.json(out.value, 200) : out.response;
     },
   );
@@ -862,7 +889,7 @@ export function portalRoutes(deps: AppDeps) {
       const { orgId } = c.req.valid("param");
       const user = c.get("user");
       await requirePermission(db, user.id, orgId, "read");
-      const out = await guarded(c, (portal) => myPortalWork(portal, user.id));
+      const out = await guarded(c, (portal) => myPortalWork(portal, user.id, undefined, undefined, reviewsOf(orgId)));
       if (!out.ok) return out.response;
       const work = out.value;
       const { hidden } = await portalClientNaming(db, orgId);
