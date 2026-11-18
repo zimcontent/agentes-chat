@@ -305,7 +305,7 @@ export function boardIndexAt(x: number, step: number, count: number): number {
  * The board's three layers, as Trello draws a board: the board light, the lists dark on it, the cards a step lighter
  * than their list, in both themes (the lists' words then read on the dark palette, `ThemeColorsOverride`). In dark the
  * board is a step dimmer, still light, so it doesn't glare beside the dark bar. `dot`/`dotOn`: the dots under the
- * lists, on the board; `hole`: where a held list would land.
+ * lists, on the board; `hole`: where a held list would land; `slot`: where a held card would land, on a list.
  */
 export function boardPaint(dark: boolean): {
   board: string;
@@ -315,6 +315,7 @@ export function boardPaint(dark: boolean): {
   dot: string;
   dotOn: string;
   hole: string;
+  slot: string;
 } {
   return {
     board: dark ? "#C9CEC2" : "#E3E7DE",
@@ -324,6 +325,7 @@ export function boardPaint(dark: boolean): {
     dot: "#55594F",
     dotOn: "#0A0A0A",
     hole: "rgba(10, 10, 10, 0.16)",
+    slot: "rgba(255, 255, 255, 0.08)",
   };
 }
 
@@ -403,6 +405,7 @@ export function listSlotAt(scroll: number, x: number, step: number, count: numbe
  * one's hole goes all the way to `slot`), so the board shows the order the drop would make without moving anything.
  */
 export function listShift(index: number, from: number, slot: number): number {
+  "worklet";
   if (index < 0 || from < 0) return 0;
   if (index === from) return slot - from;
   if (from < slot && index > from && index <= slot) return -1;
