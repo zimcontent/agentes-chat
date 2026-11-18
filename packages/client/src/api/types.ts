@@ -8863,10 +8863,27 @@ export interface PortalTaskRef {
   number: number;
 }
 
+/**
+ * What the team decided in Review of a card not sent yet (ADR 9001, addendum 2026-11-18). `approved`: the team approved
+ * every piece of it, so it is ready to go up for the client's approval.
+ */
+export interface PortalCardReview {
+  status: "in_review" | "changes" | "approved";
+  /** The review to open: the one still waiting, else the newest approved. */
+  reviewId: string;
+  approved: number;
+  total: number;
+}
+
 /** A card as the schedule shows it. */
 export interface PlanCard extends PortalCard {
-  /** Where the post is: the card's own stage, or the portal's once it was sent. Never typed. */
+  /**
+   * Where the post is: the card's own stage, or the portal's once it was sent. Never typed. Before it is sent, the
+   * team's review moves it: in Review, in production; approved by the team, `approved` (ready to go up).
+   */
   stage: PortalColumn;
+  /** The team's review while the post isn't with the client; absent from a server from before. */
+  review?: PortalCardReview | null;
   /** When it goes out: the portal's date once it is there, else the card's own. */
   postOn: string | null;
   /** The post at the portal, once it was sent. */
@@ -9005,7 +9022,11 @@ export interface PortalBoard {
   client: string;
   /** Absent from a server that doesn't say. */
   state?: PortalState;
-  cards: { todo: PortalCard[]; doing: PortalCard[] };
+  /** By the card's own stage; `review` says the team approved one (drawn under Approved, ready to go up). */
+  cards: {
+    todo: (PortalCard & { review?: PortalCardReview | null })[];
+    doing: (PortalCard & { review?: PortalCardReview | null })[];
+  };
   items: {
     approval: PortalItem[];
     adjusting: PortalItem[];
@@ -9070,6 +9091,8 @@ export interface PortalPipelineEntry {
   /** The client's last words on it, when it waits on an adjustment. Outside text. */
   note: string | null;
   link: string | null;
+  /** A card's review while it isn't with the client: `approved` at the `approved` stage is ready to go up. */
+  review?: PortalCardReview | null;
   updatedAt: number;
 }
 

@@ -21728,6 +21728,13 @@ export const en = {
     revoke: "Revoke link",
   },
   portal: {
+    /** What the team decided in Review of a card not sent yet (ADR 9001, addendum 2026-11-18). */
+    teamReview: {
+      approved: "Approved by the team",
+      in_review: "In the team's review",
+      changes: "Changes asked by the team",
+      open: "Open in Review",
+    },
     title: "Portal",
     subtitle: "What your clients approve, by client",
     overview: "Overview",
@@ -22066,6 +22073,8 @@ export const en = {
       status: {
         late_one: "{{count}} late",
         late_other: "{{count}} late",
+        send_one: "{{count}} to send up",
+        send_other: "{{count}} to send up",
         schedule_one: "{{count}} to schedule",
         schedule_other: "{{count}} to schedule",
         client_one: "{{count}} with the client",

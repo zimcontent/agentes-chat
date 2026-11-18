@@ -79,7 +79,7 @@ function TaskRow({ card }: { card: PlanCard }) {
         </span>
         <span className="home-tasks__chips">
           <Chip>{t(`portal.types.${card.type}`)}</Chip>
-          <StageChip stage={card.stage} />
+          <StageChip stage={card.stage} review={card.review} />
         </span>
       </Link>
     </li>

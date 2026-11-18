@@ -331,6 +331,62 @@ describe("the strategic schedule", () => {
   });
 });
 
+describe("a card the team approved in Review (ADR 9001, addendum 2026-11-18)", () => {
+  /** "Story de enquete" holds the approved video Review put on it; "Ideia solta" is still in the team's review. */
+  const approved = (portal: FakePortal) => {
+    fill(portal);
+    const story = portal.cards.find((c) => c.id === "c-000003");
+    // A card left at the default type, holding one video: the approved one.
+    if (story)
+      Object.assign(story, {
+        type: "image",
+        files: [{ id: "22222222-2222-4222-8222-222222222222", name: "pool.mp4" }],
+      });
+    portal.reviews = {
+      "c-000003": { status: "approved", reviewId: "33333333-3333-4333-8333-333333333333", approved: 1, total: 1 },
+      "c-000004": { status: "in_review", reviewId: "44444444-4444-4444-8444-444444444444", approved: 0, total: 1 },
+    };
+  };
+
+  test("on the schedule it says it, in the approved colour, and carries Subir para aprovação to the send", async () => {
+    await go(PLAN, withPortal(), approved);
+    const story = card("Story de enquete");
+    expect(story.dataset.stage).toBe("approved");
+    expect(within(story).getByText("Aprovado pela equipe")).toBeTruthy();
+    expect(card("Ideia solta").dataset.stage).toBe("doing");
+    expect(within(card("Ideia solta")).getByText("Em revisão na equipe")).toBeTruthy();
+    // Only a card ready to go up carries the send on its face.
+    expect(within(card("Ideia solta")).queryByRole("button", { name: "Subir para aprovação" })).toBeNull();
+    expect(within(card("Reel do treino")).queryByRole("button", { name: "Subir para aprovação" })).toBeNull();
+    await click(within(story).getByRole("button", { name: "Subir para aprovação" }));
+    const dialog = screen().getByRole("dialog", { name: "Subir para aprovação" });
+    // The approved video is the card's file, and one video goes up as a reel.
+    expect(within(dialog).getByText("pool.mp4")).toBeTruthy();
+    expect(within(dialog).getByRole("combobox", { name: "Tipo" }).textContent).toContain("Reel");
+  });
+
+  test("its dialog opens the review it was approved in", async () => {
+    await go(`${PLAN}&card=c-000003`, withPortal(), approved);
+    const dialog = screen().getByRole("dialog", { name: "Story de enquete" });
+    expect(within(dialog).getByText("Aprovado pela equipe")).toBeTruthy();
+    expect(within(dialog).getByRole("link", { name: "Abrir na Revisão" }).getAttribute("href")).toBe(
+      `/org/${ORG_ID}/review/33333333-3333-4333-8333-333333333333`,
+    );
+  });
+
+  test("on the board it leaves its column for Aprovado, above what the client approved, with the send", async () => {
+    await go("portal?client=acme", withPortal(), approved);
+    const column = (name: string) => main().querySelector(`.issues-col[aria-label="${name}"]`) as HTMLElement;
+    const ready = within(column("Aprovado")).getByRole("article", { name: "Story de enquete" });
+    expect(within(ready).getByText("Aprovado pela equipe")).toBeTruthy();
+    expect(within(ready).getByRole("button", { name: "Subir para aprovação" })).toBeTruthy();
+    expect(within(column("A produzir")).queryByRole("article", { name: "Story de enquete" })).toBeNull();
+    // Still in Review: in its own column, saying so.
+    const waiting = within(column("A produzir")).getByRole("article", { name: "Ideia solta" });
+    expect(within(waiting).getByText("Em revisão na equipe")).toBeTruthy();
+  });
+});
+
 describe("moving things on the boards", () => {
   test("a card dropped at the top of another list gets that list and an order before its first card", async () => {
     const { state } = await go(PLAN);

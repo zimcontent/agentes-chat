@@ -1,7 +1,8 @@
 import type { ApprovalPortal, PortalCard, PortalItem, PubSub } from "@agenteschat/adapters";
 import { and, asc, type Database, eq, isNull, schema, sql } from "@agenteschat/db";
 import { type PortalColumn, portalColumnOf } from "./approval-portal";
-import { planCard } from "./approval-portal-plan";
+import { planCard, schedulePlace } from "./approval-portal-plan";
+import { type CardReviewStatus, cardReviews, tieSentCards } from "./approval-portal-reviews";
 import {
   localDay,
   type PortalOpenTask,
@@ -20,6 +21,7 @@ import {
   createIssue,
   type IssueActor,
   type IssueStatus,
+  rankIssue,
   updateIssue,
   type WorkActor,
 } from "./issues";
@@ -232,6 +234,17 @@ async function assigneeOf(db: Database, orgId: string, id: string | null, seen: 
   return found;
 }
 
+/**
+ * A card's task's place on the task board (`board_rank`, lowest first), so whoever has the work sees it in the order
+ * the team planned it (ADR 9001, addendum 2026-11-18): by production day, then the card's place in the schedule (its
+ * list, then its order there). Always above zero, so a task a person put on top of a column (a negative rank) stays
+ * there; a card with no production day comes after the dated ones.
+ */
+export const scheduleRank = (produceOn: string | null, place: number) => {
+  const day = produceOn ? Math.floor(Date.parse(`${produceOn}T00:00:00Z`) / 86_400_000) : Number.NaN;
+  return (Number.isFinite(day) ? day : 99_999) * 100_000_000 + place;
+};
+
 const stageOf = (card: PortalCard, items: Map<string, PortalItem>) =>
   planCard(
     card,
@@ -296,9 +309,18 @@ const withLead = (members: string[], lead: string | null, before: string | null)
   return lead ? [lead, ...rest] : rest;
 };
 
-async function saveSynced(db: Database, row: IssueRow, client: string, cardId: string, synced: Synced) {
-  const kept = row.source as { nudged?: string; asked?: { at: string; told?: boolean } };
+async function saveSynced(
+  db: Database,
+  row: IssueRow,
+  client: string,
+  cardId: string,
+  synced: Synced,
+  /** What the team decided in Review at this pass; undefined: kept as it was. */
+  reviewNow?: CardReviewStatus | null,
+) {
+  const kept = row.source as { nudged?: string; asked?: { at: string; told?: boolean }; review?: CardReviewStatus };
   const nudged = kept.nudged;
+  const review = reviewNow === undefined ? kept.review : (reviewNow ?? undefined);
   // Since when the client waits on a change: kept while the post is still theirs to get back.
   const asked = synced.card.stage === "adjusting" ? kept.asked : undefined;
   const source = {
@@ -308,6 +330,7 @@ async function saveSynced(db: Database, row: IssueRow, client: string, cardId: s
     synced,
     ...(nudged ? { nudged } : {}),
     ...(asked ? { asked } : {}),
+    ...(review ? { review } : {}),
   };
   if (JSON.stringify(row.source) === JSON.stringify(source)) return;
   await db.update(issues).set({ source }).where(eq(issues.id, row.id));
@@ -385,6 +408,20 @@ async function onePass(
   }
   const cards = only ? allCards.filter((card) => card.id === only.cardId) : allCards;
   if (cards.length === 0) return result;
+  // A card the team approved and a person sent from the schedule: its review is the post's from now on.
+  try {
+    await tieSentCards(db, orgId, cards);
+  } catch (error) {
+    deps.log?.warn("approval portal: sent cards could not be tied to their reviews", {
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+  const reviews = await cardReviews(db, orgId, cards);
+  // Read over every card, whichever this pass looks at: a card's place never depends on which pass reads it.
+  const place = await schedulePlace(
+    portal,
+    allCards.filter((card) => !card.material),
+  );
   const rows = await db
     .select()
     .from(issues)
@@ -456,9 +493,10 @@ async function onePass(
           source: { type: "portal", client: card.client, cardId: card.id },
         });
         const status = PORTAL_STAGE_STATUS[stage];
-        if (status !== "todo") {
-          await updateIssue({ db, pubsub: deps.pubsub }, who.script, orgId, made.id, { status });
-        }
+        await updateIssue({ db, pubsub: deps.pubsub }, who.script, orgId, made.id, {
+          ...(status !== "todo" ? { status } : {}),
+          boardRank: scheduleRank(card.produceOn, place(card)),
+        });
         const tied = await portal.updateCard(
           card.id,
           { task: made.id, ...(held ? { members: [held.id] } : {}) },
@@ -531,6 +569,18 @@ async function onePass(
         const state = row.status === "todo" ? "todo" : row.status === "in_progress" ? "doing" : null;
         if (state && state !== card.state) toCard.state = state;
       }
+      // What the team decided in Review moves the task, once per decision, while the post isn't with the client: in
+      // Review and approved (waiting to go up) it is in review, sent back it is in progress again. The stage the
+      // portal gives the post once it is sent is the task's from then on (ADR 9001, addendum 2026-11-18).
+      const reviewNow = card.item || card.done ? null : (reviews.get(card.id)?.status ?? null);
+      const reviewWas = (row.source as { review?: CardReviewStatus }).review ?? null;
+      if (reviewNow && reviewNow !== reviewWas && toTask.status === undefined) {
+        const status: IssueStatus = reviewNow === "changes" ? "in_progress" : "in_review";
+        if (row.status !== status && row.status !== "done" && row.status !== "canceled") toTask.status = status;
+      }
+      // The schedule orders its tasks: a card moved in its list, to another list or to another day moves its task.
+      const rank = scheduleRank(toTask.dueDate !== undefined ? toTask.dueDate : row.dueDate, place(card));
+      const reRank = row.boardRank !== rank && row.status !== "done" && row.status !== "canceled";
       // A change the client asked for, on a post nobody has: whoever the portal says holds it takes it.
       if (stageMoved && stage === "adjusting" && !row.assigneeId && !now.card.lead && toTask.assignee === undefined) {
         const held = await holderOf(card);
@@ -542,9 +592,16 @@ async function onePass(
 
       let issueNow: Pick<IssueRow, "title" | "description" | "dueDate" | "assigneeId" | "status"> = row;
       if (Object.keys(toTask).length > 0) {
-        await updateIssue({ db, pubsub: deps.pubsub }, who.script, orgId, row.id, toTask);
+        // A change of status puts a task on top of its column: its place in the schedule is given with it.
+        await updateIssue({ db, pubsub: deps.pubsub }, who.script, orgId, row.id, {
+          ...toTask,
+          ...(toTask.status && toTask.status !== "done" && toTask.status !== "canceled" ? { boardRank: rank } : {}),
+          ...(reRank ? { boardRank: rank } : {}),
+        });
         issueNow = (await reload(db, row.id)) ?? row;
         result.toTasks++;
+      } else if (reRank) {
+        await rankIssue({ db, pubsub: deps.pubsub }, orgId, row.id, rank);
       }
       let cardNow = card;
       if (Object.keys(toCard).length > 0) {
@@ -553,10 +610,14 @@ async function onePass(
       }
       if (!card.task) await portal.updateCard(card.id, { task: row.id }, "sync");
       const stageNow = cardNow.item ? stage : cardNow.state;
-      await saveSynced(db, row, card.client, card.id, {
-        card: cardSide(cardNow, stageNow, noteAt),
-        issue: issueSide(issueNow),
-      });
+      await saveSynced(
+        db,
+        row,
+        card.client,
+        card.id,
+        { card: cardSide(cardNow, stageNow, noteAt), issue: issueSide(issueNow) },
+        reviewNow,
+      );
       // The client wrote again on a post they already wait on a change of: one more request, told like the first.
       const again =
         !stageMoved && stage === "adjusting" && Boolean(was?.card.note && noteAt && was.card.note !== noteAt);

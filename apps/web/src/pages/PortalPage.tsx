@@ -193,6 +193,7 @@ export function PortalPage() {
                 view={view}
                 changes={changes}
                 onOpen={openCard}
+                onSend={(sent) => setSending({ card: sent })}
                 section={tab === "materials" ? "materials" : "plan"}
               />
             ) : (

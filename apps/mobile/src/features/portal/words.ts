@@ -22,6 +22,7 @@ const en = {
   clientStatus: {
     adjusting: (n: number) => (n === 1 ? "1 adjustment asked" : `${n} adjustments asked`),
     late: (n: number) => `${n} late`,
+    send: (n: number) => `${n} to send up`,
     schedule: (n: number) => `${n} to schedule`,
     client: (n: number) => `${n} with the client`,
     making: "In production",
@@ -271,6 +272,7 @@ const ptBR: PortalWords = {
   clientStatus: {
     adjusting: (n: number) => (n === 1 ? "1 ajuste pedido" : `${n} ajustes pedidos`),
     late: (n: number) => (n === 1 ? "1 atrasada" : `${n} atrasadas`),
+    send: (n: number) => `${n} para subir`,
     schedule: (n: number) => `${n} para agendar`,
     client: (n: number) => `${n} com o cliente`,
     making: "Em produção",

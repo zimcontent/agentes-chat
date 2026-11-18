@@ -8,6 +8,7 @@ import {
   portalErrorText,
   portalLink,
   portalSendProblem,
+  portalSendType,
 } from "@agenteschat/client/lib/portal";
 import {
   Button,
@@ -85,7 +86,7 @@ function SendBody({
   const job = usePortalJob(org.id, jobId).data;
   const options = [...new Set([...(startClient ? [startClient] : []), ...clients])];
   const [client, setClient] = useState<string | undefined>(startClient ?? options[0]);
-  const [type, setType] = useState<PortalType>(card?.type ?? "reel");
+  const [type, setType] = useState<PortalType>(portalSendType(card));
   const [files, setFiles] = useState<PortalCardFile[]>(card?.files ?? []);
   const [cover, setCover] = useState<PortalCardFile | null>(null);
   const [title, setTitle] = useState(card?.title ?? "");

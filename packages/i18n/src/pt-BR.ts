@@ -21664,6 +21664,13 @@ export const ptBR = {
     revoke: "Revogar link",
   },
   portal: {
+    /** What the team decided in Review of a card not sent yet (ADR 9001, addendum 2026-11-18). */
+    teamReview: {
+      approved: "Aprovado pela equipe",
+      in_review: "Em revisão na equipe",
+      changes: "Ajustes pedidos pela equipe",
+      open: "Abrir na Revisão",
+    },
     title: "Portal",
     subtitle: "O que seus clientes aprovam, por cliente",
     overview: "Visão geral",
@@ -21972,6 +21979,8 @@ export const ptBR = {
       status: {
         late_one: "{{count}} atrasada",
         late_other: "{{count}} atrasadas",
+        send_one: "{{count}} para subir",
+        send_other: "{{count}} para subir",
         schedule_one: "{{count}} para agendar",
         schedule_other: "{{count}} para agendar",
         client_one: "{{count}} com o cliente",

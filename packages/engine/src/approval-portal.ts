@@ -15,13 +15,16 @@ import {
 import type { Database } from "@agenteschat/db";
 import { listPortalClients, upsertPortalClient } from "./approval-portal-clients";
 import {
+  cardStage,
   labelIdsByName,
   memberIdsByName,
   myPortalWork,
   type PlanCard,
   planTool,
   portalPlan,
+  type ReviewsOf,
 } from "./approval-portal-plan";
+import { type CardReview, cardReviews } from "./approval-portal-reviews";
 import { portalHere } from "./approval-portal-tasks";
 import { type ArtifactActor, type ArtifactDeps, artifactFile, storedFileOfArtifact } from "./artifacts";
 import { ValidationError } from "./errors";
@@ -83,10 +86,17 @@ export interface PortalClientSummary {
   logo: string | null;
 }
 
+/** A team's card on the board, with what the team decided of it in Review (ADR 9001, addendum 2026-11-18). */
+export type BoardCard = PortalCard & { review: CardReview | null };
+
 export interface PortalBoard {
   client: string;
   state: PortalState;
-  cards: { todo: PortalCard[]; doing: PortalCard[] };
+  /**
+   * The team's cards by their own stage. One the team approved in Review is still in its stage here (an app from
+   * before reads it there) and carries `review`: the apps draw it under Approved, ready to go up.
+   */
+  cards: { todo: BoardCard[]; doing: BoardCard[] };
   items: {
     approval: PortalItem[];
     adjusting: PortalItem[];
@@ -106,9 +116,16 @@ const emptyCounts = (): Record<PortalColumn, number> => ({
   posted: 0,
 });
 
-/** Every client with its counts per column, the ones with the most open work first. */
-export async function portalOverview(portal: ApprovalPortal): Promise<PortalClientSummary[]> {
+/**
+ * Every client with its counts per column, the ones with the most open work first. A card not sent yet counts where
+ * the team's review puts it (`cardStage`): approved by the team, under Approved.
+ */
+export async function portalOverview(
+  portal: ApprovalPortal,
+  reviewsOf: ReviewsOf = async () => new Map(),
+): Promise<PortalClientSummary[]> {
   const [items, cards, looks] = await Promise.all([portal.items(), portal.cards(), portal.clientLooks()]);
+  const reviews = await reviewsOf(cards);
   const byClient = new Map<string, PortalClientSummary>();
   const of = (client: string) => {
     let summary = byClient.get(client);
@@ -134,7 +151,10 @@ export async function portalOverview(portal: ApprovalPortal): Promise<PortalClie
     }
   }
   // A card that was sent is counted as its post, in the portal's column. A client's material is nobody's work.
-  for (const card of cards) if (!card.item && !card.done && !card.material) of(card.client).counts[card.state] += 1;
+  for (const card of cards) {
+    if (card.item || card.done || card.material) continue;
+    of(card.client).counts[cardStage(card, undefined, reviews.get(card.id) ?? null)] += 1;
+  }
   for (const summary of byClient.values()) {
     summary.open = PORTAL_COLUMNS.reduce((sum, c) => sum + (c === "posted" ? 0 : summary.counts[c]), 0);
   }
@@ -142,8 +162,13 @@ export async function portalOverview(portal: ApprovalPortal): Promise<PortalClie
 }
 
 /** One client's board. Dated posts by date, the rest by the last change. */
-export async function portalBoard(portal: ApprovalPortal, client: string): Promise<PortalBoard> {
+export async function portalBoard(
+  portal: ApprovalPortal,
+  client: string,
+  reviewsOf: ReviewsOf = async () => new Map(),
+): Promise<PortalBoard> {
   const [items, cards] = await Promise.all([portal.items(), portal.cards(client)]);
+  const reviews = await reviewsOf(cards);
   const board: PortalBoard = {
     client,
     // Read after the posts: it says how fresh that very read was.
@@ -151,7 +176,10 @@ export async function portalBoard(portal: ApprovalPortal, client: string): Promi
     cards: { todo: [], doing: [] },
     items: { approval: [], adjusting: [], approved: [], scheduled: [], posted: [] },
   };
-  for (const card of cards) if (!card.item && !card.done && !card.material) board.cards[card.state].push(card);
+  for (const card of cards) {
+    if (card.item || card.done || card.material) continue;
+    board.cards[card.state].push({ ...card, review: reviews.get(card.id) ?? null });
+  }
   for (const item of items) {
     if (item.client !== client) continue;
     board.items[portalColumnOf(item) as keyof PortalBoard["items"]].push(item);
@@ -389,8 +417,23 @@ const itemLine = (item: PortalItem) =>
   // The post's address is read here, so no agent builds one or asks another for it.
   (item.link ? `, at the portal: ${item.link}` : "") +
   (item.lastNote?.text && portalColumnOf(item) === "adjusting" ? `\n  client's note: ${item.lastNote.text}` : "");
-const cardLine = (card: PortalCard) =>
+/** What the team decided in Review, as an agent reads it beside a card not sent yet. */
+const REVIEW_WORDS: Record<CardReview["status"], string> = {
+  in_review: "in the team's Review, waiting for a decision",
+  changes: "the team asked for changes in Review",
+  approved: "approved by the team in Review, ready to send for the client's approval",
+};
+const reviewNote = (review: CardReview | null | undefined) => (review ? `, ${REVIEW_WORDS[review.status]}` : "");
+
+/** `cardReviews` for the run's workspace (none for a context with no database to read). */
+const reviewsIn =
+  (ctx: ToolContext): ReviewsOf =>
+  async (cards) =>
+    ctx.db ? cardReviews(ctx.db as Database, ctx.orgId, cards) : new Map();
+
+const cardLine = (card: BoardCard) =>
   `- ${card.type} "${card.title}" (card ${card.id})` +
+  reviewNote(card.review) +
   (card.date ? `, date ${card.date}` : "") +
   (card.owner ? `, with ${card.owner}` : "") +
   (card.files.length ? `, ${card.files.length} file(s)` : "") +
@@ -410,11 +453,11 @@ function boardTool(portal: ApprovalPortal): ToolDefinition {
       },
       additionalProperties: false,
     },
-    async execute(input) {
+    async execute(input, ctx) {
       try {
         const client = str(input.client).trim();
         if (!client) {
-          const clients = await portalOverview(portal);
+          const clients = await portalOverview(portal, reviewsIn(ctx));
           if (!clients.length) return { content: "The approval portal has no clients yet." };
           return {
             content: clients
@@ -426,7 +469,7 @@ function boardTool(portal: ApprovalPortal): ToolDefinition {
               .join("\n"),
           };
         }
-        const board = await portalBoard(portal, client);
+        const board = await portalBoard(portal, client, reviewsIn(ctx));
         const section = (title: string, lines: string[]) => (lines.length ? `## ${title}\n${lines.join("\n")}` : "");
         const text = [
           section("To do", board.cards.todo.map(cardLine)),
@@ -727,7 +770,7 @@ export const PORTAL_WHEN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?(Z|[+-]\d{2}:
 export const PORTAL_WORK_TOOL = "portal_work";
 
 const workLine = (card: PlanCard, labels: Map<string, string>) =>
-  `- ${card.type} "${card.title}" for ${card.client} (card ${card.id}, ${card.stage})` +
+  `- ${card.type} "${card.title}" for ${card.client} (card ${card.id}, ${card.stage}${reviewNote(card.review)})` +
   (card.produceOn ? `, to make on ${card.produceOn}` : "") +
   (card.postOn ? `, goes out ${card.postOn}` : "") +
   (card.labels.length ? `, labels: ${card.labels.map((id) => labels.get(id) ?? id).join(", ")}` : "") +
@@ -757,7 +800,7 @@ function workTool(portal: ApprovalPortal): ToolDefinition {
       try {
         const names = new Map((await portal.labels()).map((label) => [label.id, label.name]));
         if (str(input.client)) {
-          const plan = await portalPlan(portal, str(input.client));
+          const plan = await portalPlan(portal, str(input.client), reviewsIn(ctx));
           const text = [...plan.lists, { name: "In no list", cards: plan.unlisted }]
             .filter((list) => list.cards.length)
             .map((list) => `## ${list.name}\n${list.cards.map((card) => workLine(card, names)).join("\n")}`)
@@ -772,7 +815,7 @@ function workTool(portal: ApprovalPortal): ToolDefinition {
           ? (await memberIdsByName(ctx.db as Database, ctx.orgId, [str(input.member)]))[0]
           : await personBehindCall(ctx);
         if (!member) throw new ValidationError("say whose work: `member` is a person's name");
-        const work = await myPortalWork(portal, member);
+        const work = await myPortalWork(portal, member, undefined, undefined, reviewsIn(ctx));
         const section = (title: string, cards: PlanCard[]) =>
           cards.length ? `## ${title}\n${cards.map((card) => workLine(card, names)).join("\n")}` : "";
         const text = [

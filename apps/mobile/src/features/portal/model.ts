@@ -57,6 +57,7 @@ export function statusLine(w: PortalWords, status: PortalClientStatus): string {
   switch (status.kind) {
     case "adjusting":
     case "late":
+    case "send":
     case "schedule":
     case "client":
       return w.clientStatus[status.kind](status.count);

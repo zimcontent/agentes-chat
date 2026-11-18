@@ -14,6 +14,7 @@ import type {
   ApiClient,
   PlanCard,
   PortalCard,
+  PortalCardReview,
   PortalClientAccount,
   PortalClientColor,
   PortalClientSummary,
@@ -38,6 +39,8 @@ export interface FakePortal {
   items: PortalItem[];
   /** Each card's task: its id and number. */
   tasks: PortalTaskRef[];
+  /** What the team decided in Review of a card not sent yet, by card id (ADR 9001, addendum 2026-11-18). */
+  reviews: Record<string, PortalCardReview>;
   /** The schedule's lists, each a client's, in the team's order. */
   /** With no `kind`, a list of the schedule. */
   lists: (Omit<PortalList, "kind"> & { kind?: PortalList["kind"]; client: string })[];
@@ -189,13 +192,24 @@ export function createFakePortal(
     if (card) card.item = id;
   };
   const sends = new Map<string, { type: PortalItem["type"]; files: number; card?: string }>();
+  const reviewOf = (card: PortalCard) => (card.item || card.done ? null : (fake.reviews[card.id] ?? null));
   const stageOf = (card: PortalCard): PlanCard => {
     const item = card.item ? fake.items.find((i) => i.client === card.client && i.id === card.item) : undefined;
+    const review = reviewOf(card);
     return {
       ...card,
-      stage: item ? COLUMN_OF[item.status] : card.item ? "approval" : card.state,
+      stage: item
+        ? COLUMN_OF[item.status]
+        : card.item
+          ? "approval"
+          : review?.status === "approved"
+            ? "approved"
+            : review
+              ? "doing"
+              : card.state,
       postOn: item?.scheduledFor ?? card.date,
       link: item?.link ?? null,
+      review,
     };
   };
   const byOrder = (a: PortalCard, b: PortalCard) => a.order - b.order || a.createdAt - b.createdAt;
@@ -213,6 +227,7 @@ export function createFakePortal(
     cards: [],
     items: [],
     tasks: [],
+    reviews: {},
     lists: [],
     labels: [],
     colors: {},
@@ -266,7 +281,10 @@ export function createFakePortal(
         return clone({
           client,
           state: fake.state,
-          cards: { todo: cards.filter((c) => c.state === "todo"), doing: cards.filter((c) => c.state === "doing") },
+          cards: {
+            todo: cards.filter((c) => c.state === "todo").map((c) => ({ ...c, review: reviewOf(c) })),
+            doing: cards.filter((c) => c.state === "doing").map((c) => ({ ...c, review: reviewOf(c) })),
+          },
           items: {
             approval: at("approval"),
             adjusting: at("adjusting"),
@@ -402,6 +420,7 @@ export function createFakePortal(
               late: Boolean(card.produceOn && card.produceOn < fake.day && open),
               note: card.stage === "adjusting" ? (item?.lastNote?.text ?? null) : null,
               link: card.link,
+              review: card.review,
               updatedAt: card.updatedAt,
             },
           ];

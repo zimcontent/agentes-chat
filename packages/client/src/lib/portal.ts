@@ -3,6 +3,7 @@ import { ApiError } from "../api/http";
 import type {
   PlanCard,
   PortalCard,
+  PortalCardReview,
   PortalClientColor,
   PortalClientSummary,
   PortalColumn,
@@ -174,6 +175,17 @@ export type PortalSendProblem = "noFiles" | "tooMany" | "reelOneVideo" | "notMed
  * Why these files can't go as this type, before the server is asked: a reel is exactly one video (its cover goes
  * apart, an image), everything else is pictures and videos. Read from each file's name, as the Drive lists them.
  */
+/**
+ * The type a card's send starts on: its own, except a card left at the default (`image`) that holds one video, the
+ * approved video Review put on it (doug-0019 §4), which goes up as a reel.
+ */
+export function portalSendType(card: Pick<PortalCard, "type" | "files"> | null): PortalType {
+  if (!card) return "reel";
+  const [only, ...more] = card.files;
+  if (card.type === "image" && only && more.length === 0 && previewKindOfName(only.name) === "video") return "reel";
+  return card.type;
+}
+
 export function portalSendProblem(
   type: PortalType,
   files: readonly { name: string }[],
@@ -476,14 +488,23 @@ export const PORTAL_PIPELINE_STAGES = PORTAL_BOARD_COLUMNS;
 export const PORTAL_FOCI = ["you", "making", "client", "schedule"] as const;
 export type PortalFocus = (typeof PORTAL_FOCI)[number];
 
-export const pipelineFocusHas = (focus: PortalFocus, entry: Pick<PortalPipelineEntry, "stage" | "late">) =>
+/**
+ * A card the team approved in Review that hasn't gone up yet (ADR 9001, addendum 2026-11-18): it sits under Approved,
+ * and what it waits on is a person of the team sending it for the client's approval, not a date.
+ */
+export const portalReadyToSend = (entry: { stage: PortalColumn; review?: PortalCardReview | null }) =>
+  entry.stage === "approved" && entry.review?.status === "approved";
+
+type FocusEntry = Pick<PortalPipelineEntry, "stage" | "late"> & { review?: PortalCardReview | null };
+
+export const pipelineFocusHas = (focus: PortalFocus, entry: FocusEntry) =>
   focus === "you"
-    ? entry.stage === "adjusting" || entry.late
+    ? entry.stage === "adjusting" || entry.late || portalReadyToSend(entry)
     : focus === "making"
       ? entry.stage === "todo" || entry.stage === "doing"
       : focus === "client"
         ? entry.stage === "approval"
-        : entry.stage === "approved";
+        : entry.stage === "approved" && !portalReadyToSend(entry);
 
 /** The tiles' numbers, with what each one's line of context says. */
 export function pipelineTiles(entries: readonly PortalPipelineEntry[]) {
@@ -522,18 +543,19 @@ export const filterPipeline = (entries: readonly PortalPipelineEntry[], filter: 
  * what is scheduled (`clear`); `idle` for a client with nothing open.
  */
 export type PortalClientStatus =
-  | { kind: "adjusting" | "late" | "schedule" | "client"; count: number }
+  | { kind: "adjusting" | "late" | "send" | "schedule" | "client"; count: number }
   | { kind: "making" | "clear" | "idle" };
 
-export function pipelineClientStatus(
-  entries: readonly Pick<PortalPipelineEntry, "stage" | "late">[],
-): PortalClientStatus {
+export function pipelineClientStatus(entries: readonly FocusEntry[]): PortalClientStatus {
   if (entries.length === 0) return { kind: "idle" };
-  const count = (keep: (e: Pick<PortalPipelineEntry, "stage" | "late">) => boolean) => entries.filter(keep).length;
+  const count = (keep: (e: FocusEntry) => boolean) => entries.filter(keep).length;
   const adjusting = count((e) => e.stage === "adjusting");
   if (adjusting > 0) return { kind: "adjusting", count: adjusting };
   const late = count((e) => e.late);
   if (late > 0) return { kind: "late", count: late };
+  // Approved by the team and not sent yet: it waits on the team, before anything waits on a date.
+  const send = count(portalReadyToSend);
+  if (send > 0) return { kind: "send", count: send };
   const schedule = count((e) => e.stage === "approved");
   if (schedule > 0) return { kind: "schedule", count: schedule };
   const client = count((e) => e.stage === "approval");
@@ -542,7 +564,8 @@ export function pipelineClientStatus(
 }
 
 /** Whether a client's status waits on the team: what the overview marks, and lists first. */
-export const portalStatusWaits = (status: PortalClientStatus) => status.kind === "adjusting" || status.kind === "late";
+export const portalStatusWaits = (status: PortalClientStatus) =>
+  status.kind === "adjusting" || status.kind === "late" || status.kind === "send";
 
 /** One stop of a client's line: a stage of the pipeline and how many of the client's open work sit at it. */
 export interface PortalStep {

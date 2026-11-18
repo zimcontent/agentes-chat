@@ -11,6 +11,7 @@ import {
 } from "@agenteschat/adapters";
 import type { Database } from "@agenteschat/db";
 import { type PortalColumn, portalColumnOf } from "./approval-portal";
+import type { CardReview } from "./approval-portal-reviews";
 import { ValidationError } from "./errors";
 import { listMembers } from "./organizations";
 import { personBehindCall } from "./requester";
@@ -31,7 +32,13 @@ export interface PlanCard extends PortalCard {
   postOn: string | null;
   /** The post at the portal, once it was sent. */
   link: string | null;
+  /** What the team decided in Review, while the post isn't with the client yet (`approval-portal-reviews.ts`). */
+  review: CardReview | null;
 }
+
+/** Each card's review in Review, by card id: `cardReviews` bound to a workspace (none: no review is read). */
+export type ReviewsOf = (cards: PortalCard[]) => Promise<Map<string, CardReview>>;
+const noReviews: ReviewsOf = async () => new Map();
 
 export interface PortalPlan {
   client: string;
@@ -44,30 +51,55 @@ export interface PortalPlan {
   labels: PortalLabel[];
 }
 
-export const planCard = (card: PortalCard, items: Map<string, PortalItem>): PlanCard => {
+/**
+ * Where a card's post is. Sent: the portal's stage (one the portal no longer lists still reads as sent: it waits
+ * there). Finished outside the portal: out, history in its list. Not sent yet: the team's review says it when there is
+ * one (ADR 9001, addendum 2026-11-18): approved by the team, it is `approved`, ready to go up; in Review or sent back,
+ * it is being made. Else the card's own stage.
+ */
+export function cardStage(card: PortalCard, item: PortalItem | undefined, review: CardReview | null = null) {
+  if (item) return portalColumnOf(item);
+  if (card.item) return "approval";
+  if (card.done) return "posted";
+  if (review?.status === "approved") return "approved";
+  if (review) return "doing";
+  return card.state;
+}
+
+export const planCard = (
+  card: PortalCard,
+  items: Map<string, PortalItem>,
+  review: CardReview | null = null,
+): PlanCard => {
   const item = card.item ? items.get(card.item) : undefined;
+  const own = card.item || card.done || card.material ? null : review;
   return {
     ...card,
-    // A sent card whose post the portal no longer lists still reads as sent: it waits there.
-    // A card finished outside the portal reads as out: history in its list, nothing left to make.
-    stage: item ? portalColumnOf(item) : card.item ? "approval" : card.done ? "posted" : card.state,
+    stage: cardStage(card, item, own),
     postOn: item?.scheduledFor ?? card.date,
     link: item?.link ?? null,
+    review: own,
   };
 };
 
-const byOrder = (a: PortalCard, b: PortalCard) => a.order - b.order || a.createdAt - b.createdAt;
+const byOrder = (a: Pick<PortalCard, "order" | "createdAt">, b: Pick<PortalCard, "order" | "createdAt">) =>
+  a.order - b.order || a.createdAt - b.createdAt;
 
-export async function portalPlan(portal: ApprovalPortal, client: string): Promise<PortalPlan> {
+export async function portalPlan(
+  portal: ApprovalPortal,
+  client: string,
+  reviewsOf: ReviewsOf = noReviews,
+): Promise<PortalPlan> {
   const [items, cards, lists, labels] = await Promise.all([
     portal.items(),
     portal.cards(client),
     portal.lists(client),
     portal.labels(),
   ]);
+  const reviews = await reviewsOf(cards);
   const mine = new Map(items.filter((item) => item.client === client).map((item) => [item.id, item]));
   const known = new Set(lists.map((list) => list.id));
-  const sorted = [...cards].sort(byOrder).map((card) => planCard(card, mine));
+  const sorted = [...cards].sort(byOrder).map((card) => planCard(card, mine, reviews.get(card.id) ?? null));
   const carded = new Set(cards.map((card) => card.item).filter(Boolean));
   return {
     client,
@@ -79,7 +111,11 @@ export async function portalPlan(portal: ApprovalPortal, client: string): Promis
   };
 }
 
-/** A member's work, for their Home: what they are on that isn't out yet, by production date. */
+/**
+ * A member's work, for their Home: what they are on that the team still has to make, by production date and, within
+ * a day, in the schedule's own order (the client's lists as the team ordered them, then the cards in each), so the
+ * person gets the work in the order it was planned, never in the order the cards were made.
+ */
 export interface MyPortalWork {
   /** The portal's own day (`YYYY-MM-DD`), the one "today" is read against. */
   today: string;
@@ -103,27 +139,62 @@ export async function myPortalWork(
   member: string,
   now = new Date(),
   timeZone = "America/Sao_Paulo",
+  reviewsOf: ReviewsOf = noReviews,
 ): Promise<MyPortalWork> {
-  const [items, cards] = await Promise.all([portal.items(), portal.cards()]);
+  const [items, all] = await Promise.all([portal.items(), portal.cards()]);
+  const cards = all.filter((card) => card.members.includes(member) && !card.material);
+  const [reviews, place] = await Promise.all([reviewsOf(cards), schedulePlace(portal, cards)]);
   const byKey = new Map(items.map((item) => [`${item.client}/${item.id}`, item]));
   const today = portalDay(now, timeZone);
   const work: MyPortalWork = { today, late: [], today_: [], next: [], undated: [] };
   for (const card of cards) {
-    if (!card.members.includes(member) || card.material) continue;
     const item = card.item ? byKey.get(`${card.client}/${card.item}`) : undefined;
-    const plan = planCard(card, new Map(item ? [[item.id, item]] : []));
+    const plan = planCard(card, new Map(item ? [[item.id, item]] : []), reviews.get(card.id) ?? null);
+    // Approved by the team, it waits on whoever sends it, not on the person who made it.
     if (!OPEN_STAGES.includes(plan.stage)) continue;
     if (!card.produceOn) work.undated.push(plan);
     else if (card.produceOn < today) work.late.push(plan);
     else if (card.produceOn === today) work.today_.push(plan);
     else work.next.push(plan);
   }
-  const byDay = (a: PlanCard, b: PlanCard) => (a.produceOn ?? "").localeCompare(b.produceOn ?? "") || byOrder(a, b);
-  work.late.sort(byDay);
-  work.today_.sort(byOrder);
-  work.next.sort(byDay);
-  work.undated.sort(byOrder);
+  const bySchedule = (a: PlanCard, b: PlanCard) =>
+    (a.produceOn ?? "9999").localeCompare(b.produceOn ?? "9999") ||
+    place(a) - place(b) ||
+    a.client.localeCompare(b.client) ||
+    byOrder(a, b);
+  for (const bucket of [work.late, work.today_, work.next, work.undated]) bucket.sort(bySchedule);
   return work;
+}
+
+/**
+ * A card's place in its client's schedule, as one number that sorts: its list's position among the client's lists
+ * (times 10 000), then its place among the given cards of that list, in the list's own order. Cards of different
+ * clients compare by the same rule, so two clients' first weeks come before either's second. A card in no list (or
+ * one the client no longer has) comes after the listed ones.
+ */
+export async function schedulePlace(
+  portal: ApprovalPortal,
+  cards: Pick<PortalCard, "id" | "client" | "list" | "order" | "createdAt">[],
+): Promise<(card: Pick<PortalCard, "id">) => number> {
+  const clients = [...new Set(cards.map((card) => card.client))];
+  const lists = await Promise.all(clients.map((client) => portal.lists(client).catch(() => [] as PortalList[])));
+  const listAt = new Map<string, number>();
+  clients.forEach((client, i) => {
+    for (const [at, list] of (lists[i] ?? []).entries()) listAt.set(`${client}/${list.id}`, at);
+  });
+  const groups = new Map<string, typeof cards>();
+  for (const card of cards) {
+    const key = `${card.client}/${card.list ?? ""}`;
+    groups.set(key, [...(groups.get(key) ?? []), card]);
+  }
+  const place = new Map<string, number>();
+  for (const [key, group] of groups) {
+    const list = Math.min(listAt.get(key) ?? 9_999, 9_999);
+    for (const [at, card] of [...group].sort(byOrder).entries()) {
+      place.set(card.id, list * 10_000 + Math.min(at, 9_999));
+    }
+  }
+  return (card) => place.get(card.id) ?? 99_999_999;
 }
 
 // ---------- names for agents: a list, labels and members are said by name ----------
@@ -299,6 +370,8 @@ export interface PipelineEntry {
   /** The client's last words on it, when it waits on an adjustment. */
   note: string | null;
   link: string | null;
+  /** The team's review of a card not sent yet: `approved` in the `approved` stage is one ready to go up. */
+  review: CardReview | null;
   updatedAt: number;
 }
 
@@ -310,8 +383,10 @@ export async function portalPipeline(
   portal: ApprovalPortal,
   now = new Date(),
   timeZone = "America/Sao_Paulo",
+  reviewsOf: ReviewsOf = noReviews,
 ): Promise<{ day: string; state: PortalState; entries: PipelineEntry[] }> {
   const [items, cards] = await Promise.all([portal.items(), portal.cards()]);
+  const reviews = await reviewsOf(cards);
   const day = portalDay(now, timeZone);
   const byKey = new Map(items.map((item) => [`${item.client}/${item.id}`, item]));
   const carded = new Set<string>();
@@ -319,7 +394,7 @@ export async function portalPipeline(
   for (const card of cards) {
     const item = card.item ? byKey.get(`${card.client}/${card.item}`) : undefined;
     if (item) carded.add(`${item.client}/${item.id}`);
-    const plan = planCard(card, new Map(item ? [[item.id, item]] : []));
+    const plan = planCard(card, new Map(item ? [[item.id, item]] : []), reviews.get(card.id) ?? null);
     if (plan.stage === "posted" || card.material) continue;
     entries.push({
       client: card.client,
@@ -334,6 +409,7 @@ export async function portalPipeline(
       late: Boolean(card.produceOn && card.produceOn < day && OPEN_STAGES.includes(plan.stage)),
       note: plan.stage === "adjusting" ? (item?.lastNote?.text ?? null) : null,
       link: plan.link,
+      review: plan.review,
       updatedAt: card.updatedAt,
     });
   }
@@ -353,6 +429,7 @@ export async function portalPipeline(
       late: false,
       note: stage === "adjusting" ? (item.lastNote?.text ?? null) : null,
       link: item.link,
+      review: null,
       updatedAt: item.updatedAt ? Date.parse(item.updatedAt) || 0 : 0,
     });
   }
