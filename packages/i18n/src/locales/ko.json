@@ -16499,6 +16499,14 @@
         "credential": "AI 키",
         "vault": "Vault",
         "other": "워크스페이스"
+      },
+      "portalClient": {
+        "renamed": "포털에서 고객 {{client}}의 이름을 바꿨습니다",
+        "hidden": "포털에서 고객 {{client}}을(를) 목록에서 숨겼습니다",
+        "shown": "포털에서 고객 {{client}}을(를) 다시 표시했습니다",
+        "color": "포털에서 고객 {{client}}의 색을 바꿨습니다",
+        "logo": "포털에서 고객 {{client}}의 로고를 바꿨습니다",
+        "logoRemoved": "포털에서 고객 {{client}}의 로고를 지웠습니다"
       }
     },
     "panel": {
@@ -16579,7 +16587,8 @@
       "about": "DougBot 정보",
       "generalPersonal": "나에 대해",
       "keysPersonal": "AI와 앱",
-      "membersPersonal": "사람"
+      "membersPersonal": "사람",
+      "portal": "포털 고객"
     },
     "advanced": "고급",
     "tab": {
@@ -16614,7 +16623,8 @@
       "usagePersonal": "에이전트가 쓰는 AI의 양과 내 요금제예요.",
       "connectorsPersonal": "내 앱과 MCP 서버를 한 번 연결해 에이전트가 쓰게 해요.",
       "membersPersonal": "여기에 함께 있는 사람이에요.",
-      "rolesPersonal": "여기 있는 사람마다 할 수 있는 일. 소유자는 모든 걸 할 수 있어요."
+      "rolesPersonal": "여기 있는 사람마다 할 수 있는 일. 소유자는 모든 걸 할 수 있어요.",
+      "portal": "게시물을 승인하는 고객과 각자가 여는 링크."
     },
     "support": {
       "title": "지원팀에 연락",
@@ -20688,6 +20698,19 @@
       "empty": "Drive에 업로드된 파일이 없어요.",
       "more": "더 보기",
       "add_other": "파일 {{count}}개 추가"
+    },
+    "clientEdit": {
+      "rename": "고객 이름 바꾸기",
+      "renameTitle": "고객 이름 바꾸기",
+      "renameHelp": "팀이 어디서나 보는 이름이에요. 비워 두면 “{{id}}”(으)로 돌아가요.",
+      "name": "이름",
+      "renamed": "이름을 저장했어요",
+      "hide": "고객 삭제",
+      "hideTitle": "“{{name}}”을(를) 삭제할까요?",
+      "hideText": "여기의 모든 목록과 집계에서 빠져요. 게시물과 카드는 포털에 그대로 남고, ‘숨긴 고객’에서 다시 되돌릴 수 있어요.",
+      "hidden": "“{{name}}”을(를) 삭제했어요",
+      "hiddenTitle": "숨긴 고객",
+      "show": "다시 표시"
     }
   },
   "dougTeam": {

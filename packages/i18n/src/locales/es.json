@@ -17562,6 +17562,14 @@
         "credential": "una clave de IA",
         "vault": "el Vault",
         "other": "el espacio de trabajo"
+      },
+      "portalClient": {
+        "renamed": "Renombró al cliente {{client}} en el portal",
+        "hidden": "Quitó al cliente {{client}} de las listas del portal",
+        "shown": "Volvió a mostrar al cliente {{client}} en el portal",
+        "color": "Cambió el color del cliente {{client}} en el portal",
+        "logo": "Cambió el logo del cliente {{client}} en el portal",
+        "logoRemoved": "Quitó el logo del cliente {{client}} en el portal"
       }
     },
     "panel": {
@@ -17642,7 +17650,8 @@
       "about": "Acerca de DougBot",
       "generalPersonal": "Sobre ti",
       "keysPersonal": "IA y apps",
-      "membersPersonal": "Personas"
+      "membersPersonal": "Personas",
+      "portal": "Clientes del portal"
     },
     "advanced": "Avanzado",
     "tab": {
@@ -17677,7 +17686,8 @@
       "usagePersonal": "Cuánta IA usan tus agentes, y tu plan.",
       "connectorsPersonal": "Tus apps y servidores MCP, conectados una vez para tus agentes.",
       "membersPersonal": "Quién está aquí contigo.",
-      "rolesPersonal": "Lo que cada persona de aquí puede hacer. Quien es propietario puede hacerlo todo."
+      "rolesPersonal": "Lo que cada persona de aquí puede hacer. Quien es propietario puede hacerlo todo.",
+      "portal": "Los clientes que aprueban tus publicaciones, y el enlace que abre cada uno."
     },
     "support": {
       "title": "Contactar al soporte",
@@ -21956,6 +21966,19 @@
       "add_one": "Agregar {{count}} archivo",
       "add_many": "Agregar {{count}} archivos",
       "add_other": "Agregar {{count}} archivos"
+    },
+    "clientEdit": {
+      "rename": "Renombrar cliente",
+      "renameTitle": "Renombrar cliente",
+      "renameHelp": "El nombre que tu equipo ve en todas partes. Déjalo vacío para volver a «{{id}}».",
+      "name": "Nombre",
+      "renamed": "Nombre guardado",
+      "hide": "Quitar cliente",
+      "hideTitle": "¿Quitar a «{{name}}»?",
+      "hideText": "Sale de todas las listas y recuentos de aquí. Sus publicaciones y tarjetas siguen en el portal, y puedes traerlo de vuelta desde Clientes ocultos.",
+      "hidden": "«{{name}}» quitado",
+      "hiddenTitle": "Clientes ocultos",
+      "show": "Mostrar de nuevo"
     }
   },
   "dougTeam": {

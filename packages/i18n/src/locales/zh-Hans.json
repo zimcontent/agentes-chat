@@ -16571,6 +16571,14 @@
         "credential": "一个 AI 密钥",
         "vault": "Vault",
         "other": "工作区"
+      },
+      "portalClient": {
+        "renamed": "在门户中重命名了客户 {{client}}",
+        "hidden": "在门户中把客户 {{client}} 从列表中隐藏了",
+        "shown": "在门户中重新显示了客户 {{client}}",
+        "color": "在门户中更改了客户 {{client}} 的颜色",
+        "logo": "在门户中更改了客户 {{client}} 的标志",
+        "logoRemoved": "在门户中移除了客户 {{client}} 的标志"
       }
     },
     "panel": {
@@ -16651,7 +16659,8 @@
       "about": "关于 DougBot",
       "generalPersonal": "关于你",
       "keysPersonal": "AI 和应用",
-      "membersPersonal": "成员"
+      "membersPersonal": "成员",
+      "portal": "门户客户"
     },
     "advanced": "高级",
     "tab": {
@@ -16686,7 +16695,8 @@
       "usagePersonal": "你的智能体用了多少 AI，以及你的套餐。",
       "connectorsPersonal": "你的应用和 MCP 服务器，连接一次即可供智能体使用。",
       "membersPersonal": "谁和你一起在这里。",
-      "rolesPersonal": "这里每个人可以做什么。所有者可以做任何事。"
+      "rolesPersonal": "这里每个人可以做什么。所有者可以做任何事。",
+      "portal": "审批你帖子的客户，以及各自打开的链接。"
     },
     "support": {
       "title": "联系支持",
@@ -20875,6 +20885,19 @@
       "empty": "Drive 中没有已上传的文件。",
       "more": "显示更多",
       "add_other": "添加 {{count}} 个文件"
+    },
+    "clientEdit": {
+      "rename": "重命名客户",
+      "renameTitle": "重命名客户",
+      "renameHelp": "你的团队在各处看到的名称。留空会回到“{{id}}”。",
+      "name": "名称",
+      "renamed": "名称已保存",
+      "hide": "移除客户",
+      "hideTitle": "移除“{{name}}”？",
+      "hideText": "它会从这里的所有列表和计数中消失。它的帖子和卡片仍留在门户中，你可以从“隐藏的客户”中把它找回来。",
+      "hidden": "已移除“{{name}}”",
+      "hiddenTitle": "隐藏的客户",
+      "show": "重新显示"
     }
   },
   "dougTeam": {

@@ -17645,6 +17645,14 @@
         "credential": "una chiave IA",
         "vault": "il Vault",
         "other": "lo spazio di lavoro"
+      },
+      "portalClient": {
+        "renamed": "Ha rinominato il cliente {{client}} nel portale",
+        "hidden": "Ha rimosso il cliente {{client}} dagli elenchi del portale",
+        "shown": "Ha mostrato di nuovo il cliente {{client}} nel portale",
+        "color": "Ha cambiato il colore del cliente {{client}} nel portale",
+        "logo": "Ha cambiato il logo del cliente {{client}} nel portale",
+        "logoRemoved": "Ha rimosso il logo del cliente {{client}} nel portale"
       }
     },
     "panel": {
@@ -17725,7 +17733,8 @@
       "about": "Informazioni su DougBot",
       "generalPersonal": "Su di te",
       "keysPersonal": "IA e app",
-      "membersPersonal": "Persone"
+      "membersPersonal": "Persone",
+      "portal": "Clienti del portale"
     },
     "advanced": "Avanzate",
     "tab": {
@@ -17760,7 +17769,8 @@
       "usagePersonal": "Quanta IA usano i tuoi agenti, e il tuo piano.",
       "connectorsPersonal": "Le tue app e i server MCP, collegati una volta per i tuoi agenti.",
       "membersPersonal": "Chi è qui con te.",
-      "rolesPersonal": "Cosa può fare ogni persona qui. Chi è proprietario può fare tutto."
+      "rolesPersonal": "Cosa può fare ogni persona qui. Chi è proprietario può fare tutto.",
+      "portal": "I clienti che approvano i tuoi post, e il link che ciascuno apre."
     },
     "support": {
       "title": "Contatta l'assistenza",
@@ -22106,6 +22116,19 @@
       "add_one": "Aggiungi {{count}} file",
       "add_many": "Aggiungi {{count}} file",
       "add_other": "Aggiungi {{count}} file"
+    },
+    "clientEdit": {
+      "rename": "Rinomina cliente",
+      "renameTitle": "Rinomina cliente",
+      "renameHelp": "Il nome che il tuo team vede ovunque. Lascialo vuoto per tornare a «{{id}}».",
+      "name": "Nome",
+      "renamed": "Nome salvato",
+      "hide": "Rimuovi cliente",
+      "hideTitle": "Rimuovere «{{name}}»?",
+      "hideText": "Esce da ogni elenco e conteggio qui. I suoi post e le sue schede restano nel portale, e puoi riportarlo da Clienti nascosti.",
+      "hidden": "«{{name}}» rimosso",
+      "hiddenTitle": "Clienti nascosti",
+      "show": "Mostra di nuovo"
     }
   },
   "dougTeam": {

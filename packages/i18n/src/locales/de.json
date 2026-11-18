@@ -17088,6 +17088,14 @@
         "credential": "KI-Schlüssel",
         "vault": "den Vault",
         "other": "Workspace"
+      },
+      "portalClient": {
+        "renamed": "Hat den Kunden {{client}} im Portal umbenannt",
+        "hidden": "Hat den Kunden {{client}} aus den Listen des Portals entfernt",
+        "shown": "Zeigt den Kunden {{client}} im Portal wieder",
+        "color": "Hat die Farbe des Kunden {{client}} im Portal geändert",
+        "logo": "Hat das Logo des Kunden {{client}} im Portal geändert",
+        "logoRemoved": "Hat das Logo des Kunden {{client}} im Portal entfernt"
       }
     },
     "panel": {
@@ -17168,7 +17176,8 @@
       "about": "Über DougBot",
       "generalPersonal": "Über dich",
       "keysPersonal": "KI und Apps",
-      "membersPersonal": "Personen"
+      "membersPersonal": "Personen",
+      "portal": "Portal-Kunden"
     },
     "advanced": "Erweitert",
     "tab": {
@@ -17203,7 +17212,8 @@
       "usagePersonal": "Wie viel KI deine Agenten nutzen, und dein Tarif.",
       "connectorsPersonal": "Deine Apps und MCP-Server, einmal für deine Agenten verbunden.",
       "membersPersonal": "Wer mit dir hier ist.",
-      "rolesPersonal": "Was jede Person hier tun kann. Inhaber können alles."
+      "rolesPersonal": "Was jede Person hier tun kann. Inhaber können alles.",
+      "portal": "Die Kunden, die deine Beiträge freigeben, und der Link, den jeder öffnet."
     },
     "support": {
       "title": "Support erreichen",
@@ -21357,6 +21367,19 @@
       "more": "Mehr anzeigen",
       "add_one": "{{count}} Datei hinzufügen",
       "add_other": "{{count}} Dateien hinzufügen"
+    },
+    "clientEdit": {
+      "rename": "Kunde umbenennen",
+      "renameTitle": "Kunde umbenennen",
+      "renameHelp": "Der Name, den dein Team überall sieht. Leer lassen, um zu „{{id}}“ zurückzukehren.",
+      "name": "Name",
+      "renamed": "Name gespeichert",
+      "hide": "Kunde entfernen",
+      "hideTitle": "„{{name}}“ entfernen?",
+      "hideText": "Er verlässt jede Liste und jede Zählung hier. Seine Beiträge und Karten bleiben im Portal, und du kannst ihn unter „Verborgene Kunden“ zurückholen.",
+      "hidden": "„{{name}}“ entfernt",
+      "hiddenTitle": "Verborgene Kunden",
+      "show": "Wieder anzeigen"
     }
   },
   "dougTeam": {

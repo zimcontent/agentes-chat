@@ -309,7 +309,6 @@
       "hosting.cloud.name",
       "shell.portal",
       "portal.title",
-      "portalClients.email",
       "portal.types.reel",
       "portal.types.story",
       "portal.types.carousel",
@@ -345,7 +344,8 @@
       "companies.page.whatsappExample",
       "companies.interests.design",
       "companies.interests.social",
-      "companies.list.whatsapp"
+      "companies.list.whatsapp",
+      "portalClients.email"
     ],
     "es": [
       "settings.support.whatsapp",
@@ -1096,8 +1096,6 @@
       "hosting.cloud.name",
       "shell.portal",
       "portal.title",
-      "portalClients.editTitle",
-      "portalClients.email",
       "portal.types.reel",
       "portal.types.story",
       "portal.types.carousel",
@@ -1142,7 +1140,9 @@
       "companies.list.status.deployed",
       "companies.list.whatsapp",
       "companies.list.notes",
-      "companies.list.clientCodePlaceholder"
+      "companies.list.clientCodePlaceholder",
+      "portalClients.editTitle",
+      "portalClients.email"
     ],
     "de": [
       "settings.section.support",
@@ -1612,9 +1612,7 @@
       "routines.setup.frameio.url",
       "hosting.cloud.name",
       "shell.portal",
-      "portal.clientEdit.name",
       "portal.title",
-      "portalClients.name",
       "portal.types.reel",
       "portal.types.story",
       "portal.types.carousel",
@@ -1662,7 +1660,9 @@
       "companies.interests.code",
       "companies.list.person",
       "companies.list.whatsapp",
-      "companies.list.clientCodePlaceholder"
+      "companies.list.clientCodePlaceholder",
+      "portal.clientEdit.name",
+      "portalClients.name"
     ],
     "it": [
       "settings.section.support",
@@ -2051,7 +2051,6 @@
       "hosting.cloud.name",
       "shell.portal",
       "portal.title",
-      "portalClients.email",
       "portal.types.reel",
       "portal.types.story",
       "portal.types.carousel",
@@ -2095,7 +2094,8 @@
       "companies.interests.social",
       "companies.list.email",
       "companies.list.whatsapp",
-      "companies.list.clientCodePlaceholder"
+      "companies.list.clientCodePlaceholder",
+      "portalClients.email"
     ],
     "nl": [
       "settings.section.support",
@@ -2720,7 +2720,6 @@
       "hosting.cloud.name",
       "shell.portal",
       "portal.title",
-      "portalClients.email",
       "portal.types.reel",
       "portal.types.story",
       "portal.types.carousel",
@@ -2762,7 +2761,8 @@
       "companies.interests.social",
       "companies.interests.code",
       "companies.list.whatsapp",
-      "companies.list.clientCodePlaceholder"
+      "companies.list.clientCodePlaceholder",
+      "portalClients.email"
     ],
     "ja": [
       "settings.support.whatsapp",
@@ -4318,7 +4318,6 @@
       "hosting.cloud.name",
       "shell.portal",
       "portal.title",
-      "portalClients.email",
       "portal.types.reel",
       "portal.types.story",
       "portal.types.carousel",
@@ -4355,7 +4354,8 @@
       "companies.page.whatsappExample",
       "companies.interests.design",
       "companies.list.whatsapp",
-      "companies.list.clientCodePlaceholder"
+      "companies.list.clientCodePlaceholder",
+      "portalClients.email"
     ],
     "ru": [
       "settings.support.whatsapp",
@@ -4564,55 +4564,18 @@
     ]
   },
   "mobile-base": {
-    "pt-BR": [
-      "push.ask.minutes"
-    ],
-    "es": [
-      "push.ask.minutes"
-    ],
-    "fr": [
-      "a11y.agent",
-      "a11y.agentPlain",
-      "push.ask.minutes"
-    ],
-    "de": [
-      "a11y.agentPlain",
-      "auth.connect.on",
-      "auth.server.line"
-    ],
-    "it": [
-      "auth.connect.on",
-      "auth.server.line",
-      "push.ask.minutes"
-    ],
-    "nl": [
-      "a11y.agent",
-      "a11y.agentPlain",
-      "auth.connect.on",
-      "auth.server.line",
-      "push.ask.minutes"
-    ],
-    "ja": [
-      "auth.server.placeholder"
-    ],
-    "ko": [
-      "auth.server.placeholder"
-    ],
-    "zh-Hans": [
-      "auth.server.placeholder"
-    ],
-    "id": [
-      "auth.connect.on",
-      "auth.server.line"
-    ],
-    "pl": [
-      "a11y.agent",
-      "a11y.agentPlain",
-      "push.ask.minutes"
-    ],
-    "ru": [
-      "auth.server.placeholder"
-    ]
+    "pt-BR": ["push.ask.minutes"],
+    "es": ["push.ask.minutes"],
+    "fr": ["a11y.agent", "a11y.agentPlain", "push.ask.minutes"],
+    "de": ["a11y.agentPlain", "auth.connect.on", "auth.server.line"],
+    "it": ["auth.connect.on", "auth.server.line", "push.ask.minutes"],
+    "nl": ["a11y.agent", "a11y.agentPlain", "auth.connect.on", "auth.server.line", "push.ask.minutes"],
+    "ja": ["auth.server.placeholder"],
+    "ko": ["auth.server.placeholder"],
+    "zh-Hans": ["auth.server.placeholder"],
+    "id": ["auth.connect.on", "auth.server.line"],
+    "pl": ["a11y.agent", "a11y.agentPlain", "push.ask.minutes"],
+    "ru": ["auth.server.placeholder"]
   },
   "mobile-features": {
     "pt-BR": [
