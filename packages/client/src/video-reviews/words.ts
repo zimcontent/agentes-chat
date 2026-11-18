@@ -178,9 +178,13 @@ const en = {
       saved: "Saved",
     },
     afterApprove: {
-      portal: (client: string) => `Approving sends it to ${client} to approve at the portal.`,
-      direct: (client: string) => `Approving is final for ${client}: it is scheduled on its card's day.`,
+      portal: (client: string) => `Approving sends it to ${client} to approve at the portal, with the caption.`,
+      direct: (client: string) =>
+        `Approving is final for ${client}: it goes up approved, with the caption, and the team schedules it.`,
     },
+    caption: "Caption",
+    captionPlaceholder: "The post's caption, with its hashtags",
+    approveWithCaption: "Approve and send with the caption",
     delivery: {
       sending: "Going up to the portal…",
       sent: "Sent to the client at the portal",
@@ -507,9 +511,12 @@ const ptBR: ReviewWords = {
       saved: "Salvo",
     },
     afterApprove: {
-      portal: (client) => `Ao aprovar, vai para ${client} aprovar no portal.`,
-      direct: (client) => `Ao aprovar, ${client} não aprova: já fica agendado na data do cartão.`,
+      portal: (client) => `Ao aprovar, sobe para ${client} aprovar no portal, junto com a legenda.`,
+      direct: (client) => `Ao aprovar, ${client} não aprova: sobe aprovado, com a legenda, e a equipe agenda.`,
     },
+    caption: "Legenda",
+    captionPlaceholder: "A legenda do post, com as hashtags",
+    approveWithCaption: "Aprovar e subir com a legenda",
     delivery: {
       sending: "Subindo ao portal…",
       sent: "Enviado ao cliente no portal",

@@ -180,9 +180,12 @@ const Post = z
 
 const Review = Summary.extend({
   portal: z
-    .object({ client: z.string(), afterApprove: z.enum(["portal", "direct"]) })
+    .object({ client: z.string(), afterApprove: z.enum(["portal", "direct"]), caption: z.string().optional() })
     .nullable()
-    .openapi({ description: "A design piece's client at the approval portal and what an approval does there." }),
+    .openapi({
+      description:
+        "A design piece's client at the approval portal and what an approval does there. `caption`: what goes up with the post (the card's, until approved).",
+    }),
   delivery: z
     .record(z.string(), z.unknown())
     .nullable()
@@ -557,6 +560,11 @@ export function videoReviewRoutes(deps: AppDeps) {
           z.object({
             decision: z.enum(["approve", "changes"]),
             message: z.string().max(REVIEW_NOTE_CHARS).optional(),
+            caption: z
+              .string()
+              .max(POST_CAPTION_CHARS)
+              .optional()
+              .openapi({ description: "A design piece's caption, sent to the portal with it on approval." }),
           }),
         ),
       },

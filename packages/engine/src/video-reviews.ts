@@ -14,8 +14,8 @@ import {
 import { and, asc, type Database, desc, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
 import { type ArtifactActor, type ArtifactDeps, storedFileOfArtifact } from "./artifacts";
 import { requireChannelAccess } from "./channels";
-import { afterApproveOf, queueDesignDelivery } from "./design-delivery";
-import { decidePersonVideo } from "./editor-delivery";
+import { afterApproveOf, cardCaptionOf, queueDesignDelivery } from "./design-delivery";
+import { decidePersonVideo, POST_CAPTION_CHARS } from "./editor-delivery";
 import { ConflictError, NotFoundError, ValidationError } from "./errors";
 import { lightKey } from "./file-reader";
 import { postPersonMessage } from "./messages";
@@ -186,8 +186,11 @@ export interface VideoReviewSummary {
 }
 
 export interface VideoReviewView extends VideoReviewSummary {
-  /** A design piece's client at the approval portal, and what an approval means for it (doug-0010 §8). */
-  portal: { client: string; afterApprove: "portal" | "direct" } | null;
+  /**
+   * A design piece's client at the approval portal, and what an approval means for it (doug-0010 §8). `caption`: what
+   * goes up with the post, the one confirmed on approval or else its card's; known only before it went up.
+   */
+  portal: { client: string; afterApprove: "portal" | "direct"; caption?: string } | null;
   /** What happened at the portal after the approval; null: nothing yet. */
   delivery: Record<string, unknown> | null;
   /** A person's video: its post's cover and caption, each approved or not (doug-0012). */
@@ -761,7 +764,7 @@ async function decisionPlace(db: Database, userId: string, orgId: string, channe
 }
 
 export async function getVideoReview(
-  deps: Pick<VideoReviewDeps, "db" | "lightCopy">,
+  deps: Pick<VideoReviewDeps, "db" | "lightCopy" | "portal">,
   userId: string,
   orgId: string,
   reviewId: string,
@@ -837,6 +840,10 @@ export async function getVideoReview(
       ? {
           client: review.portalClient,
           afterApprove: portalSetting[0]?.afterApprove === "direct" ? "direct" : "portal",
+          // The caption that goes up with it, while it can still be changed: read from the card only then.
+          ...(review.status !== "approved" || !review.delivery
+            ? { caption: review.post?.caption || (await cardCaptionOf(deps.db, deps.portal, review)) }
+            : {}),
         }
       : null,
     delivery: review.delivery ?? null,
@@ -1182,7 +1189,7 @@ export async function decideVideoReview(
   userId: string,
   orgId: string,
   reviewId: string,
-  input: { decision: ReviewDecision; message?: string },
+  input: { decision: ReviewDecision; message?: string; caption?: string },
 ): Promise<VideoReviewSummary> {
   const review = await requireReview(deps.db, userId, orgId, reviewId);
   if (review.status === "approved" && input.decision === "approve") {
@@ -1311,7 +1318,12 @@ export async function decideVideoReview(
   );
   // An approved design piece goes to its client's portal by code (doug-0010 §8), after the message above.
   if (input.decision === "approve" && design?.portal?.delivered) {
-    await deps.db.update(videoReviews).set({ delivery: null }).where(eq(videoReviews.id, review.id));
+    // The caption the person confirmed beside "Aprovar" goes up with the slides (an empty one: the card's).
+    const caption = (input.caption ?? "").replace(/\r\n?/g, "\n").trim().slice(0, POST_CAPTION_CHARS);
+    await deps.db
+      .update(videoReviews)
+      .set({ delivery: null, post: { ...(review.post ?? {}), caption: caption || undefined } })
+      .where(eq(videoReviews.id, review.id));
     await queueDesignDelivery(deps.db, orgId, review.id, review.version);
   }
   if (input.decision === "approve") await putApprovedOnCard(deps, orgId, review.id, userId);

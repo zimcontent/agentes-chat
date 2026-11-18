@@ -2358,7 +2358,7 @@ export interface ApiClient {
     decide(
       orgId: string,
       reviewId: string,
-      input: { decision: VideoReviewDecision; message?: string },
+      input: { decision: VideoReviewDecision; message?: string; caption?: string },
     ): Promise<VideoReviewSummary>;
     /** A design version's slide, as a picture (`page` from 1). */
     pageUrl?(orgId: string, reviewId: string, version: number, page: number): string;
