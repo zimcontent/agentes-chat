@@ -146,7 +146,9 @@ export function LargeTitleScreen({
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{
             paddingTop: IOS ? 0 : headerHeight,
-            paddingBottom: bottomInset + (IOS ? 0 : footRoom),
+            // The web (the board) has no content inset: the room iOS gets from it goes in the padding, so the board's
+            // floating tab bar leaves the list's end in sight as the phone's does.
+            paddingBottom: bottomInset + (IOS ? 0 : footRoom) + (WEB ? safe.bottom + TAB_BAR : 0),
           }}
         >
           {/* The art reaches up behind the clear bar and the status bar on both platforms (no band above it). */}
@@ -192,6 +194,7 @@ export function LargeTitleScreen({
 }
 
 const IOS = Platform.OS === "ios";
+const WEB = Platform.OS === "web";
 /** Room for the system tab bar over the list's end (iOS; the floating bar and its margin), so the last row clears it. */
 const TAB_BAR = 76;
 
