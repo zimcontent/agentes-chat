@@ -8,6 +8,7 @@ import type {
   PortalColumn,
   PortalItem,
   PortalLabelColor,
+  PortalListKind,
   PortalMissing,
   PortalPipelineEntry,
   PortalPlan,
@@ -262,6 +263,28 @@ export function portalOrderAt(others: readonly { order: number }[], index: numbe
   if (after === undefined) return before + 1;
   return (before + after) / 2;
 }
+
+/**
+ * Where a card dropped on the other part's tab lands (ADR 9001 §20): at the end of that part's list named as the one it
+ * left (case and spaces aside), else of that part's first list. Null: that part has no list yet, and one is made.
+ */
+export function portalListAcross(
+  plan: Pick<PortalPlan, "lists">,
+  kind: PortalListKind,
+  fromList: string | null,
+): PortalPlan["lists"][number] | null {
+  const there = plan.lists.filter((l) => l.kind === kind);
+  const key = (name: string) => name.trim().toLocaleLowerCase();
+  const from = plan.lists.find((l) => l.id === fromList);
+  return (from && there.find((l) => key(l.name) === key(from.name))) ?? there[0] ?? null;
+}
+
+/** What the toast says after a card was dropped on the other part's tab: where it went. */
+export const portalMovedAcross = (t: TFunction, kind: PortalListKind, title: string, list: { name: string } | null) =>
+  t(kind === "materials" ? "portal.materials.cardToMaterials" : "portal.materials.cardToPlan", {
+    title,
+    list: list?.name ?? t("portal.plan.noList"),
+  });
 
 /** Every card of a schedule, the listed ones first. */
 export const planCards = (plan: Pick<PortalPlan, "lists" | "unlisted">): PlanCard[] => [

@@ -16403,6 +16403,14 @@
     "change": {
       "mergedWithoutAsking": "{{repo}}で確認なしでマージしました",
       "portalApprovedForClient": "ポータルでクライアントの代わりに「{{title}}」を承認しました",
+      "portalClient": {
+        "renamed": "ポータルで顧客 {{client}} の名前を変更しました",
+        "hidden": "ポータルで顧客 {{client}} を一覧から外しました",
+        "shown": "ポータルで顧客 {{client}} を再び表示しました",
+        "color": "ポータルで顧客 {{client}} の色を変更しました",
+        "logo": "ポータルで顧客 {{client}} のロゴを変更しました",
+        "logoRemoved": "ポータルで顧客 {{client}} のロゴを削除しました"
+      },
       "pattern": "{{verb}}: {{area}}",
       "approval": {
         "approved": "リクエストを承認",
@@ -16507,14 +16515,6 @@
         "credential": "AIキー",
         "vault": "Vault",
         "other": "ワークスペース"
-      },
-      "portalClient": {
-        "renamed": "ポータルで顧客 {{client}} の名前を変更しました",
-        "hidden": "ポータルで顧客 {{client}} を一覧から外しました",
-        "shown": "ポータルで顧客 {{client}} を再び表示しました",
-        "color": "ポータルで顧客 {{client}} の色を変更しました",
-        "logo": "ポータルで顧客 {{client}} のロゴを変更しました",
-        "logoRemoved": "ポータルで顧客 {{client}} のロゴを削除しました"
       }
     },
     "panel": {
@@ -16590,13 +16590,13 @@
       "voice": "音声",
       "apps": "AIアプリ",
       "approvals": "承認",
+      "portal": "ポータルのクライアント",
       "companies": "会社からの依頼",
       "support": "サポート",
       "about": "DougBot について",
       "generalPersonal": "あなたについて",
       "keysPersonal": "AIとアプリ",
-      "membersPersonal": "メンバー",
-      "portal": "ポータルのクライアント"
+      "membersPersonal": "メンバー"
     },
     "advanced": "詳細設定",
     "tab": {
@@ -16624,6 +16624,7 @@
       "voice": "会話でのボイスメッセージと、音声をテキストにするサービス。",
       "apps": "Claude、Cursor などのアプリからエージェントにタスクを頼めます。",
       "approvals": "エージェントがあなたの承認を求めたとき、代わりに決める人。",
+      "portal": "投稿を承認するクライアントと、それぞれが開くリンク。",
       "companies": "ページからDougBotを依頼した会社。",
       "support": "このシステムの運営者と、連絡の取り方。",
       "about": "開発元、ライセンス、ソースコードの場所。",
@@ -16631,8 +16632,7 @@
       "usagePersonal": "エージェントが使うAIの量と、あなたのプラン。",
       "connectorsPersonal": "あなたのアプリとMCPサーバー。一度接続すればエージェントが使えます。",
       "membersPersonal": "ここで一緒にいる人。",
-      "rolesPersonal": "ここで各メンバーができること。オーナーはすべてできます。",
-      "portal": "投稿を承認するクライアントと、それぞれが開くリンク。"
+      "rolesPersonal": "ここで各メンバーができること。オーナーはすべてできます。"
     },
     "support": {
       "title": "サポートに連絡",
@@ -20381,6 +20381,44 @@
       "spent": "今月 {{monthly}} クレジット中 {{spent}} を使用"
     }
   },
+  "portalClients": {
+    "title": "ポータルのクライアント",
+    "lead": "各クライアントはアカウントなしで、自分専用のリンクから投稿を承認します。投稿が待っていると、クライアントの連絡先にメールとWhatsAppで知らせます。",
+    "add": "クライアントを追加",
+    "addTitle": "新しいクライアント",
+    "edit": "編集",
+    "editTitle": "クライアント",
+    "remove": "削除",
+    "removeTitle": "このクライアントを削除しますか？",
+    "removeText": "リンクは使えなくなり、このクライアントの投稿はページから消えます。作業はボードに残ります。",
+    "loading": "読み込み中…",
+    "empty": "まだクライアントがいません。追加すると送れるリンクができます。",
+    "noContacts": "まだ連絡先がいません。投稿が待っていても誰にも知らせません。",
+    "id": "クライアントID（小文字、空白なし）",
+    "name": "名前",
+    "contactName": "連絡先の名前",
+    "email": "メール",
+    "whatsapp": "国番号つきのWhatsApp",
+    "addContact": "連絡先を追加",
+    "dropContact": "連絡先を削除",
+    "link": "クライアントのリンク",
+    "copy": "リンクをコピー",
+    "copied": "リンクをコピーしました",
+    "copyFailed": "リンクをコピーできませんでした",
+    "revoked": "リンクは無効にされました",
+    "linkStale": "このリンクは作り直しが必要です：送る用に新しいリンクを作ってください",
+    "noticesTitle": "WhatsApp でのお知らせ",
+    "noticesLead": "顧客の連絡先には必ずメールでお知らせします。WhatsApp はここで選んだ番号からだけ送られ、選ばなければ何も送られず、誰かの個人番号が使われることもありません。",
+    "noticesNumber": "お知らせする番号",
+    "noticesNone": "なし：メールのみ",
+    "noticesNoNumbers": "まだ番号が接続されていません。設定 › WhatsApp で接続すると、そちらでもお知らせできます。",
+    "locale": "{{language}}でお知らせ",
+    "localeLabel": "言語",
+    "localeHint": "この顧客の連絡先が受け取るメールとメッセージの言語です。名前から推測することはなく、ここで選ばなければチームの言語になります。",
+    "localeOwner": "チームの言語",
+    "newLink": "新しいリンク",
+    "revoke": "リンクを無効にする"
+  },
   "portal": {
     "title": "ポータル",
     "subtitle": "クライアントが承認するものを、クライアントごとに",
@@ -20452,6 +20490,19 @@
       "remove": "ロゴを削除",
       "saved": "ロゴを保存しました",
       "removed": "ロゴを削除しました"
+    },
+    "clientEdit": {
+      "rename": "顧客名を変更",
+      "renameTitle": "顧客名を変更",
+      "renameHelp": "チームのどこにでも表示される名前です。空にすると「{{id}}」に戻ります。",
+      "name": "名前",
+      "renamed": "名前を保存しました",
+      "hide": "顧客を削除",
+      "hideTitle": "「{{name}}」を削除しますか？",
+      "hideText": "ここでのすべての一覧と集計から外れます。投稿とカードはポータルに残り、「非表示の顧客」から戻せます。",
+      "hidden": "「{{name}}」を削除しました",
+      "hiddenTitle": "非表示の顧客",
+      "show": "再び表示"
     },
     "clientColor": {
       "label": "クライアントの色",
@@ -20545,7 +20596,10 @@
       "toMaterials": "クライアント資料に移動",
       "toPlan": "スケジュールに戻す",
       "movedToMaterials": "「{{name}}」をクライアント資料に移動しました。",
-      "movedToPlan": "「{{name}}」をスケジュールに戻しました。"
+      "movedToPlan": "「{{name}}」をスケジュールに戻しました。",
+      "cardToMaterials": "「{{title}}」をクライアント資料のリスト「{{list}}」に移動しました。",
+      "cardToPlan": "「{{title}}」をスケジュールのリスト「{{list}}」に戻しました。",
+      "newListName": "全般"
     },
     "plan": {
       "tab": "戦略スケジュール",
@@ -20706,19 +20760,6 @@
       "empty": "Driveにアップロードされたファイルはありません。",
       "more": "さらに表示",
       "add_other": "{{count}} 件のファイルを追加"
-    },
-    "clientEdit": {
-      "rename": "顧客名を変更",
-      "renameTitle": "顧客名を変更",
-      "renameHelp": "チームのどこにでも表示される名前です。空にすると「{{id}}」に戻ります。",
-      "name": "名前",
-      "renamed": "名前を保存しました",
-      "hide": "顧客を削除",
-      "hideTitle": "「{{name}}」を削除しますか？",
-      "hideText": "ここでのすべての一覧と集計から外れます。投稿とカードはポータルに残り、「非表示の顧客」から戻せます。",
-      "hidden": "「{{name}}」を削除しました",
-      "hiddenTitle": "非表示の顧客",
-      "show": "再び表示"
     }
   },
   "dougTeam": {
@@ -20837,43 +20878,5 @@
         "educativo": "教育的"
       }
     }
-  },
-  "portalClients": {
-    "title": "ポータルのクライアント",
-    "lead": "各クライアントはアカウントなしで、自分専用のリンクから投稿を承認します。投稿が待っていると、クライアントの連絡先にメールとWhatsAppで知らせます。",
-    "add": "クライアントを追加",
-    "addTitle": "新しいクライアント",
-    "edit": "編集",
-    "editTitle": "クライアント",
-    "remove": "削除",
-    "removeTitle": "このクライアントを削除しますか？",
-    "removeText": "リンクは使えなくなり、このクライアントの投稿はページから消えます。作業はボードに残ります。",
-    "loading": "読み込み中…",
-    "empty": "まだクライアントがいません。追加すると送れるリンクができます。",
-    "noContacts": "まだ連絡先がいません。投稿が待っていても誰にも知らせません。",
-    "id": "クライアントID（小文字、空白なし）",
-    "name": "名前",
-    "contactName": "連絡先の名前",
-    "email": "メール",
-    "whatsapp": "国番号つきのWhatsApp",
-    "addContact": "連絡先を追加",
-    "dropContact": "連絡先を削除",
-    "link": "クライアントのリンク",
-    "copy": "リンクをコピー",
-    "copied": "リンクをコピーしました",
-    "copyFailed": "リンクをコピーできませんでした",
-    "revoked": "リンクは無効にされました",
-    "linkStale": "このリンクは作り直しが必要です：送る用に新しいリンクを作ってください",
-    "noticesTitle": "WhatsApp でのお知らせ",
-    "noticesLead": "顧客の連絡先には必ずメールでお知らせします。WhatsApp はここで選んだ番号からだけ送られ、選ばなければ何も送られず、誰かの個人番号が使われることもありません。",
-    "noticesNumber": "お知らせする番号",
-    "noticesNone": "なし：メールのみ",
-    "noticesNoNumbers": "まだ番号が接続されていません。設定 › WhatsApp で接続すると、そちらでもお知らせできます。",
-    "locale": "{{language}}でお知らせ",
-    "localeLabel": "言語",
-    "localeHint": "この顧客の連絡先が受け取るメールとメッセージの言語です。名前から推測することはなく、ここで選ばなければチームの言語になります。",
-    "localeOwner": "チームの言語",
-    "newLink": "新しいリンク",
-    "revoke": "リンクを無効にする"
   }
 }

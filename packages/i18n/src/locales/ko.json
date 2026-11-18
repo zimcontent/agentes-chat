@@ -16395,6 +16395,14 @@
     "change": {
       "mergedWithoutAsking": "{{repo}}에서 묻지 않고 병합했어요",
       "portalApprovedForClient": "포털에서 클라이언트 대신 “{{title}}” 승인",
+      "portalClient": {
+        "renamed": "포털에서 고객 {{client}}의 이름을 바꿨습니다",
+        "hidden": "포털에서 고객 {{client}}을(를) 목록에서 숨겼습니다",
+        "shown": "포털에서 고객 {{client}}을(를) 다시 표시했습니다",
+        "color": "포털에서 고객 {{client}}의 색을 바꿨습니다",
+        "logo": "포털에서 고객 {{client}}의 로고를 바꿨습니다",
+        "logoRemoved": "포털에서 고객 {{client}}의 로고를 지웠습니다"
+      },
       "pattern": "{{area}} {{verb}}",
       "approval": {
         "approved": "요청을 승인했어요",
@@ -16499,14 +16507,6 @@
         "credential": "AI 키",
         "vault": "Vault",
         "other": "워크스페이스"
-      },
-      "portalClient": {
-        "renamed": "포털에서 고객 {{client}}의 이름을 바꿨습니다",
-        "hidden": "포털에서 고객 {{client}}을(를) 목록에서 숨겼습니다",
-        "shown": "포털에서 고객 {{client}}을(를) 다시 표시했습니다",
-        "color": "포털에서 고객 {{client}}의 색을 바꿨습니다",
-        "logo": "포털에서 고객 {{client}}의 로고를 바꿨습니다",
-        "logoRemoved": "포털에서 고객 {{client}}의 로고를 지웠습니다"
       }
     },
     "panel": {
@@ -16582,13 +16582,13 @@
       "voice": "음성",
       "apps": "AI 앱",
       "approvals": "승인",
+      "portal": "포털 고객",
       "companies": "회사 요청",
       "support": "지원",
       "about": "DougBot 정보",
       "generalPersonal": "나에 대해",
       "keysPersonal": "AI와 앱",
-      "membersPersonal": "사람",
-      "portal": "포털 고객"
+      "membersPersonal": "사람"
     },
     "advanced": "고급",
     "tab": {
@@ -16616,6 +16616,7 @@
       "voice": "대화의 음성 메시지와, 음성을 텍스트로 바꾸는 곳.",
       "apps": "Claude, Cursor 같은 앱에서 에이전트에게 작업을 맡겨요.",
       "approvals": "에이전트가 승인을 요청할 때 대신 결정하는 사람이에요.",
+      "portal": "게시물을 승인하는 고객과 각자가 여는 링크.",
       "companies": "페이지에서 DougBot을 요청한 회사입니다.",
       "support": "이 시스템을 운영하는 사람과 연락하는 방법.",
       "about": "만든 곳, 라이선스, 소스 코드 위치.",
@@ -16623,8 +16624,7 @@
       "usagePersonal": "에이전트가 쓰는 AI의 양과 내 요금제예요.",
       "connectorsPersonal": "내 앱과 MCP 서버를 한 번 연결해 에이전트가 쓰게 해요.",
       "membersPersonal": "여기에 함께 있는 사람이에요.",
-      "rolesPersonal": "여기 있는 사람마다 할 수 있는 일. 소유자는 모든 걸 할 수 있어요.",
-      "portal": "게시물을 승인하는 고객과 각자가 여는 링크."
+      "rolesPersonal": "여기 있는 사람마다 할 수 있는 일. 소유자는 모든 걸 할 수 있어요."
     },
     "support": {
       "title": "지원팀에 연락",
@@ -20373,6 +20373,44 @@
       "spent": "이번 달 {{monthly}} 크레딧 중 {{spent}} 사용"
     }
   },
+  "portalClients": {
+    "title": "포털 고객",
+    "lead": "각 고객은 계정 없이 자기 링크에서 게시물을 승인합니다. 게시물이 대기하면 고객의 연락처에 이메일과 WhatsApp으로 알립니다.",
+    "add": "고객 추가",
+    "addTitle": "새 고객",
+    "edit": "편집",
+    "editTitle": "고객",
+    "remove": "삭제",
+    "removeTitle": "이 고객을 삭제할까요?",
+    "removeText": "링크가 더 이상 작동하지 않고 이 고객의 게시물이 페이지에서 사라집니다. 작업은 보드에 남습니다.",
+    "loading": "불러오는 중…",
+    "empty": "아직 고객이 없습니다. 추가하면 보낼 링크가 생깁니다.",
+    "noContacts": "아직 연락처가 없습니다. 게시물이 기다려도 아무도 알림을 받지 않습니다.",
+    "id": "고객 ID (소문자, 공백 없음)",
+    "name": "이름",
+    "contactName": "연락처 이름",
+    "email": "이메일",
+    "whatsapp": "국가 코드가 포함된 WhatsApp",
+    "addContact": "연락처 추가",
+    "dropContact": "연락처 삭제",
+    "link": "고객 링크",
+    "copy": "링크 복사",
+    "copied": "링크를 복사했습니다",
+    "copyFailed": "링크를 복사하지 못했습니다",
+    "revoked": "링크가 해지되었습니다",
+    "linkStale": "이 링크는 다시 만들어야 해요: 보낼 새 링크를 만드세요",
+    "noticesTitle": "WhatsApp 알림",
+    "noticesLead": "고객의 연락처에는 항상 이메일로 알려요. WhatsApp은 여기서 고른 번호로만 나가고, 고른 번호가 없으면 WhatsApp으로는 아무것도 보내지 않으며, 누구의 개인 번호도 쓰지 않아요.",
+    "noticesNumber": "알림을 보내는 번호",
+    "noticesNone": "없음: 이메일만",
+    "noticesNoNumbers": "아직 연결된 번호가 없어요. 설정 › WhatsApp에서 연결하면 그쪽으로도 알릴 수 있어요.",
+    "locale": "{{language}}(으)로 알림",
+    "localeLabel": "언어",
+    "localeHint": "이 고객의 연락처가 받는 이메일과 메시지의 언어예요. 이름으로 짐작하지 않고, 여기서 고르지 않으면 팀의 언어를 써요.",
+    "localeOwner": "팀의 언어",
+    "newLink": "새 링크",
+    "revoke": "링크 해지"
+  },
   "portal": {
     "title": "포털",
     "subtitle": "클라이언트가 승인하는 것을 클라이언트별로",
@@ -20444,6 +20482,19 @@
       "remove": "로고 삭제",
       "saved": "로고를 저장했습니다",
       "removed": "로고를 삭제했습니다"
+    },
+    "clientEdit": {
+      "rename": "고객 이름 바꾸기",
+      "renameTitle": "고객 이름 바꾸기",
+      "renameHelp": "팀이 어디서나 보는 이름이에요. 비워 두면 “{{id}}”(으)로 돌아가요.",
+      "name": "이름",
+      "renamed": "이름을 저장했어요",
+      "hide": "고객 삭제",
+      "hideTitle": "“{{name}}”을(를) 삭제할까요?",
+      "hideText": "여기의 모든 목록과 집계에서 빠져요. 게시물과 카드는 포털에 그대로 남고, ‘숨긴 고객’에서 다시 되돌릴 수 있어요.",
+      "hidden": "“{{name}}”을(를) 삭제했어요",
+      "hiddenTitle": "숨긴 고객",
+      "show": "다시 표시"
     },
     "clientColor": {
       "label": "클라이언트 색상",
@@ -20537,7 +20588,10 @@
       "toMaterials": "클라이언트 자료로 이동",
       "toPlan": "일정으로 되돌리기",
       "movedToMaterials": "“{{name}}”을(를) 클라이언트 자료로 옮겼어요.",
-      "movedToPlan": "“{{name}}”이(가) 일정으로 돌아왔어요."
+      "movedToPlan": "“{{name}}”이(가) 일정으로 돌아왔어요.",
+      "cardToMaterials": "“{{title}}”을(를) 클라이언트 자료의 {{list}} 리스트로 옮겼어요.",
+      "cardToPlan": "“{{title}}”이(가) 일정의 {{list}} 리스트로 돌아왔어요.",
+      "newListName": "일반"
     },
     "plan": {
       "tab": "전략 일정",
@@ -20698,19 +20752,6 @@
       "empty": "Drive에 업로드된 파일이 없어요.",
       "more": "더 보기",
       "add_other": "파일 {{count}}개 추가"
-    },
-    "clientEdit": {
-      "rename": "고객 이름 바꾸기",
-      "renameTitle": "고객 이름 바꾸기",
-      "renameHelp": "팀이 어디서나 보는 이름이에요. 비워 두면 “{{id}}”(으)로 돌아가요.",
-      "name": "이름",
-      "renamed": "이름을 저장했어요",
-      "hide": "고객 삭제",
-      "hideTitle": "“{{name}}”을(를) 삭제할까요?",
-      "hideText": "여기의 모든 목록과 집계에서 빠져요. 게시물과 카드는 포털에 그대로 남고, ‘숨긴 고객’에서 다시 되돌릴 수 있어요.",
-      "hidden": "“{{name}}”을(를) 삭제했어요",
-      "hiddenTitle": "숨긴 고객",
-      "show": "다시 표시"
     }
   },
   "dougTeam": {
@@ -20829,43 +20870,5 @@
         "educativo": "교육적"
       }
     }
-  },
-  "portalClients": {
-    "title": "포털 고객",
-    "lead": "각 고객은 계정 없이 자기 링크에서 게시물을 승인합니다. 게시물이 대기하면 고객의 연락처에 이메일과 WhatsApp으로 알립니다.",
-    "add": "고객 추가",
-    "addTitle": "새 고객",
-    "edit": "편집",
-    "editTitle": "고객",
-    "remove": "삭제",
-    "removeTitle": "이 고객을 삭제할까요?",
-    "removeText": "링크가 더 이상 작동하지 않고 이 고객의 게시물이 페이지에서 사라집니다. 작업은 보드에 남습니다.",
-    "loading": "불러오는 중…",
-    "empty": "아직 고객이 없습니다. 추가하면 보낼 링크가 생깁니다.",
-    "noContacts": "아직 연락처가 없습니다. 게시물이 기다려도 아무도 알림을 받지 않습니다.",
-    "id": "고객 ID (소문자, 공백 없음)",
-    "name": "이름",
-    "contactName": "연락처 이름",
-    "email": "이메일",
-    "whatsapp": "국가 코드가 포함된 WhatsApp",
-    "addContact": "연락처 추가",
-    "dropContact": "연락처 삭제",
-    "link": "고객 링크",
-    "copy": "링크 복사",
-    "copied": "링크를 복사했습니다",
-    "copyFailed": "링크를 복사하지 못했습니다",
-    "revoked": "링크가 해지되었습니다",
-    "linkStale": "이 링크는 다시 만들어야 해요: 보낼 새 링크를 만드세요",
-    "noticesTitle": "WhatsApp 알림",
-    "noticesLead": "고객의 연락처에는 항상 이메일로 알려요. WhatsApp은 여기서 고른 번호로만 나가고, 고른 번호가 없으면 WhatsApp으로는 아무것도 보내지 않으며, 누구의 개인 번호도 쓰지 않아요.",
-    "noticesNumber": "알림을 보내는 번호",
-    "noticesNone": "없음: 이메일만",
-    "noticesNoNumbers": "아직 연결된 번호가 없어요. 설정 › WhatsApp에서 연결하면 그쪽으로도 알릴 수 있어요.",
-    "locale": "{{language}}(으)로 알림",
-    "localeLabel": "언어",
-    "localeHint": "이 고객의 연락처가 받는 이메일과 메시지의 언어예요. 이름으로 짐작하지 않고, 여기서 고르지 않으면 팀의 언어를 써요.",
-    "localeOwner": "팀의 언어",
-    "newLink": "새 링크",
-    "revoke": "링크 해지"
   }
 }

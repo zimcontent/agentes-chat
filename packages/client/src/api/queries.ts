@@ -48,7 +48,7 @@ import {
 } from "../lib/notifications";
 import { workspaceUsesApi } from "../lib/plan-usage";
 import { learnPlanModels } from "../lib/plans";
-import { movedInPlan, rememberPortalClientNames } from "../lib/portal";
+import { movedInPlan, portalListAcross, portalOrderAt, rememberPortalClientNames } from "../lib/portal";
 import { setMyReaction } from "../lib/reactions";
 import { recentConversations } from "../lib/recent";
 import { replyOf } from "../lib/reply";
@@ -7776,6 +7776,42 @@ export function useMovePortalCard(orgId: string, client: string) {
     onSettled: () => refreshPortal(qc, orgId),
   });
 }
+
+/**
+ * Moves a card to the other part of the client's page (ADR 9001 §20), dropped on that part's tab: to the end of the
+ * list there named as the one it left, else of the first list there. With no list there yet, the schedule takes it in
+ * no list, and the materials in a new list named `newList` (the portal answers a list of a name it has with that
+ * one, so a new one can't take the name of the list the card left). The schedule is read first, since the board that
+ * drops it may not show the other part. Answers the list it went to, null for none.
+ */
+export function useMovePortalCardAcross(orgId: string, client: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { cardId: string; kind: PortalListKind; newList: string }) => {
+      const portal = portalOf(api);
+      const plan = await qc.fetchQuery({
+        queryKey: keys.portalPlan(orgId, client),
+        queryFn: () => portal.plan(orgId, client),
+        staleTime: 5_000,
+      });
+      const found = portalListAcross(plan, input.kind, planListOf(plan, input.cardId));
+      const list =
+        found ?? (input.kind === "plan" ? null : await portal.createList(orgId, client, input.newList, input.kind));
+      const cards = (found ? found.cards : list ? [] : plan.unlisted).filter((c) => c.id !== input.cardId);
+      await portal.updateCard(orgId, input.cardId, {
+        list: list?.id ?? null,
+        order: portalOrderAt(cards, cards.length),
+      });
+      return list;
+    },
+    meta: { silent: true },
+    onSettled: () => refreshPortal(qc, orgId),
+  });
+}
+
+const planListOf = (plan: PortalPlan, cardId: string) =>
+  plan.lists.find((l) => l.cards.some((c) => c.id === cardId))?.id ?? null;
 
 /** Creates, renames, reorders or deletes a list of a client's schedule. */
 export function usePortalLists(orgId: string, client: string) {

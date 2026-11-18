@@ -16921,6 +16921,14 @@
     "change": {
       "mergedWithoutAsking": "{{repo}} içinde sormadan birleştirdi",
       "portalApprovedForClient": "Portalda “{{title}}” öğesini müşteri adına onayladı",
+      "portalClient": {
+        "renamed": "Portalda {{client}} müşterisini yeniden adlandırdı",
+        "hidden": "{{client}} müşterisini portalın listelerinden kaldırdı",
+        "shown": "{{client}} müşterisini portalda yeniden gösterdi",
+        "color": "Portalda {{client}} müşterisinin rengini değiştirdi",
+        "logo": "Portalda {{client}} müşterisinin logosunu değiştirdi",
+        "logoRemoved": "Portalda {{client}} müşterisinin logosunu kaldırdı"
+      },
       "pattern": "{{verb}}: {{area}}",
       "approval": {
         "approved": "Bir isteği onayladı",
@@ -17025,14 +17033,6 @@
         "credential": "bir yapay zeka anahtarı",
         "vault": "Vault",
         "other": "çalışma alanı"
-      },
-      "portalClient": {
-        "renamed": "Portalda {{client}} müşterisini yeniden adlandırdı",
-        "hidden": "{{client}} müşterisini portalın listelerinden kaldırdı",
-        "shown": "{{client}} müşterisini portalda yeniden gösterdi",
-        "color": "Portalda {{client}} müşterisinin rengini değiştirdi",
-        "logo": "Portalda {{client}} müşterisinin logosunu değiştirdi",
-        "logoRemoved": "Portalda {{client}} müşterisinin logosunu kaldırdı"
       }
     },
     "panel": {
@@ -17108,13 +17108,13 @@
       "voice": "Ses",
       "apps": "Yapay zeka uygulamaları",
       "approvals": "Onaylar",
+      "portal": "Portal müşterileri",
       "companies": "Şirket talepleri",
       "support": "Destek",
       "about": "DougBot hakkında",
       "generalPersonal": "Hakkınızda",
       "keysPersonal": "Yapay zeka ve uygulamalar",
-      "membersPersonal": "Kişiler",
-      "portal": "Portal müşterileri"
+      "membersPersonal": "Kişiler"
     },
     "advanced": "Gelişmiş",
     "tab": {
@@ -17142,6 +17142,7 @@
       "voice": "Konuşmalardaki sesli mesajlar ve sesi metne kimin dönüştürdüğü.",
       "apps": "Claude, Cursor ve diğer uygulamalardan ajanlara görev verin.",
       "approvals": "Bir ajan onayınızı istediğinde sizin yerinize kimin karar verdiği.",
+      "portal": "Gönderilerini onaylayan müşteriler ve her birinin açtığı bağlantı.",
       "companies": "Sayfadan DougBot isteyen şirketler.",
       "support": "Bu kurulumu yönetenler ve onlara nasıl ulaşılır.",
       "about": "Kimin yaptığı, lisansı ve kaynak kodunun yeri.",
@@ -17149,8 +17150,7 @@
       "usagePersonal": "Ajanlarınızın ne kadar yapay zeka kullandığı ve planınız.",
       "connectorsPersonal": "Uygulamalarınız ve MCP sunucularınız, ajanlarınız için bir kez bağlanır.",
       "membersPersonal": "Burada sizinle kimler var.",
-      "rolesPersonal": "Buradaki her kişinin neler yapabileceği. Sahip her şeyi yapabilir.",
-      "portal": "Gönderilerini onaylayan müşteriler ve her birinin açtığı bağlantı."
+      "rolesPersonal": "Buradaki her kişinin neler yapabileceği. Sahip her şeyi yapabilir."
     },
     "support": {
       "title": "Desteğe ulaş",
@@ -20962,6 +20962,44 @@
       "spent": "Bu ay {{monthly}} krediden {{spent}} kullanıldı"
     }
   },
+  "portalClients": {
+    "title": "Portal müşterileri",
+    "lead": "Her müşteri gönderilerini kendi bağlantısından onaylar, hesap gerekmez. Bir gönderi onları beklediğinde müşterinin kişileri e-posta ve WhatsApp ile bilgilendirilir.",
+    "add": "Müşteri ekle",
+    "addTitle": "Yeni müşteri",
+    "edit": "Düzenle",
+    "editTitle": "Müşteri",
+    "remove": "Kaldır",
+    "removeTitle": "Bu müşteri kaldırılsın mı?",
+    "removeText": "Bağlantısı çalışmayı bırakır ve gönderileri sayfasından çıkar. İş panoda kalır.",
+    "loading": "Yükleniyor…",
+    "empty": "Henüz müşteri yok. Gönderebileceğin bir bağlantı için bir tane ekle.",
+    "noContacts": "Henüz kişi yok: bir gönderi beklerken kimseye haber verilmez.",
+    "id": "Müşteri kimliği (küçük harf, boşluksuz)",
+    "name": "Ad",
+    "contactName": "Kişi adı",
+    "email": "E-posta",
+    "whatsapp": "Ülke kodlu WhatsApp",
+    "addContact": "Kişi ekle",
+    "dropContact": "Kişiyi kaldır",
+    "link": "Müşteri bağlantısı",
+    "copy": "Bağlantıyı kopyala",
+    "copied": "Bağlantı kopyalandı",
+    "copyFailed": "Bağlantı kopyalanamadı",
+    "revoked": "Bağlantı iptal edildi",
+    "linkStale": "Bu bağlantının yeniden yapılması gerekiyor: göndermek için yeni bir tane oluşturun",
+    "noticesTitle": "WhatsApp bildirimleri",
+    "noticesLead": "Bir müşterinin kişileri her zaman e-postayla haberdar edilir. WhatsApp yalnızca burada seçtiğiniz numaradan gider: hiçbiri seçilmemişse WhatsApp’tan hiçbir şey gönderilmez ve kimsenin kişisel numarası kullanılmaz.",
+    "noticesNumber": "Haberdar eden numara",
+    "noticesNone": "Yok: yalnızca e-posta",
+    "noticesNoNumbers": "Henüz bağlı numara yok. Ayarlar › WhatsApp bölümünden bir tane bağlayın, oradan da haberdar edin.",
+    "locale": "{{language}} bildirilir",
+    "localeLabel": "Dil",
+    "localeHint": "Bu müşterinin kişilerine giden e-posta ve mesajların dili. Bir addan asla tahmin edilmez; burada seçilmezse ekibinizin dili kullanılır.",
+    "localeOwner": "Ekibinizin dili",
+    "newLink": "Yeni bağlantı",
+    "revoke": "Bağlantıyı iptal et"
+  },
   "portal": {
     "title": "Portal",
     "subtitle": "Müşterilerinizin onayladıkları, müşteri bazında",
@@ -21038,6 +21076,19 @@
       "remove": "Logoyu kaldır",
       "saved": "Logo kaydedildi",
       "removed": "Logo kaldırıldı"
+    },
+    "clientEdit": {
+      "rename": "Müşteriyi yeniden adlandır",
+      "renameTitle": "Müşteriyi yeniden adlandır",
+      "renameHelp": "Ekibinizin her yerde gördüğü ad. “{{id}}” adına dönmek için boş bırakın.",
+      "name": "Ad",
+      "renamed": "Ad kaydedildi",
+      "hide": "Müşteriyi kaldır",
+      "hideTitle": "“{{name}}” kaldırılsın mı?",
+      "hideText": "Buradaki her listeden ve sayımdan çıkar. Gönderileri ve kartları portalda kalır ve Gizli müşteriler bölümünden geri getirebilirsiniz.",
+      "hidden": "“{{name}}” kaldırıldı",
+      "hiddenTitle": "Gizli müşteriler",
+      "show": "Yeniden göster"
     },
     "clientColor": {
       "label": "Müşterinin rengi",
@@ -21131,7 +21182,10 @@
       "toMaterials": "Müşteri materyallerine taşı",
       "toPlan": "Takvime geri al",
       "movedToMaterials": "“{{name}}” Müşteri materyallerine taşındı.",
-      "movedToPlan": "“{{name}}” takvime geri döndü."
+      "movedToPlan": "“{{name}}” takvime geri döndü.",
+      "cardToMaterials": "“{{title}}” Müşteri materyallerine, {{list}} listesine taşındı.",
+      "cardToPlan": "“{{title}}” takvime, {{list}} listesine geri döndü.",
+      "newListName": "Genel"
     },
     "plan": {
       "tab": "Stratejik takvim",
@@ -21298,19 +21352,6 @@
       "more": "Daha fazla göster",
       "add_one": "{{count}} dosya ekle",
       "add_other": "{{count}} dosya ekle"
-    },
-    "clientEdit": {
-      "rename": "Müşteriyi yeniden adlandır",
-      "renameTitle": "Müşteriyi yeniden adlandır",
-      "renameHelp": "Ekibinizin her yerde gördüğü ad. “{{id}}” adına dönmek için boş bırakın.",
-      "name": "Ad",
-      "renamed": "Ad kaydedildi",
-      "hide": "Müşteriyi kaldır",
-      "hideTitle": "“{{name}}” kaldırılsın mı?",
-      "hideText": "Buradaki her listeden ve sayımdan çıkar. Gönderileri ve kartları portalda kalır ve Gizli müşteriler bölümünden geri getirebilirsiniz.",
-      "hidden": "“{{name}}” kaldırıldı",
-      "hiddenTitle": "Gizli müşteriler",
-      "show": "Yeniden göster"
     }
   },
   "dougTeam": {
@@ -21429,43 +21470,5 @@
         "educativo": "Öğretici"
       }
     }
-  },
-  "portalClients": {
-    "title": "Portal müşterileri",
-    "lead": "Her müşteri gönderilerini kendi bağlantısından onaylar, hesap gerekmez. Bir gönderi onları beklediğinde müşterinin kişileri e-posta ve WhatsApp ile bilgilendirilir.",
-    "add": "Müşteri ekle",
-    "addTitle": "Yeni müşteri",
-    "edit": "Düzenle",
-    "editTitle": "Müşteri",
-    "remove": "Kaldır",
-    "removeTitle": "Bu müşteri kaldırılsın mı?",
-    "removeText": "Bağlantısı çalışmayı bırakır ve gönderileri sayfasından çıkar. İş panoda kalır.",
-    "loading": "Yükleniyor…",
-    "empty": "Henüz müşteri yok. Gönderebileceğin bir bağlantı için bir tane ekle.",
-    "noContacts": "Henüz kişi yok: bir gönderi beklerken kimseye haber verilmez.",
-    "id": "Müşteri kimliği (küçük harf, boşluksuz)",
-    "name": "Ad",
-    "contactName": "Kişi adı",
-    "email": "E-posta",
-    "whatsapp": "Ülke kodlu WhatsApp",
-    "addContact": "Kişi ekle",
-    "dropContact": "Kişiyi kaldır",
-    "link": "Müşteri bağlantısı",
-    "copy": "Bağlantıyı kopyala",
-    "copied": "Bağlantı kopyalandı",
-    "copyFailed": "Bağlantı kopyalanamadı",
-    "revoked": "Bağlantı iptal edildi",
-    "linkStale": "Bu bağlantının yeniden yapılması gerekiyor: göndermek için yeni bir tane oluşturun",
-    "noticesTitle": "WhatsApp bildirimleri",
-    "noticesLead": "Bir müşterinin kişileri her zaman e-postayla haberdar edilir. WhatsApp yalnızca burada seçtiğiniz numaradan gider: hiçbiri seçilmemişse WhatsApp’tan hiçbir şey gönderilmez ve kimsenin kişisel numarası kullanılmaz.",
-    "noticesNumber": "Haberdar eden numara",
-    "noticesNone": "Yok: yalnızca e-posta",
-    "noticesNoNumbers": "Henüz bağlı numara yok. Ayarlar › WhatsApp bölümünden bir tane bağlayın, oradan da haberdar edin.",
-    "locale": "{{language}} bildirilir",
-    "localeLabel": "Dil",
-    "localeHint": "Bu müşterinin kişilerine giden e-posta ve mesajların dili. Bir addan asla tahmin edilmez; burada seçilmezse ekibinizin dili kullanılır.",
-    "localeOwner": "Ekibinizin dili",
-    "newLink": "Yeni bağlantı",
-    "revoke": "Bağlantıyı iptal et"
   }
 }

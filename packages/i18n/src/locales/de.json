@@ -16984,6 +16984,14 @@
     "change": {
       "mergedWithoutAsking": "In {{repo}} ohne Nachfrage gemergt",
       "portalApprovedForClient": "„{{title}}“ im Portal für den Kunden freigegeben",
+      "portalClient": {
+        "renamed": "Hat den Kunden {{client}} im Portal umbenannt",
+        "hidden": "Hat den Kunden {{client}} aus den Listen des Portals entfernt",
+        "shown": "Zeigt den Kunden {{client}} im Portal wieder",
+        "color": "Hat die Farbe des Kunden {{client}} im Portal geändert",
+        "logo": "Hat das Logo des Kunden {{client}} im Portal geändert",
+        "logoRemoved": "Hat das Logo des Kunden {{client}} im Portal entfernt"
+      },
       "pattern": "{{verb}}: {{area}}",
       "approval": {
         "approved": "Hat eine Anfrage freigegeben",
@@ -17088,14 +17096,6 @@
         "credential": "KI-Schlüssel",
         "vault": "den Vault",
         "other": "Workspace"
-      },
-      "portalClient": {
-        "renamed": "Hat den Kunden {{client}} im Portal umbenannt",
-        "hidden": "Hat den Kunden {{client}} aus den Listen des Portals entfernt",
-        "shown": "Zeigt den Kunden {{client}} im Portal wieder",
-        "color": "Hat die Farbe des Kunden {{client}} im Portal geändert",
-        "logo": "Hat das Logo des Kunden {{client}} im Portal geändert",
-        "logoRemoved": "Hat das Logo des Kunden {{client}} im Portal entfernt"
       }
     },
     "panel": {
@@ -17171,13 +17171,13 @@
       "voice": "Sprachnachrichten",
       "apps": "KI-Apps",
       "approvals": "Freigaben",
+      "portal": "Portal-Kunden",
       "companies": "Unternehmensanfragen",
       "support": "Support",
       "about": "Über DougBot",
       "generalPersonal": "Über dich",
       "keysPersonal": "KI und Apps",
-      "membersPersonal": "Personen",
-      "portal": "Portal-Kunden"
+      "membersPersonal": "Personen"
     },
     "advanced": "Erweitert",
     "tab": {
@@ -17205,6 +17205,7 @@
       "voice": "Sprachnachrichten in Unterhaltungen und wer Sprache in Text umwandelt.",
       "apps": "Gib den Agenten Aufgaben aus Claude, Cursor und anderen Apps.",
       "approvals": "Wer für dich entscheidet, wenn ein Agent deine Freigabe braucht.",
+      "portal": "Die Kunden, die deine Beiträge freigeben, und der Link, den jeder öffnet.",
       "companies": "Unternehmen, die DougBot auf der Seite angefragt haben.",
       "support": "Wer diese Installation betreibt und wie man sie erreicht.",
       "about": "Wer es macht, seine Lizenz und wo sein Quellcode liegt.",
@@ -17212,8 +17213,7 @@
       "usagePersonal": "Wie viel KI deine Agenten nutzen, und dein Tarif.",
       "connectorsPersonal": "Deine Apps und MCP-Server, einmal für deine Agenten verbunden.",
       "membersPersonal": "Wer mit dir hier ist.",
-      "rolesPersonal": "Was jede Person hier tun kann. Inhaber können alles.",
-      "portal": "Die Kunden, die deine Beiträge freigeben, und der Link, den jeder öffnet."
+      "rolesPersonal": "Was jede Person hier tun kann. Inhaber können alles."
     },
     "support": {
       "title": "Support erreichen",
@@ -21031,6 +21031,44 @@
       "spent": "{{spent}} von {{monthly}} Credits in diesem Monat verbraucht"
     }
   },
+  "portalClients": {
+    "title": "Portal-Kunden",
+    "lead": "Jeder Kunde gibt deine Beiträge über einen eigenen Link frei, ohne Konto. Die Kontakte des Kunden werden per E-Mail und WhatsApp benachrichtigt, wenn ein Beitrag auf sie wartet.",
+    "add": "Kunde hinzufügen",
+    "addTitle": "Neuer Kunde",
+    "edit": "Bearbeiten",
+    "editTitle": "Kunde",
+    "remove": "Entfernen",
+    "removeTitle": "Diesen Kunden entfernen?",
+    "removeText": "Sein Link funktioniert nicht mehr und seine Beiträge verschwinden von seiner Seite. Die Arbeit bleibt auf dem Board.",
+    "loading": "Wird geladen…",
+    "empty": "Noch keine Kunden. Füge einen hinzu, um einen Link zum Senden zu haben.",
+    "noContacts": "Noch keine Kontakte: niemand wird benachrichtigt, wenn ein Beitrag wartet.",
+    "id": "Kunden-ID (Kleinbuchstaben, keine Leerzeichen)",
+    "name": "Name",
+    "contactName": "Name des Kontakts",
+    "email": "E-Mail",
+    "whatsapp": "WhatsApp mit Ländervorwahl",
+    "addContact": "Kontakt hinzufügen",
+    "dropContact": "Kontakt entfernen",
+    "link": "Kundenlink",
+    "copy": "Link kopieren",
+    "copied": "Link kopiert",
+    "copyFailed": "Der Link konnte nicht kopiert werden",
+    "revoked": "Der Link wurde widerrufen",
+    "linkStale": "Dieser Link muss neu gemacht werden: erstelle einen neuen zum Versenden",
+    "noticesTitle": "WhatsApp-Hinweise",
+    "noticesLead": "Die Kontakte eines Kunden werden immer per E-Mail benachrichtigt. WhatsApp geht nur über die Nummer raus, die du hier auswählst: ohne eine wird nichts per WhatsApp gesendet, und niemandes private Nummer wird benutzt.",
+    "noticesNumber": "Nummer, die benachrichtigt",
+    "noticesNone": "Keine: nur E-Mail",
+    "noticesNoNumbers": "Noch keine Nummer verbunden. Verbinde eine unter Einstellungen › WhatsApp, um auch dort zu benachrichtigen.",
+    "locale": "Benachrichtigt auf {{language}}",
+    "localeLabel": "Sprache",
+    "localeHint": "Die Sprache der E-Mails und Nachrichten, die die Kontakte dieses Kunden bekommen. Nie aus einem Namen geraten; ohne Wahl hier die deines Teams.",
+    "localeOwner": "Die Sprache des Teams",
+    "newLink": "Neuer Link",
+    "revoke": "Link widerrufen"
+  },
   "portal": {
     "title": "Portal",
     "subtitle": "Was deine Kunden freigeben, nach Kunde",
@@ -21107,6 +21145,19 @@
       "remove": "Logo entfernen",
       "saved": "Logo gespeichert",
       "removed": "Logo entfernt"
+    },
+    "clientEdit": {
+      "rename": "Kunde umbenennen",
+      "renameTitle": "Kunde umbenennen",
+      "renameHelp": "Der Name, den dein Team überall sieht. Leer lassen, um zu „{{id}}“ zurückzukehren.",
+      "name": "Name",
+      "renamed": "Name gespeichert",
+      "hide": "Kunde entfernen",
+      "hideTitle": "„{{name}}“ entfernen?",
+      "hideText": "Er verlässt jede Liste und jede Zählung hier. Seine Beiträge und Karten bleiben im Portal, und du kannst ihn unter „Verborgene Kunden“ zurückholen.",
+      "hidden": "„{{name}}“ entfernt",
+      "hiddenTitle": "Verborgene Kunden",
+      "show": "Wieder anzeigen"
     },
     "clientColor": {
       "label": "Farbe des Kunden",
@@ -21200,7 +21251,10 @@
       "toMaterials": "Zu Kundenmaterial verschieben",
       "toPlan": "Zurück in den Zeitplan",
       "movedToMaterials": "„{{name}}“ ist jetzt im Kundenmaterial.",
-      "movedToPlan": "„{{name}}“ ist wieder im Zeitplan."
+      "movedToPlan": "„{{name}}“ ist wieder im Zeitplan.",
+      "cardToMaterials": "„{{title}}“ ist jetzt im Kundenmaterial, in der Liste {{list}}.",
+      "cardToPlan": "„{{title}}“ ist wieder im Zeitplan, in der Liste {{list}}.",
+      "newListName": "Allgemein"
     },
     "plan": {
       "tab": "Strategischer Zeitplan",
@@ -21367,19 +21421,6 @@
       "more": "Mehr anzeigen",
       "add_one": "{{count}} Datei hinzufügen",
       "add_other": "{{count}} Dateien hinzufügen"
-    },
-    "clientEdit": {
-      "rename": "Kunde umbenennen",
-      "renameTitle": "Kunde umbenennen",
-      "renameHelp": "Der Name, den dein Team überall sieht. Leer lassen, um zu „{{id}}“ zurückzukehren.",
-      "name": "Name",
-      "renamed": "Name gespeichert",
-      "hide": "Kunde entfernen",
-      "hideTitle": "„{{name}}“ entfernen?",
-      "hideText": "Er verlässt jede Liste und jede Zählung hier. Seine Beiträge und Karten bleiben im Portal, und du kannst ihn unter „Verborgene Kunden“ zurückholen.",
-      "hidden": "„{{name}}“ entfernt",
-      "hiddenTitle": "Verborgene Kunden",
-      "show": "Wieder anzeigen"
     }
   },
   "dougTeam": {
@@ -21498,43 +21539,5 @@
         "educativo": "Lehrreich"
       }
     }
-  },
-  "portalClients": {
-    "title": "Portal-Kunden",
-    "lead": "Jeder Kunde gibt deine Beiträge über einen eigenen Link frei, ohne Konto. Die Kontakte des Kunden werden per E-Mail und WhatsApp benachrichtigt, wenn ein Beitrag auf sie wartet.",
-    "add": "Kunde hinzufügen",
-    "addTitle": "Neuer Kunde",
-    "edit": "Bearbeiten",
-    "editTitle": "Kunde",
-    "remove": "Entfernen",
-    "removeTitle": "Diesen Kunden entfernen?",
-    "removeText": "Sein Link funktioniert nicht mehr und seine Beiträge verschwinden von seiner Seite. Die Arbeit bleibt auf dem Board.",
-    "loading": "Wird geladen…",
-    "empty": "Noch keine Kunden. Füge einen hinzu, um einen Link zum Senden zu haben.",
-    "noContacts": "Noch keine Kontakte: niemand wird benachrichtigt, wenn ein Beitrag wartet.",
-    "id": "Kunden-ID (Kleinbuchstaben, keine Leerzeichen)",
-    "name": "Name",
-    "contactName": "Name des Kontakts",
-    "email": "E-Mail",
-    "whatsapp": "WhatsApp mit Ländervorwahl",
-    "addContact": "Kontakt hinzufügen",
-    "dropContact": "Kontakt entfernen",
-    "link": "Kundenlink",
-    "copy": "Link kopieren",
-    "copied": "Link kopiert",
-    "copyFailed": "Der Link konnte nicht kopiert werden",
-    "revoked": "Der Link wurde widerrufen",
-    "linkStale": "Dieser Link muss neu gemacht werden: erstelle einen neuen zum Versenden",
-    "noticesTitle": "WhatsApp-Hinweise",
-    "noticesLead": "Die Kontakte eines Kunden werden immer per E-Mail benachrichtigt. WhatsApp geht nur über die Nummer raus, die du hier auswählst: ohne eine wird nichts per WhatsApp gesendet, und niemandes private Nummer wird benutzt.",
-    "noticesNumber": "Nummer, die benachrichtigt",
-    "noticesNone": "Keine: nur E-Mail",
-    "noticesNoNumbers": "Noch keine Nummer verbunden. Verbinde eine unter Einstellungen › WhatsApp, um auch dort zu benachrichtigen.",
-    "locale": "Benachrichtigt auf {{language}}",
-    "localeLabel": "Sprache",
-    "localeHint": "Die Sprache der E-Mails und Nachrichten, die die Kontakte dieses Kunden bekommen. Nie aus einem Namen geraten; ohne Wahl hier die deines Teams.",
-    "localeOwner": "Die Sprache des Teams",
-    "newLink": "Neuer Link",
-    "revoke": "Link widerrufen"
   }
 }

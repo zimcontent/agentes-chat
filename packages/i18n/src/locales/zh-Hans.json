@@ -16467,6 +16467,14 @@
     "change": {
       "mergedWithoutAsking": "未经询问在 {{repo}} 中合并",
       "portalApprovedForClient": "在门户中代客户批准了“{{title}}”",
+      "portalClient": {
+        "renamed": "在门户中重命名了客户 {{client}}",
+        "hidden": "在门户中把客户 {{client}} 从列表中隐藏了",
+        "shown": "在门户中重新显示了客户 {{client}}",
+        "color": "在门户中更改了客户 {{client}} 的颜色",
+        "logo": "在门户中更改了客户 {{client}} 的标志",
+        "logoRemoved": "在门户中移除了客户 {{client}} 的标志"
+      },
       "pattern": "{{verb}}{{area}}",
       "approval": {
         "approved": "批准了一个请求",
@@ -16571,14 +16579,6 @@
         "credential": "一个 AI 密钥",
         "vault": "Vault",
         "other": "工作区"
-      },
-      "portalClient": {
-        "renamed": "在门户中重命名了客户 {{client}}",
-        "hidden": "在门户中把客户 {{client}} 从列表中隐藏了",
-        "shown": "在门户中重新显示了客户 {{client}}",
-        "color": "在门户中更改了客户 {{client}} 的颜色",
-        "logo": "在门户中更改了客户 {{client}} 的标志",
-        "logoRemoved": "在门户中移除了客户 {{client}} 的标志"
       }
     },
     "panel": {
@@ -16654,13 +16654,13 @@
       "voice": "语音",
       "apps": "AI 应用",
       "approvals": "审批",
+      "portal": "门户客户",
       "companies": "公司申请",
       "support": "支持",
       "about": "关于 DougBot",
       "generalPersonal": "关于你",
       "keysPersonal": "AI 和应用",
-      "membersPersonal": "成员",
-      "portal": "门户客户"
+      "membersPersonal": "成员"
     },
     "advanced": "高级",
     "tab": {
@@ -16688,6 +16688,7 @@
       "voice": "对话中的语音消息，以及由谁把语音转成文字。",
       "apps": "从 Claude、Cursor 等应用给智能体分配任务。",
       "approvals": "当智能体请求你的批准时，替你做决定的人。",
+      "portal": "审批你帖子的客户，以及各自打开的链接。",
       "companies": "在页面上申请 DougBot 的公司。",
       "support": "谁维护这套系统，以及如何联系他们。",
       "about": "开发者、许可证以及源代码的位置。",
@@ -16695,8 +16696,7 @@
       "usagePersonal": "你的智能体用了多少 AI，以及你的套餐。",
       "connectorsPersonal": "你的应用和 MCP 服务器，连接一次即可供智能体使用。",
       "membersPersonal": "谁和你一起在这里。",
-      "rolesPersonal": "这里每个人可以做什么。所有者可以做任何事。",
-      "portal": "审批你帖子的客户，以及各自打开的链接。"
+      "rolesPersonal": "这里每个人可以做什么。所有者可以做任何事。"
     },
     "support": {
       "title": "联系支持",
@@ -20560,6 +20560,44 @@
       "spent": "本月已用 {{spent}} / {{monthly}} 积分"
     }
   },
+  "portalClients": {
+    "title": "门户客户",
+    "lead": "每位客户在自己的链接上审批你的帖子，无需账号。帖子等待审批时，会通过电子邮件和 WhatsApp 通知客户的联系人。",
+    "add": "添加客户",
+    "addTitle": "新客户",
+    "edit": "编辑",
+    "editTitle": "客户",
+    "remove": "移除",
+    "removeTitle": "移除此客户？",
+    "removeText": "它的链接将失效，其帖子会从页面上消失。工作仍保留在看板上。",
+    "loading": "正在加载…",
+    "empty": "还没有客户。添加一个即可获得可发送的链接。",
+    "noContacts": "还没有联系人：帖子等待时没有人会收到通知。",
+    "id": "客户 ID（小写，无空格）",
+    "name": "名称",
+    "contactName": "联系人姓名",
+    "email": "电子邮件",
+    "whatsapp": "带国家代码的 WhatsApp",
+    "addContact": "添加联系人",
+    "dropContact": "移除联系人",
+    "link": "客户链接",
+    "copy": "复制链接",
+    "copied": "已复制链接",
+    "copyFailed": "无法复制链接",
+    "revoked": "链接已被撤销",
+    "linkStale": "此链接需要重做：创建一个新链接来发送",
+    "noticesTitle": "WhatsApp 通知",
+    "noticesLead": "客户的联系人总是会收到邮件通知。WhatsApp 只会从你在这里选择的号码发出：不选号码就不会发任何 WhatsApp 消息，也绝不会使用任何人的私人号码。",
+    "noticesNumber": "通知用的号码",
+    "noticesNone": "无：仅邮件",
+    "noticesNoNumbers": "还没有连接号码。在设置 › WhatsApp 中连接一个，就能在那里也通知。",
+    "locale": "以{{language}}通知",
+    "localeLabel": "语言",
+    "localeHint": "此客户联系人收到的邮件和消息所用的语言。绝不会从名字猜测；不在这里选择时，用团队的语言。",
+    "localeOwner": "团队的语言",
+    "newLink": "新链接",
+    "revoke": "撤销链接"
+  },
   "portal": {
     "title": "门户",
     "subtitle": "按客户查看待审批的内容",
@@ -20631,6 +20669,19 @@
       "remove": "移除徽标",
       "saved": "徽标已保存",
       "removed": "徽标已移除"
+    },
+    "clientEdit": {
+      "rename": "重命名客户",
+      "renameTitle": "重命名客户",
+      "renameHelp": "你的团队在各处看到的名称。留空会回到“{{id}}”。",
+      "name": "名称",
+      "renamed": "名称已保存",
+      "hide": "移除客户",
+      "hideTitle": "移除“{{name}}”？",
+      "hideText": "它会从这里的所有列表和计数中消失。它的帖子和卡片仍留在门户中，你可以从“隐藏的客户”中把它找回来。",
+      "hidden": "已移除“{{name}}”",
+      "hiddenTitle": "隐藏的客户",
+      "show": "重新显示"
     },
     "clientColor": {
       "label": "客户颜色",
@@ -20724,7 +20775,10 @@
       "toMaterials": "移到客户资料",
       "toPlan": "移回排期表",
       "movedToMaterials": "“{{name}}”已移到客户资料。",
-      "movedToPlan": "“{{name}}”已移回排期表。"
+      "movedToPlan": "“{{name}}”已移回排期表。",
+      "cardToMaterials": "“{{title}}”已移到客户资料的“{{list}}”列表。",
+      "cardToPlan": "“{{title}}”已移回排期表的“{{list}}”列表。",
+      "newListName": "通用"
     },
     "plan": {
       "tab": "策略排期表",
@@ -20885,19 +20939,6 @@
       "empty": "Drive 中没有已上传的文件。",
       "more": "显示更多",
       "add_other": "添加 {{count}} 个文件"
-    },
-    "clientEdit": {
-      "rename": "重命名客户",
-      "renameTitle": "重命名客户",
-      "renameHelp": "你的团队在各处看到的名称。留空会回到“{{id}}”。",
-      "name": "名称",
-      "renamed": "名称已保存",
-      "hide": "移除客户",
-      "hideTitle": "移除“{{name}}”？",
-      "hideText": "它会从这里的所有列表和计数中消失。它的帖子和卡片仍留在门户中，你可以从“隐藏的客户”中把它找回来。",
-      "hidden": "已移除“{{name}}”",
-      "hiddenTitle": "隐藏的客户",
-      "show": "重新显示"
     }
   },
   "dougTeam": {
@@ -21016,43 +21057,5 @@
         "educativo": "教育性"
       }
     }
-  },
-  "portalClients": {
-    "title": "门户客户",
-    "lead": "每位客户在自己的链接上审批你的帖子，无需账号。帖子等待审批时，会通过电子邮件和 WhatsApp 通知客户的联系人。",
-    "add": "添加客户",
-    "addTitle": "新客户",
-    "edit": "编辑",
-    "editTitle": "客户",
-    "remove": "移除",
-    "removeTitle": "移除此客户？",
-    "removeText": "它的链接将失效，其帖子会从页面上消失。工作仍保留在看板上。",
-    "loading": "正在加载…",
-    "empty": "还没有客户。添加一个即可获得可发送的链接。",
-    "noContacts": "还没有联系人：帖子等待时没有人会收到通知。",
-    "id": "客户 ID（小写，无空格）",
-    "name": "名称",
-    "contactName": "联系人姓名",
-    "email": "电子邮件",
-    "whatsapp": "带国家代码的 WhatsApp",
-    "addContact": "添加联系人",
-    "dropContact": "移除联系人",
-    "link": "客户链接",
-    "copy": "复制链接",
-    "copied": "已复制链接",
-    "copyFailed": "无法复制链接",
-    "revoked": "链接已被撤销",
-    "linkStale": "此链接需要重做：创建一个新链接来发送",
-    "noticesTitle": "WhatsApp 通知",
-    "noticesLead": "客户的联系人总是会收到邮件通知。WhatsApp 只会从你在这里选择的号码发出：不选号码就不会发任何 WhatsApp 消息，也绝不会使用任何人的私人号码。",
-    "noticesNumber": "通知用的号码",
-    "noticesNone": "无：仅邮件",
-    "noticesNoNumbers": "还没有连接号码。在设置 › WhatsApp 中连接一个，就能在那里也通知。",
-    "locale": "以{{language}}通知",
-    "localeLabel": "语言",
-    "localeHint": "此客户联系人收到的邮件和消息所用的语言。绝不会从名字猜测；不在这里选择时，用团队的语言。",
-    "localeOwner": "团队的语言",
-    "newLink": "新链接",
-    "revoke": "撤销链接"
   }
 }

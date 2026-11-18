@@ -17541,6 +17541,14 @@
     "change": {
       "mergedWithoutAsking": "Ha fatto il merge in {{repo}} senza chiedere",
       "portalApprovedForClient": "Ha approvato “{{title}}” per conto del cliente nel portale",
+      "portalClient": {
+        "renamed": "Ha rinominato il cliente {{client}} nel portale",
+        "hidden": "Ha rimosso il cliente {{client}} dagli elenchi del portale",
+        "shown": "Ha mostrato di nuovo il cliente {{client}} nel portale",
+        "color": "Ha cambiato il colore del cliente {{client}} nel portale",
+        "logo": "Ha cambiato il logo del cliente {{client}} nel portale",
+        "logoRemoved": "Ha rimosso il logo del cliente {{client}} nel portale"
+      },
       "pattern": "{{verb}} {{area}}",
       "approval": {
         "approved": "Ha approvato una richiesta",
@@ -17645,14 +17653,6 @@
         "credential": "una chiave IA",
         "vault": "il Vault",
         "other": "lo spazio di lavoro"
-      },
-      "portalClient": {
-        "renamed": "Ha rinominato il cliente {{client}} nel portale",
-        "hidden": "Ha rimosso il cliente {{client}} dagli elenchi del portale",
-        "shown": "Ha mostrato di nuovo il cliente {{client}} nel portale",
-        "color": "Ha cambiato il colore del cliente {{client}} nel portale",
-        "logo": "Ha cambiato il logo del cliente {{client}} nel portale",
-        "logoRemoved": "Ha rimosso il logo del cliente {{client}} nel portale"
       }
     },
     "panel": {
@@ -17728,13 +17728,13 @@
       "voice": "Voce",
       "apps": "App IA",
       "approvals": "Approvazioni",
+      "portal": "Clienti del portale",
       "companies": "Richieste di aziende",
       "support": "Support",
       "about": "Informazioni su DougBot",
       "generalPersonal": "Su di te",
       "keysPersonal": "IA e app",
-      "membersPersonal": "Persone",
-      "portal": "Clienti del portale"
+      "membersPersonal": "Persone"
     },
     "advanced": "Avanzate",
     "tab": {
@@ -17762,6 +17762,7 @@
       "voice": "Messaggi vocali nelle conversazioni, e chi trasforma la voce in testo.",
       "apps": "Chiedi compiti agli agenti da Claude, Cursor e altre app.",
       "approvals": "Chi decide per te quando un agente chiede la tua approvazione.",
+      "portal": "I clienti che approvano i tuoi post, e il link che ciascuno apre.",
       "companies": "Aziende che hanno chiesto DougBot dalla pagina.",
       "support": "Chi gestisce questa installazione e come contattarli.",
       "about": "Chi lo fa, la sua licenza e dove si trova il codice sorgente.",
@@ -17769,8 +17770,7 @@
       "usagePersonal": "Quanta IA usano i tuoi agenti, e il tuo piano.",
       "connectorsPersonal": "Le tue app e i server MCP, collegati una volta per i tuoi agenti.",
       "membersPersonal": "Chi è qui con te.",
-      "rolesPersonal": "Cosa può fare ogni persona qui. Chi è proprietario può fare tutto.",
-      "portal": "I clienti che approvano i tuoi post, e il link che ciascuno apre."
+      "rolesPersonal": "Cosa può fare ogni persona qui. Chi è proprietario può fare tutto."
     },
     "support": {
       "title": "Contatta l'assistenza",
@@ -21769,6 +21769,44 @@
       "spent": "{{spent}} di {{monthly}} crediti usati questo mese"
     }
   },
+  "portalClients": {
+    "title": "Clienti del portale",
+    "lead": "Ogni cliente approva i tuoi post su un link proprio, senza account. I contatti del cliente ricevono un avviso via e-mail e WhatsApp quando un post li aspetta.",
+    "add": "Aggiungi cliente",
+    "addTitle": "Nuovo cliente",
+    "edit": "Modifica",
+    "editTitle": "Cliente",
+    "remove": "Rimuovi",
+    "removeTitle": "Rimuovere questo cliente?",
+    "removeText": "Il suo link smette di funzionare e i suoi post escono dalla sua pagina. Il lavoro resta sulla board.",
+    "loading": "Caricamento…",
+    "empty": "Ancora nessun cliente. Aggiungine uno per avere un link da inviare.",
+    "noContacts": "Ancora nessun contatto: nessuno riceve un avviso quando un post aspetta.",
+    "id": "Id del cliente (minuscole, senza spazi)",
+    "name": "Nome",
+    "contactName": "Nome del contatto",
+    "email": "E-mail",
+    "whatsapp": "WhatsApp con il prefisso del paese",
+    "addContact": "Aggiungi contatto",
+    "dropContact": "Rimuovi contatto",
+    "link": "Link del cliente",
+    "copy": "Copia link",
+    "copied": "Link copiato",
+    "copyFailed": "Non è stato possibile copiare il link",
+    "revoked": "Il link è stato revocato",
+    "linkStale": "Questo link va rifatto: creane uno nuovo da inviare",
+    "noticesTitle": "Avvisi su WhatsApp",
+    "noticesLead": "I contatti di un cliente vengono sempre avvisati via e-mail. Il WhatsApp parte solo dal numero che scegli qui: senza nessuno, non si invia nulla su WhatsApp, e il numero personale di nessuno viene usato.",
+    "noticesNumber": "Numero che avvisa",
+    "noticesNone": "Nessuno: solo e-mail",
+    "noticesNoNumbers": "Nessun numero connesso per ora. Connettine uno in Impostazioni › WhatsApp per avvisare anche lì.",
+    "locale": "Avvisato in {{language}}",
+    "localeLabel": "Lingua",
+    "localeHint": "La lingua delle e-mail e dei messaggi che ricevono i contatti di questo cliente. Mai indovinata da un nome; senza scelta qui, è quella del team.",
+    "localeOwner": "La lingua del team",
+    "newLink": "Nuovo link",
+    "revoke": "Revoca link"
+  },
   "portal": {
     "title": "Portale",
     "subtitle": "Ciò che i tuoi clienti approvano, per cliente",
@@ -21850,6 +21888,19 @@
       "remove": "Rimuovi logo",
       "saved": "Logo salvato",
       "removed": "Logo rimosso"
+    },
+    "clientEdit": {
+      "rename": "Rinomina cliente",
+      "renameTitle": "Rinomina cliente",
+      "renameHelp": "Il nome che il tuo team vede ovunque. Lascialo vuoto per tornare a «{{id}}».",
+      "name": "Nome",
+      "renamed": "Nome salvato",
+      "hide": "Rimuovi cliente",
+      "hideTitle": "Rimuovere «{{name}}»?",
+      "hideText": "Esce da ogni elenco e conteggio qui. I suoi post e le sue schede restano nel portale, e puoi riportarlo da Clienti nascosti.",
+      "hidden": "«{{name}}» rimosso",
+      "hiddenTitle": "Clienti nascosti",
+      "show": "Mostra di nuovo"
     },
     "clientColor": {
       "label": "Colore del cliente",
@@ -21943,7 +21994,10 @@
       "toMaterials": "Sposta in Materiali del cliente",
       "toPlan": "Torna al calendario",
       "movedToMaterials": "“{{name}}” è passata in Materiali del cliente.",
-      "movedToPlan": "“{{name}}” è tornata nel calendario."
+      "movedToPlan": "“{{name}}” è tornata nel calendario.",
+      "cardToMaterials": "“{{title}}” è passata in Materiali del cliente, nella lista {{list}}.",
+      "cardToPlan": "“{{title}}” è tornata nel calendario, nella lista {{list}}.",
+      "newListName": "Generale"
     },
     "plan": {
       "tab": "Calendario strategico",
@@ -22116,19 +22170,6 @@
       "add_one": "Aggiungi {{count}} file",
       "add_many": "Aggiungi {{count}} file",
       "add_other": "Aggiungi {{count}} file"
-    },
-    "clientEdit": {
-      "rename": "Rinomina cliente",
-      "renameTitle": "Rinomina cliente",
-      "renameHelp": "Il nome che il tuo team vede ovunque. Lascialo vuoto per tornare a «{{id}}».",
-      "name": "Nome",
-      "renamed": "Nome salvato",
-      "hide": "Rimuovi cliente",
-      "hideTitle": "Rimuovere «{{name}}»?",
-      "hideText": "Esce da ogni elenco e conteggio qui. I suoi post e le sue schede restano nel portale, e puoi riportarlo da Clienti nascosti.",
-      "hidden": "«{{name}}» rimosso",
-      "hiddenTitle": "Clienti nascosti",
-      "show": "Mostra di nuovo"
     }
   },
   "dougTeam": {
@@ -22247,43 +22288,5 @@
         "educativo": "Educativo"
       }
     }
-  },
-  "portalClients": {
-    "title": "Clienti del portale",
-    "lead": "Ogni cliente approva i tuoi post su un link proprio, senza account. I contatti del cliente ricevono un avviso via e-mail e WhatsApp quando un post li aspetta.",
-    "add": "Aggiungi cliente",
-    "addTitle": "Nuovo cliente",
-    "edit": "Modifica",
-    "editTitle": "Cliente",
-    "remove": "Rimuovi",
-    "removeTitle": "Rimuovere questo cliente?",
-    "removeText": "Il suo link smette di funzionare e i suoi post escono dalla sua pagina. Il lavoro resta sulla board.",
-    "loading": "Caricamento…",
-    "empty": "Ancora nessun cliente. Aggiungine uno per avere un link da inviare.",
-    "noContacts": "Ancora nessun contatto: nessuno riceve un avviso quando un post aspetta.",
-    "id": "Id del cliente (minuscole, senza spazi)",
-    "name": "Nome",
-    "contactName": "Nome del contatto",
-    "email": "E-mail",
-    "whatsapp": "WhatsApp con il prefisso del paese",
-    "addContact": "Aggiungi contatto",
-    "dropContact": "Rimuovi contatto",
-    "link": "Link del cliente",
-    "copy": "Copia link",
-    "copied": "Link copiato",
-    "copyFailed": "Non è stato possibile copiare il link",
-    "revoked": "Il link è stato revocato",
-    "linkStale": "Questo link va rifatto: creane uno nuovo da inviare",
-    "noticesTitle": "Avvisi su WhatsApp",
-    "noticesLead": "I contatti di un cliente vengono sempre avvisati via e-mail. Il WhatsApp parte solo dal numero che scegli qui: senza nessuno, non si invia nulla su WhatsApp, e il numero personale di nessuno viene usato.",
-    "noticesNumber": "Numero che avvisa",
-    "noticesNone": "Nessuno: solo e-mail",
-    "noticesNoNumbers": "Nessun numero connesso per ora. Connettine uno in Impostazioni › WhatsApp per avvisare anche lì.",
-    "locale": "Avvisato in {{language}}",
-    "localeLabel": "Lingua",
-    "localeHint": "La lingua delle e-mail e dei messaggi che ricevono i contatti di questo cliente. Mai indovinata da un nome; senza scelta qui, è quella del team.",
-    "localeOwner": "La lingua del team",
-    "newLink": "Nuovo link",
-    "revoke": "Revoca link"
   }
 }
