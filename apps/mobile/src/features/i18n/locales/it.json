@@ -1277,7 +1277,9 @@
       "suggested": "Suggeriti",
       "all": "Tutti",
       "none": "Nessun fuso orario con quel nome"
-    }
+    },
+    "groupAlerts": "Avvisi e approvazioni",
+    "groupLook": "Aspetto e suoni"
   },
   "delete": {
     "intro": "Non si può annullare.",
@@ -1655,7 +1657,11 @@
       "today": "oggi alle {{time}}",
       "tomorrow": "domani alle {{time}}",
       "later": "{{day}} alle {{time}}"
-    }
+    },
+    "needsYou": "Ti aspetta",
+    "running": "Al lavoro ora",
+    "runningAll": "Vedi tutto",
+    "steps": "{{done}} di {{total}}"
   },
   "agentLite": {
     "uses": "Può usare",
@@ -3238,5 +3244,14 @@
   "brand": {
     "basedOn": "Basato su DougBot di Codari Global, LLC · AGPL-3.0",
     "source": "Codice sorgente di DougBot"
+  },
+  "toSchedule": {
+    "title": "Pronto da programmare",
+    "row": "Post approvato, tocca per programmare",
+    "untitled": "Post senza titolo",
+    "sheetTitle": "Programma post",
+    "confirm": "Programma",
+    "when": "Esce {{when}}",
+    "past": "Scegli un orario non ancora passato"
   }
 }

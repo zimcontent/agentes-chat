@@ -1133,6 +1133,9 @@ export const featureKeysEn = {
     added: "{{name}} joined the group",
   },
   me: {
+    /** Ajustes' groups: alerts and approvals, then the app's look and sound. */
+    groupAlerts: "Alerts and approvals",
+    groupLook: "Look and sound",
     title: "You",
     role: {
       owner: "owner",
@@ -1627,6 +1630,11 @@ export const featureKeysEn = {
     },
   },
   activityNow: {
+    /** Pendentes' sections: what needs a decision, then what agents are on now. */
+    needsYou: "Needs you",
+    running: "Working now",
+    runningAll: "See all",
+    steps: "{{done}} of {{total}}",
     kind: {
       approval: "Approve",
       question: "Question",
@@ -1654,6 +1662,16 @@ export const featureKeysEn = {
   // end intentional: chats/activity/ui
   // intentional: agents
   /** An agent's light profile and settings on the phone, and where the rest of its setup is. */
+  /** Pendentes' "Ready to schedule": approved posts at the portal nobody scheduled yet, and the sheet that does it. */
+  toSchedule: {
+    title: "Ready to schedule",
+    row: "Approved post, tap to schedule",
+    untitled: "Untitled post",
+    sheetTitle: "Schedule post",
+    confirm: "Schedule",
+    when: "Goes out {{when}}",
+    past: "Pick a time that hasn't passed yet",
+  },
   agentLite: {
     uses: "Can use",
     usesNone: "Nothing yet",

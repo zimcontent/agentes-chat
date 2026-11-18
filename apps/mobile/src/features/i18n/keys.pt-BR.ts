@@ -1111,6 +1111,9 @@ export const featureKeysPtBR = {
     added: "{{name}} entrou no grupo",
   },
   me: {
+    /** Ajustes' groups: alerts and approvals, then the app's look and sound. */
+    groupAlerts: "Avisos e aprovações",
+    groupLook: "Aparência e som",
     title: "Você",
     role: {
       owner: "dono",
@@ -1580,6 +1583,11 @@ export const featureKeysPtBR = {
     },
   },
   activityNow: {
+    /** As seções de Pendentes: o que pede uma decisão, depois o que os agentes fazem agora. */
+    needsYou: "Precisa de você",
+    running: "Trabalhando agora",
+    runningAll: "Ver tudo",
+    steps: "{{done}} de {{total}}",
     kind: {
       approval: "Aprovar",
       question: "Pergunta",
@@ -1607,6 +1615,16 @@ export const featureKeysPtBR = {
   // end intentional: chats/activity/ui
   // intentional: agents
   /** O perfil leve do agente no celular, seus ajustes e onde fica o resto. */
+  /** "Pronto para agendar" em Pendentes: posts aprovados no portal que ninguém agendou, e a folha que agenda. */
+  toSchedule: {
+    title: "Pronto para agendar",
+    row: "Publicação aprovada, toque para agendar",
+    untitled: "Post sem título",
+    sheetTitle: "Agendar publicação",
+    confirm: "Agendar",
+    when: "Sai {{when}}",
+    past: "Escolha um horário que ainda não passou",
+  },
   agentLite: {
     uses: "Pode usar",
     usesNone: "Nada ainda",

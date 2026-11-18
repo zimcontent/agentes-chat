@@ -1120,7 +1120,9 @@
       "suggested": "おすすめ",
       "all": "すべて",
       "none": "その名前のタイムゾーンはありません"
-    }
+    },
+    "groupAlerts": "通知と承認",
+    "groupLook": "表示とサウンド"
   },
   "delete": {
     "intro": "元に戻すことはできません。",
@@ -1478,7 +1480,11 @@
       "today": "今日 {{time}}",
       "tomorrow": "明日 {{time}}",
       "later": "{{day}} {{time}}"
-    }
+    },
+    "needsYou": "あなたの対応待ち",
+    "running": "作業中",
+    "runningAll": "すべて表示",
+    "steps": "{{done}}/{{total}}"
   },
   "agentLite": {
     "uses": "使えるもの",
@@ -2993,5 +2999,14 @@
   "brand": {
     "basedOn": "Codari Global, LLC の DougBot をベースにしています · AGPL-3.0",
     "source": "DougBotのソースコード"
+  },
+  "toSchedule": {
+    "title": "予約待ち",
+    "row": "承認済みの投稿、タップして予約",
+    "untitled": "無題の投稿",
+    "sheetTitle": "投稿を予約",
+    "confirm": "予約",
+    "when": "{{when}}に公開",
+    "past": "まだ過ぎていない時刻を選んでください"
   }
 }

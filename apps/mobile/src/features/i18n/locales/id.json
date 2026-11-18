@@ -1120,7 +1120,9 @@
       "suggested": "Disarankan",
       "all": "Semua",
       "none": "Tidak ada zona waktu dengan nama itu"
-    }
+    },
+    "groupAlerts": "Peringatan dan persetujuan",
+    "groupLook": "Tampilan dan suara"
   },
   "delete": {
     "intro": "Ini tidak bisa dibatalkan.",
@@ -1478,7 +1480,11 @@
       "today": "hari ini pukul {{time}}",
       "tomorrow": "besok pukul {{time}}",
       "later": "{{day}} pukul {{time}}"
-    }
+    },
+    "needsYou": "Menunggu kamu",
+    "running": "Sedang bekerja",
+    "runningAll": "Lihat semua",
+    "steps": "{{done}} dari {{total}}"
   },
   "agentLite": {
     "uses": "Bisa memakai",
@@ -2993,5 +2999,14 @@
   "brand": {
     "basedOn": "Berbasis DougBot oleh Codari Global, LLC · AGPL-3.0",
     "source": "Kode sumber DougBot"
+  },
+  "toSchedule": {
+    "title": "Siap dijadwalkan",
+    "row": "Postingan disetujui, ketuk untuk menjadwalkan",
+    "untitled": "Postingan tanpa judul",
+    "sheetTitle": "Jadwalkan postingan",
+    "confirm": "Jadwalkan",
+    "when": "Terbit {{when}}",
+    "past": "Pilih waktu yang belum lewat"
   }
 }

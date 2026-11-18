@@ -5,10 +5,9 @@ import { AskButtons, ExpiryLine } from "../chat/asks";
 import { AgentFace } from "./Face";
 import { useColors, useDirectory } from "./hooks";
 import { agentLook } from "./logic";
-import { useSurface } from "./parts";
 
 /** The leading face: an agent's (on its sky), or what stands for whoever asks (a server's mark, people's faces). */
-const FACE = 36;
+const FACE = 40;
 
 export interface WaitingCardProps {
   /** The agent asking: its face leads the card and its sky tints the card's top (gray when none asks). */
@@ -21,10 +20,12 @@ export interface WaitingCardProps {
   title?: string;
   /** Under the title: why it was asked in muted, then what it goes through (`WaitingSource`), what it costs. */
   children?: ReactNode;
-  /** Its deadline: the amber fuse and the time left, at the top line's right (`ExpiryLine`). */
+  /** Its deadline: the amber fuse and the time left, on the foot's line at its right (`ExpiryLine`). */
   expires?: { createdAt?: string | null; expiresAt: string } | null;
-  /** Without a deadline, at the top line's right: where and when ("#marketing · 19:58"). */
+  /** At the name's line's right: when it was asked ("19:58"). */
   where?: string;
+  /** Where it was asked ("em #marketing"), after the kind's tag on its line. */
+  place?: string;
   /**
    * The one action, wide under the request: the screen's one primary on the card that decides something, else
    * secondary (`variant`), so a page of cards has one primary.
@@ -32,6 +33,8 @@ export interface WaitingCardProps {
   action?: { label: string; onPress: () => void; variant?: "primary" | "secondary" } | null;
   /** The decision taken on the card itself (the chat's `AskButtons`), in place of `action`. */
   decision?: ReactNode;
+  /** A quiet way out under the decision, at the foot line's left ("Mudar quando perguntar"); the deadline at its right. */
+  footNote?: ReactNode;
   onPress?: () => void;
   accessibilityLabel?: string;
   /** Under the card's foot, after a hairline ("e mais 2 esperando você"). */
@@ -39,12 +42,12 @@ export interface WaitingCardProps {
 }
 
 /**
- * One thing waiting on you, as Atividade and an agent's profile show it, read as the chat's request
- * card: the card with its cut corner (square bottom left, as the chat's blocks), the asking agent's sky faint across
- * the top (gray when no agent asks), its face with the name (15, regular: the request is the card's one bold) and
- * the kind under it (its icon quiet: no "waiting for you" mark, the card itself is the ask) and, at the right, where
- * and when; then the request in words (17 semibold), why in muted, what it goes through on one quiet line, the
- * decision (or its one action) wide under it and, at its end, the fuse to its deadline.
+ * One thing waiting on you, as Pendentes and an agent's profile show it: a card on a hairline rim (no shadow: a page
+ * holds several), the asking agent's sky faint across its top (gray when no agent asks). Its head is the face, the name
+ * (semibold) with when at its right, and under it the kind as an amber tag (amber is the one color of "waits on you")
+ * with where it was asked; then the request in words (17 semibold, the card's one bold line), why in muted, what it
+ * goes through on one quiet line; the decision (or its one action) wide under it, and a foot line with a quiet way out
+ * at the left and the fuse to the deadline at the right.
  */
 export function WaitingCard({
   agentId,
@@ -55,15 +58,16 @@ export function WaitingCard({
   children,
   expires,
   where,
+  place,
   action,
   decision,
+  footNote,
   onPress,
   accessibilityLabel,
   footer,
 }: WaitingCardProps) {
   const c = useColors();
   const dir = useDirectory();
-  const surface = useSurface();
   const agent = agentId ? dir.agentById.get(agentId) : undefined;
   const foot =
     decision ??
@@ -81,7 +85,7 @@ export function WaitingCard({
       />
     ) : null);
   return (
-    <View style={[styles.card, surface]}>
+    <View style={[styles.card, { backgroundColor: c.raised, borderColor: c.line }]}>
       <View style={styles.clip}>
         {/* The asking agent's sky; a gray one when no agent asks (a server, people), so every card reads the same. */}
         <Sky
@@ -100,35 +104,47 @@ export function WaitingCard({
         >
           <View style={styles.hd}>
             {agentId ? <AgentFace agentId={agentId} size={FACE} live={false} /> : leading}
-            <View style={styles.grow}>
-              {name ? (
-                <Text variant="small" tone="ink2" numberOfLines={1}>
-                  {name}
-                </Text>
-              ) : null}
-              <View style={styles.kind}>
-                <Icon name={kind.icon} size={13} color={c.muted} />
-                <Text variant="footnote" tone="muted" numberOfLines={1} style={[styles.medium, styles.shrink]}>
-                  {kind.label}
-                </Text>
+            <View style={styles.who}>
+              <View style={styles.nameLine}>
+                {name ? (
+                  <Text variant="callout" tone="ink" numberOfLines={1} style={[styles.name, styles.grow]}>
+                    {name}
+                  </Text>
+                ) : (
+                  <View style={styles.grow} />
+                )}
+                {where ? (
+                  <Text variant="footnote" tone="faint" numberOfLines={1} style={[styles.when, styles.where]}>
+                    {where}
+                  </Text>
+                ) : null}
+              </View>
+              <View style={styles.kindLine}>
+                <View style={[styles.tag, { backgroundColor: c.attentionSoft }]}>
+                  <Icon name={kind.icon} size={12} color={c.amberInk} />
+                  <Text variant="caption" numberOfLines={1} style={[styles.tagText, { color: c.amberInk }]}>
+                    {kind.label}
+                  </Text>
+                </View>
+                {place ? (
+                  <Text variant="footnote" tone="faint" numberOfLines={1} style={styles.place}>
+                    {place}
+                  </Text>
+                ) : null}
               </View>
             </View>
-            {where ? (
-              <Text variant="footnote" tone="faint" numberOfLines={1} style={[styles.when, styles.where]}>
-                {where}
-              </Text>
-            ) : null}
           </View>
           {title ? (
-            <Text variant="title" tone="ink" numberOfLines={3}>
+            <Text variant="title" tone="ink" numberOfLines={4} style={styles.title}>
               {title}
             </Text>
           ) : null}
           {children}
         </Pressable>
-        {foot || expires ? (
-          <View style={styles.ft}>
-            {foot}
+        {foot ? <View style={styles.ft}>{foot}</View> : null}
+        {footNote || expires ? (
+          <View style={[styles.footLine, foot ? null : styles.footLineAlone]}>
+            <View style={styles.footNote}>{footNote}</View>
             {expires ? (
               <View style={styles.expiry}>
                 <ExpiryLine createdAt={expires.createdAt} expiresAt={expires.expiresAt} />
@@ -144,10 +160,11 @@ export function WaitingCard({
 
 /** What a waiting card's request goes through, on one quiet line as the chat's card says it: its mark, its details. */
 export function WaitingSource({ mark, text }: { mark?: ReactNode; text: string }) {
+  const c = useColors();
   return (
-    <View style={styles.source}>
+    <View style={[styles.source, { backgroundColor: c.plateSoft }]}>
       {mark ? <View style={styles.sourceMark}>{mark}</View> : null}
-      <Text variant="footnote" tone="faint" numberOfLines={1} style={styles.grow}>
+      <Text variant="footnote" tone="muted" numberOfLines={1} style={styles.grow}>
         {text}
       </Text>
     </View>
@@ -159,26 +176,61 @@ const RADIUS = 20;
 const CUT = 6;
 
 const styles = StyleSheet.create({
-  card: { borderRadius: RADIUS, borderBottomLeftRadius: CUT },
-  clip: { borderRadius: RADIUS, borderBottomLeftRadius: CUT, overflow: "hidden", paddingBottom: 14 },
-  sky: { position: "absolute", top: 0, left: 0, right: 0, height: 56, opacity: 0.5 },
-  body: { paddingHorizontal: 16, paddingTop: 14, gap: 8 },
-  hd: { flexDirection: "row", alignItems: "center", gap: 12 },
-  kind: { flexDirection: "row", alignItems: "center", gap: 4 },
-  // The source line as the chat's card draws it: its mark, its details faint on one line.
-  source: { flexDirection: "row", alignItems: "center", gap: 8, alignSelf: "stretch", minHeight: 24 },
+  card: { borderRadius: RADIUS, borderBottomLeftRadius: CUT, borderWidth: 1 },
+  clip: { borderRadius: RADIUS - 1, borderBottomLeftRadius: CUT - 1, overflow: "hidden", paddingBottom: 16 },
+  sky: { position: "absolute", top: 0, left: 0, right: 0, height: 72, opacity: 0.6 },
+  body: { paddingHorizontal: 16, paddingTop: 16, gap: 8 },
+  hd: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 4 },
+  who: { flex: 1, minWidth: 0, gap: 4 },
+  nameLine: { flexDirection: "row", alignItems: "center", gap: 8 },
+  name: { fontWeight: weights.semibold },
+  // The kind as a label nobody presses: a small amber tag, then where it was asked.
+  kindLine: { flexDirection: "row", alignItems: "center", gap: 8 },
+  tag: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    height: 22,
+    paddingHorizontal: 8,
+    borderRadius: 6,
+    flexShrink: 0,
+    maxWidth: "70%",
+  },
+  tagText: { fontWeight: weights.semibold, flexShrink: 1 },
+  place: { flexShrink: 1, minWidth: 0 },
+  title: { letterSpacing: -0.2 },
+  // The source line in a quiet plate: its mark, its details on one line.
+  source: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    alignSelf: "stretch",
+    minHeight: 32,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
   sourceMark: { flexShrink: 0 },
-  // The decision under the request, as the chat card's foot (its 8 + 4 points above).
-  ft: { paddingHorizontal: 16, paddingTop: 12 },
-  // The deadline at the foot's end, right-aligned under the decision (as the chat's card).
-  expiry: { flexDirection: "row", justifyContent: "flex-end", marginTop: 10 },
+  // The decision 16 under the request.
+  ft: { paddingHorizontal: 16, paddingTop: 16 },
+  // The way out and the deadline share one line under the decision.
+  // The way out keeps its words whole: when both don't fit on one line the deadline goes under it, at the right.
+  footLine: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "space-between",
+    columnGap: 12,
+    rowGap: 4,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    minHeight: 32,
+  },
+  footLineAlone: { paddingTop: 12 },
+  expiry: { marginLeft: "auto" },
+  footNote: { flexShrink: 0, maxWidth: "100%" },
   when: { fontVariant: ["tabular-nums"] },
-  // Where and when never take the name's room: at most half the line. On the name's line, not between it and the
-  // kind under it.
-  where: { flexShrink: 1, maxWidth: "50%", alignSelf: "flex-start", paddingTop: 1 },
+  where: { flexShrink: 0, maxWidth: "45%" },
   footer: { marginTop: 12, marginHorizontal: 16, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth },
-  medium: { fontWeight: weights.medium },
   grow: { flex: 1, minWidth: 0 },
-  shrink: { flexShrink: 1 },
   pressed: { opacity: 0.85 },
 });

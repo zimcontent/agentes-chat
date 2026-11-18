@@ -1200,7 +1200,9 @@
       "suggested": "Önerilenler",
       "all": "Tümü",
       "none": "Bu adla bir saat dilimi yok"
-    }
+    },
+    "groupAlerts": "Uyarılar ve onaylar",
+    "groupLook": "Görünüm ve ses"
   },
   "delete": {
     "intro": "Bunun geri dönüşü yok.",
@@ -1569,7 +1571,11 @@
       "today": "bugün {{time}}",
       "tomorrow": "yarın {{time}}",
       "later": "{{day}} {{time}}"
-    }
+    },
+    "needsYou": "Seni bekliyor",
+    "running": "Şu an çalışıyor",
+    "runningAll": "Tümünü gör",
+    "steps": "{{done}}/{{total}}"
   },
   "agentLite": {
     "uses": "Kullanabilir",
@@ -3122,5 +3128,14 @@
   "brand": {
     "basedOn": "Codari Global, LLC'nin DougBot projesine dayanır · AGPL-3.0",
     "source": "DougBot kaynak kodu"
+  },
+  "toSchedule": {
+    "title": "Planlanmaya hazır",
+    "row": "Gönderi onaylandı, planlamak için dokun",
+    "untitled": "Başlıksız gönderi",
+    "sheetTitle": "Gönderiyi planla",
+    "confirm": "Planla",
+    "when": "{{when}} yayında",
+    "past": "Henüz geçmemiş bir saat seç"
   }
 }

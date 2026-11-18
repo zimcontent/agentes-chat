@@ -66,8 +66,8 @@ describe("Atividade", () => {
     // open where they are decided.
     expect(screen).toContain("request?.canDecide && onCard <= 1 ? request : null");
     expect(screen).toContain("decision={decidable ? <ApproveHere approval={decidable} primary={first} /> : undefined}");
-    // How many wait is said once, on the section, not again on the filter.
-    expect(screen).toContain('<SectionHeader title={t("mobile.home.waiting")} count={waitingCount} />');
+    // How many wait is said once, on the section ("Precisa de você"), not again on the filter.
+    expect(screen).toContain('<SectionHeader title={t("mobile.activityNow.needsYou")} count={waitingCount} />');
     expect(screen).not.toContain("count: waitingCount");
   });
 
