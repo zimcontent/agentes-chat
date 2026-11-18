@@ -265,8 +265,8 @@ const OrgOrgIdOnboardingRoute = OrgOrgIdOnboardingRouteImport.update({
   getParentRoute: () => OrgOrgIdRoute,
 } as any)
 const OrgOrgIdPortalRoute = OrgOrgIdPortalRouteImport.update({
-  id: '/p',
-  path: '/p',
+  id: '/portal',
+  path: '/portal',
   getParentRoute: () => OrgOrgIdRoute,
 } as any)
 const OrgOrgIdProposalsRoute = OrgOrgIdProposalsRouteImport.update({
@@ -1155,7 +1155,7 @@ declare module '@tanstack/react-router' {
     }
     '/org/$orgId/portal': {
       id: '/org/$orgId/portal'
-      path: '/p'
+      path: '/portal'
       fullPath: '/org/$orgId/portal'
       preLoaderRoute: typeof OrgOrgIdPortalRouteImport
       parentRoute: typeof OrgOrgIdRoute
