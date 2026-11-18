@@ -304,6 +304,11 @@ export async function invitationLogoFile(deps: { db: Database; blobs: BlobStore 
 
 /** Kept beside the workspace logo, so it leaves with the workspace (`purgeOrgBlobs`). */
 const portalLogoKey = (orgId: string, client: string, file: string) => `org-logos/${orgId}/portal/${client}/${file}`;
+/**
+ * The key a client's logo is stored under: the members' route and the client's own page both read it through the
+ * platform's storage (docs/adr/doug-0020-embedded-approval-portal.md).
+ */
+export const portalLogoKeyOf = portalLogoKey;
 const PORTAL_CLIENT = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
 /** Where the apps read a client's logo: `GET /api/app/portal-logos/{orgId}/{client}/{file}`. */

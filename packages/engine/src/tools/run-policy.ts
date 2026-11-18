@@ -148,6 +148,8 @@ const ELSEWHERE = new Set([
   "send_new_version",
   "portal_plan",
   "portal_card",
+  // A client of the installation's own portal, with its contacts and its link (docs/adr/doug-0020).
+  "portal_clients",
   // A message to someone outside, as a WhatsApp number (docs/adr/doug-0004-whatsapp-bridge.md).
   "whatsapp_send",
 ]);

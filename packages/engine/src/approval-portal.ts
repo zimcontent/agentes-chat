@@ -21,6 +21,7 @@ import {
   planTool,
   portalPlan,
 } from "./approval-portal-plan";
+import { listPortalClients, upsertPortalClient } from "./approval-portal-clients";
 import { portalHere } from "./approval-portal-tasks";
 import { type ArtifactActor, type ArtifactDeps, artifactFile, storedFileOfArtifact } from "./artifacts";
 import { ValidationError } from "./errors";
@@ -357,6 +358,11 @@ export interface PortalToolDeps {
   artifacts: ArtifactDeps;
   /** Whether the portal is the run's workspace's (ADR 9001 §18); `portalHere` unless a test says otherwise. */
   here?: (ctx: ToolContext) => Promise<boolean>;
+  /**
+   * On a server that keeps its own portal (`approvalPortalEmbedded`), the clients and their links: the tool that adds
+   * one with its contacts and its link, docs/adr/doug-0020-embedded-approval-portal.md. Absent on a bridge's portal.
+   */
+  clients?: { publicUrl: string; secret: string };
 }
 
 const str = (value: unknown) => (typeof value === "string" ? value : "");
@@ -746,6 +752,96 @@ function workTool(portal: ApprovalPortal): ToolDefinition {
   };
 }
 
+export const PORTAL_CLIENTS_TOOL = "portal_clients";
+
+/**
+ * The installation's own portal's clients (docs/adr/doug-0020-embedded-approval-portal.md): make one with its contacts
+ * and its link, or change it. Only on a server that keeps its own portal (`deps.clients`): on a bridge's, the tool
+ * isn't listed. It changes what the team keeps for a client, so a person is behind the run (`elsewhere`), and a
+ * routine never reaches it.
+ */
+function clientsTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefinition {
+  return {
+    name: PORTAL_CLIENTS_TOOL,
+    description:
+      "The installation's approval portal: its clients. With no `client`: every client, its contacts and the address of its own link (`<server>/portal/<token>`), which opens its page with no account. With `client`, a name and its contacts: makes the client or changes it, and answers its link; the team sends that link to the client, who then approves the posts at it. A contact is a name with an e-mail address and/or a WhatsApp number with the country code. Use it when a person asks to add a client or to get (or fix) a client's link.",
+    scope: "",
+    external: true,
+    inputSchema: {
+      type: "object",
+      properties: {
+        client: { type: "string", maxLength: 64, description: "The client's id: lowercase letters, digits, hyphens." },
+        name: { type: "string", maxLength: 80, description: "The name the client reads. Needed to make or rename." },
+        contacts: {
+          type: "array",
+          maxItems: 10,
+          items: {
+            type: "object",
+            properties: {
+              name: { type: "string", maxLength: 80 },
+              email: { type: "string", maxLength: 200 },
+              whatsapp: { type: "string", maxLength: 24, description: "Digits only, with the country code." },
+            },
+            required: ["name"],
+            additionalProperties: false,
+          },
+          description: "Replaces the client's contacts: each told when a post waits on them.",
+        },
+        color: { type: "string", maxLength: 20, description: "One of the twelve colours the board draws." },
+      },
+      additionalProperties: false,
+    },
+    describe: (input) => ({
+      title: str(input.client)
+        ? `Add or change ${str(input.client)} as a portal client`
+        : "List the portal's clients",
+    }),
+    async execute(input, ctx) {
+      // Only the installation's own portal has clients and links of its own here.
+      if (!deps.clients) return { content: "This server's portal is a bridge's: its clients live there.", isError: true };
+      try {
+        if (!str(input.client)) {
+          const clients = await listPortalClients(
+            { db: ctx.db as Database, publicUrl: deps.clients.publicUrl, secret: deps.clients.secret },
+            ctx.orgId,
+          );
+          if (!clients.length) return { content: "The portal has no clients yet." };
+          const text = clients
+            .map(
+              (c) =>
+                `- ${c.client} (${c.name})` +
+                (c.link ? `: ${c.link}` : ", its link was revoked") +
+                (c.contacts.length
+                  ? `\n  contacts: ${c.contacts.map((p) => `${p.name}${p.email ? ` <${p.email}>` : ""}${p.whatsapp ? ` +${p.whatsapp}` : ""}`).join("; ")}`
+                  : ""),
+            )
+            .join("\n");
+          // Names and contacts are people's words: outside text for a model.
+          return { content: untrustedBlock("approval portal clients", text) };
+        }
+        const by = (await personBehindCall(ctx)) ?? `agent:${ctx.agentId}`;
+        const saved = await upsertPortalClient(
+          { db: ctx.db as Database, publicUrl: deps.clients.publicUrl, secret: deps.clients.secret },
+          ctx.orgId,
+          {
+            client: str(input.client),
+            name: str(input.name),
+            ...(input.contacts !== undefined ? { contacts: input.contacts as unknown[] } : {}),
+            ...(input.color !== undefined ? { color: str(input.color) } : {}),
+          },
+          by,
+        );
+        return {
+          content:
+            `Client ${saved.client} (${saved.name}) is set.` + (saved.link ? ` Link: ${saved.link}` : ""),
+        };
+      } catch (error) {
+        return failed(error);
+      }
+    },
+  };
+}
+
 /** Waits a short while for a send to end, so the answer usually carries the link. */
 async function settled(portal: ApprovalPortal, job: PortalJob, waitMs = 20_000): Promise<PortalJob> {
   const until = Date.now() + waitMs;
@@ -772,7 +868,15 @@ export function createPortalToolSource(deps: PortalToolDeps): ToolSource {
       // A routine reads (it tells each person their day) and changes nothing here.
       const reads = [boardTool(portal), workTool(portal)];
       if (ctx.background) return reads;
-      return [...reads, cardTool(portal), planTool(portal), sendTool(deps, portal), versionTool(deps, portal)];
+      return [
+        ...reads,
+        cardTool(portal),
+        planTool(portal),
+        sendTool(deps, portal),
+        versionTool(deps, portal),
+        // The clients of the installation's own portal, and their links: only where this server keeps one.
+        ...(deps.clients ? [clientsTool(deps, portal)] : []),
+      ];
     },
   };
 }

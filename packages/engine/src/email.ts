@@ -292,6 +292,18 @@ export type EmailTemplate =
   /** An AI app or a personal token got access to the person's account in a workspace (ADR 0119), to that person. */
   | { kind: "app_connected"; locale: EmailLocale; appName: string; orgName: string; url: string; personal?: true }
   /**
+   * The approval portal's client (docs/adr/doug-0020-embedded-approval-portal.md): a post (or its new version) waits on
+   * them at their own link, with no account. `clientName` is the client's name ("Padaria Aurora"); `posts` lists what
+   * waits (`title`, and a new version's `version`); `url` is the client's page.
+   */
+  | {
+      kind: "portal_ready";
+      locale: EmailLocale;
+      clientName: string;
+      posts: { title: string; version: number }[];
+      url: string;
+    }
+  /**
    * The account `email` was deleted. `orgNames`: the workspaces only they were in, which closed with it and go for
    * good at `dueAt` (ISO, shown in `timeZone`). `support`: whom to write to if it wasn't them (`SUPPORT_EMAIL`), else
    * the people who run the server. `url`: the server's own address, for the pictures.
@@ -941,6 +953,26 @@ function docOf(t: EmailTemplate, sender: string | null): EmailDoc {
         c.headline,
         [{ p: c.body(inertText(t.appName), org) }, { note: c.note }, { button: c.button, url: t.url }],
         c.why(org),
+      );
+    }
+    case "portal_ready": {
+      const c = w.portalReady;
+      const client = inertText(t.clientName);
+      const lines = t.posts.map((p) => c.version(inertText(p.title), p.version));
+      return doc(
+        c.subject(inertText(t.clientName)),
+        c.preheader,
+        c.headline,
+        [
+          { p: c.body(client) },
+          ...(lines.length === 1 && lines[0] !== undefined
+            ? [{ p: lines[0] }]
+            : lines.length > 1
+              ? [{ h2: c.post }, ...lines.map((line) => ({ p: line as Text }))]
+              : []),
+          { button: c.button, url: t.url },
+        ],
+        c.why(client),
       );
     }
     case "plan_opened": {

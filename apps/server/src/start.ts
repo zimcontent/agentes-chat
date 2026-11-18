@@ -57,6 +57,8 @@ import {
   allowsPrivateEndpoints,
   backfillMemoryTrust,
   composioUsageHook,
+  // The approval portal kept in this server's own database (docs/adr/doug-0020-embedded-approval-portal.md).
+  createEmbeddedApprovalPortal,
   createGifKey,
   createLocalKeyWrapper,
   defaultEmailFrom,
@@ -257,6 +259,9 @@ async function boot(
   // The GIPHY key its owner may add in Settings (ADR 0091, amended 2026-10-31), made below once modules had their
   // say on the key wrappers; the GIF provider asks it on every call.
   let gifKey: GifKey | null = null;
+  // The installation's own file store, made before the adapters that share it: the approval portal keeps a post's
+  // files there (docs/adr/doug-0020-embedded-approval-portal.md).
+  const platformBlobs = platformBlobStore(config, database.db);
   const defaults: Adapters = {
     search: createPostgresSearchResolver(database.db),
     // PGlite (native mode) is one process: nothing to tell other replicas.
@@ -269,7 +274,7 @@ async function boot(
     platformCredentials: envPlatformCredentials({
       anthropic: { apiKey: config.PLATFORM_ANTHROPIC_API_KEY, workspaceId: config.PLATFORM_ANTHROPIC_WORKSPACE_ID },
     }),
-    platformBlobs: platformBlobStore(config, database.db),
+    platformBlobs,
     // Phone app push (ADR 0035, ADR 0152, ADR 0178): only devices that registered get anything. Android straight
     // to Firebase and iPhones straight to Apple, or through the push relay (`PUSH_SENDER`).
     push: createPhonePushSender({ android: phoneSender("android"), ios: phoneSender("ios") }),
@@ -296,11 +301,26 @@ async function boot(
       config.ZIM_MEDIA_URL && config.ZIM_MEDIA_SECRET
         ? createZimMedia({ url: config.ZIM_MEDIA_URL, secret: config.ZIM_MEDIA_SECRET })
         : null,
-    // The approval portal (ADR 9001), only with its bridge's address and token.
-    approvalPortal:
-      config.APPROVAL_PORTAL_URL && config.APPROVAL_PORTAL_TOKEN
-        ? createBridgeApprovalPortal({ url: config.APPROVAL_PORTAL_URL, token: config.APPROVAL_PORTAL_TOKEN })
-        : null,
+    // The approval portal (ADR 9001): through the installation's bridge when it has one, else the portal kept in this
+    // server's own database (docs/adr/doug-0020-embedded-approval-portal.md), so every installation has its own, served
+    // at its own address.
+    ...(config.APPROVAL_PORTAL_URL && config.APPROVAL_PORTAL_TOKEN
+      ? {
+          approvalPortal: createBridgeApprovalPortal({
+            url: config.APPROVAL_PORTAL_URL,
+            token: config.APPROVAL_PORTAL_TOKEN,
+          }),
+        }
+      : {
+          approvalPortal: createEmbeddedApprovalPortal({
+            db: database.db,
+            blobs: platformBlobs,
+            publicUrl: config.PUBLIC_URL,
+            secret: config.AGENTES_SECRET,
+            log,
+          }),
+          approvalPortalEmbedded: true,
+        }),
     // The Vault's external sources (ADR 0144): nothing reaches them until a person connects one. A self-hosted
     // Bitwarden's address is typed by a person, so its requests go only to public addresses, pinned at connect time.
     vaultSources: Object.fromEntries(

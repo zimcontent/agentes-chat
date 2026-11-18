@@ -380,6 +380,10 @@ export function accountRoutes(deps: AppDeps) {
               description:
                 "This server has an approval portal (APPROVAL_PORTAL_URL, ADR 9001): the apps show the Portal page.",
             }),
+            approvalPortalEmbedded: z.boolean().openapi({
+              description:
+                "The portal is this server's own (docs/adr/doug-0020-embedded-approval-portal.md), not a bridge's: the workspace manages its clients and their links here.",
+            }),
             zimMedia: z.boolean().openapi({
               description:
                 "This server generates images and videos from a credit wallet (ZIM_MEDIA_URL, ADR doug-0011): the apps show the Mídia page.",
@@ -430,6 +434,7 @@ export function accountRoutes(deps: AppDeps) {
           workspaceComputer: config.MACHINE_PROVISIONING === "external",
           billingUrl: config.BILLING_URL ?? null,
           approvalPortal: Boolean(deps.adapters.approvalPortal),
+          approvalPortalEmbedded: Boolean(deps.adapters.approvalPortalEmbedded),
           zimMedia: Boolean(deps.adapters.zimMedia),
           cloud: isAgentesCloud(config.PUBLIC_URL),
           turnstileSiteKey: deps.adapters.humanCheck?.siteKey ?? null,

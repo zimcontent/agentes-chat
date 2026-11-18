@@ -105,9 +105,13 @@ export interface Adapters {
   gifs?: GifProvider | null;
   /**
    * The approval portal (ADR 9001), reached through the installation's bridge (`APPROVAL_PORTAL_URL`);
-   * null/absent = no portal: no page, no tools.
+   * null/absent = no portal: no page, no tools. On a server with no bridge, the portal kept in this server's own
+   * database takes its place (docs/adr/doug-0020-embedded-approval-portal.md): `approvalPortal` is that one there, and
+   * `approvalPortalEmbedded` says so, so the client links and their notices are wired.
    */
   approvalPortal?: ApprovalPortal | null;
+  /** True when `approvalPortal` is this server's own (`createEmbeddedApprovalPortal`), not the bridge. */
+  approvalPortalEmbedded?: boolean;
   /**
    * The Vault's external sources by kind (ADR 0144): 1Password and Bitwarden by default, a module's merged by kind.
    * The built-in source is the engine's own. null/absent = only built-in items.

@@ -60,6 +60,7 @@ import {
 } from "./email";
 import { forgetCodeEmail } from "./email-codes";
 import { type DecidedBy, publishListChanged, publishRouted } from "./events";
+import { announcePortalPost, PORTAL_NOTIFY_JOB, type PortalNoticeDeps } from "./portal-notices";
 import { executeRun, type RunExecutorDeps } from "./executor";
 import {
   FEEDBACK_FILE_PURGE_JOB,
@@ -203,6 +204,8 @@ export interface JobDeps extends RunExecutorDeps {
   videoReviews?: VideoReviewDeps;
   /** WhatsApp numbers whose agent answers (job `whatsapp.agent_reply`); absent: no gateway, nothing to answer. */
   whatsapp?: WhatsAppAgentDeps;
+  /** The approval portal's notices to its clients (job `portal.notify`); absent: no embedded portal. */
+  portalNotify?: PortalNoticeDeps;
   /** The Vault's sources (job `vault.sync`, ADR 0144); absent: connections aren't read again. */
   vault?: VaultDeps;
   /** Connectors: job `org.delete` revokes a workspace's GitHub OAuth grants at GitHub before its rows go. */
@@ -1075,6 +1078,13 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
     },
     [PLAN_WAITING_JOB]: async (job) => {
       if (deps.emailArt) await sendPlanWaitingEmail(deps.db, deps.emailArt.home, orgOf(job), job.payload.step);
+    },
+    // The client of the approval portal is told a post (or its new version) waits on them (docs/adr/
+    // doug-0020-embedded-approval-portal.md): one email to each contact with an address, one text when the workspace
+    // has a number. Nothing when the post was answered while the job waited, or the client was told within the day.
+    [PORTAL_NOTIFY_JOB]: async (job) => {
+      if (!deps.portalNotify) return;
+      await announcePortalPost(deps.portalNotify, orgOf(job), String(job.payload.postId), Number(job.payload.version) || 1);
     },
     // Someone else let more people talk to an agent on a person's plan: that person's email (`planOpened`).
     [PLAN_OPENED_JOB]: async (job) => {

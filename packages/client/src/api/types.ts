@@ -175,6 +175,11 @@ export interface AuthConfig {
   mobileErrorReports?: ErrorReportsConfig | null;
   /** The server has an approval portal (ADR 9001): the apps show Portal; absent or false: none. */
   approvalPortal?: boolean;
+  /**
+   * The portal is this server's own (docs/adr/doug-0020-embedded-approval-portal.md), not a bridge's: the workspace
+   * manages its clients and their links here (`GET …/portal-clients`). Absent from an older server.
+   */
+  approvalPortalEmbedded?: boolean;
   /** The server generates images and videos from a credit wallet (ADR doug-0011): the apps show Mídia. */
   zimMedia?: boolean;
 }
@@ -8697,6 +8702,32 @@ export interface PortalClientSummary {
   color?: PortalClientColor | null;
   /** Where its logo is read (the server's own address); null or absent: none. */
   logo?: string | null;
+}
+
+/** A contact of a client, told when a post waits on them (the installation's own portal, docs/adr/doug-0020). */
+export interface PortalContact {
+  id: string;
+  name: string;
+  email: string | null;
+  /** Digits only, country code first. */
+  whatsapp: string | null;
+}
+
+/**
+ * A client of the installation's own approval portal (`GET …/portal-clients`): its name, its contacts and the address
+ * of its own link (`<PUBLIC_URL>/portal/<token>`), which opens its page with no account.
+ */
+export interface PortalClientAccount {
+  id: string;
+  /** The id the board, the agents and the address call it by. */
+  client: string;
+  name: string;
+  contacts: PortalContact[];
+  color: PortalClientColor | null;
+  /** The client's page's own address; null while revoked. */
+  link: string | null;
+  revoked: boolean;
+  createdAt: string;
 }
 
 /**

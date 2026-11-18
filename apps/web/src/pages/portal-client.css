@@ -1,0 +1,351 @@
+/*
+ * The client's page of the approval portal (docs/adr/doug-0020-embedded-approval-portal.md): one column, phone first,
+ * the client's name on top, each post a card with its media, its caption and its decision. Tokens only, so light and
+ * dark follow the theme; every spacing step and radius is the kit's, never a raw px for a gap or a pad.
+ */
+.cportal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-height: 100dvh;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-8);
+  background: var(--bg);
+  color: var(--ink);
+  font:
+    15px / 1.5 "Source Sans 3",
+    system-ui,
+    sans-serif;
+}
+
+/* A first screen: the mark, a title, one line and, when it is worth it, a way to try again. */
+.cportal--message {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-3);
+}
+.cportal__title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+.cportal__subtitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 650;
+}
+.cportal__quiet {
+  margin: 0;
+  color: var(--muted);
+  max-width: 40ch;
+}
+
+/* The head: the client's mark, its name, and that this is where it approves. */
+.cportal__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.cportal__mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-btn);
+  background: var(--side);
+  overflow: hidden;
+}
+.cportal__mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cportal__who {
+  min-width: 0;
+}
+.cportal__brand {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.cportal__client {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.cportal__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.cportal__heading {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.cportal__empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+  text-align: center;
+}
+
+/* A post: its media on top, its words and its buttons below. */
+.cportal__post {
+  overflow: hidden;
+  padding: 0;
+}
+.cportal__post--waiting {
+  box-shadow: var(--e2);
+}
+.cportal__media {
+  position: relative;
+  background: var(--side);
+  line-height: 0;
+}
+.cportal__video {
+  display: block;
+  width: 100%;
+  max-height: 70dvh;
+  background: #000;
+}
+.cportal__video-wrap {
+  position: relative;
+}
+.cportal__mark-btn {
+  position: absolute;
+  left: var(--space-2);
+  bottom: var(--space-2);
+  height: 32px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-btn);
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.cportal__pic {
+  display: block;
+  width: 100%;
+  max-height: 70dvh;
+  object-fit: contain;
+  background: var(--side);
+}
+.cportal__badge {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 20px;
+}
+.cportal__version {
+  position: absolute;
+  top: var(--space-2);
+  right: var(--space-2);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.62);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 20px;
+}
+
+.cportal__carousel {
+  position: relative;
+  overflow: hidden;
+}
+.cportal__strip {
+  display: flex;
+  transition: transform 0.24s ease;
+}
+.cportal__strip > * {
+  flex: 0 0 100%;
+}
+.cportal__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+.cportal__arrow--prev {
+  left: var(--space-2);
+}
+.cportal__arrow--next {
+  right: var(--space-2);
+}
+@media (pointer: coarse) {
+  .cportal__arrow {
+    display: none;
+  }
+}
+.cportal__dots {
+  position: absolute;
+  bottom: var(--space-2);
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: var(--space-1);
+}
+.cportal__dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+}
+.cportal__dot.is-on {
+  background: #fff;
+}
+.cportal__file {
+  display: block;
+  padding: var(--space-6);
+  text-align: center;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.cportal__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+.cportal__post-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.cportal__caption {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+}
+
+.cportal__notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.cportal__note {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-item);
+  background: var(--side);
+  font-size: 14px;
+  color: var(--muted);
+}
+.cportal__note-mark {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  color: var(--ink);
+}
+.cportal__note-mark--chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  align-self: flex-start;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--side);
+  color: var(--ink);
+}
+.cportal__note-mark--chip button {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.cportal__actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+.cportal__adjust {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.cportal__adjust-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+.cportal__mark-hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+}
+.cportal__error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--danger);
+}
+.cportal__thanks {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-item);
+  background: var(--side);
+  font-weight: 600;
+  text-align: center;
+}
+
+.cportal__foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  color: var(--muted);
+  font-size: 13px;
+}

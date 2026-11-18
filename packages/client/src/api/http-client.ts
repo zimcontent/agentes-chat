@@ -224,6 +224,7 @@ import type {
   Poll,
   PortalBoard,
   PortalCard,
+  PortalClientAccount,
   PortalItem,
   PortalJob,
   PortalLabel,
@@ -2031,6 +2032,28 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
             method: "DELETE",
           })
         ).card,
+      clients: async (orgId) =>
+        (await request<{ clients: PortalClientAccount[] }>(`${org(orgId)}/portal-clients`)).clients,
+      saveClient: async (orgId, client, input) =>
+        (
+          await request<{ client: PortalClientAccount }>(`${org(orgId)}/portal-clients/${enc(client)}`, {
+            method: "PUT",
+            json: input,
+          })
+        ).client,
+      removeClient: async (orgId, client) => {
+        await request(`${org(orgId)}/portal-clients/${enc(client)}`, { method: "DELETE" });
+      },
+      newClientLink: async (orgId, client) =>
+        (
+          await request<{ link: string }>(`${org(orgId)}/portal-clients/${enc(client)}/link`, {
+            method: "POST",
+            json: {},
+          })
+        ).link,
+      revokeClientLink: async (orgId, client) => {
+        await request(`${org(orgId)}/portal-clients/${enc(client)}/link`, { method: "DELETE" });
+      },
     },
     missions: ((): HttpApi["missions"] => {
       const one = (orgId: string, missionId: string) => `${org(orgId)}/missions/${enc(missionId)}`;

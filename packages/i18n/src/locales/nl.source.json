@@ -51701,5 +51701,89 @@
       "one": "Add {{count}} file",
       "other": "Add {{count}} files"
     }
+  },
+  "portalClients.title": {
+    "value": "Portal clients"
+  },
+  "portalClients.lead": {
+    "value": "Each client approves your posts at a link of its own, with no account. A client's contacts are told by e-mail and WhatsApp when a post waits on them."
+  },
+  "portalClients.add": {
+    "value": "Add client"
+  },
+  "portalClients.addTitle": {
+    "value": "New client"
+  },
+  "portalClients.edit": {
+    "value": "Edit"
+  },
+  "portalClients.editTitle": {
+    "value": "Client"
+  },
+  "portalClients.remove": {
+    "value": "Remove"
+  },
+  "portalClients.removeTitle": {
+    "value": "Remove this client?"
+  },
+  "portalClients.removeText": {
+    "value": "Its link stops working and its posts are no longer on its page. The work stays on the board."
+  },
+  "portalClients.loading": {
+    "value": "Loading…"
+  },
+  "portalClients.empty": {
+    "value": "No clients yet. Add one to get a link you can send."
+  },
+  "portalClients.noContacts": {
+    "value": "No contacts yet: nobody is told when a post waits."
+  },
+  "portalClients.id": {
+    "value": "Client id (lowercase, no spaces)"
+  },
+  "portalClients.name": {
+    "value": "Name"
+  },
+  "portalClients.contactName": {
+    "value": "Contact name"
+  },
+  "portalClients.email": {
+    "value": "E-mail"
+  },
+  "portalClients.whatsapp": {
+    "value": "WhatsApp with the country code"
+  },
+  "portalClients.addContact": {
+    "value": "Add contact"
+  },
+  "portalClients.dropContact": {
+    "value": "Remove contact"
+  },
+  "portalClients.link": {
+    "value": "Client link"
+  },
+  "portalClients.copy": {
+    "value": "Copy link"
+  },
+  "portalClients.copied": {
+    "value": "Link copied"
+  },
+  "portalClients.copyFailed": {
+    "value": "Couldn't copy the link"
+  },
+  "portalClients.revoked": {
+    "value": "The link was revoked"
+  },
+  "portalClients.newLink": {
+    "value": "New link"
+  },
+  "portalClients.revoke": {
+    "value": "Revoke link"
+  },
+  "settings.section.portal": {
+    "value": "Portal clients"
+  },
+  "settings.sectionText.portal": {
+    "value": "The clients who approve your posts, and the link each one opens."
   }
 }

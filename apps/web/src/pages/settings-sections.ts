@@ -31,6 +31,7 @@ export type SettingsSection =
   | "import"
   | "media"
   | "voice"
+  | "portal"
   | "about";
 
 /**
@@ -78,6 +79,13 @@ export const SETTINGS_SECTIONS: {
   // Every member keeps their own logins, keys and contacts there; team items show to who they're shared with (ADR 0144).
   { id: "vault", icon: "lock", allowed: () => true },
   { id: "access", icon: "agent", allowed: (o) => can(o, "manage_agents") },
+  // The clients of the installation's own approval portal, and their links (docs/adr/doug-0020): only where this
+  // server keeps its own portal, for who may give agents work.
+  {
+    id: "portal",
+    icon: "send",
+    allowed: (o, server) => server?.approvalPortalEmbedded === true && can(o, "assign_work"),
+  },
   // Every member sees the devices and can connect one (ADR 0025): computers and the phones they reach.
   { id: "devices", icon: "computer", allowed: (o) => can(o, "read") },
   { id: "storage", icon: "drive", allowed: (o) => can(o, "configure") },

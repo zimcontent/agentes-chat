@@ -142,6 +142,7 @@ describe("every email, in both languages", () => {
       plan_lent: true,
       plan_waiting: true,
       autonomy_report: true,
+      portal_ready: true,
     };
     expect(new Set<string>(Object.values(EMAIL_SAMPLES).map((t) => t.kind))).toEqual(new Set(Object.keys(kinds)));
   });

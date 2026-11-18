@@ -300,7 +300,9 @@ import type {
   PortalBoard,
   PortalCard,
   PortalCardInput,
+  PortalClientAccount,
   PortalClientColor,
+  PortalContact,
   PortalItem,
   PortalItemEdit,
   PortalJob,
@@ -1714,6 +1716,24 @@ export interface ApiClient {
     addComment(orgId: string, cardId: string, text: string): Promise<PortalCard>;
     /** One's own, or any for who may give agents work. */
     deleteComment(orgId: string, cardId: string, commentId: string): Promise<PortalCard>;
+    /**
+     * The installation's own portal's clients (docs/adr/doug-0020-embedded-approval-portal.md): each with its contacts
+     * and the address of its link. Empty on a server that keeps a bridge's portal (`AuthConfig.approvalPortalEmbedded`),
+     * where the client routes answer 404 `portal.off`.
+     */
+    clients(orgId: string): Promise<PortalClientAccount[]>;
+    /** Makes a client, or changes the one `client` names (its name, contacts, colour). */
+    saveClient(
+      orgId: string,
+      client: string,
+      input: { name: string; contacts?: PortalContact[]; color?: PortalClientColor | null },
+    ): Promise<PortalClientAccount>;
+    /** Removes a client and its links. */
+    removeClient(orgId: string, client: string): Promise<void>;
+    /** A new link, revoking the one before: answers the address to send. */
+    newClientLink(orgId: string, client: string): Promise<string>;
+    /** Revokes a client's link: the address answers nothing from then on. */
+    revokeClientLink(orgId: string, client: string): Promise<void>;
   };
   /** Missions (ADR 0029): long work by the agent's executor on a connected computer, in one thread. */
   missions: {

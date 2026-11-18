@@ -14,6 +14,7 @@ import type {
   ApiClient,
   PlanCard,
   PortalCard,
+  PortalClientAccount,
   PortalClientColor,
   PortalClientSummary,
   PortalColumn,
@@ -45,6 +46,8 @@ export interface FakePortal {
   colors: Record<string, PortalClientColor>;
   /** Each client's logo: where it is read. */
   logos: Record<string, string>;
+  /** The installation's own portal's clients (docs/adr/doug-0020), by id. */
+  accounts: Record<string, PortalClientAccount>;
   /** The portal's own today (`YYYY-MM-DD`), which `mine` reads production dates against (default: this machine's). */
   day: string;
   jobs: Map<string, PortalJob>;
@@ -197,6 +200,7 @@ export function createFakePortal(
   const today = new Date();
   const fake: FakePortal = {
     clients: [],
+    accounts: {},
     cards: [],
     items: [],
     tasks: [],
@@ -522,6 +526,58 @@ export function createFakePortal(
           throw new ApiError(400, "portal.refused", "Only a post waiting on the client's approval can be approved");
         }
         item.status = "approved";
+      },
+      clients: async (orgId) => {
+        log("portal.clients", orgId);
+        guard();
+        return clone(Object.values(fake.accounts));
+      },
+      saveClient: async (orgId, client, input) => {
+        log("portal.saveClient", orgId, client, input);
+        guard();
+        const before = fake.accounts[client];
+        const account: PortalClientAccount = {
+          id: before?.id ?? `acc-${hex()}`,
+          client,
+          name: input.name,
+          contacts: (input.contacts ?? []).map((c) => ({
+            id: c.id ?? `ct-${hex()}`,
+            name: c.name,
+            email: c.email ?? null,
+            whatsapp: c.whatsapp ?? null,
+          })),
+          color: input.color ?? null,
+          link: before?.link ?? `https://test.example/portal/${hex().padEnd(24, "0")}`,
+          revoked: false,
+          createdAt: before?.createdAt ?? new Date().toISOString(),
+        };
+        fake.accounts[client] = account;
+        return clone(account);
+      },
+      removeClient: async (orgId, client) => {
+        log("portal.removeClient", orgId, client);
+        guard();
+        delete fake.accounts[client];
+      },
+      newClientLink: async (orgId, client) => {
+        log("portal.newClientLink", orgId, client);
+        guard();
+        const account = fake.accounts[client];
+        const link = `https://test.example/portal/${hex().padEnd(24, "0")}`;
+        if (account) {
+          account.link = link;
+          account.revoked = false;
+        }
+        return link;
+      },
+      revokeClientLink: async (orgId, client) => {
+        log("portal.revokeClientLink", orgId, client);
+        guard();
+        const account = fake.accounts[client];
+        if (account) {
+          account.link = null;
+          account.revoked = true;
+        }
       },
     },
   };

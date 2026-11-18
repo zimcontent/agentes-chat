@@ -4870,3 +4870,177 @@ a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important
 </body>
 </html>"
 `;
+
+exports[`every email, in both languages portal_ready.en: snapshot 1`] = `
+"<!doctype html>
+<html lang="en" dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light dark">
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+</style>
+<style>
+@media (prefers-color-scheme:dark){.bg{background:#0a0a0a!important}.card{background:#121212!important;border-color:#262626!important}.ink{color:#ededed!important}.tx{color:#ededed!important}.mu{color:#999999!important}.fa{color:#8a8a8a!important}.well{background:#1a1a1a!important}.wh{border-color:#262626!important}.num{background:#121212!important;border-color:#262626!important;color:#999999!important}.btn{background:#9cfa05!important;color:#0a0a0a!important;border-color:#9cfa05!important}.btn span{color:#0a0a0a!important}.ln{color:#ededed!important;text-decoration-color:#262626!important}.avp{background:#1a1a1a!important;color:#ededed!important;border-color:#262626!important}.warn{background:#2e2410!important}.warn-t{color:#f5b544!important}.ln-d{color:#f2555a!important;text-decoration-color:#262626!important}.ln-m{color:#999999!important;text-decoration-color:#262626!important}.end-btn{margin-bottom:4px!important}.logo-ink{display:none!important}.logo-bone{display:block!important}}
+</style>
+<style>
+[data-ogsc] .bg{background:#0a0a0a!important}[data-ogsb] .bg{background:#0a0a0a!important}
+[data-ogsc] .card{background:#121212!important;border-color:#262626!important}[data-ogsb] .card{background:#121212!important;border-color:#262626!important}
+[data-ogsc] .ink{color:#ededed!important}[data-ogsb] .ink{color:#ededed!important}
+[data-ogsc] .tx{color:#ededed!important}[data-ogsb] .tx{color:#ededed!important}
+[data-ogsc] .mu{color:#999999!important}[data-ogsb] .mu{color:#999999!important}
+[data-ogsc] .fa{color:#8a8a8a!important}[data-ogsb] .fa{color:#8a8a8a!important}
+[data-ogsc] .well{background:#1a1a1a!important}[data-ogsb] .well{background:#1a1a1a!important}
+[data-ogsc] .wh{border-color:#262626!important}[data-ogsb] .wh{border-color:#262626!important}
+[data-ogsc] .num{background:#121212!important;border-color:#262626!important;color:#999999!important}[data-ogsb] .num{background:#121212!important;border-color:#262626!important;color:#999999!important}
+[data-ogsc] .btn{background:#9cfa05!important;color:#0a0a0a!important;border-color:#9cfa05!important}[data-ogsb] .btn{background:#9cfa05!important;color:#0a0a0a!important;border-color:#9cfa05!important}
+[data-ogsc] .btn span{color:#0a0a0a!important}[data-ogsb] .btn span{color:#0a0a0a!important}
+[data-ogsc] .ln{color:#ededed!important;text-decoration-color:#262626!important}[data-ogsb] .ln{color:#ededed!important;text-decoration-color:#262626!important}
+[data-ogsc] .avp{background:#1a1a1a!important;color:#ededed!important;border-color:#262626!important}[data-ogsb] .avp{background:#1a1a1a!important;color:#ededed!important;border-color:#262626!important}
+[data-ogsc] .warn{background:#2e2410!important}[data-ogsb] .warn{background:#2e2410!important}
+[data-ogsc] .warn-t{color:#f5b544!important}[data-ogsb] .warn-t{color:#f5b544!important}
+[data-ogsc] .ln-d{color:#f2555a!important;text-decoration-color:#262626!important}[data-ogsb] .ln-d{color:#f2555a!important;text-decoration-color:#262626!important}
+[data-ogsc] .ln-m{color:#999999!important;text-decoration-color:#262626!important}[data-ogsb] .ln-m{color:#999999!important;text-decoration-color:#262626!important}
+[data-ogsc] .end-btn{margin-bottom:4px!important}[data-ogsb] .end-btn{margin-bottom:4px!important}
+[data-ogsc] .logo-ink{display:none!important}[data-ogsb] .logo-ink{display:none!important}
+[data-ogsc] .logo-bone{display:block!important}[data-ogsb] .logo-bone{display:block!important}
+</style>
+<style>
+@media (prefers-color-scheme:light){.btn{background-image:linear-gradient(180deg,#c5ff52 0%,#9cfa05 55%,#84e407 100%)!important}}
+</style>
+<style>
+@media (prefers-color-scheme:dark){.btn{background-image:linear-gradient(180deg,#c5ff52 0%,#9cfa05 55%,#84e407 100%)!important}}
+</style>
+<title>Aurora Bakery: something is ready for your approval</title>
+<!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><style>body,table,td,p,a,span,b,h1,h2{font-family:'Segoe UI',Arial,sans-serif!important}</style><![endif]-->
+<style>
+body{margin:0!important;padding:0!important;width:100%!important}
+a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
+@media (max-width:620px){.px{padding-left:16px!important;padding-right:16px!important}.card{padding:24px 20px!important}.h1{font-size:22px!important;line-height:28px!important}}
+</style>
+<!--[if !mso]><!--><style>@font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;src:url('https://x.test/email/inter-latin.woff2') format('woff2')}@font-face{font-family:'Manrope';font-style:normal;font-weight:200 800;font-display:swap;src:url('https://x.test/email/manrope-latin.woff2') format('woff2')}</style><!--<![endif]-->
+</head>
+<body class="body bg" style="margin:0;padding:0;width:100%;background:#f4f6f2;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">
+<div style="display:none;max-height:0;max-width:0;overflow:hidden;mso-hide:all">Open your page to see it, approve it or ask for a change.&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;</div>
+<div role="article" aria-roledescription="email" aria-label="Aurora Bakery: something is ready for your approval" lang="en" dir="ltr">
+<table role="presentation" class="bg" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f2">
+<tr><td align="center" class="px" style="padding:0 24px">
+<!--[if mso]><table role="presentation" width="552" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:552px;margin:0 auto">
+<tr><td style="padding:32px 0 20px">
+<a href="https://x.test" target="_blank" style="display:inline-block;text-decoration:none">
+<img class="logo-ink" src="https://x.test/email/doug-logo-ink-2.png" width="144" height="36" alt="DougBot" style="display:block;border:0;outline:none;width:144px;height:36px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:20px;font-weight:600;line-height:36px;color:#0a0a0a">
+<!--[if !mso]><!--><img class="logo-bone" src="https://x.test/email/doug-logo-bone-2.png" width="144" height="36" alt="DougBot" style="display:none;border:0;outline:none;width:144px;height:36px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:20px;font-weight:600;line-height:36px;color:#ededed"><!--<![endif]-->
+</a>
+</td></tr>
+<tr><td class="card" style="background:#ffffff;border:1px solid #dde0d8;border-radius:16px;padding:32px">
+<h1 class="h1 ink" style="margin:0 0 16px;font-family:'Manrope','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:24px;line-height:30px;font-weight:700;letter-spacing:-0.02em;color:#0a0a0a">Something is ready for <span style="display:inline-block">your approval</span></h1>
+<p class="tx" style="margin:0 0 16px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:16px;line-height:24px;color:#0a0a0a">A post for <b class="ink" style="font-weight:600;color:#0a0a0a">Aurora Bakery</b> is waiting for your OK. Open your page to watch it, read the caption, and approve it or ask for <span style="display:inline-block">a change.</span></p>
+<h2 class="ink" style="margin:24px 0 12px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:16px;line-height:22px;font-weight:600;color:#0a0a0a">Waiting for you</h2>
+<p class="tx" style="margin:0 0 16px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:16px;line-height:24px;color:#0a0a0a">December <span style="display:inline-block">menu reel</span></p>
+<p class="tx" style="margin:0 0 16px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:16px;line-height:24px;color:#0a0a0a">Holiday carousel (new <span style="display:inline-block">version, V2)</span></p>
+<table class="end-btn" role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 6px"><tr><td><a class="btn" href="https://agentes.chat/portal/T7xQ2mVb9KpL" target="_blank" style="display:inline-block;background-color:#9cfa05;border:1px solid #9cfa05;border-radius:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -2px 0 rgba(63,102,0,.22),0 1px 2px rgba(10,10,10,.14),0 8px 18px -8px rgba(63,102,0,.55);color:#0a0a0a;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:at-least;font-size:15px;line-height:20px;font-weight:600;text-decoration:none;padding:13px 15px;mso-padding-alt:0;text-underline-color:#9cfa05"><!--[if mso]><i style="mso-font-width:107%;mso-text-raise:187%" hidden>&emsp;</i><![endif]--><span style="mso-text-raise:93%;color:#0a0a0a">See and approve</span><!--[if mso]><i style="mso-font-width:107%" hidden>&emsp;&#8203;</i><![endif]--></a></td></tr></table>
+</td></tr>
+<tr><td style="padding:20px 0 40px">
+<p class="fa" style="margin:0 0 6px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:13px;line-height:19px;color:#62665e">You got this email because Aurora Bakery asked for your approval on <span style="display:inline-block">a post.</span></p>
+<p class="fa" style="margin:0 0 6px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:13px;line-height:19px;color:#62665e">Sent by the DougBot server <span style="display:inline-block">at x.test.</span></p>
+</td></tr>
+</table>
+<!--[if mso]></td></tr></table><![endif]-->
+</td></tr>
+</table>
+</div>
+</body>
+</html>"
+`;
+
+exports[`every email, in both languages portal_ready.pt-BR: snapshot 1`] = `
+"<!doctype html>
+<html lang="pt-BR" dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light dark">
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+</style>
+<style>
+@media (prefers-color-scheme:dark){.bg{background:#0a0a0a!important}.card{background:#121212!important;border-color:#262626!important}.ink{color:#ededed!important}.tx{color:#ededed!important}.mu{color:#999999!important}.fa{color:#8a8a8a!important}.well{background:#1a1a1a!important}.wh{border-color:#262626!important}.num{background:#121212!important;border-color:#262626!important;color:#999999!important}.btn{background:#9cfa05!important;color:#0a0a0a!important;border-color:#9cfa05!important}.btn span{color:#0a0a0a!important}.ln{color:#ededed!important;text-decoration-color:#262626!important}.avp{background:#1a1a1a!important;color:#ededed!important;border-color:#262626!important}.warn{background:#2e2410!important}.warn-t{color:#f5b544!important}.ln-d{color:#f2555a!important;text-decoration-color:#262626!important}.ln-m{color:#999999!important;text-decoration-color:#262626!important}.end-btn{margin-bottom:4px!important}.logo-ink{display:none!important}.logo-bone{display:block!important}}
+</style>
+<style>
+[data-ogsc] .bg{background:#0a0a0a!important}[data-ogsb] .bg{background:#0a0a0a!important}
+[data-ogsc] .card{background:#121212!important;border-color:#262626!important}[data-ogsb] .card{background:#121212!important;border-color:#262626!important}
+[data-ogsc] .ink{color:#ededed!important}[data-ogsb] .ink{color:#ededed!important}
+[data-ogsc] .tx{color:#ededed!important}[data-ogsb] .tx{color:#ededed!important}
+[data-ogsc] .mu{color:#999999!important}[data-ogsb] .mu{color:#999999!important}
+[data-ogsc] .fa{color:#8a8a8a!important}[data-ogsb] .fa{color:#8a8a8a!important}
+[data-ogsc] .well{background:#1a1a1a!important}[data-ogsb] .well{background:#1a1a1a!important}
+[data-ogsc] .wh{border-color:#262626!important}[data-ogsb] .wh{border-color:#262626!important}
+[data-ogsc] .num{background:#121212!important;border-color:#262626!important;color:#999999!important}[data-ogsb] .num{background:#121212!important;border-color:#262626!important;color:#999999!important}
+[data-ogsc] .btn{background:#9cfa05!important;color:#0a0a0a!important;border-color:#9cfa05!important}[data-ogsb] .btn{background:#9cfa05!important;color:#0a0a0a!important;border-color:#9cfa05!important}
+[data-ogsc] .btn span{color:#0a0a0a!important}[data-ogsb] .btn span{color:#0a0a0a!important}
+[data-ogsc] .ln{color:#ededed!important;text-decoration-color:#262626!important}[data-ogsb] .ln{color:#ededed!important;text-decoration-color:#262626!important}
+[data-ogsc] .avp{background:#1a1a1a!important;color:#ededed!important;border-color:#262626!important}[data-ogsb] .avp{background:#1a1a1a!important;color:#ededed!important;border-color:#262626!important}
+[data-ogsc] .warn{background:#2e2410!important}[data-ogsb] .warn{background:#2e2410!important}
+[data-ogsc] .warn-t{color:#f5b544!important}[data-ogsb] .warn-t{color:#f5b544!important}
+[data-ogsc] .ln-d{color:#f2555a!important;text-decoration-color:#262626!important}[data-ogsb] .ln-d{color:#f2555a!important;text-decoration-color:#262626!important}
+[data-ogsc] .ln-m{color:#999999!important;text-decoration-color:#262626!important}[data-ogsb] .ln-m{color:#999999!important;text-decoration-color:#262626!important}
+[data-ogsc] .end-btn{margin-bottom:4px!important}[data-ogsb] .end-btn{margin-bottom:4px!important}
+[data-ogsc] .logo-ink{display:none!important}[data-ogsb] .logo-ink{display:none!important}
+[data-ogsc] .logo-bone{display:block!important}[data-ogsb] .logo-bone{display:block!important}
+</style>
+<style>
+@media (prefers-color-scheme:light){.btn{background-image:linear-gradient(180deg,#c5ff52 0%,#9cfa05 55%,#84e407 100%)!important}}
+</style>
+<style>
+@media (prefers-color-scheme:dark){.btn{background-image:linear-gradient(180deg,#c5ff52 0%,#9cfa05 55%,#84e407 100%)!important}}
+</style>
+<title>Padaria Aurora: tem novidade para você aprovar</title>
+<!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><style>body,table,td,p,a,span,b,h1,h2{font-family:'Segoe UI',Arial,sans-serif!important}</style><![endif]-->
+<style>
+body{margin:0!important;padding:0!important;width:100%!important}
+a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
+@media (max-width:620px){.px{padding-left:16px!important;padding-right:16px!important}.card{padding:24px 20px!important}.h1{font-size:22px!important;line-height:28px!important}}
+</style>
+<!--[if !mso]><!--><style>@font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;src:url('https://x.test/email/inter-latin.woff2') format('woff2')}@font-face{font-family:'Manrope';font-style:normal;font-weight:200 800;font-display:swap;src:url('https://x.test/email/manrope-latin.woff2') format('woff2')}</style><!--<![endif]-->
+</head>
+<body class="body bg" style="margin:0;padding:0;width:100%;background:#f4f6f2;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">
+<div style="display:none;max-height:0;max-width:0;overflow:hidden;mso-hide:all">Abra a sua página para ver, aprovar ou pedir um ajuste.&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;</div>
+<div role="article" aria-roledescription="email" aria-label="Padaria Aurora: tem novidade para você aprovar" lang="pt-BR" dir="ltr">
+<table role="presentation" class="bg" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f2">
+<tr><td align="center" class="px" style="padding:0 24px">
+<!--[if mso]><table role="presentation" width="552" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:552px;margin:0 auto">
+<tr><td style="padding:32px 0 20px">
+<a href="https://x.test" target="_blank" style="display:inline-block;text-decoration:none">
+<img class="logo-ink" src="https://x.test/email/doug-logo-ink-2.png" width="144" height="36" alt="DougBot" style="display:block;border:0;outline:none;width:144px;height:36px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:20px;font-weight:600;line-height:36px;color:#0a0a0a">
+<!--[if !mso]><!--><img class="logo-bone" src="https://x.test/email/doug-logo-bone-2.png" width="144" height="36" alt="DougBot" style="display:none;border:0;outline:none;width:144px;height:36px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:20px;font-weight:600;line-height:36px;color:#ededed"><!--<![endif]-->
+</a>
+</td></tr>
+<tr><td class="card" style="background:#ffffff;border:1px solid #dde0d8;border-radius:16px;padding:32px">
+<h1 class="h1 ink" style="margin:0 0 16px;font-family:'Manrope','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:24px;line-height:30px;font-weight:700;letter-spacing:-0.02em;color:#0a0a0a">Tem novidade para <span style="display:inline-block">você aprovar</span></h1>
+<p class="tx" style="margin:0 0 16px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:16px;line-height:24px;color:#0a0a0a">Uma publicação do <b class="ink" style="font-weight:600;color:#0a0a0a">Padaria Aurora</b> está esperando o seu OK. Abra a sua página para assistir, ler a legenda e aprovar ou pedir <span style="display:inline-block">um ajuste.</span></p>
+<h2 class="ink" style="margin:24px 0 12px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:16px;line-height:22px;font-weight:600;color:#0a0a0a">Esperando você</h2>
+<p class="tx" style="margin:0 0 16px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:16px;line-height:24px;color:#0a0a0a">Reel do menu <span style="display:inline-block">de dezembro</span></p>
+<p class="tx" style="margin:0 0 16px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:16px;line-height:24px;color:#0a0a0a">Carrossel de fim de ano (nova <span style="display:inline-block">versão, V3)</span></p>
+<table class="end-btn" role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:8px 0 6px"><tr><td><a class="btn" href="https://agentes.chat/portal/T7xQ2mVb9KpL" target="_blank" style="display:inline-block;background-color:#9cfa05;border:1px solid #9cfa05;border-radius:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -2px 0 rgba(63,102,0,.22),0 1px 2px rgba(10,10,10,.14),0 8px 18px -8px rgba(63,102,0,.55);color:#0a0a0a;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:at-least;font-size:15px;line-height:20px;font-weight:600;text-decoration:none;padding:13px 15px;mso-padding-alt:0;text-underline-color:#9cfa05"><!--[if mso]><i style="mso-font-width:107%;mso-text-raise:187%" hidden>&emsp;</i><![endif]--><span style="mso-text-raise:93%;color:#0a0a0a">Ver e aprovar</span><!--[if mso]><i style="mso-font-width:107%" hidden>&emsp;&#8203;</i><![endif]--></a></td></tr></table>
+</td></tr>
+<tr><td style="padding:20px 0 40px">
+<p class="fa" style="margin:0 0 6px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:13px;line-height:19px;color:#62665e">Você recebeu este e-mail porque o Padaria Aurora pediu a sua aprovação em <span style="display:inline-block">uma publicação.</span></p>
+<p class="fa" style="margin:0 0 6px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:13px;line-height:19px;color:#62665e">Enviado pelo servidor do DougBot <span style="display:inline-block">em x.test.</span></p>
+</td></tr>
+</table>
+<!--[if mso]></td></tr></table><![endif]-->
+</td></tr>
+</table>
+</div>
+</body>
+</html>"
+`;

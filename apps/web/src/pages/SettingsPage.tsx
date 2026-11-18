@@ -98,6 +98,7 @@ import { ImportExportSection } from "@/components/ImportFlow";
 import { BillingMeters } from "@/components/Limits";
 import { ErrorState, LoadingLine, LoadingList } from "@/components/Loading";
 import { MediaSettingsSection } from "@/components/MediaSettings";
+import { PortalClientsSection } from "@/components/portal/PortalClientsSection";
 import { NoticePrefsSection } from "@/components/NoticePrefs";
 import { useOrg } from "@/components/org-context";
 import { UsageTabs } from "@/components/PeopleUsage";
@@ -278,6 +279,7 @@ function Settings({
       {current === "vault" && <VaultSection />}
       {current === "audit" && <AuditSection agent={agent} />}
       {current === "media" && <MediaSettingsSection />}
+      {current === "portal" && <PortalClientsSection />}
       {current === "voice" && (
         <div className="ac-groups">
           <LiveVoiceCard />

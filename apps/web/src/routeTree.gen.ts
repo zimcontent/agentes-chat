@@ -34,6 +34,8 @@ import { Route as DocsIndexRouteImport } from './routes/docs.index'
 import { Route as DocsSlugRouteImport } from './routes/docs.$slug'
 import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as OrgOrgIdRouteImport } from './routes/org.$orgId'
+import { Route as PortalIndexRouteImport } from './routes/portal.index'
+import { Route as PortalTokenRouteImport } from './routes/portal.$token'
 import { Route as OrgOrgIdIndexRouteImport } from './routes/org.$orgId.index'
 import { Route as OrgOrgIdAiRouteImport } from './routes/org.$orgId.ai'
 import { Route as OrgOrgIdApprovalsRouteImport } from './routes/org.$orgId.approvals'
@@ -200,6 +202,16 @@ const InviteTokenRoute = InviteTokenRouteImport.update({
 const OrgOrgIdRoute = OrgOrgIdRouteImport.update({
   id: '/org/$orgId',
   path: '/org/$orgId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalIndexRoute = PortalIndexRouteImport.update({
+  id: '/portal/',
+  path: '/portal/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalTokenRoute = PortalTokenRouteImport.update({
+  id: '/portal/$token',
+  path: '/portal/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OrgOrgIdIndexRoute = OrgOrgIdIndexRouteImport.update({
@@ -447,7 +459,9 @@ export interface FileRoutesByFullPath {
   '/docs/$slug': typeof DocsSlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/org/$orgId': typeof OrgOrgIdRouteWithChildren
+  '/portal/$token': typeof PortalTokenRoute
   '/docs/': typeof DocsIndexRoute
+  '/portal/': typeof PortalIndexRoute
   '/org/$orgId/ai': typeof OrgOrgIdAiRoute
   '/org/$orgId/approvals': typeof OrgOrgIdApprovalsRoute
   '/org/$orgId/calendar': typeof OrgOrgIdCalendarRoute
@@ -515,7 +529,9 @@ export interface FileRoutesByTo {
   '/dev/gallery': typeof DevGalleryRoute
   '/docs/$slug': typeof DocsSlugRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/portal/$token': typeof PortalTokenRoute
   '/docs': typeof DocsIndexRoute
+  '/portal': typeof PortalIndexRoute
   '/org/$orgId/ai': typeof OrgOrgIdAiRoute
   '/org/$orgId/approvals': typeof OrgOrgIdApprovalsRoute
   '/org/$orgId/calendar': typeof OrgOrgIdCalendarRoute
@@ -585,7 +601,9 @@ export interface FileRoutesById {
   '/docs/$slug': typeof DocsSlugRoute
   '/invite/$token': typeof InviteTokenRoute
   '/org/$orgId': typeof OrgOrgIdRouteWithChildren
+  '/portal/$token': typeof PortalTokenRoute
   '/docs/': typeof DocsIndexRoute
+  '/portal/': typeof PortalIndexRoute
   '/org/$orgId/ai': typeof OrgOrgIdAiRoute
   '/org/$orgId/approvals': typeof OrgOrgIdApprovalsRoute
   '/org/$orgId/calendar': typeof OrgOrgIdCalendarRoute
@@ -656,7 +674,9 @@ export interface FileRouteTypes {
     | '/docs/$slug'
     | '/invite/$token'
     | '/org/$orgId'
+    | '/portal/$token'
     | '/docs/'
+    | '/portal/'
     | '/org/$orgId/ai'
     | '/org/$orgId/approvals'
     | '/org/$orgId/calendar'
@@ -724,7 +744,9 @@ export interface FileRouteTypes {
     | '/dev/gallery'
     | '/docs/$slug'
     | '/invite/$token'
+    | '/portal/$token'
     | '/docs'
+    | '/portal'
     | '/org/$orgId/ai'
     | '/org/$orgId/approvals'
     | '/org/$orgId/calendar'
@@ -793,7 +815,9 @@ export interface FileRouteTypes {
     | '/docs/$slug'
     | '/invite/$token'
     | '/org/$orgId'
+    | '/portal/$token'
     | '/docs/'
+    | '/portal/'
     | '/org/$orgId/ai'
     | '/org/$orgId/approvals'
     | '/org/$orgId/calendar'
@@ -863,7 +887,9 @@ export interface RootRouteChildren {
   DocsSlugRoute: typeof DocsSlugRoute
   InviteTokenRoute: typeof InviteTokenRoute
   OrgOrgIdRoute: typeof OrgOrgIdRouteWithChildren
+  PortalTokenRoute: typeof PortalTokenRoute
   DocsIndexRoute: typeof DocsIndexRoute
+  PortalIndexRoute: typeof PortalIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1041,6 +1067,20 @@ declare module '@tanstack/react-router' {
       path: '/org/$orgId'
       fullPath: '/org/$orgId'
       preLoaderRoute: typeof OrgOrgIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/': {
+      id: '/portal/'
+      path: '/portal'
+      fullPath: '/portal/'
+      preLoaderRoute: typeof PortalIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/$token': {
+      id: '/portal/$token'
+      path: '/portal/$token'
+      fullPath: '/portal/$token'
+      preLoaderRoute: typeof PortalTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/org/$orgId/': {
@@ -1463,7 +1503,9 @@ const rootRouteChildren: RootRouteChildren = {
   DocsSlugRoute: DocsSlugRoute,
   InviteTokenRoute: InviteTokenRoute,
   OrgOrgIdRoute: OrgOrgIdRouteWithChildren,
+  PortalTokenRoute: PortalTokenRoute,
   DocsIndexRoute: DocsIndexRoute,
+  PortalIndexRoute: PortalIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
