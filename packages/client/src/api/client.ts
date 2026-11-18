@@ -226,6 +226,7 @@ import type {
   JoinClaim,
   JoinRequest,
   LearnedSkill,
+  LegalFacts,
   LiveRoom,
   LiveSession,
   LiveSessionInput,
@@ -443,6 +444,8 @@ export interface ApiClient {
   system: {
     health(): Promise<Health>;
     instance(): Promise<Instance>;
+    /** The company details the legal pages fill in (`LEGAL_*`): public, nothing secret. */
+    legal(): Promise<LegalFacts>;
     /** `null` unless I am the installation's owner (and not on agentes.chat itself). */
     telemetry(): Promise<ServerTelemetry | null>;
     setTelemetry(enabled: boolean): Promise<ServerTelemetry>;
@@ -1726,6 +1729,10 @@ export interface ApiClient {
     /** What an approved design piece does for each client set (doug-0010 §8); a client not listed: `portal`. */
     clientSettings?(orgId: string): Promise<{ settings: { client: string; afterApprove: "portal" | "direct" }[] }>;
     setAfterApprove?(orgId: string, client: string, afterApprove: "portal" | "direct"): Promise<void>;
+    /** The name the team shows for a client (`null`: the one its id reads as); answers the name kept. */
+    setClientName?(orgId: string, client: string, name: string | null): Promise<{ name: string | null }>;
+    /** Hides a client from every list, or shows it again; nothing changes at the portal. */
+    setClientHidden?(orgId: string, client: string, hidden: boolean): Promise<void>;
     /** A client's logo, cropped square by the app; `null` takes it away. */
     setClientLogo(
       orgId: string,

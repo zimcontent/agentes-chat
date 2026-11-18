@@ -4624,6 +4624,310 @@ a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important
 </html>"
 `;
 
+exports[`every email, in both languages support_request.en: snapshot 1`] = `
+"<!doctype html>
+<html lang="en" dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light dark">
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+</style>
+<style>
+@media (prefers-color-scheme:dark){.bg{background:#0a0a0a!important}.card{background:#121212!important;border-color:#262626!important}.ink{color:#ededed!important}.tx{color:#ededed!important}.mu{color:#999999!important}.fa{color:#8a8a8a!important}.well{background:#1a1a1a!important}.wh{border-color:#262626!important}.num{background:#121212!important;border-color:#262626!important;color:#999999!important}.btn{background:#9cfa05!important;color:#0a0a0a!important;border-color:#9cfa05!important}.btn span{color:#0a0a0a!important}.ln{color:#ededed!important;text-decoration-color:#262626!important}.avp{background:#1a1a1a!important;color:#ededed!important;border-color:#262626!important}.warn{background:#2e2410!important}.warn-t{color:#f5b544!important}.ln-d{color:#f2555a!important;text-decoration-color:#262626!important}.ln-m{color:#999999!important;text-decoration-color:#262626!important}.end-btn{margin-bottom:4px!important}.logo-ink{display:none!important}.logo-bone{display:block!important}}
+</style>
+<style>
+[data-ogsc] .bg{background:#0a0a0a!important}[data-ogsb] .bg{background:#0a0a0a!important}
+[data-ogsc] .card{background:#121212!important;border-color:#262626!important}[data-ogsb] .card{background:#121212!important;border-color:#262626!important}
+[data-ogsc] .ink{color:#ededed!important}[data-ogsb] .ink{color:#ededed!important}
+[data-ogsc] .tx{color:#ededed!important}[data-ogsb] .tx{color:#ededed!important}
+[data-ogsc] .mu{color:#999999!important}[data-ogsb] .mu{color:#999999!important}
+[data-ogsc] .fa{color:#8a8a8a!important}[data-ogsb] .fa{color:#8a8a8a!important}
+[data-ogsc] .well{background:#1a1a1a!important}[data-ogsb] .well{background:#1a1a1a!important}
+[data-ogsc] .wh{border-color:#262626!important}[data-ogsb] .wh{border-color:#262626!important}
+[data-ogsc] .num{background:#121212!important;border-color:#262626!important;color:#999999!important}[data-ogsb] .num{background:#121212!important;border-color:#262626!important;color:#999999!important}
+[data-ogsc] .btn{background:#9cfa05!important;color:#0a0a0a!important;border-color:#9cfa05!important}[data-ogsb] .btn{background:#9cfa05!important;color:#0a0a0a!important;border-color:#9cfa05!important}
+[data-ogsc] .btn span{color:#0a0a0a!important}[data-ogsb] .btn span{color:#0a0a0a!important}
+[data-ogsc] .ln{color:#ededed!important;text-decoration-color:#262626!important}[data-ogsb] .ln{color:#ededed!important;text-decoration-color:#262626!important}
+[data-ogsc] .avp{background:#1a1a1a!important;color:#ededed!important;border-color:#262626!important}[data-ogsb] .avp{background:#1a1a1a!important;color:#ededed!important;border-color:#262626!important}
+[data-ogsc] .warn{background:#2e2410!important}[data-ogsb] .warn{background:#2e2410!important}
+[data-ogsc] .warn-t{color:#f5b544!important}[data-ogsb] .warn-t{color:#f5b544!important}
+[data-ogsc] .ln-d{color:#f2555a!important;text-decoration-color:#262626!important}[data-ogsb] .ln-d{color:#f2555a!important;text-decoration-color:#262626!important}
+[data-ogsc] .ln-m{color:#999999!important;text-decoration-color:#262626!important}[data-ogsb] .ln-m{color:#999999!important;text-decoration-color:#262626!important}
+[data-ogsc] .end-btn{margin-bottom:4px!important}[data-ogsb] .end-btn{margin-bottom:4px!important}
+[data-ogsc] .logo-ink{display:none!important}[data-ogsb] .logo-ink{display:none!important}
+[data-ogsc] .logo-bone{display:block!important}[data-ogsb] .logo-bone{display:block!important}
+</style>
+<style>
+@media (prefers-color-scheme:light){.btn{background-image:linear-gradient(180deg,#c5ff52 0%,#9cfa05 55%,#84e407 100%)!important}}
+</style>
+<style>
+@media (prefers-color-scheme:dark){.btn{background-image:linear-gradient(180deg,#c5ff52 0%,#9cfa05 55%,#84e407 100%)!important}}
+</style>
+<title>A support request from an agent</title>
+<!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><style>body,table,td,p,a,span,b,h1,h2{font-family:'Segoe UI',Arial,sans-serif!important}</style><![endif]-->
+<style>
+body{margin:0!important;padding:0!important;width:100%!important}
+a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
+@media (max-width:620px){.px{padding-left:16px!important;padding-right:16px!important}.card{padding:24px 20px!important}.h1{font-size:22px!important;line-height:28px!important}}
+</style>
+<!--[if !mso]><!--><style>@font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;src:url('https://x.test/email/inter-latin.woff2') format('woff2')}@font-face{font-family:'Manrope';font-style:normal;font-weight:200 800;font-display:swap;src:url('https://x.test/email/manrope-latin.woff2') format('woff2')}</style><!--<![endif]-->
+</head>
+<body class="body bg" style="margin:0;padding:0;width:100%;background:#f4f6f2;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">
+<div style="display:none;max-height:0;max-width:0;overflow:hidden;mso-hide:all">A person asked for help with this installation. Their words are below.&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;</div>
+<div role="article" aria-roledescription="email" aria-label="A support request from an agent" lang="en" dir="ltr">
+<table role="presentation" class="bg" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f2">
+<tr><td align="center" class="px" style="padding:0 24px">
+<!--[if mso]><table role="presentation" width="552" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:552px;margin:0 auto">
+<tr><td style="padding:32px 0 20px">
+<a href="https://x.test" target="_blank" style="display:inline-block;text-decoration:none">
+<img class="logo-ink" src="https://x.test/email/doug-logo-ink-2.png" width="144" height="36" alt="DougBot" style="display:block;border:0;outline:none;width:144px;height:36px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:20px;font-weight:600;line-height:36px;color:#0a0a0a">
+<!--[if !mso]><!--><img class="logo-bone" src="https://x.test/email/doug-logo-bone-2.png" width="144" height="36" alt="DougBot" style="display:none;border:0;outline:none;width:144px;height:36px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:20px;font-weight:600;line-height:36px;color:#ededed"><!--<![endif]-->
+</a>
+</td></tr>
+<tr><td class="card" style="background:#ffffff;border:1px solid #dde0d8;border-radius:16px;padding:32px">
+<h1 class="h1 ink" style="margin:0 0 16px;font-family:'Manrope','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:24px;line-height:30px;font-weight:700;letter-spacing:-0.02em;color:#0a0a0a">A <span style="display:inline-block">support request</span></h1>
+<p class="tx" style="margin:0 0 16px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:16px;line-height:24px;color:#0a0a0a">The invoicing routine stopped posting last week. The last message it sent was on Monday, and now it runs with no <span style="display:inline-block">new invoices.</span></p>
+<h2 class="ink" style="margin:24px 0 12px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:16px;line-height:22px;font-weight:600;color:#0a0a0a">Who asked</h2>
+<table width="100%" class="well" role="presentation" cellpadding="0" cellspacing="0" border="0" style="background:#eef0eb;border-radius:12px;margin:0 0 20px"><tr><td style="padding:4px 16px">
+<table width="100%" role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="mu" valign="top" style="padding:10px 12px 10px 0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">From</td>
+<td class="ink" valign="top" align="right" style="padding:10px 0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:14px;line-height:20px;font-weight:600;color:#0a0a0a;text-align:right">Ana <span style="display:inline-block">Souza &lt;<a class="ln-m" href="mailto:ana@souzabakery.com" style="color:#565a52;text-decoration:underline;text-decoration-color:#dde0d8;text-underline-offset:3px">ana@souzabakery.com</a>&gt;</span></td>
+</tr><tr>
+<td class="mu wh" valign="top" style="padding:10px 12px 10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">Workspace</td>
+<td class="ink wh" valign="top" align="right" style="padding:10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:14px;line-height:20px;font-weight:600;color:#0a0a0a;text-align:right">Souza Bakery</td>
+</tr><tr>
+<td class="mu wh" valign="top" style="padding:10px 12px 10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">Written by</td>
+<td class="ink wh" valign="top" align="right" style="padding:10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:14px;line-height:20px;font-weight:600;color:#0a0a0a;text-align:right">Ada (@ada), <span style="display:inline-block">an agent</span></td>
+</tr><tr>
+<td class="mu wh" valign="top" style="padding:10px 12px 10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">Client</td>
+<td class="ink wh" valign="top" align="right" style="padding:10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:14px;line-height:20px;font-weight:600;color:#0a0a0a;text-align:right">064</td>
+</tr><tr>
+<td class="mu wh" valign="top" style="padding:10px 12px 10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">Server</td>
+<td class="ink wh" valign="top" align="right" style="padding:10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:14px;line-height:20px;font-weight:600;color:#0a0a0a;text-align:right">1.2.3</td>
+</tr></table></td></tr></table>
+<p class="mu" style="margin:0 0 2px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">Answer the person at the address <span style="display:inline-block">under From.</span></p>
+</td></tr>
+<tr><td style="padding:20px 0 40px">
+<p class="fa" style="margin:0 0 6px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:13px;line-height:19px;color:#62665e">You got this email because this server&#39;s SUPPORT_EMAIL is yours and an agent sent it for a <span style="display:inline-block">person there.</span></p>
+<p class="fa" style="margin:0 0 6px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:13px;line-height:19px;color:#62665e">Sent by the DougBot server <span style="display:inline-block">at x.test.</span></p>
+</td></tr>
+</table>
+<!--[if mso]></td></tr></table><![endif]-->
+</td></tr>
+</table>
+</div>
+</body>
+</html>"
+`;
+
+exports[`every email, in both languages support_request.pt-BR: snapshot 1`] = `
+"<!doctype html>
+<html lang="pt-BR" dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light dark">
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+</style>
+<style>
+@media (prefers-color-scheme:dark){.bg{background:#0a0a0a!important}.card{background:#121212!important;border-color:#262626!important}.ink{color:#ededed!important}.tx{color:#ededed!important}.mu{color:#999999!important}.fa{color:#8a8a8a!important}.well{background:#1a1a1a!important}.wh{border-color:#262626!important}.num{background:#121212!important;border-color:#262626!important;color:#999999!important}.btn{background:#9cfa05!important;color:#0a0a0a!important;border-color:#9cfa05!important}.btn span{color:#0a0a0a!important}.ln{color:#ededed!important;text-decoration-color:#262626!important}.avp{background:#1a1a1a!important;color:#ededed!important;border-color:#262626!important}.warn{background:#2e2410!important}.warn-t{color:#f5b544!important}.ln-d{color:#f2555a!important;text-decoration-color:#262626!important}.ln-m{color:#999999!important;text-decoration-color:#262626!important}.end-btn{margin-bottom:4px!important}.logo-ink{display:none!important}.logo-bone{display:block!important}}
+</style>
+<style>
+[data-ogsc] .bg{background:#0a0a0a!important}[data-ogsb] .bg{background:#0a0a0a!important}
+[data-ogsc] .card{background:#121212!important;border-color:#262626!important}[data-ogsb] .card{background:#121212!important;border-color:#262626!important}
+[data-ogsc] .ink{color:#ededed!important}[data-ogsb] .ink{color:#ededed!important}
+[data-ogsc] .tx{color:#ededed!important}[data-ogsb] .tx{color:#ededed!important}
+[data-ogsc] .mu{color:#999999!important}[data-ogsb] .mu{color:#999999!important}
+[data-ogsc] .fa{color:#8a8a8a!important}[data-ogsb] .fa{color:#8a8a8a!important}
+[data-ogsc] .well{background:#1a1a1a!important}[data-ogsb] .well{background:#1a1a1a!important}
+[data-ogsc] .wh{border-color:#262626!important}[data-ogsb] .wh{border-color:#262626!important}
+[data-ogsc] .num{background:#121212!important;border-color:#262626!important;color:#999999!important}[data-ogsb] .num{background:#121212!important;border-color:#262626!important;color:#999999!important}
+[data-ogsc] .btn{background:#9cfa05!important;color:#0a0a0a!important;border-color:#9cfa05!important}[data-ogsb] .btn{background:#9cfa05!important;color:#0a0a0a!important;border-color:#9cfa05!important}
+[data-ogsc] .btn span{color:#0a0a0a!important}[data-ogsb] .btn span{color:#0a0a0a!important}
+[data-ogsc] .ln{color:#ededed!important;text-decoration-color:#262626!important}[data-ogsb] .ln{color:#ededed!important;text-decoration-color:#262626!important}
+[data-ogsc] .avp{background:#1a1a1a!important;color:#ededed!important;border-color:#262626!important}[data-ogsb] .avp{background:#1a1a1a!important;color:#ededed!important;border-color:#262626!important}
+[data-ogsc] .warn{background:#2e2410!important}[data-ogsb] .warn{background:#2e2410!important}
+[data-ogsc] .warn-t{color:#f5b544!important}[data-ogsb] .warn-t{color:#f5b544!important}
+[data-ogsc] .ln-d{color:#f2555a!important;text-decoration-color:#262626!important}[data-ogsb] .ln-d{color:#f2555a!important;text-decoration-color:#262626!important}
+[data-ogsc] .ln-m{color:#999999!important;text-decoration-color:#262626!important}[data-ogsb] .ln-m{color:#999999!important;text-decoration-color:#262626!important}
+[data-ogsc] .end-btn{margin-bottom:4px!important}[data-ogsb] .end-btn{margin-bottom:4px!important}
+[data-ogsc] .logo-ink{display:none!important}[data-ogsb] .logo-ink{display:none!important}
+[data-ogsc] .logo-bone{display:block!important}[data-ogsb] .logo-bone{display:block!important}
+</style>
+<style>
+@media (prefers-color-scheme:light){.btn{background-image:linear-gradient(180deg,#c5ff52 0%,#9cfa05 55%,#84e407 100%)!important}}
+</style>
+<style>
+@media (prefers-color-scheme:dark){.btn{background-image:linear-gradient(180deg,#c5ff52 0%,#9cfa05 55%,#84e407 100%)!important}}
+</style>
+<title>Um pedido de suporte de um agente</title>
+<!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><style>body,table,td,p,a,span,b,h1,h2{font-family:'Segoe UI',Arial,sans-serif!important}</style><![endif]-->
+<style>
+body{margin:0!important;padding:0!important;width:100%!important}
+a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
+@media (max-width:620px){.px{padding-left:16px!important;padding-right:16px!important}.card{padding:24px 20px!important}.h1{font-size:22px!important;line-height:28px!important}}
+</style>
+<!--[if !mso]><!--><style>@font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;src:url('https://x.test/email/inter-latin.woff2') format('woff2')}@font-face{font-family:'Manrope';font-style:normal;font-weight:200 800;font-display:swap;src:url('https://x.test/email/manrope-latin.woff2') format('woff2')}</style><!--<![endif]-->
+</head>
+<body class="body bg" style="margin:0;padding:0;width:100%;background:#f4f6f2;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">
+<div style="display:none;max-height:0;max-width:0;overflow:hidden;mso-hide:all">Uma pessoa pediu ajuda com esta instalação. As palavras dela estão abaixo.&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;</div>
+<div role="article" aria-roledescription="email" aria-label="Um pedido de suporte de um agente" lang="pt-BR" dir="ltr">
+<table role="presentation" class="bg" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f2">
+<tr><td align="center" class="px" style="padding:0 24px">
+<!--[if mso]><table role="presentation" width="552" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:552px;margin:0 auto">
+<tr><td style="padding:32px 0 20px">
+<a href="https://x.test" target="_blank" style="display:inline-block;text-decoration:none">
+<img class="logo-ink" src="https://x.test/email/doug-logo-ink-2.png" width="144" height="36" alt="DougBot" style="display:block;border:0;outline:none;width:144px;height:36px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:20px;font-weight:600;line-height:36px;color:#0a0a0a">
+<!--[if !mso]><!--><img class="logo-bone" src="https://x.test/email/doug-logo-bone-2.png" width="144" height="36" alt="DougBot" style="display:none;border:0;outline:none;width:144px;height:36px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:20px;font-weight:600;line-height:36px;color:#ededed"><!--<![endif]-->
+</a>
+</td></tr>
+<tr><td class="card" style="background:#ffffff;border:1px solid #dde0d8;border-radius:16px;padding:32px">
+<h1 class="h1 ink" style="margin:0 0 16px;font-family:'Manrope','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:24px;line-height:30px;font-weight:700;letter-spacing:-0.02em;color:#0a0a0a">Um pedido <span style="display:inline-block">de suporte</span></h1>
+<p class="tx" style="margin:0 0 16px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:16px;line-height:24px;color:#0a0a0a">A rotina de notas parou de publicar na semana passada. A última mensagem dela foi na segunda, e agora ela roda sem <span style="display:inline-block">nota nova.</span></p>
+<h2 class="ink" style="margin:24px 0 12px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:16px;line-height:22px;font-weight:600;color:#0a0a0a">Quem pediu</h2>
+<table width="100%" class="well" role="presentation" cellpadding="0" cellspacing="0" border="0" style="background:#eef0eb;border-radius:12px;margin:0 0 20px"><tr><td style="padding:4px 16px">
+<table width="100%" role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="mu" valign="top" style="padding:10px 12px 10px 0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">De</td>
+<td class="ink" valign="top" align="right" style="padding:10px 0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:14px;line-height:20px;font-weight:600;color:#0a0a0a;text-align:right">Ana <span style="display:inline-block">Souza &lt;<a class="ln-m" href="mailto:ana@padariasouza.com.br" style="color:#565a52;text-decoration:underline;text-decoration-color:#dde0d8;text-underline-offset:3px">ana@padariasouza.com.br</a>&gt;</span></td>
+</tr><tr>
+<td class="mu wh" valign="top" style="padding:10px 12px 10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">Workspace</td>
+<td class="ink wh" valign="top" align="right" style="padding:10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:14px;line-height:20px;font-weight:600;color:#0a0a0a;text-align:right">Padaria Souza</td>
+</tr><tr>
+<td class="mu wh" valign="top" style="padding:10px 12px 10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">Escrito por</td>
+<td class="ink wh" valign="top" align="right" style="padding:10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:14px;line-height:20px;font-weight:600;color:#0a0a0a;text-align:right">Ada (@ada), <span style="display:inline-block">um agente</span></td>
+</tr><tr>
+<td class="mu wh" valign="top" style="padding:10px 12px 10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">Servidor</td>
+<td class="ink wh" valign="top" align="right" style="padding:10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:14px;line-height:20px;font-weight:600;color:#0a0a0a;text-align:right">1.2.3</td>
+</tr></table></td></tr></table>
+<p class="mu" style="margin:0 0 2px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">Responda a pessoa no endereço <span style="display:inline-block">em De.</span></p>
+</td></tr>
+<tr><td style="padding:20px 0 40px">
+<p class="fa" style="margin:0 0 6px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:13px;line-height:19px;color:#62665e">Você recebeu este e-mail porque o SUPPORT_EMAIL deste servidor é seu e um agente o enviou por uma pessoa <span style="display:inline-block">de lá.</span></p>
+<p class="fa" style="margin:0 0 6px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:13px;line-height:19px;color:#62665e">Enviado pelo servidor do DougBot <span style="display:inline-block">em x.test.</span></p>
+</td></tr>
+</table>
+<!--[if mso]></td></tr></table><![endif]-->
+</td></tr>
+</table>
+</div>
+</body>
+</html>"
+`;
+
+exports[`every email, in both languages support_request-lines.pt-BR: snapshot 1`] = `
+"<!doctype html>
+<html lang="pt-BR" dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<meta name="format-detection" content="telephone=no,date=no,address=no,email=no,url=no">
+<meta name="color-scheme" content="light only">
+<meta name="supported-color-schemes" content="light dark">
+<style>
+:root{color-scheme:light dark;supported-color-schemes:light dark}
+</style>
+<style>
+@media (prefers-color-scheme:dark){.bg{background:#0a0a0a!important}.card{background:#121212!important;border-color:#262626!important}.ink{color:#ededed!important}.tx{color:#ededed!important}.mu{color:#999999!important}.fa{color:#8a8a8a!important}.well{background:#1a1a1a!important}.wh{border-color:#262626!important}.num{background:#121212!important;border-color:#262626!important;color:#999999!important}.btn{background:#9cfa05!important;color:#0a0a0a!important;border-color:#9cfa05!important}.btn span{color:#0a0a0a!important}.ln{color:#ededed!important;text-decoration-color:#262626!important}.avp{background:#1a1a1a!important;color:#ededed!important;border-color:#262626!important}.warn{background:#2e2410!important}.warn-t{color:#f5b544!important}.ln-d{color:#f2555a!important;text-decoration-color:#262626!important}.ln-m{color:#999999!important;text-decoration-color:#262626!important}.end-btn{margin-bottom:4px!important}.logo-ink{display:none!important}.logo-bone{display:block!important}}
+</style>
+<style>
+[data-ogsc] .bg{background:#0a0a0a!important}[data-ogsb] .bg{background:#0a0a0a!important}
+[data-ogsc] .card{background:#121212!important;border-color:#262626!important}[data-ogsb] .card{background:#121212!important;border-color:#262626!important}
+[data-ogsc] .ink{color:#ededed!important}[data-ogsb] .ink{color:#ededed!important}
+[data-ogsc] .tx{color:#ededed!important}[data-ogsb] .tx{color:#ededed!important}
+[data-ogsc] .mu{color:#999999!important}[data-ogsb] .mu{color:#999999!important}
+[data-ogsc] .fa{color:#8a8a8a!important}[data-ogsb] .fa{color:#8a8a8a!important}
+[data-ogsc] .well{background:#1a1a1a!important}[data-ogsb] .well{background:#1a1a1a!important}
+[data-ogsc] .wh{border-color:#262626!important}[data-ogsb] .wh{border-color:#262626!important}
+[data-ogsc] .num{background:#121212!important;border-color:#262626!important;color:#999999!important}[data-ogsb] .num{background:#121212!important;border-color:#262626!important;color:#999999!important}
+[data-ogsc] .btn{background:#9cfa05!important;color:#0a0a0a!important;border-color:#9cfa05!important}[data-ogsb] .btn{background:#9cfa05!important;color:#0a0a0a!important;border-color:#9cfa05!important}
+[data-ogsc] .btn span{color:#0a0a0a!important}[data-ogsb] .btn span{color:#0a0a0a!important}
+[data-ogsc] .ln{color:#ededed!important;text-decoration-color:#262626!important}[data-ogsb] .ln{color:#ededed!important;text-decoration-color:#262626!important}
+[data-ogsc] .avp{background:#1a1a1a!important;color:#ededed!important;border-color:#262626!important}[data-ogsb] .avp{background:#1a1a1a!important;color:#ededed!important;border-color:#262626!important}
+[data-ogsc] .warn{background:#2e2410!important}[data-ogsb] .warn{background:#2e2410!important}
+[data-ogsc] .warn-t{color:#f5b544!important}[data-ogsb] .warn-t{color:#f5b544!important}
+[data-ogsc] .ln-d{color:#f2555a!important;text-decoration-color:#262626!important}[data-ogsb] .ln-d{color:#f2555a!important;text-decoration-color:#262626!important}
+[data-ogsc] .ln-m{color:#999999!important;text-decoration-color:#262626!important}[data-ogsb] .ln-m{color:#999999!important;text-decoration-color:#262626!important}
+[data-ogsc] .end-btn{margin-bottom:4px!important}[data-ogsb] .end-btn{margin-bottom:4px!important}
+[data-ogsc] .logo-ink{display:none!important}[data-ogsb] .logo-ink{display:none!important}
+[data-ogsc] .logo-bone{display:block!important}[data-ogsb] .logo-bone{display:block!important}
+</style>
+<style>
+@media (prefers-color-scheme:light){.btn{background-image:linear-gradient(180deg,#c5ff52 0%,#9cfa05 55%,#84e407 100%)!important}}
+</style>
+<style>
+@media (prefers-color-scheme:dark){.btn{background-image:linear-gradient(180deg,#c5ff52 0%,#9cfa05 55%,#84e407 100%)!important}}
+</style>
+<title>Um pedido de suporte de um agente</title>
+<!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><style>body,table,td,p,a,span,b,h1,h2{font-family:'Segoe UI',Arial,sans-serif!important}</style><![endif]-->
+<style>
+body{margin:0!important;padding:0!important;width:100%!important}
+a[x-apple-data-detectors]{color:inherit!important;text-decoration:none!important}
+@media (max-width:620px){.px{padding-left:16px!important;padding-right:16px!important}.card{padding:24px 20px!important}.h1{font-size:22px!important;line-height:28px!important}}
+</style>
+<!--[if !mso]><!--><style>@font-face{font-family:'Inter';font-style:normal;font-weight:100 900;font-display:swap;src:url('https://x.test/email/inter-latin.woff2') format('woff2')}@font-face{font-family:'Manrope';font-style:normal;font-weight:200 800;font-display:swap;src:url('https://x.test/email/manrope-latin.woff2') format('woff2')}</style><!--<![endif]-->
+</head>
+<body class="body bg" style="margin:0;padding:0;width:100%;background:#f4f6f2;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%">
+<div style="display:none;max-height:0;max-width:0;overflow:hidden;mso-hide:all">Uma pessoa pediu ajuda com esta instalação. As palavras dela estão abaixo.&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;&#847;&zwnj;&nbsp;&#8199;&shy;</div>
+<div role="article" aria-roledescription="email" aria-label="Um pedido de suporte de um agente" lang="pt-BR" dir="ltr">
+<table role="presentation" class="bg" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f6f2">
+<tr><td align="center" class="px" style="padding:0 24px">
+<!--[if mso]><table role="presentation" width="552" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:552px;margin:0 auto">
+<tr><td style="padding:32px 0 20px">
+<a href="https://x.test" target="_blank" style="display:inline-block;text-decoration:none">
+<img class="logo-ink" src="https://x.test/email/doug-logo-ink-2.png" width="144" height="36" alt="DougBot" style="display:block;border:0;outline:none;width:144px;height:36px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:20px;font-weight:600;line-height:36px;color:#0a0a0a">
+<!--[if !mso]><!--><img class="logo-bone" src="https://x.test/email/doug-logo-bone-2.png" width="144" height="36" alt="DougBot" style="display:none;border:0;outline:none;width:144px;height:36px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;font-size:20px;font-weight:600;line-height:36px;color:#ededed"><!--<![endif]-->
+</a>
+</td></tr>
+<tr><td class="card" style="background:#ffffff;border:1px solid #dde0d8;border-radius:16px;padding:32px">
+<h1 class="h1 ink" style="margin:0 0 16px;font-family:'Manrope','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:24px;line-height:30px;font-weight:700;letter-spacing:-0.02em;color:#0a0a0a">Um pedido <span style="display:inline-block">de suporte</span></h1>
+<p class="tx" style="margin:0 0 16px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:16px;line-height:24px;color:#0a0a0a">Nenhuma nota da compra 2026111800391 é publicada <span style="display:inline-block">desde segunda.</span></p>
+<p class="tx" style="margin:0 0 16px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:16px;line-height:24px;color:#0a0a0a">O cliente ligou no 0800 591 2211 e <span style="display:inline-block">ninguém respondeu.</span></p>
+<h2 class="ink" style="margin:24px 0 12px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:16px;line-height:22px;font-weight:600;color:#0a0a0a">Quem pediu</h2>
+<table width="100%" class="well" role="presentation" cellpadding="0" cellspacing="0" border="0" style="background:#eef0eb;border-radius:12px;margin:0 0 20px"><tr><td style="padding:4px 16px">
+<table width="100%" role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+<td class="mu" valign="top" style="padding:10px 12px 10px 0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">De</td>
+<td class="ink" valign="top" align="right" style="padding:10px 0;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:14px;line-height:20px;font-weight:600;color:#0a0a0a;text-align:right">Ana <span style="display:inline-block">Souza &lt;<a class="ln-m" href="mailto:ana@padariasouza.com.br" style="color:#565a52;text-decoration:underline;text-decoration-color:#dde0d8;text-underline-offset:3px">ana@padariasouza.com.br</a>&gt;</span></td>
+</tr><tr>
+<td class="mu wh" valign="top" style="padding:10px 12px 10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">Workspace</td>
+<td class="ink wh" valign="top" align="right" style="padding:10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:14px;line-height:20px;font-weight:600;color:#0a0a0a;text-align:right">Padaria Souza</td>
+</tr><tr>
+<td class="mu wh" valign="top" style="padding:10px 12px 10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">Escrito por</td>
+<td class="ink wh" valign="top" align="right" style="padding:10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:14px;line-height:20px;font-weight:600;color:#0a0a0a;text-align:right">Ada (@ada), <span style="display:inline-block">um agente</span></td>
+</tr><tr>
+<td class="mu wh" valign="top" style="padding:10px 12px 10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">Cliente</td>
+<td class="ink wh" valign="top" align="right" style="padding:10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:14px;line-height:20px;font-weight:600;color:#0a0a0a;text-align:right">064</td>
+</tr><tr>
+<td class="mu wh" valign="top" style="padding:10px 12px 10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">Servidor</td>
+<td class="ink wh" valign="top" align="right" style="padding:10px 0;border-top:1px solid #dde0d8;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:14px;line-height:20px;font-weight:600;color:#0a0a0a;text-align:right">1.2.3</td>
+</tr></table></td></tr></table>
+<p class="mu" style="margin:0 0 2px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;font-size:14px;line-height:20px;color:#565a52">Responda a pessoa no endereço <span style="display:inline-block">em De.</span></p>
+</td></tr>
+<tr><td style="padding:20px 0 40px">
+<p class="fa" style="margin:0 0 6px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:13px;line-height:19px;color:#62665e">Você recebeu este e-mail porque o SUPPORT_EMAIL deste servidor é seu e um agente o enviou por uma pessoa <span style="display:inline-block">de lá.</span></p>
+<p class="fa" style="margin:0 0 6px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,'Hiragino Sans','PingFang SC','Microsoft YaHei','Apple SD Gothic Neo','Malgun Gothic',sans-serif;mso-line-height-rule:exactly;word-break:break-word;font-size:13px;line-height:19px;color:#62665e">Enviado pelo servidor do DougBot <span style="display:inline-block">em x.test.</span></p>
+</td></tr>
+</table>
+<!--[if mso]></td></tr></table><![endif]-->
+</td></tr>
+</table>
+</div>
+</body>
+</html>"
+`;
+
 exports[`every email, in both languages autonomy_report.en: snapshot 1`] = `
 "<!doctype html>
 <html lang="en" dir="ltr" xmlns="http://www.w3.org/1999/xhtml" xmlns:o="urn:schemas-microsoft-com:office:office">

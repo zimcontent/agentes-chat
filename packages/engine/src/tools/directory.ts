@@ -403,6 +403,7 @@ export const RARE_TOOLS: ReadonlySet<string> = new Set([
   "read_conversation",
   "send_feedback",
   "offer_feedback",
+  "contact_support",
 ]);
 const RARE_GROUP = "more";
 

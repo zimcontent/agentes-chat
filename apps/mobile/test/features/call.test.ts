@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { LiveRoom } from "@agenteschat/client";
-import { elapsedText, levelsFromStats, phoneHostsOthers, tilesOf } from "../../src/features/call/logic";
+import { callPress, elapsedText, levelsFromStats, phoneHostsOthers, tilesOf } from "../../src/features/call/logic";
 
 /** Voice calls in the phone app (docs/adr/doug-0006-live-voice.md, the phone app): the rules apart from WebRTC. */
 
@@ -65,5 +65,22 @@ describe("a call on the phone", () => {
     expect(elapsedText(0, 187_000)).toBe("3:07");
     expect(elapsedText(0, 3_765_000)).toBe("1:02:45");
     expect(elapsedText(10, 0)).toBe("0:00");
+  });
+});
+
+describe("the conversation's call button", () => {
+  const base = { inThisCall: false, live: false, dmAgent: false, keyOk: true as boolean | null };
+  test("never hides: with no voice key an agent's DM says what is missing", () => {
+    expect(callPress({ ...base, dmAgent: true, keyOk: false })).toBe("needs-key");
+    expect(callPress({ ...base, dmAgent: true, keyOk: true })).toBe("call-agent");
+    // While the key is asked, the call itself says if it fails.
+    expect(callPress({ ...base, dmAgent: true, keyOk: null })).toBe("call-agent");
+  });
+  test("a group opens Chamada de voz, key or not (people call with no key)", () => {
+    expect(callPress({ ...base, keyOk: false })).toBe("start");
+  });
+  test("the call this phone is on opens, a live one here joins", () => {
+    expect(callPress({ ...base, inThisCall: true, live: true })).toBe("open");
+    expect(callPress({ ...base, live: true, dmAgent: true, keyOk: false })).toBe("join");
   });
 });

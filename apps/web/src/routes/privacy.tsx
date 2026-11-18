@@ -1,11 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { legalPage } from "@/app/guards";
-import { LegalPage, NoLegalPage } from "@/pages/LegalPage";
+import { CloudLegalPage, NoLegalPage } from "@/pages/CloudLegalPage";
+import { LegalPage } from "@/pages/LegalPage";
 
-/** Privacy Policy, public: agentes.chat Cloud's on the Cloud, else this server's own (`legalPage`). */
+/**
+ * The Privacy Policy in English, public: agentes.chat Cloud's on the Cloud, DougBot's own on a server that serves it, a
+ * server's own address when `PRIVACY_URL` names one elsewhere (`legalPage`), else none.
+ */
 export const Route = createFileRoute("/privacy")({
   loader: ({ context }) => legalPage(context, "privacy"),
   component: function Privacy() {
-    return Route.useLoaderData() ? <LegalPage kind="privacy" /> : <NoLegalPage kind="privacy" />;
+    const page = Route.useLoaderData();
+    if (page === "cloud") return <CloudLegalPage kind="privacy" />;
+    return page === "own" ? <LegalPage kind="privacy" lang="en" /> : <NoLegalPage kind="privacy" />;
   },
 });

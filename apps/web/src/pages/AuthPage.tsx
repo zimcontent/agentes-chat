@@ -60,6 +60,9 @@ import { STORAGE_KEYS, sessionStore, storage } from "@/lib/storage";
  * app runs on this computer, its owner has no password: "Continue on this Mac"
  * asks the app, which signs them in (ADR 0060 §6).
  */
+/** The steps where the terms line shows: the first of signing in and of signing up, and the new account's. */
+const SHOWS_TERMS = new Set<Step>(["email", "newPassword"]);
+
 type Step =
   | "email"
   | "password"
@@ -824,7 +827,7 @@ export function AuthPage({
                 </>
               )}
 
-              {(step === "email" || step === "newPassword") && termsUrl && privacyUrl && (
+              {SHOWS_TERMS.has(step) && termsUrl && privacyUrl && (
                 <p className="auth__fine">
                   {t("auth.termsBefore")}
                   <a href={termsUrl}>{t("auth.terms")}</a>

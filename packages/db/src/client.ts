@@ -311,6 +311,10 @@ export const EXTRA_COLUMNS = [
     "updated_at" timestamp with time zone NOT NULL DEFAULT now(),
     PRIMARY KEY ("org_id", "client")
   )`,
+  // A client's name as the team shows it and whether the team hid it (ADR 9001, addendum 2026-11-18): the portal
+  // itself has no rename or delete for a client.
+  `ALTER TABLE "portal_client_settings" ADD COLUMN IF NOT EXISTS "display_name" text`,
+  `ALTER TABLE "portal_client_settings" ADD COLUMN IF NOT EXISTS "hidden_at" timestamp with time zone`,
   // A person's video sent from a task, and the post around it (docs/adr/doug-0012-editor-delivery.md): who sent it,
   // the task it delivers, the post's cover and caption, the final kept and backed up, and each version's post copy.
   `ALTER TABLE "video_reviews" ADD COLUMN IF NOT EXISTS "sender_user_id" text`,

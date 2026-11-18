@@ -1,6 +1,7 @@
 {
   "app": {
     "pt-BR": [
+      "settings.support.whatsapp",
       "mediaGen.secondsValue",
       "usageViews.logins",
       "chat.wait.said",
@@ -344,6 +345,7 @@
       "companies.list.whatsapp"
     ],
     "es": [
+      "settings.support.whatsapp",
       "mediaGen.audioKind",
       "mediaGen.nVideos",
       "mediaGen.nAudios",
@@ -645,6 +647,8 @@
       "companies.list.clientCodePlaceholder"
     ],
     "fr": [
+      "settings.section.support",
+      "settings.support.whatsapp",
       "mediaGen.audioKind",
       "mediaGen.nImages",
       "mediaGen.nAudios",
@@ -1132,6 +1136,8 @@
       "companies.list.clientCodePlaceholder"
     ],
     "de": [
+      "settings.section.support",
+      "settings.support.whatsapp",
       "mediaGen.audioKind",
       "mediaGen.video",
       "devices.iphone.steps.account",
@@ -1646,6 +1652,9 @@
       "companies.list.clientCodePlaceholder"
     ],
     "it": [
+      "settings.section.support",
+      "settings.support.email",
+      "settings.support.whatsapp",
       "mediaGen.audioKind",
       "mediaGen.input",
       "mediaGen.nVideos",
@@ -2073,6 +2082,8 @@
       "companies.list.clientCodePlaceholder"
     ],
     "nl": [
+      "settings.section.support",
+      "settings.support.whatsapp",
       "mediaGen.audioKind",
       "mediaGen.nVideos",
       "mediaGen.nAudios",
@@ -2735,6 +2746,7 @@
       "companies.list.clientCodePlaceholder"
     ],
     "ja": [
+      "settings.support.whatsapp",
       "channel.tooLong.fileName",
       "devices.system.android",
       "devices.system.ios",
@@ -2946,6 +2958,7 @@
       "companies.list.clientCodePlaceholder"
     ],
     "ko": [
+      "settings.support.whatsapp",
       "channel.tooLong.fileName",
       "devices.system.android",
       "devices.system.ios",
@@ -3151,6 +3164,7 @@
       "companies.list.clientCodePlaceholder"
     ],
     "zh-Hans": [
+      "settings.support.whatsapp",
       "channel.tooLong.fileName",
       "devices.system.android",
       "devices.system.ios",
@@ -3347,6 +3361,8 @@
       "companies.list.clientCodePlaceholder"
     ],
     "id": [
+      "settings.support.email",
+      "settings.support.whatsapp",
       "agentFront.ai",
       "mediaGen.audioKind",
       "mediaGen.input",
@@ -3707,6 +3723,7 @@
       "companies.list.clientCodePlaceholder"
     ],
     "tr": [
+      "settings.support.whatsapp",
       "mediaGen.nVideos",
       "mediaGen.video",
       "mediaGen.model",
@@ -3941,6 +3958,7 @@
       "companies.list.clientCodePlaceholder"
     ],
     "pl": [
+      "settings.support.whatsapp",
       "mediaGen.audioKind",
       "mediaGen.title",
       "mediaGen.model",
@@ -4287,6 +4305,7 @@
       "companies.list.clientCodePlaceholder"
     ],
     "ru": [
+      "settings.support.whatsapp",
       "channel.tooLong.fileName",
       "devices.system.android",
       "devices.system.ios",
@@ -4688,7 +4707,8 @@
       "photo.section",
       "chat.messagePlain",
       "drive.filter.type",
-      "vault.sheet.note"
+      "vault.sheet.note",
+      "homeTools.mission"
     ],
     "de": [
       "devices.status.offline",
@@ -4767,7 +4787,9 @@
       "threads.title",
       "roles.icons.person",
       "drive.order.short.name",
-      "vault.sheet.details"
+      "vault.sheet.details",
+      "homeTools.mission",
+      "homeTools.computer"
     ],
     "it": [
       "devices.status.offline",
@@ -4822,7 +4844,8 @@
       "find.filterWord.in",
       "connectors.accountTitle",
       "roles.icons.mail",
-      "vault.sheet.password"
+      "vault.sheet.password",
+      "homeTools.computer"
     ],
     "nl": [
       "devices.status.offline",
@@ -4910,7 +4933,8 @@
       "vault.home.items",
       "vault.sheet.site",
       "vault.sheet.details",
-      "agentLite.ai"
+      "agentLite.ai",
+      "homeTools.computer"
     ],
     "ja": [
       "devices.os.android",

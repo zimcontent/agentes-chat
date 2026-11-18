@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { editorNow, portalAdjusting } from "../../src/features/chats/glance";
+import { adjustmentsHref, editorNow, portalAdjusting } from "../../src/features/chats/glance";
 
 describe("Início's glance", () => {
   const review = (id: string, status: "changes" | "in_review" | "approved", at: string, sender: string | null) => ({
@@ -29,4 +29,11 @@ describe("Início's glance", () => {
     });
     expect(portalAdjusting([])).toEqual({ total: 0, clients: [] });
   });
+});
+
+test("Alterações opens the changes asked: one client's Quadro, several narrowed in the Portal, none the Portal", () => {
+  const c = (client: string, adjusting: number) => ({ client, counts: { adjusting } });
+  expect(adjustmentsHref([c("lexeer", 2), c("elmx", 0)])).toBe("/portal/client/lexeer?tab=board");
+  expect(adjustmentsHref([c("lexeer", 2), c("elmx", 1)])).toBe("/portal?alteracoes=1");
+  expect(adjustmentsHref([c("lexeer", 0)])).toBe("/portal");
 });

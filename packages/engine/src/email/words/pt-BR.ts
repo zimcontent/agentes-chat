@@ -468,6 +468,22 @@ export const ptBR: Words = {
     noSupport: "Se não foi você, avise quem cuida deste servidor.",
     why: "Você recebeu este e-mail porque este endereço tinha uma conta no DougBot.",
   },
+  supportRequest: {
+    subject: "Um pedido de suporte de um agente",
+    preheader: "Uma pessoa pediu ajuda com esta instalação. As palavras dela estão abaixo.",
+    headline: "Um pedido de suporte",
+    from: "Quem pediu",
+    anAgent: "um agente",
+    facts: {
+      from: "De",
+      workspace: "Workspace",
+      writtenBy: "Escrito por",
+      client: "Cliente",
+      version: "Servidor",
+    },
+    why: "Você recebeu este e-mail porque o SUPPORT_EMAIL deste servidor é seu e um agente o enviou por uma pessoa de lá.",
+    closing: "Responda a pessoa no endereço em De.",
+  },
   autonomy: {
     subject: (day, stalls, noise) => `Agentes em ${day}: ${stalls} travas, ${noise} execuções à toa`,
     preheader: "Onde os agentes pararam e onde agiram à toa, contra os 7 dias anteriores.",

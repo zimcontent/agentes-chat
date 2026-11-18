@@ -524,6 +524,22 @@ export const en = {
     noSupport: "If it wasn't you, tell the people who run this server." as Text,
     why: "You got this email because this address had an account on DougBot.",
   },
+  supportRequest: {
+    subject: "A support request from an agent",
+    preheader: "A person asked for help with this installation. Their words are below.",
+    headline: "A support request",
+    from: "Who asked",
+    anAgent: "an agent",
+    facts: {
+      from: "From",
+      workspace: "Workspace",
+      writtenBy: "Written by",
+      client: "Client",
+      version: "Server",
+    },
+    why: "You got this email because this server's SUPPORT_EMAIL is yours and an agent sent it for a person there.",
+    closing: "Answer the person at the address under From.",
+  },
   autonomy: {
     subject: (day: string, stalls: string, noise: string) => `Agents on ${day}: ${stalls} stalls, ${noise} noise runs`,
     preheader: "Where agents stopped and where they acted for nothing, against the 7 days before.",

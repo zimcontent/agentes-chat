@@ -36,6 +36,7 @@ import {
   portalTotals,
   portalWhen,
   portalWithResponsible,
+  rememberPortalClientNames,
   sortPipelineByProduction,
   sortPortalClients,
 } from "../src/lib/portal";
@@ -68,6 +69,19 @@ describe("the approval portal's board (ADR 9001)", () => {
   test("a client's id reads as a name", () => {
     expect(portalClientName("acme-foods")).toBe("Acme Foods");
     expect(portalClientName("blue")).toBe("Blue");
+  });
+
+  test("the team's name wins over the id's, hidden clients' included, until a read says none", () => {
+    rememberPortalClientNames({
+      clients: [{ client: "acme-foods", name: "ACME" }, { client: "blue" }],
+      hidden: [{ client: "teste-ajustes", name: "Teste" }],
+    });
+    expect(portalClientName("acme-foods")).toBe("ACME");
+    expect(portalClientName("blue")).toBe("Blue");
+    expect(portalClientName("teste-ajustes")).toBe("Teste");
+    expect(portalClientInitials("acme-foods")).toBe("A");
+    rememberPortalClientNames({ clients: [] });
+    expect(portalClientName("acme-foods")).toBe("Acme Foods");
   });
 
   test("the overview: what waits on the team first (adjustments, then approved and not scheduled), then the busiest", () => {

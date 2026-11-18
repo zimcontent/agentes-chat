@@ -46,6 +46,7 @@ import { inviteRoutes } from "./routes/app/invites";
 import { issueRoutes } from "./routes/app/issues";
 import { jevRoutes } from "./routes/app/jev";
 import { knowledgeRoutes } from "./routes/app/knowledge";
+import { legalRoutes } from "./routes/app/legal";
 import { liveVoiceRoutes } from "./routes/app/live-voice";
 import { machineAccountRoutes } from "./routes/app/machine-accounts";
 import { mailRoutes } from "./routes/app/mail";
@@ -185,6 +186,7 @@ export function createApp(options: AppOptions) {
     api.use("/app/organizations/:orgId/agents/:agentId/:part", agentDetailsGate(deps));
     api.use("/app/organizations/:orgId/*", readOnlyWhileDeleting(deps));
     api.route("/app", accountRoutes(deps));
+    api.route("/app", legalRoutes(deps));
     api.route("/app", accessRoutes(deps));
     api.route("/app", agentRoutes(deps));
     api.route("/app", chatRoutes(deps));

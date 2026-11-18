@@ -209,6 +209,13 @@ export interface AuthConfig {
   privacyUrl?: string | null;
   /** Where people write to whoever runs this server (a workspace on hold or suspended); null: not given. */
   supportEmail?: string | null;
+  /**
+   * How people reach whoever runs this installation (Support under the account): the address and the WhatsApp number
+   * the operator set, either one alone, each null when unset. Null (or absent, on a server older than it): no Support.
+   */
+  support?: { email: string | null; whatsapp: string | null } | null;
+  /** A server from before the code moved to `GET /me` said it here; newer ones send none (`Me.clientCode`). */
+  clientCode?: string | null;
   /** The server takes feedback (`POST /api/app/feedback`): the apps show the form; absent: a server too old to. */
   feedback?: boolean;
   /** It goes to the agentes.chat team, not to whoever runs this server: the form says so and takes pictures only. */
@@ -307,9 +314,63 @@ export interface Instance {
   signup: "open" | "invite";
   /** No account yet, and the first one only through the owner link the setup printed (absent: false). */
   ownerClaim?: boolean;
-  /** One of agentes.chat's own servers: `/terms` and `/privacy` are agentes.chat Cloud's (absent: an older server). */
+  /**
+   * One of agentes.chat's own servers: `/terms` and `/privacy` are agentes.chat Cloud's documents there. Any other
+   * server serves DougBot's own, or sends them to its own `TERMS_URL` and `PRIVACY_URL` (absent: an older server).
+   */
   cloud?: boolean;
 }
+
+/**
+ * `GET /api/app/legal`: the company details the Terms of Use and the Privacy Policy fill in (`LEGAL_*`). A field the
+ * server has no setting for is null, and the page shows `[a preencher]` in its place. The documents' text is not here:
+ * it ships with the app, from `docs/legal/`.
+ */
+export interface LegalFacts {
+  companyName: string | null;
+  taxId: string | null;
+  address: string | null;
+  dpoName: string | null;
+  dpoEmail: string | null;
+  serverLocation: string | null;
+  logRetention: string | null;
+  /** Days the installation's database backups are kept, as the Privacy Policy says. */
+  backupRetentionDays: number;
+  /** Days a voice message's recording is kept, as the Privacy Policy says. */
+  voiceRetentionDays: number;
+  /** The pages carry the draft notice (`LEGAL_DRAFT`, or a company field they need is still empty). */
+  draft: boolean;
+  /** Database backups go to a bucket, so the Privacy Policy's backup paragraph applies. */
+  backup: boolean;
+  /** Where files are kept. */
+  storage: "s3" | "disk" | "database";
+  /** One of agentes.chat's own servers, where the usage report is not optional. */
+  telemetryForced: boolean;
+  /** Days a company's waiting-list request is kept; null: this server has no such form. */
+  companyRequestsRetentionDays: number | null;
+  /** Each optional outside service, on or off by its setting. Never a key or an address. */
+  services: Record<LegalService, boolean>;
+}
+
+/** The optional outside services the Privacy Policy's Annex II lists, each turned on by a setting of the server. */
+export type LegalService =
+  | "platformKey"
+  | "jev"
+  | "giphy"
+  | "email"
+  | "media"
+  | "speech"
+  | "push"
+  | "pushDirect"
+  | "pushRelay"
+  | "composio"
+  | "embeddings"
+  | "whatsapp"
+  | "errors"
+  | "billing"
+  | "support"
+  | "telemetry"
+  | "driveBackup";
 
 /** "Abrir no celular": a sign-in for the phone, single use, a few minutes long. */
 export interface PhoneSignIn {
@@ -475,6 +536,9 @@ export interface OrgOnboarding {
 export interface Me {
   user: User;
   organizations: OrgSummary[];
+  /** This installation's client code (`DOUG_CLIENT_CODE`), shown in Support; null or absent: none. Sign-in doesn't
+   * carry it: only a signed-in person reads it. */
+  clientCode?: string | null;
 }
 
 /**
@@ -8761,6 +8825,8 @@ export interface PortalClientSummary {
   color?: PortalClientColor | null;
   /** Where its logo is read (the server's own address); null or absent: none. */
   logo?: string | null;
+  /** The name the team gave it (ADR 9001, addendum 2026-11-18); null or absent: the one its id reads as. */
+  name?: string | null;
 }
 
 /**
@@ -8778,6 +8844,8 @@ export interface PortalState {
 /** Every client at a glance (`GET …/portal`). */
 export interface PortalOverview {
   clients: PortalClientSummary[];
+  /** Clients the team hid: in no list until shown again. Absent from a server that doesn't say. */
+  hidden?: { client: string; name: string | null }[];
   /** Absent from a server that doesn't say. */
   state?: PortalState;
 }

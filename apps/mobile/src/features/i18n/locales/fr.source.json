@@ -7555,5 +7555,87 @@
       "one": "{{names}} asked for DougBot for a company",
       "other": "{{names}} asked for DougBot for a company"
     }
-  }
+  },
+  "chat.call": {
+    "value": "Call"
+  },
+  "chat.toneGreen": {
+    "value": "In green"
+  },
+  "homeTools.all": {
+    "value": "Everything"
+  },
+  "homeTools.edit": {
+    "value": "Edit shortcuts"
+  },
+  "homeTools.done": {
+    "value": "Done"
+  },
+  "homeTools.editHint": {
+    "value": "Tap to pin up to 4 on Home"
+  },
+  "homeTools.full": {
+    "value": "Home already has 4. Unpin one first."
+  },
+  "homeTools.search": {
+    "value": "Search conversations, files, people"
+  },
+  "homeTools.searchTile": {
+    "value": "Search"
+  },
+  "homeTools.pinned": {
+    "value": "pinned to Home"
+  },
+  "homeTools.attach": {
+    "value": "Attach to the conversation"
+  },
+  "homeTools.here": {
+    "value": "In this conversation"
+  },
+  "homeTools.create": {
+    "value": "Create"
+  },
+  "homeTools.newAgent": {
+    "value": "New agent"
+  },
+  "homeTools.newChat": {
+    "value": "New conversation"
+  },
+  "homeTools.mission": {
+    "value": "Mission"
+  },
+  "homeTools.summary": {
+    "value": "Summary"
+  },
+  "homeTools.remind": {
+    "value": "Reminder"
+  },
+  "homeTools.calendar": {
+    "value": "Calendar"
+  },
+  "homeTools.people": {
+    "value": "People"
+  },
+  "homeTools.computer": {
+    "value": "Computer"
+  },
+  "homeTools.vault": {
+    "value": "Vault"
+  },
+  "homeTools.settings": {
+    "value": "Settings"
+  },
+  "activityNow.needsYou": "Needs you",
+  "activityNow.running": "Working now",
+  "activityNow.runningAll": "See all",
+  "activityNow.steps": "{{done}} of {{total}}",
+  "toSchedule.title": "Ready to schedule",
+  "toSchedule.row": "Approved post, tap to schedule",
+  "toSchedule.untitled": "Untitled post",
+  "toSchedule.sheetTitle": "Schedule post",
+  "toSchedule.confirm": "Schedule",
+  "toSchedule.when": "Goes out {{when}}",
+  "toSchedule.past": "Pick a time that hasn't passed yet",
+  "me.groupAlerts": "Alerts and approvals",
+  "me.groupLook": "Look and sound"
 }

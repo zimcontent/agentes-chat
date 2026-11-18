@@ -51992,5 +51992,74 @@
         "value": "The notes are longer than fit here. Shorten them."
       }
     }
+  },
+  "toolNames.label.contact_support": {
+    "value": "Ask support for help"
+  },
+  "settings.section.support": {
+    "value": "Support"
+  },
+  "settings.sectionText.support": {
+    "value": "Who runs this installation, and how to reach them."
+  },
+  "settings.support.title": {
+    "value": "Reach support"
+  },
+  "settings.support.lead": {
+    "value": "The people who run this installation, for something in the system that doesn't work."
+  },
+  "settings.support.email": {
+    "value": "Email"
+  },
+  "settings.support.whatsapp": {
+    "value": "WhatsApp"
+  },
+  "settings.support.client": {
+    "value": "This installation"
+  },
+  "settings.support.askTitle": {
+    "value": "Ask {{name}} for help"
+  },
+  "settings.support.askLead": {
+    "value": "{{name}} writes down what happened and sends it to support, in your name. You read the message before it goes."
+  },
+  "settings.support.askStatus": {
+    "value": "Opens the conversation with the details already in the box."
+  },
+  "settings.support.ask": {
+    "value": "Ask {{name}} for help"
+  },
+  "settings.support.draft": {
+    "value": "{{name}}, I need help with the system:"
+  },
+  "settings.support.draftWith": {
+    "value": "{{name}}, I need help with the system ({{facts}}):"
+  },
+  "settings.support.draftVersion": {
+    "value": "server version {{version}}"
+  },
+  "settings.support.draftClient": {
+    "value": "installation {{code}}"
+  },
+  "settings.support.draftPage": {
+    "value": "on the page {{page}}"
+  },
+  "settings.support.draftAsk": {
+    "value": "Send this to support with contact_support, in my name."
+  },
+  "settings.support.askNoEmail": {
+    "value": "{{name}} opens the conversation with the details in the box. Write what happened and send it."
+  },
+  "chat.work.step.askingSupport": {
+    "value": "Asked support for help"
+  },
+  "chat.activity.askingSupport": {
+    "value": "asking support for help"
+  },
+  "legal.draft": {
+    "value": "Draft, subject to legal review. What is in [brackets] has not been filled in yet."
+  },
+  "settings.account.legal": {
+    "value": "Terms and privacy"
   }
 }

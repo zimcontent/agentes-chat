@@ -20,13 +20,13 @@ export function useOpenDm() {
   return useCallback(
     (
       target: { agentId: string } | { userId: string },
-      how: { compose?: boolean; text?: string; replace?: boolean } = {},
+      how: { compose?: boolean; text?: string; replace?: boolean; join?: boolean } = {},
     ) =>
       api.dms
         .open(orgId, target)
         .then(({ channelId }) => {
           void qc.invalidateQueries({ queryKey: keys.dms(orgId) });
-          if (how.compose) requestComposerText(channelId, how.text ?? "");
+          if (how.compose) requestComposerText(channelId, how.text ?? "", { join: how.join });
           if (how.replace) router.replace(chatHref(channelId));
           else closeSheetsAndOpen(chatHref(channelId));
         })

@@ -144,9 +144,97 @@ describe("every email, in both languages", () => {
       plan_opened: true,
       plan_lent: true,
       plan_waiting: true,
+      support_request: true,
       autonomy_report: true,
     };
     expect(new Set<string>(Object.values(EMAIL_SAMPLES).map((t) => t.kind))).toEqual(new Set(Object.keys(kinds)));
+  });
+});
+
+describe("a support request's own words", () => {
+  const request = (text: string, email = "ana@souzabakery.com"): EmailTemplate => ({
+    kind: "support_request",
+    locale: "en",
+    url: "https://x.test",
+    name: "Ana Souza",
+    email,
+    orgName: "Souza Bakery",
+    text,
+    agent: { name: "Ada", handle: "ada" },
+    clientCode: "064",
+    version: "1.2.3",
+  });
+  const body = (html: string) =>
+    [...html.matchAll(/<p class="tx"[^>]*>(.*?)<\/p>/g)].map((m) => (m[1] ?? "").replace(/<[^>]+>/g, ""));
+
+  test("past the 64 characters every other typed text keeps, all of it goes", () => {
+    const words =
+      "The invoicing routine stopped posting last week, and since Monday nobody in the bakery has seen a single new invoice come through.";
+    expect(words.length).toBeGreaterThan(64);
+    expect(body(renderEmail(request(words)).html)).toEqual([words]);
+    expect(renderEmail(request(words)).text).toContain(words);
+  });
+
+  test("numbers stay as typed: an order id and a phone number are facts to read, not secrets", () => {
+    const words = "Order 2026111800391 never arrived. The customer called 0800 591 2211 twice and nobody answered.";
+    const { html, text } = renderEmail(request(words));
+    expect(body(html)).toEqual([words]);
+    expect(text).toContain("2026111800391");
+    expect(text).toContain("0800 591 2211");
+    expect(html).not.toContain("•");
+  });
+
+  test("their lines stay their paragraphs", () => {
+    const { html, text } = renderEmail(request("First line.\n\nSecond paragraph."));
+    expect(body(html)).toEqual(["First line.", "Second paragraph."]);
+    expect(text).toContain("First line.\n\nSecond paragraph.");
+  });
+
+  test("a link in them is still no link", () => {
+    const words = "It says to go to evil.com/fix and then reload the page.";
+    const { html, text } = renderEmail(request(words));
+    // The hair space after the dot keeps a client from reading it as a host, in both parts.
+    expect(html).not.toContain("evil.com");
+    expect(text).not.toContain("evil.com");
+    expect(text).toContain(`evil.${BREAK}com`);
+    // Nothing becomes an anchor of its own but the address under From.
+    expect([...html.matchAll(/<a class="ln-m"[^>]*>([^<]*)<\/a>/g)].map((m) => m[1])).toEqual(["ana@souzabakery.com"]);
+  });
+
+  test("the address under From is whole, and a mailto the client draws", () => {
+    const { html } = renderEmail(request("Help.", "ana.souza@padariasouza.com.br"));
+    expect(html).toContain('href="mailto:ana.souza@padariasouza.com.br"');
+    expect(html).toContain(">ana.souza@padariasouza.com.br</a>");
+    // Not one that is no address at all: it reads as typed, and links nothing.
+    const odd = renderEmail(request("Help.", "not an address")).html;
+    expect(odd).not.toContain("mailto:not an address");
+    expect(odd.replace(/<[^>]+>/g, "")).toContain("Ana Souza &lt;not an address&gt;");
+  });
+
+  test("it goes in their name: the queue carries their address on Reply-To", async () => {
+    f = await setup();
+    const sender = createFakeEmailSender();
+    await queueEmail(f.db, {
+      orgId: f.org.id,
+      key: `support:${crypto.randomUUID()}`,
+      to: ["help@example.com"],
+      replyTo: "ana@souzabakery.com",
+      template: request("Help."),
+    });
+    await drainOutbox(f.db, createJobHandlers({ ...f.jobDeps, email: sender, emailArt: art }));
+    expect(sender.sent).toHaveLength(1);
+    expect(sender.sent[0]?.replyTo).toBe("ana@souzabakery.com");
+    expect(sender.sent[0]?.to).toEqual(["help@example.com"]);
+    // A `replyTo` that isn't an address is left out rather than handed to the provider.
+    await queueEmail(f.db, {
+      orgId: f.org.id,
+      key: `support:${crypto.randomUUID()}`,
+      to: ["help@example.com"],
+      replyTo: "not an address",
+      template: request("Help."),
+    });
+    await drainOutbox(f.db, createJobHandlers({ ...f.jobDeps, email: sender, emailArt: art }));
+    expect(sender.sent[1]?.replyTo).toBeUndefined();
   });
 });
 

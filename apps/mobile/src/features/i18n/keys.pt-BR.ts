@@ -375,6 +375,10 @@ export const featureKeysPtBR = {
     closed: "fechada",
     options: "Opções",
     profile: "Perfil",
+    /** The "…" sheet's call tile. */
+    call: "Ligar",
+    /** Chat look: my bubble's color, the brand's green. */
+    toneGreen: "Em verde",
     here_one: "{{count}} aqui",
     here_other: "{{count}} aqui",
     headerAgent: "{{who}}. Abrir o perfil",
@@ -1113,6 +1117,9 @@ export const featureKeysPtBR = {
     added: "{{name}} entrou no grupo",
   },
   me: {
+    /** Ajustes' groups: alerts and approvals, then the app's look and sound. */
+    groupAlerts: "Avisos e aprovações",
+    groupLook: "Aparência e som",
     title: "Você",
     role: {
       owner: "dono",
@@ -1318,6 +1325,8 @@ export const featureKeysPtBR = {
     new: "Nova tarefa",
     viewList: "Lista",
     viewBoard: "Quadro",
+    viewTeam: "Equipe",
+    viewMine: "Minhas",
     search: "Buscar tarefas",
     noMatch: "Nenhuma tarefa com esse nome.",
     list: {
@@ -1349,6 +1358,37 @@ export const featureKeysPtBR = {
       canceled: "Cancelada",
     },
     until: "até {{date}}",
+    team: {
+      today: "Hoje",
+      week: "Semana",
+      everyone: "Todos",
+      people: "Pessoas",
+      agents: "Agentes",
+      clear: "Ninguém com tarefa aberta",
+      mineClear: "Você está em dia",
+      clearToday: "Nada em andamento, atrasado ou para hoje.",
+      clearWeek: "Nada em andamento, atrasado ou para esta semana.",
+      working_one: "{{count}} trabalhando",
+      working_other: "{{count}} trabalhando",
+      lateCount_one: "{{count}} atrasada",
+      lateCount_other: "{{count}} atrasadas",
+      blockedCount_one: "{{count}} travada",
+      blockedCount_other: "{{count}} travadas",
+      doingCount_one: "Trabalhando em {{count}}",
+      doingCount_other: "Trabalhando em {{count}}",
+      notStarted: "Nada em andamento",
+      free: "Livre",
+      queued_one: "{{count}} na fila",
+      queued_other: "{{count}} na fila",
+      expand: "Mostra a fila toda",
+      collapse: "Mostra só o que vem a seguir",
+      now: "Agora",
+      next: "A seguir",
+      more_one: "+{{count}} na fila",
+      more_other: "+{{count}} na fila",
+      blocked: "Travada",
+      lateOn: "Atrasada desde {{date}}",
+    },
     loadFailed: "Não deu para carregar as tarefas.",
     createdBy: "criada por {{name}}",
     fromMessage: "a partir de uma mensagem",
@@ -1533,7 +1573,33 @@ export const featureKeysPtBR = {
     stopBody_female: "A {{name}} para agora e conta o que já fez na conversa.",
   },
   // intentional: chats/activity/ui
-  homeTools: { title: "Ferramentas", more: "Mais" },
+  homeTools: {
+    title: "Ferramentas",
+    more: "Mais",
+    /** The sheet with every place the app opens (Início's "Mais", the conversation's "+"). */
+    all: "Tudo",
+    edit: "Editar atalhos",
+    done: "Pronto",
+    editHint: "Toque para fixar até 4 no Início",
+    full: "O Início já tem 4. Tire um antes.",
+    search: "Buscar conversas, arquivos, pessoas",
+    searchTile: "Buscar",
+    /** Read after a tile's name by the screen reader. */
+    pinned: "fixado no Início",
+    attach: "Anexar na conversa",
+    here: "Nesta conversa",
+    create: "Criar",
+    newAgent: "Novo agente",
+    newChat: "Nova conversa",
+    mission: "Missão",
+    summary: "Resumo",
+    remind: "Lembrete",
+    calendar: "Agenda",
+    people: "Pessoas",
+    computer: "Computador",
+    vault: "Cofre",
+    settings: "Ajustes",
+  },
   homeNow: {
     working_one: "{{count}} trabalhando",
     working_other: "{{count}} trabalhando",
@@ -1556,6 +1622,11 @@ export const featureKeysPtBR = {
     },
   },
   activityNow: {
+    /** As seções de Pendentes: o que pede uma decisão, depois o que os agentes fazem agora. */
+    needsYou: "Precisa de você",
+    running: "Trabalhando agora",
+    runningAll: "Ver tudo",
+    steps: "{{done}} de {{total}}",
     kind: {
       approval: "Aprovar",
       question: "Pergunta",
@@ -1583,6 +1654,16 @@ export const featureKeysPtBR = {
   // end intentional: chats/activity/ui
   // intentional: agents
   /** O perfil leve do agente no celular, seus ajustes e onde fica o resto. */
+  /** "Pronto para agendar" em Pendentes: posts aprovados no portal que ninguém agendou, e a folha que agenda. */
+  toSchedule: {
+    title: "Pronto para agendar",
+    row: "Publicação aprovada, toque para agendar",
+    untitled: "Post sem título",
+    sheetTitle: "Agendar publicação",
+    confirm: "Agendar",
+    when: "Sai {{when}}",
+    past: "Escolha um horário que ainda não passou",
+  },
   agentLite: {
     uses: "Pode usar",
     usesNone: "Nada ainda",

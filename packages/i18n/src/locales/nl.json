@@ -1932,6 +1932,7 @@
     "updated": "Laatst bijgewerkt op {{date}}",
     "contents": "Op deze pagina",
     "home": "Naar de startpagina",
+    "draft": "Concept, onder voorbehoud van juridische toetsing. Wat tussen [haakjes] staat, is nog niet ingevuld.",
     "none": {
       "terms": "Deze server heeft geen pagina met voorwaarden",
       "privacy": "Deze server heeft geen privacypagina"
@@ -14525,7 +14526,8 @@
       "vault_make_password": "Wachtwoord maken",
       "get_my_usage": "Mijn gebruik bekijken",
       "send_feedback": "Feedback sturen",
-      "offer_feedback": "Aanbieden om een probleem te melden"
+      "offer_feedback": "Aanbieden om een probleem te melden",
+      "contact_support": "Support om hulp vragen"
     }
   },
   "toolReview": {
@@ -17139,6 +17141,7 @@
       "voice": "Spraak",
       "apps": "AI-apps",
       "approvals": "Goedkeuringen",
+      "support": "Support",
       "about": "Over DougBot",
       "generalPersonal": "Over jou",
       "keysPersonal": "AI en apps",
@@ -17171,6 +17174,7 @@
       "voice": "Spraakberichten in gesprekken, en wie spraak omzet in tekst.",
       "apps": "Geef de agents taken vanuit Claude, Cursor en andere apps.",
       "approvals": "Wie voor je beslist als een agent om je goedkeuring vraagt.",
+      "support": "Wie deze installatie beheert en hoe je hen bereikt.",
       "about": "Wie het maakt, de licentie en waar de broncode staat.",
       "generalPersonal": "Wat je agents over je weten, en hoe deze werkruimte werkt.",
       "usagePersonal": "Hoeveel AI je agents gebruiken, en je abonnement.",
@@ -17178,6 +17182,24 @@
       "membersPersonal": "Wie hier met je is.",
       "rolesPersonal": "Wat ieder hier kan doen. Eigenaren kunnen alles.",
       "companies": "Bedrijven die DougBot via de pagina hebben aangevraagd."
+    },
+    "support": {
+      "title": "Support bereiken",
+      "lead": "De mensen die deze installatie beheren, voor als iets in het systeem niet werkt.",
+      "email": "E-mail",
+      "whatsapp": "WhatsApp",
+      "client": "Deze installatie",
+      "askTitle": "Vraag {{name}} om hulp",
+      "askLead": "{{name}} schrijft op wat er gebeurde en stuurt het in jouw naam naar support. Je leest het bericht voordat het weggaat.",
+      "askStatus": "Opent het gesprek met de gegevens al in het veld.",
+      "ask": "Vraag {{name}} om hulp",
+      "draft": "{{name}}, ik heb hulp nodig met het systeem:",
+      "draftWith": "{{name}}, ik heb hulp nodig met het systeem ({{facts}}):",
+      "draftVersion": "serverversie {{version}}",
+      "draftClient": "installatie {{code}}",
+      "draftPage": "op de pagina {{page}}",
+      "draftAsk": "Stuur dit met contact_support naar de support, in mijn naam.",
+      "askNoEmail": "{{name}} opent het gesprek met de gegevens al in het veld. Schrijf op wat er gebeurde en verstuur het."
     },
     "about": {
       "basedOn": "Gebaseerd op <site>DougBot</site> van Codari Global, LLC · AGPL-3.0",
@@ -17189,6 +17211,7 @@
     "title": "Instellingen",
     "account": {
       "plans": "Limieten van je abonnementen",
+      "legal": "Voorwaarden en privacy",
       "device": "Op dit apparaat",
       "activity": "Laten zien wat agents deden onder elk antwoord",
       "activityHelp": "De tools die ze gebruikten en hoe lang het duurde. Terwijl ze werken, zie je nog steeds waar ze mee bezig zijn.",
@@ -18104,6 +18127,7 @@
         "settingCommitLine": "De regel van de agents in commits aangepast",
         "sendingFeedback": "Gevraagd om feedback te versturen",
         "offeringFeedback": "Aangeboden om een probleem te melden",
+        "askingSupport": "Vroeg de support om hulp",
         "deletingRoutine": "Een routine verwijderd",
         "runningRoutine": "Een routine nu uitgevoerd",
         "proposingTeam": "Een team voorgesteld",
@@ -18227,6 +18251,7 @@
       "settingCommitLine": "aan het aanpassen van de regel van de agents in commits",
       "sendingFeedback": "feedback aan het voorbereiden",
       "offeringFeedback": "een melding aan het voorbereiden",
+      "askingSupport": "vraagt de support om hulp",
       "deletingRoutine": "een routine aan het verwijderen",
       "runningRoutine": "een routine nu aan het uitvoeren",
       "proposingTeam": "een team aan het voorstellen",

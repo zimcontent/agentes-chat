@@ -1882,6 +1882,7 @@
     "updated": "Terakhir diperbarui {{date}}",
     "contents": "Di halaman ini",
     "home": "Ke beranda",
+    "draft": "Draf, menunggu tinjauan hukum. Yang berada dalam [tanda kurung siku] belum diisi.",
     "none": {
       "terms": "Server ini tidak punya halaman ketentuan",
       "privacy": "Server ini tidak punya halaman privasi"
@@ -13993,7 +13994,8 @@
       "vault_make_password": "Buat kata sandi",
       "get_my_usage": "Lihat pemakaian saya",
       "send_feedback": "Kirim masukan",
-      "offer_feedback": "Tawarkan laporan masalah"
+      "offer_feedback": "Tawarkan laporan masalah",
+      "contact_support": "Minta bantuan dukungan"
     }
   },
   "toolReview": {
@@ -16554,6 +16556,7 @@
       "voice": "Suara",
       "apps": "Aplikasi AI",
       "approvals": "Persetujuan",
+      "support": "Dukungan",
       "about": "Tentang DougBot",
       "generalPersonal": "Tentang kamu",
       "keysPersonal": "AI dan aplikasi",
@@ -16586,6 +16589,7 @@
       "voice": "Pesan suara di percakapan, dan siapa yang mengubah suara menjadi teks.",
       "apps": "Minta tugas ke agen dari Claude, Cursor, dan aplikasi lain.",
       "approvals": "Siapa yang memutuskan untukmu saat agen meminta persetujuanmu.",
+      "support": "Siapa yang mengelola instalasi ini dan cara menghubungi mereka.",
       "about": "Siapa pembuatnya, lisensinya, dan letak kode sumbernya.",
       "generalPersonal": "Yang diketahui agen-agenmu tentang kamu, dan cara kerja ruang kerja ini.",
       "usagePersonal": "Seberapa banyak AI yang dipakai agen-agenmu, dan paketmu.",
@@ -16593,6 +16597,24 @@
       "membersPersonal": "Siapa yang ada di sini bersamamu.",
       "rolesPersonal": "Apa yang bisa dilakukan setiap orang di sini. Pemilik bisa melakukan semuanya.",
       "companies": "Perusahaan yang meminta DougBot lewat halaman."
+    },
+    "support": {
+      "title": "Hubungi dukungan",
+      "lead": "Orang yang mengelola instalasi ini, untuk saat ada yang tidak berjalan di sistem.",
+      "email": "Email",
+      "whatsapp": "WhatsApp",
+      "client": "Instalasi ini",
+      "askTitle": "Minta bantuan {{name}}",
+      "askLead": "{{name}} menuliskan apa yang terjadi dan mengirimnya ke dukungan atas namamu. Kamu membaca pesannya sebelum terkirim.",
+      "askStatus": "Membuka percakapan dengan detailnya sudah terisi.",
+      "ask": "Minta bantuan {{name}}",
+      "draft": "{{name}}, saya butuh bantuan dengan sistem:",
+      "draftWith": "{{name}}, saya butuh bantuan dengan sistem ({{facts}}):",
+      "draftVersion": "versi server {{version}}",
+      "draftClient": "instalasi {{code}}",
+      "draftPage": "di halaman {{page}}",
+      "draftAsk": "Kirim ini ke dukungan dengan contact_support, atas nama saya.",
+      "askNoEmail": "{{name}} membuka percakapan dengan detailnya sudah di kolom. Tulis apa yang terjadi lalu kirim."
     },
     "about": {
       "basedOn": "Berdasarkan <site>DougBot</site> oleh Codari Global, LLC · AGPL-3.0",
@@ -16604,6 +16626,7 @@
     "title": "Pengaturan",
     "account": {
       "plans": "Batas paketmu",
+      "legal": "Ketentuan dan privasi",
       "device": "Di perangkat ini",
       "activity": "Tampilkan yang dilakukan agen di bawah tiap balasan",
       "activityHelp": "Alat yang mereka pakai dan berapa lama prosesnya. Saat mereka bekerja, kamu tetap melihat apa yang sedang mereka lakukan.",
@@ -17494,6 +17517,7 @@
         "settingCommitLine": "Menyesuaikan baris agen di commit",
         "sendingFeedback": "Meminta mengirim masukan",
         "offeringFeedback": "Menawarkan untuk melaporkan masalah",
+        "askingSupport": "Meminta bantuan dukungan",
         "deletingRoutine": "Menghapus rutinitas",
         "runningRoutine": "Menjalankan rutinitas sekarang",
         "proposingTeam": "Mengusulkan tim",
@@ -17617,6 +17641,7 @@
       "settingCommitLine": "menyesuaikan baris agen di commit",
       "sendingFeedback": "menyiapkan masukan",
       "offeringFeedback": "menyiapkan laporan",
+      "askingSupport": "meminta bantuan dukungan",
       "deletingRoutine": "menghapus rutinitas",
       "runningRoutine": "menjalankan rutinitas sekarang",
       "proposingTeam": "mengusulkan tim",
