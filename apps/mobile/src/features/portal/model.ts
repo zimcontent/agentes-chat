@@ -258,20 +258,130 @@ export function boardIndexAt(x: number, step: number, count: number): number {
 }
 
 /**
- * The board's three layers, as the desktop and Trello draw them: a light board, the lists a step darker, white cards
- * on them. Dark keeps the same order of steps: the board darkest, the lists above it, the cards above them.
+ * The board's three layers, as Trello draws a board: the board light, the lists dark on it, the cards a step lighter
+ * than their list, in both themes (the lists' words then read on the dark palette, `ThemeColorsOverride`). In dark the
+ * board is a step dimmer, still light, so it doesn't glare beside the dark bar. `dot`/`dotOn`: the dots under the
+ * lists, on the board; `hole`: where a held list would land.
  */
-export function boardPaint(
-  dark: boolean,
-  c: { bg: string; raised: string; raised2: string; bubble: string; line: string },
-): { board: string; list: string; card: string; edge: string } {
-  return dark
-    ? { board: c.bg, list: c.raised2, card: DARK_CARD, edge: c.line }
-    : { board: c.bg, list: c.bubble, card: c.raised, edge: c.line };
+export function boardPaint(dark: boolean): {
+  board: string;
+  list: string;
+  card: string;
+  edge: string;
+  dot: string;
+  dotOn: string;
+  hole: string;
+} {
+  return {
+    board: dark ? "#C9CEC2" : "#E3E7DE",
+    list: "#141414",
+    card: "#212121",
+    edge: "#333333",
+    dot: "#55594F",
+    dotOn: "#0A0A0A",
+    hole: "rgba(10, 10, 10, 0.16)",
+  };
 }
 
-/** A card on a dark list: the step above the list's own. */
-const DARK_CARD = "#262626";
+/** WCAG's contrast ratio between two #RRGGBB colors. */
+export function contrast(a: string, b: string): number {
+  const lum = (hex: string) => {
+    const [r, g, bl] = [1, 3, 5].map((i) => {
+      const v = Number.parseInt(hex.slice(i, i + 2), 16) / 255;
+      return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+    }) as [number, number, number];
+    return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+  };
+  const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m) as [number, number];
+  return (x + 0.05) / (y + 0.05);
+}
+
+/**
+ * A search's words for the board: lower case, no accents, and a task's number on its own ("#49" or "49") as `task`.
+ * Empty: no search.
+ */
+export function boardQuery(text: string): { words: string; task: number | null } | null {
+  const words = fold(text.trim());
+  if (!words) return null;
+  const n = /^#?(\d{1,7})$/.exec(words);
+  return { words, task: n ? Number(n[1]) : null };
+}
+
+const fold = (text: string) => text.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+
+/** Whether a card answers a search: its title, description, caption, a label's name, or its task's number. */
+export function cardMatches(
+  card: Pick<PlanCard, "title" | "description" | "caption" | "labels">,
+  query: { words: string; task: number | null },
+  task: number | undefined,
+  labelNames: ReadonlyMap<string, string>,
+): boolean {
+  if (query.task !== null && task === query.task) return true;
+  const words = query.words.replace(/^#/, "");
+  const said = [card.title, card.description, card.caption, ...card.labels.map((id) => labelNames.get(id) ?? "")];
+  return said.some((text) => fold(text).includes(words));
+}
+
+/** The board's lists for a search: only the cards that answer it, and only the lists that hold one. */
+export function searchGroups(
+  groups: readonly PlanGroup[],
+  query: { words: string; task: number | null } | null,
+  numbers: ReadonlyMap<string, number>,
+  labels: readonly { id: string; name: string }[],
+): PlanGroup[] {
+  if (!query) return [...groups];
+  const names = new Map(labels.map((l) => [l.id, l.name]));
+  return groups
+    .map((g) => ({ ...g, cards: g.cards.filter((c) => cardMatches(c, query, numbers.get(c.id), names)) }))
+    .filter((g) => g.cards.length > 0);
+}
+
+/** `ids` with `id` taken out and put back at `index` among the others: what a list dropped there makes the order. */
+export function orderAfterDrop(ids: readonly string[], id: string, index: number): string[] {
+  const rest = ids.filter((x) => x !== id);
+  if (rest.length === ids.length) return [...ids];
+  rest.splice(Math.max(0, Math.min(index, rest.length)), 0, id);
+  return rest;
+}
+
+/**
+ * Where a held list would land: the slot under the finger, from how far the board is scrolled (`scroll`), the
+ * finger's x on the board and the lists' step, held to the `count` lists that can move.
+ */
+export function listSlotAt(scroll: number, x: number, step: number, count: number): number {
+  "worklet";
+  if (count <= 0 || step <= 0) return 0;
+  return Math.min(count - 1, Math.max(0, Math.floor((scroll + x - BOARD.side + BOARD.gap / 2) / step)));
+}
+
+/**
+ * While the list at `from` is held over `slot`: how many places the list at `index` slides (-1 left, 1 right; the held
+ * one's hole goes all the way to `slot`), so the board shows the order the drop would make without moving anything.
+ */
+export function listShift(index: number, from: number, slot: number): number {
+  if (index < 0 || from < 0) return 0;
+  if (index === from) return slot - from;
+  if (from < slot && index > from && index <= slot) return -1;
+  if (slot < from && index >= slot && index < from) return 1;
+  return 0;
+}
+
+/** How close to the board's side a held list makes it scroll, and how far each frame. */
+export const BOARD_EDGE = { zone: 48, step: 12 } as const;
+
+/** The board's scroll each frame while a held list is at `x` on a board this wide: toward the side it is near. */
+export function edgeScroll(x: number, width: number): number {
+  if (x > width - BOARD_EDGE.zone) return BOARD_EDGE.step;
+  if (x < BOARD_EDGE.zone) return -BOARD_EDGE.step;
+  return 0;
+}
+
+/** A list one place to the left (-1) or right (1), for the menu and a screen reader: null at an end. */
+export function orderNudged(ids: readonly string[], id: string, by: -1 | 1): string[] | null {
+  const at = ids.indexOf(id);
+  if (at < 0 || at + by < 0 || at + by >= ids.length) return null;
+  return orderAfterDrop(ids, id, at + by);
+}
 
 /** What a card's face says at a glance: the checklist's progress, how many comments and files, a description. */
 export function cardBadges(card: Pick<PlanCard, "checklist" | "comments" | "files" | "description">): {

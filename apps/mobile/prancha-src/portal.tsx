@@ -99,10 +99,15 @@ const PLAN: PortalPlan = {
     { id: "l3", name: "Semana 24/11", kind: "plan", cards: [card("l3", "Story enquete", { type: "story" })] },
     { id: "m1", name: "Logins", kind: "materials", cards: [card("m1", "Instagram", { material: true })] },
   ],
-  unlisted: [],
+  // Cards no list holds yet: "Sem lista", the schedule's last column (the case where a list added at the end used to
+  // land behind it, out of sight).
+  unlisted: [card(null, "Ideia: bastidores da obra", { type: "reel" }), card(null, "Post de Natal")],
   loose: [],
   labels: [],
 };
+
+/** The portal's own time to answer: longer than a frame, as the real one over the network. */
+const later = () => new Promise((resolve) => setTimeout(resolve, 600));
 
 /** A server that answers with the samples; anything else answers an empty list. */
 function fakeApi(): ApiClient {
@@ -120,7 +125,41 @@ function fakeApi(): ApiClient {
     ),
     portal: new Proxy(
       {
-        plan: async () => PLAN,
+        // The lists change as the real portal changes them: a new list goes last, an existing name answers that
+        // list, an order puts the named ones first, a deleted list leaves its cards in no list.
+        plan: async () => structuredClone(PLAN),
+        createList: async (_org: string, _client: string, name: string, kind: "plan" | "materials" = "plan") => {
+          await later();
+          const same = PLAN.lists.find((l) => l.name === name);
+          if (same) return { id: same.id, name: same.name, kind: same.kind };
+          const list = { id: `l-${++order}`, name, kind, cards: [] };
+          PLAN.lists.push(list);
+          return { id: list.id, name, kind };
+        },
+        orderLists: async (_org: string, _client: string, ids: string[]) => {
+          await later();
+          const byId = new Map(PLAN.lists.map((l) => [l.id, l]));
+          PLAN.lists = [...ids.flatMap((id) => byId.get(id) ?? []), ...PLAN.lists.filter((l) => !ids.includes(l.id))];
+          return PLAN.lists.map(({ id, name, kind }) => ({ id, name, kind }));
+        },
+        renameList: async (_org: string, id: string, name: string) => {
+          await later();
+          const list = PLAN.lists.find((l) => l.id === id);
+          if (list) list.name = name;
+          return list;
+        },
+        setListKind: async (_org: string, id: string, kind: "plan" | "materials") => {
+          await later();
+          const list = PLAN.lists.find((l) => l.id === id);
+          if (list) list.kind = kind;
+          return list;
+        },
+        deleteList: async (_org: string, id: string) => {
+          await later();
+          const list = PLAN.lists.find((l) => l.id === id);
+          PLAN.lists = PLAN.lists.filter((l) => l.id !== id);
+          PLAN.unlisted.push(...(list?.cards ?? []).map((c) => ({ ...c, list: null })));
+        },
         board: async () => ({
           client: CLIENT,
           cards: { todo: [], doing: [] },

@@ -6,26 +6,37 @@ import {
   boardIndexAt,
   boardListWidth,
   boardPaint,
+  boardQuery,
   boardStep,
   cardBadges,
+  cardMatches,
   cardOfItem,
   columnCount,
   commentsNewestFirst,
+  contrast,
   coverOf,
+  edgeScroll,
   findItem,
   isClientSlug,
   isPortalId,
+  listShift,
+  listSlotAt,
   listsFor,
+  orderAfterDrop,
+  orderNudged,
   otherTeamColumn,
   planGroups,
   readyToSend,
   releaseDateOf,
+  STAGE_COLOR,
+  searchGroups,
   sendInputOf,
   sendProblemOf,
   statusLine,
   summaryStatus,
 } from "../../src/features/portal/model";
 import { portalWords } from "../../src/features/portal/words";
+import { appColors } from "../../src/ui/palette";
 
 const counts = (over: Partial<Record<string, number>> = {}) => ({
   todo: 0,
@@ -290,13 +301,118 @@ describe("the schedule as Trello's board on the phone", () => {
     expect(boardIndexAt(100, step, 0)).toBe(0);
   });
 
-  test("light board, darker lists, white cards; dark keeps the steps in the same order", () => {
-    const c = { bg: "#F4F6F2", raised: "#FFFFFF", raised2: "#ECEFE8", bubble: "#E3E7DE", line: "#E1E4DC" };
-    expect(boardPaint(false, c)).toEqual({ board: "#F4F6F2", list: "#E3E7DE", card: "#FFFFFF", edge: "#E1E4DC" });
-    const d = { bg: "#0A0A0A", raised: "#121212", raised2: "#1A1A1A", bubble: "#212121", line: "#262626" };
-    const dark = boardPaint(true, d);
-    expect([dark.board, dark.list]).toEqual(["#0A0A0A", "#1A1A1A"]);
-    expect(dark.card > dark.list).toBe(true);
+  test("a light board with dark lists and cards in both themes, every word and mark legible", () => {
+    for (const dark of [false, true]) {
+      const p = boardPaint(dark);
+      const words = appColors("dark");
+      // The board light, the lists dark on it, the cards a step above their list.
+      expect(contrast(p.board, "#000000")).toBeGreaterThan(contrast(p.list, "#000000"));
+      expect(contrast(p.card, "#000000")).toBeGreaterThan(contrast(p.list, "#000000"));
+      for (const bg of [p.list, p.card]) {
+        expect(contrast(words.ink, bg)).toBeGreaterThanOrEqual(4.5);
+        expect(contrast(words.muted, bg)).toBeGreaterThanOrEqual(4.5);
+        expect(contrast(words.faint, bg)).toBeGreaterThanOrEqual(4.5);
+      }
+      // The dots on the board, and the list on the board's light (a count is at least 3:1).
+      expect(contrast(p.dotOn, p.board)).toBeGreaterThanOrEqual(4.5);
+      expect(contrast(p.dot, p.board)).toBeGreaterThanOrEqual(3);
+      expect(contrast(p.list, p.board)).toBeGreaterThanOrEqual(3);
+      // Each stage's dot stays 3:1 on a card.
+      for (const color of Object.values(STAGE_COLOR)) expect(contrast(color, p.card)).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  test("a search reads words without case or accents, and a task's number with or without #", () => {
+    expect(boardQuery("   ")).toBeNull();
+    expect(boardQuery("Lançamento")).toEqual({ words: "lancamento", task: null });
+    expect(boardQuery("#49")).toEqual({ words: "#49", task: 49 });
+    expect(boardQuery("49")).toEqual({ words: "49", task: 49 });
+  });
+
+  test("a card answers by title, description, caption, label or task number", () => {
+    const labels = new Map([["lb1", "Urgente"]]);
+    const c = planCard({ title: "Carrossel lançamento", description: "Fotos da obra", caption: "Nova coleção" });
+    const q = (text: string) => boardQuery(text) as NonNullable<ReturnType<typeof boardQuery>>;
+    expect(cardMatches(c, q("lancamento"), undefined, labels)).toBe(true);
+    expect(cardMatches(c, q("OBRA"), undefined, labels)).toBe(true);
+    expect(cardMatches(c, q("coleção"), undefined, labels)).toBe(true);
+    expect(cardMatches(c, q("urgente"), undefined, labels)).toBe(false);
+    expect(cardMatches({ ...c, labels: ["lb1"] }, q("urgente"), undefined, labels)).toBe(true);
+    expect(cardMatches(c, q("#49"), 49, labels)).toBe(true);
+    expect(cardMatches(c, q("49"), 49, labels)).toBe(true);
+    expect(cardMatches(c, q("#4"), 49, labels)).toBe(false);
+    expect(cardMatches(c, q("reel"), 49, labels)).toBe(false);
+  });
+
+  test("while searching the board keeps only the matching cards, and hides lists with none", () => {
+    const a = planCard({ id: "a", title: "Reel bastidores" });
+    const b = planCard({ id: "b", title: "Story enquete" });
+    const groups = [
+      { id: "l1", name: "Semana 1", cards: [a, b] },
+      { id: "l2", name: "Semana 2", cards: [b] },
+      { id: null, name: null, cards: [a] },
+    ];
+    const numbers = new Map([["b", 12]]);
+    expect(searchGroups(groups, null, numbers, [])).toEqual(groups);
+    const reel = searchGroups(groups, boardQuery("reel"), numbers, []);
+    expect(reel.map((g) => [g.id, g.cards.map((c) => c.id)])).toEqual([
+      ["l1", ["a"]],
+      [null, ["a"]],
+    ]);
+    expect(searchGroups(groups, boardQuery("#12"), numbers, []).map((g) => g.id)).toEqual(["l1", "l2"]);
+    expect(searchGroups(groups, boardQuery("nada"), numbers, [])).toEqual([]);
+  });
+
+  test("a list dropped somewhere takes that place among the others", () => {
+    const ids = ["a", "b", "c", "d"];
+    expect(orderAfterDrop(ids, "a", 2)).toEqual(["b", "c", "a", "d"]);
+    expect(orderAfterDrop(ids, "d", 0)).toEqual(["d", "a", "b", "c"]);
+    expect(orderAfterDrop(ids, "b", 1)).toEqual(ids);
+    expect(orderAfterDrop(ids, "b", 99)).toEqual(["a", "c", "d", "b"]);
+    expect(orderAfterDrop(ids, "b", -3)).toEqual(["b", "a", "c", "d"]);
+    expect(orderAfterDrop(ids, "zz", 0)).toEqual(ids);
+  });
+
+  test("the slot under a held list follows the finger and the board's scroll", () => {
+    const step = boardStep(390);
+    // The finger over the first list, the second, and past the last.
+    expect(listSlotAt(0, BOARD.side + 10, step, 4)).toBe(0);
+    expect(listSlotAt(0, BOARD.side + step + 10, step, 4)).toBe(1);
+    expect(listSlotAt(step * 2, BOARD.side + 10, step, 4)).toBe(2);
+    expect(listSlotAt(step * 9, 300, step, 4)).toBe(3);
+    expect(listSlotAt(0, -50, step, 4)).toBe(0);
+    expect(listSlotAt(0, 100, step, 0)).toBe(0);
+  });
+
+  test("while a list is held the others slide aside to show the order its drop makes", () => {
+    const ids = ["a", "b", "c", "d"];
+    for (const [from, slot] of [
+      [0, 2],
+      [3, 1],
+      [1, 1],
+      [2, 0],
+    ] as const) {
+      // Each list's place plus its slide is its place in the order the drop makes.
+      const after = orderAfterDrop(ids, ids[from] as string, slot);
+      ids.forEach((id, i) => {
+        expect(i + listShift(i, from, slot)).toBe(after.indexOf(id));
+      });
+    }
+    expect(listShift(-1, 0, 2)).toBe(0);
+  });
+
+  test("a held list near the board's side scrolls it that way, and in the middle it stays", () => {
+    expect(edgeScroll(380, 390)).toBeGreaterThan(0);
+    expect(edgeScroll(10, 390)).toBeLessThan(0);
+    expect(edgeScroll(195, 390)).toBe(0);
+  });
+
+  test("moving a list one place left or right, and nothing at an end", () => {
+    expect(orderNudged(["a", "b", "c"], "b", -1)).toEqual(["b", "a", "c"]);
+    expect(orderNudged(["a", "b", "c"], "b", 1)).toEqual(["a", "c", "b"]);
+    expect(orderNudged(["a", "b", "c"], "a", -1)).toBeNull();
+    expect(orderNudged(["a", "b", "c"], "c", 1)).toBeNull();
+    expect(orderNudged(["a", "b", "c"], "x", 1)).toBeNull();
   });
 
   test("a card's face counts its checklist, comments and files, and says when it has a description", () => {
