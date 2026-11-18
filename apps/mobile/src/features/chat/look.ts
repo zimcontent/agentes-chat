@@ -12,7 +12,7 @@ import { type LayoutChangeEvent, StyleSheet, useWindowDimensions } from "react-n
 import { useOrg } from "@/providers/org";
 import { useTheme } from "@/ui";
 import { keepSize, keptSize } from "./kept-sizes";
-import { BUBBLES_INSET, CHAT_TEXT, ownBubble, quietInset } from "./logic";
+import { BUBBLES_FACE, BUBBLES_GAP, BUBBLES_INSET, CHAT_TEXT, ownBubble, quietInset } from "./logic";
 
 /** How this conversation's rows are drawn (`chatLookOf`, as on the web's `MessageLook`). */
 export interface RowLook {
@@ -111,8 +111,8 @@ export const useQuietInset = () => quietInset(useRowLook());
 
 /** The rows' frames per style. */
 export const lookRows = StyleSheet.create({
-  bubblesRow: { paddingLeft: BUBBLES_INSET, paddingRight: 44, gap: 8 },
-  bubblesSlot: { width: 30, paddingTop: 0 },
+  bubblesRow: { paddingLeft: BUBBLES_INSET, paddingRight: 44, gap: BUBBLES_GAP },
+  bubblesSlot: { width: BUBBLES_FACE, paddingTop: 0 },
   compactRow: { paddingLeft: 10, paddingRight: 12, gap: 6 },
   compactSlot: { width: 18, paddingTop: 1 },
   compactClock: { width: 34, textAlign: "right", lineHeight: 20, fontVariant: ["tabular-nums"] },

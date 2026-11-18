@@ -56,12 +56,16 @@ export const MSG_GAP = 12;
 export const MSG_TEXT = MSG_INSET + MSG_AVATAR + MSG_GAP;
 /** A `bubbles` row's own padding at its start (`lookRows.bubblesRow`). */
 export const BUBBLES_INSET = 10;
+/** The face beside a bubble: smaller than a plain row's, so the bubbles keep the width (people asked for less face). */
+export const BUBBLES_FACE = 24;
+/** The gap from a bubble's face to the bubble (`lookRows.bubblesRow`'s gap). */
+export const BUBBLES_GAP = 8;
 
 /** How far a row's body stands in from the conversation's edges, at each end. */
 export const ROW_BODY_INSET: Record<ChatStyle, { left: number; right: number }> = {
   left: { left: MSG_TEXT, right: 16 },
   comfortable: { left: MSG_TEXT, right: 16 },
-  bubbles: { left: 48, right: 44 },
+  bubbles: { left: BUBBLES_INSET + BUBBLES_FACE + BUBBLES_GAP, right: 44 },
   compact: { left: 74, right: 12 },
 };
 

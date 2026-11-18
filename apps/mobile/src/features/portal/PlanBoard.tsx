@@ -1011,18 +1011,20 @@ export function BoardCard({
         ) : null}
       </View>
       {/* Done and with its files, the card goes up for approval from here, as from its own screen. */}
+      {/* Quiet on the board: a small gray pill at the card's start, the green kept for the card's own screen. */}
       {ready ? (
-        <Button
-          variant="primary"
-          size="sm"
-          wide
-          icon="send"
-          label={w.send}
-          onPress={() => {
-            if (!dragged?.current) send.confirm();
-          }}
-          loading={send.pending}
-        />
+        <View style={styles.sendRow}>
+          <Button
+            variant="secondary"
+            size="sm"
+            icon="send"
+            label={w.send}
+            onPress={() => {
+              if (!dragged?.current) send.confirm();
+            }}
+            loading={send.pending}
+          />
+        </View>
       ) : null}
     </Pressable>
   );
@@ -1342,6 +1344,7 @@ const styles = StyleSheet.create({
   doneMark: { flexDirection: "row", alignItems: "center", gap: 4 },
   title: { fontWeight: "600" },
   task: { marginLeft: "auto" },
+  sendRow: { flexDirection: "row" },
   // What the card holds, as Trello's badges: a quiet line under the title.
   facts: {
     flexDirection: "row",

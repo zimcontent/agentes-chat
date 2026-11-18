@@ -125,6 +125,7 @@ import { cacheContinued } from "./live";
 import {
   approvalIdOf,
   artifactsOf,
+  BUBBLES_FACE,
   CHAT_TEXT_MAX_SCALE,
   chatNameOf,
   chatTimeOf,
@@ -836,7 +837,7 @@ function RowBody({
                 </View>
               ) : null
             ) : (
-              <Face who={m.author} size={compact ? 18 : bubbled ? 30 : 34} live={false} />
+              <Face who={m.author} size={compact ? 18 : bubbled ? BUBBLES_FACE : MSG_AVATAR} live={false} />
             )}
           </View>
         ) : null}
