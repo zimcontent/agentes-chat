@@ -51766,12 +51766,9 @@
     }
   },
   "legal.draft": {
-    "value": "Draft, subject to legal review. Fields in [brackets] are the company's own and are filled in by whoever runs this server."
+    "value": "Draft, subject to legal review. What is in [brackets] has not been filled in yet."
   },
   "settings.account.legal": {
     "value": "Terms and privacy"
-  },
-  "settings.account.open": {
-    "value": "Open"
   }
 }

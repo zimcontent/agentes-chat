@@ -1826,7 +1826,7 @@
     "updated": "Son güncelleme: {{date}}",
     "contents": "Bu sayfada",
     "home": "Ana sayfaya git",
-    "draft": "Taslak, hukuki incelemeye tabidir. Köşeli parantez içindeki alanlar bu sunucuyu işleten şirkete aittir ve kuran kişi tarafından doldurulur.",
+    "draft": "Taslaktır, hukuki incelemeye tabidir. [Köşeli parantez] içindekiler henüz doldurulmamıştır.",
     "none": {
       "terms": "Bu sunucunun kullanım koşulları sayfası yok",
       "privacy": "Bu sunucunun gizlilik sayfası yok"
@@ -16976,7 +16976,6 @@
     "account": {
       "plans": "Planlarınızın sınırları",
       "legal": "Koşullar ve gizlilik",
-      "open": "Aç",
       "device": "Bu cihazda",
       "activity": "Ajanların yaptıklarını her yanıtın altında göster",
       "activityHelp": "Kullandıkları araçlar ve ne kadar sürdüğü. Çalışırken ne yaptıklarını yine görürsünüz.",

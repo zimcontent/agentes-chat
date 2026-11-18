@@ -31,7 +31,7 @@ const InstanceResponse = z
     }),
     cloud: z.boolean().openapi({
       description:
-        "One of agentes.chat's own servers (`PUBLIC_URL` on agentes.chat): `/terms` and `/privacy` show agentes.chat Cloud's Terms and Privacy Policy.",
+        "One of agentes.chat's own servers (`PUBLIC_URL` on agentes.chat): `/terms` and `/privacy` show agentes.chat Cloud's Terms and Privacy Policy. Any other server serves DougBot's own at `/termos`, `/privacidade`, `/terms` and `/privacy`, or sends them to its `TERMS_URL` and `PRIVACY_URL`.",
     }),
   })
   .openapi("Instance");

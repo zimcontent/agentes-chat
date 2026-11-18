@@ -23,12 +23,12 @@ describe("sign-up policy (self-host)", () => {
     expect(JSON.stringify(await res.json())).toContain("Sign-up is closed");
   });
 
-  test("auth-config: its own legal pages and no support address unless configured; password reset when email goes out", async () => {
-    // The test server's fake email sender delivers; people connect their own computers. Every server serves DougBot's
-    // own Terms and Privacy Policy (`docs/legal/`) by default, at `/termos` and `/privacidade`.
+  test("auth-config: no legal links or support address unless configured; password reset when email goes out", async () => {
+    // The test server's fake email sender delivers; people connect their own computers. DougBot's own Terms and Privacy
+    // Policy (`docs/legal/`) are linked only on a server that names its company (`LEGAL_COMPANY_NAME`).
     expect(await (await browser(t)("/api/app/auth-config")).json()).toMatchObject({
-      termsUrl: "http://localhost:3000/termos",
-      privacyUrl: "http://localhost:3000/privacidade",
+      termsUrl: null,
+      privacyUrl: null,
       supportEmail: null,
       support: null,
       clientCode: null,

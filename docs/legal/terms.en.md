@@ -7,7 +7,7 @@ Last updated on November 18, 2026.
 
 ## 1. Who we are and what this document is
 
-These Terms of Use (the "Terms") are an agreement between `{{legalName}}`, CNPJ `{{cnpj}}`, with its seat at `{{address}}` (the "Provider", "we"), and the person or entity that uses this installation of DougBot ("Customer", "you").
+These Terms of Use (the "Terms") are an agreement between {{legalName}}, CNPJ {{cnpj}}, with its seat at {{address}} (the "Provider", "we"), and the person or entity that uses this installation of DougBot ("Customer", "you").
 
 DougBot is a workspace where people and AI agents work together. It is provided as a managed service: each Customer gets its own isolated installation, with its own database, its own storage and its own address (the "Service").
 
@@ -65,7 +65,7 @@ The Customer keeps all rights to the content it and the workspace's people put i
 
 The Customer grants the Provider the limited licence to store, process, transmit and display that content only to operate the Service, according to the Customer's instructions and these Terms. That licence ends when the content is deleted, except for backups for the period in the Privacy Policy and for legal retention obligations.
 
-The Provider does not use workspace content to train AI models, and does not allow the sub-processors listed in the Privacy Policy to do so.
+The Provider does not use workspace content to train AI models. The model providers the Customer chooses and connects process what they receive under each one's own terms, training included, and the Customer should check them (section 8).
 
 ## 8. AI models, connectors and your own accounts
 
@@ -77,7 +77,7 @@ Connectors (MCP servers, services through an integrator, mailboxes, databases) a
 
 ## 9. Connected computers
 
-The Customer may connect computers to its workspace so that agents work on them. On those computers, agents act with the permissions they are given and the commands they run appear in the history. Whoever connects a computer represents that they are authorized to do so, and the Customer is responsible for the use of those computers under these Terms.
+The Customer may connect computers to its workspace so that agents work on them. On those computers, agents act with the permissions they are given and the commands Claude Code or Codex run without asking are recorded on the computer itself, not in the app's history. The tools the Service runs for agents and the approvals appear in the audit log. Whoever connects a computer represents that they are authorized to do so, and the Customer is responsible for the use of those computers under these Terms.
 
 ## 10. Deployment, payment and use
 
@@ -119,4 +119,4 @@ The Provider may change these Terms. A material change is announced with reasona
 
 ## 18. Contact
 
-Questions about these Terms go to the data protection officer: `{{dpo}}`, `{{dpoEmail}}`.
+Questions about these Terms go to the data protection officer: {{dpo}}, {{dpoEmailLink}}.

@@ -70,9 +70,9 @@ import { useToast } from "@/lib/toast";
 import { LanguageSelect } from "./LanguageSelect";
 
 /** An outside page in a new tab, in the house link style (as the About card's). */
-function Out({ href, children, label }: { href: string; children?: ReactNode; label?: string }) {
+function Out({ href, children }: { href: string; children?: ReactNode }) {
   return (
-    <a className="ac-link" href={href} target="_blank" rel="noopener noreferrer" aria-label={label}>
+    <a className="ac-link" href={href} target="_blank" rel="noopener noreferrer">
       {children}
     </a>
   );
@@ -350,21 +350,13 @@ function LegalLinksCard() {
           id="account-terms"
           icon="document"
           label={t("auth.terms")}
-          control={
-            <Out href={terms} label={t("auth.terms")}>
-              {t("settings.account.open")}
-            </Out>
-          }
+          control={<Out href={terms}>{t("auth.terms")}</Out>}
         />
         <PrefRow
           id="account-privacy"
           icon="shield"
           label={t("auth.privacy")}
-          control={
-            <Out href={privacy} label={t("auth.privacy")}>
-              {t("settings.account.open")}
-            </Out>
-          }
+          control={<Out href={privacy}>{t("auth.privacy")}</Out>}
         />
       </div>
     </Card>

@@ -9,9 +9,12 @@ import termsEn from "../../../../docs/legal/terms.en.md?raw";
  * files under `docs/legal/`, which legal reviewers edit without touching code: each is read here as raw text
  * (`?raw`), so an edit to a `.md` file ships with the next build and no other change.
  *
- * The `{{field}}` placeholders belong to the company that runs the installation. `fillLegal` replaces each with its
- * `LEGAL_*` setting, or with `[a preencher]` / `[to be filled]` when the server has none, which keeps the draft
- * readable as one.
+ * Two kinds of mark belong to the installation (`GET /api/app/legal`), and each paragraph that promises something says
+ * only what that installation does:
+ * - `{{field}}` is the company's own detail (`LEGAL_*`), or `[a preencher]` / `[to be filled]` when the server has none.
+ * - `{{#if flag}}…{{else}}…{{/if}}` and `{{#unless flag}}…{{/unless}}` keep a paragraph only where the setting that
+ *   makes it true is there (a backup bucket, the usage report, each optional outside service, `svc.<name>`), and
+ *   `{{on:flag}}` is "Ligado" / "Desligado" for a row of Annex II. Blocks nest.
  */
 export type LegalDoc = "terms" | "privacy";
 export type LegalLang = "pt-BR" | "en";
@@ -27,44 +30,82 @@ export const legalText = (doc: LegalDoc, lang: LegalLang): string => DOCS[lang][
 /** A field with no setting, in each language. */
 export const LEGAL_PLACEHOLDER = { "pt-BR": "[a preencher]", en: "[to be filled]" } as const;
 
+/** What an Annex II row says of a service. */
+const STATE = { "pt-BR": { on: "Ligado", off: "Desligado" }, en: { on: "On", off: "Off" } } as const;
+
+/**
+ * A company's own words made safe inside a code span, where the documents put every one: no backtick to close it, and
+ * one line, so the value reads as text and never as Markdown (a link, a heading, a table cell).
+ */
+function plain(value: string): string {
+  return value.replace(/`/g, "'").replace(/\s+/g, " ").replace(/\|/g, "/").trim();
+}
+
+/** An address that is safe to put in a `mailto:` link: nothing the Markdown link would end on. */
+const MAIL = /^[^\s()[\]`<>,;:"\\|]+@[^\s()[\]`<>,;:"\\|]+$/;
+
 /** The values each placeholder takes, from the installation's `LEGAL_*` settings (`GET /api/app/legal`). */
 function values(facts: LegalFacts | undefined, lang: LegalLang): Record<string, string> {
-  const empty = LEGAL_PLACEHOLDER[lang];
-  const or = (value: string | null | undefined) => (value?.trim() ? value.trim() : empty);
+  const empty = `\`${LEGAL_PLACEHOLDER[lang]}\``;
+  const or = (value: string | null | undefined) => (value?.trim() ? `\`${plain(value)}\`` : empty);
   const days = (n: number | undefined, fallback: number) => String(n === undefined || Number.isNaN(n) ? fallback : n);
+  const mail = facts?.dpoEmail?.trim();
   return {
     legalName: or(facts?.companyName),
     cnpj: or(facts?.taxId),
     address: or(facts?.address),
     dpo: or(facts?.dpoName),
     dpoEmail: or(facts?.dpoEmail),
+    // The DPO's address as a link people can press, when it has the shape of one.
+    dpoEmailLink: mail && MAIL.test(mail) ? `[${mail}](mailto:${mail})` : or(facts?.dpoEmail),
     serverLocation: or(facts?.serverLocation),
     logRetention: or(facts?.logRetention),
     backupRetentionDays: days(facts?.backupRetentionDays, 14),
     voiceRetentionDays: days(facts?.voiceRetentionDays, 90),
-    // The optional processor's names, each of which the installation turns on with an env var (Annex II), are left to
-    // whoever installs to fill in: the document says so and shows the same placeholder.
-    modelProviderName: empty,
-    whatsappGateway: empty,
-    emailProvider: empty,
-    storageProvider: empty,
-    mediaProvider: empty,
-    liveVoiceProvider: empty,
-    speechProvider: empty,
-    pushProvider: empty,
-    integratorProvider: empty,
-    embeddingsProvider: empty,
-    errorProvider: empty,
-    telemetryProvider: empty,
-    billingProvider: empty,
-    hostingProvider: empty,
+    companyRequestsRetentionDays: days(facts?.companyRequestsRetentionDays ?? undefined, 365),
   };
 }
 
-/** `text` with every `{{field}}` replaced (an unknown field stays as written, so a reviewer sees the mistake). */
+/** The switches a block or a row can name: the flags of the facts, and `svc.<service>` for each outside service. */
+function flags(facts: LegalFacts | undefined): Record<string, boolean> {
+  const out: Record<string, boolean> = {
+    draft: facts?.draft ?? true,
+    backup: facts?.backup ?? false,
+    // 0 keeps the number out of the text: the service's own rules decide, and the policy says so.
+    backupDays: (facts?.backupRetentionDays ?? 14) > 0,
+    voiceDays: (facts?.voiceRetentionDays ?? 90) > 0,
+    logRetention: Boolean(facts?.logRetention?.trim()),
+    storageS3: facts?.storage === "s3",
+    storageDisk: facts?.storage === "disk",
+    storageDatabase: (facts?.storage ?? "database") === "database",
+    telemetryForced: facts?.telemetryForced ?? false,
+    companyRequests: facts?.companyRequestsRetentionDays != null,
+  };
+  for (const [name, on] of Object.entries(facts?.services ?? {})) out[`svc.${name}`] = on;
+  return out;
+}
+
+const BLOCK = /\{\{#(if|unless)\s+([\w.]+)\s*\}\}((?:(?!\{\{#(?:if|unless)\b)[\s\S])*?)\{\{\/\1\s*\}\}/;
+
+/**
+ * `text` with every `{{field}}` replaced and every block resolved (an unknown field stays as written, so a reviewer
+ * sees the mistake). The innermost block goes first, so blocks nest.
+ */
 export function fillLegal(source: string, facts: LegalFacts | undefined, lang: LegalLang): string {
   const map = values(facts, lang);
-  return source.replace(/\{\{\s*([\w.]+)\s*\}\}/g, (whole, name: string) => map[name] ?? whole);
+  const on = flags(facts);
+  let text = source.replace(/\r\n?/g, "\n");
+  for (let match = BLOCK.exec(text); match; match = BLOCK.exec(text)) {
+    const [whole, kind, name = "", body = ""] = match;
+    const [yes = "", no = ""] = body.split(/\{\{\s*else\s*\}\}/);
+    const keep = Boolean(on[name]) === (kind === "if") ? yes : no;
+    text = text.replace(whole, () => keep);
+  }
+  return text
+    .replace(/\{\{\s*on:([\w.]+)\s*\}\}/g, (_, name: string) => STATE[lang][on[name] ? "on" : "off"])
+    .replace(/\{\{\s*([\w.]+)\s*\}\}/g, (whole, name: string) => map[name] ?? whole)
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n");
 }
 
 /**

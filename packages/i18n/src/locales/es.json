@@ -1877,7 +1877,7 @@
     "updated": "Última actualización: {{date}}",
     "contents": "En esta página",
     "home": "Ir a la página de inicio",
-    "draft": "Borrador, sujeto a revisión jurídica. Los campos entre corchetes son datos de la empresa que ejecuta este servidor y los rellena quien lo instala.",
+    "draft": "Borrador, sujeto a revisión jurídica. Lo que está entre [corchetes] aún no se ha completado.",
     "none": {
       "terms": "Este servidor no tiene página de términos",
       "privacy": "Este servidor no tiene página de privacidad"
@@ -17507,7 +17507,6 @@
     "account": {
       "plans": "Los límites de tus planes",
       "legal": "Términos y privacidad",
-      "open": "Abrir",
       "device": "En este dispositivo",
       "activity": "Mostrar lo que hicieron los agentes debajo de cada respuesta",
       "activityHelp": "Las herramientas que usaron y cuánto tardaron. Mientras trabajan, sigues viendo lo que están haciendo.",

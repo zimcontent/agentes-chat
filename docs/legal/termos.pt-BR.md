@@ -7,7 +7,7 @@ Atualizado em 18 de novembro de 2026.
 
 ## 1. Quem somos e o que este documento é
 
-Estes Termos de Uso (os "Termos") são um acordo entre `{{legalName}}`, CNPJ `{{cnpj}}`, com sede em `{{address}}` (o "Prestador", "nós"), e a pessoa ou a empresa que usa esta instalação do DougBot (o "Cliente", "você").
+Estes Termos de Uso (os "Termos") são um acordo entre {{legalName}}, CNPJ {{cnpj}}, com sede em {{address}} (o "Prestador", "nós"), e a pessoa ou a empresa que usa esta instalação do DougBot (o "Cliente", "você").
 
 O DougBot é um espaço de trabalho onde pessoas e agentes de inteligência artificial trabalham juntos. Ele é fornecido como serviço gerenciado: cada Cliente recebe uma instalação própria e isolada, com o seu banco de dados, o seu armazenamento e o seu endereço (o "Serviço").
 
@@ -65,7 +65,7 @@ O Cliente mantém todos os direitos sobre o conteúdo que ele e as pessoas do wo
 
 O Cliente concede ao Prestador a licença limitada de armazenar, processar, transmitir e exibir esse conteúdo apenas para operar o Serviço, conforme as instruções do Cliente e destes Termos. Essa licença termina quando o conteúdo é apagado, ressalvadas as cópias de segurança pelo prazo da Política de Privacidade e as obrigações legais de guarda.
 
-O Prestador não usa o conteúdo do workspace para treinar modelos de inteligência artificial e não permite que os suboperadores listados na Política de Privacidade façam isso.
+O Prestador não usa o conteúdo do workspace para treinar modelos de inteligência artificial. Os provedores de modelo que o Cliente escolhe e conecta tratam o que recebem pelos termos de cada um, inclusive quanto a treino, e o Cliente deve conferi-los (item 8).
 
 ## 8. Modelos de inteligência artificial, conectores e as suas próprias contas
 
@@ -77,7 +77,7 @@ Os conectores (servidores MCP, serviços por meio de um integrador, caixas de e-
 
 ## 9. Computadores conectados
 
-O Cliente pode conectar computadores ao seu workspace para que os agentes trabalhem neles. Nesses computadores, os agentes agem com as permissões dadas e os comandos executados aparecem no histórico. Quem conecta um computador declara ter autorização para isso, e o Cliente responde pelo uso desses computadores conforme estes Termos.
+O Cliente pode conectar computadores ao seu workspace para que os agentes trabalhem neles. Nesses computadores, os agentes agem com as permissões dadas e os comandos que o Claude Code ou o Codex rodam sem pedir permissão ficam registrados no próprio computador, e não no histórico do app. As ferramentas que o Serviço executa para os agentes e as aprovações aparecem no registro de auditoria. Quem conecta um computador declara ter autorização para isso, e o Cliente responde pelo uso desses computadores conforme estes Termos.
 
 ## 10. Implantação, pagamento e uso
 
@@ -119,4 +119,4 @@ O Prestador pode alterar estes Termos. Uma alteração relevante é avisada com 
 
 ## 18. Contato
 
-Dúvidas sobre estes Termos vão para o encarregado pelo tratamento de dados: `{{dpo}}`, `{{dpoEmail}}`.
+Dúvidas sobre estes Termos vão para o encarregado pelo tratamento de dados: {{dpo}}, {{dpoEmailLink}}.

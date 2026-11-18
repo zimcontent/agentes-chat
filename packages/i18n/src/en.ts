@@ -1985,7 +1985,7 @@ export const en = {
     contents: "On this page",
     home: "Go to the home page",
     /** `/termos` and `/privacidade`: the line over the text, which a lawyer still has to review. */
-    draft: "Draft, subject to legal review. Fields in [brackets] are the company's own and are filled in by whoever runs this server.",
+    draft: "Draft, subject to legal review. What is in [brackets] has not been filled in yet.",
     /** `/terms` and `/privacy` on a server that has no page of its own for them. */
     none: {
       terms: "This server has no terms page",
@@ -17422,7 +17422,6 @@ export const en = {
       plans: "Your plans' limits",
       /** The Terms of Use and the Privacy Policy this server serves, opened in a new tab. */
       legal: "Terms and privacy",
-      open: "Open",
       device: "On this device",
       /** Yours in this workspace, on every device: the tool summary under each agent reply, off by default. */
       activity: "Show what agents did under each reply",

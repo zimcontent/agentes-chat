@@ -72,3 +72,10 @@
     padding: 16px 16px 0;
   }
 }
+/* The document's place while its company details load: a few lines, so the page does not jump when the text arrives. */
+.legal__loading {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-block: 8px;
+}

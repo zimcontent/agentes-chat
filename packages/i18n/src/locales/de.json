@@ -1826,7 +1826,7 @@
     "updated": "Zuletzt aktualisiert am {{date}}",
     "contents": "Auf dieser Seite",
     "home": "Zur Startseite",
-    "draft": "Entwurf, vorbehaltlich der rechtlichen Prüfung. Felder in [Klammern] gehören zum Unternehmen, das diesen Server betreibt, und werden von der Person ausgefüllt, die ihn einrichtet.",
+    "draft": "Entwurf, vorbehaltlich der rechtlichen Prüfung. Was in [Klammern] steht, ist noch nicht ausgefüllt.",
     "none": {
       "terms": "Dieser Server hat keine Seite mit Nutzungsbedingungen",
       "privacy": "Dieser Server hat keine Datenschutzseite"
@@ -17039,7 +17039,6 @@
     "account": {
       "plans": "Limits deiner Abos",
       "legal": "Bedingungen und Datenschutz",
-      "open": "Öffnen",
       "device": "Auf diesem Gerät",
       "activity": "Unter jeder Antwort zeigen, was Agenten getan haben",
       "activityHelp": "Die Tools, die sie genutzt haben, und wie lange es gedauert hat. Während sie arbeiten, siehst du weiterhin, was sie tun.",

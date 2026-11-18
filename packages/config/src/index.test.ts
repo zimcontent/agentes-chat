@@ -49,22 +49,35 @@ describe("loadConfig", () => {
     );
   });
 
-  test("the legal links are each server's own pages without extra settings, and a setting wins", () => {
-    // agentes.chat's own servers keep their Cloud addresses (its own Terms of Use and Privacy Policy live there).
+  test("agentes.chat's own servers have their legal links without extra settings", () => {
     const app = loadConfig({ ...valid, PUBLIC_URL: "https://app.agentes.chat" });
     expect(app.TERMS_URL).toBe("https://app.agentes.chat/terms");
     expect(app.PRIVACY_URL).toBe("https://app.agentes.chat/privacy");
     expect(loadConfig({ ...valid, PUBLIC_URL: "https://agentes.chat" }).TERMS_URL).toBe("https://agentes.chat/terms");
-    // Any other server serves DougBot's own, from `docs/legal/`, at `/termos` and `/privacidade`.
+  });
+
+  test("a server that doesn't name its company keeps the sign-in screen as it was: no legal links", () => {
     const selfHosted = loadConfig({ ...valid, PUBLIC_URL: "https://chat.example.com" });
-    expect([selfHosted.TERMS_URL, selfHosted.PRIVACY_URL]).toEqual([
+    expect([selfHosted.TERMS_URL, selfHosted.PRIVACY_URL]).toEqual([undefined, undefined]);
+  });
+
+  test("a server that names its company links DougBot's own pages, each unless it sets its own address", () => {
+    const named = { ...valid, PUBLIC_URL: "https://chat.example.com", LEGAL_COMPANY_NAME: "Padaria Aurora Ltda." };
+    const own = loadConfig(named);
+    expect([own.TERMS_URL, own.PRIVACY_URL]).toEqual([
       "https://chat.example.com/termos",
       "https://chat.example.com/privacidade",
     ]);
-    // A setting points elsewhere, and the defaults follow PUBLIC_URL wherever it is.
-    const own = loadConfig({ ...valid, PUBLIC_URL: "https://chat.example.com", TERMS_URL: "https://example.org/terms" });
-    expect(own.TERMS_URL).toBe("https://example.org/terms");
-    expect(own.PRIVACY_URL).toBe("https://chat.example.com/privacidade");
+    const set = loadConfig({ ...named, TERMS_URL: "https://example.org/terms" });
+    expect(set.TERMS_URL).toBe("https://example.org/terms");
+    expect(set.PRIVACY_URL).toBe("https://chat.example.com/privacidade");
+  });
+
+  test("the legal addresses are addresses: a script or a bare path is refused", () => {
+    expect(() => loadConfig({ ...valid, TERMS_URL: "javascript:alert(1)" })).toThrow();
+    expect(() => loadConfig({ ...valid, TERMS_URL: "https://example.org/terms" })).not.toThrow();
+    expect(() => loadConfig({ ...valid, TERMS_URL: "/termos" })).toThrow();
+    expect(() => loadConfig({ ...valid, PRIVACY_URL: "not a url" })).toThrow();
   });
 
   test("agentes.chat's own servers send from ping@agentes.chat, whichever of its addresses they are at", () => {

@@ -38,7 +38,6 @@ import type {
   Edition,
   EmailChange,
   EndpointCheck,
-  LegalFacts,
   FeedbackOffer,
   ForeignMailbox,
   FormerAgent,
@@ -61,6 +60,7 @@ import type {
   JoinApproval,
   JoinClaim,
   JoinRequest,
+  LegalFacts,
   Me,
   Member,
   MemberPresence,
@@ -199,6 +199,27 @@ function fakePlanAccount(money: boolean): PlanAccountUsage {
     ...(money ? { equivalentUsd: 92 } : {}),
   };
 }
+
+/** `GET /api/app/legal`'s services on a fresh installation: every optional service off. */
+const NO_LEGAL_SERVICES: LegalFacts["services"] = {
+  platformKey: false,
+  jev: false,
+  giphy: false,
+  email: false,
+  media: false,
+  speech: false,
+  push: false,
+  pushDirect: false,
+  pushRelay: false,
+  composio: false,
+  embeddings: false,
+  whatsapp: false,
+  errors: false,
+  billing: false,
+  support: false,
+  telemetry: false,
+  driveBackup: false,
+};
 
 export interface FakeState {
   me: Me | null;
@@ -1460,7 +1481,13 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         logRetention: null,
         backupRetentionDays: 14,
         voiceRetentionDays: 90,
+        draft: true,
+        backup: false,
+        storage: "database" as const,
+        telemetryForced: false,
+        companyRequestsRetentionDays: null,
         ...state.legal,
+        services: { ...NO_LEGAL_SERVICES, ...state.legal?.services },
       }),
       telemetry: async () => state.telemetry ?? null,
       setTelemetry: async (enabled) => {

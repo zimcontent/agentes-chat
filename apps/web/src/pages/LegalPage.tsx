@@ -1,8 +1,8 @@
 import { useLegalFacts } from "@agenteschat/client";
 import { headingId, parseMarkdown } from "@agenteschat/client/lib/markdown";
-import { Alert, Logo, Select } from "@agenteschat/ui";
-import { Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { Alert, Logo, Select, Skeleton, SkeletonGroup } from "@agenteschat/ui";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { BRAND } from "@/docs/doug-docs";
 import { type LocaleCode, usePageT } from "@/i18n";
@@ -39,19 +39,37 @@ function docSections(source: string): { id: string; heading: string }[] {
  * DougBot's Terms of Use and Privacy Policy (`/termos`, `/privacidade`, and their English addresses `/terms` and
  * `/privacy`): public pages and no sign-in needed. The text is the Markdown under `docs/legal/`, so legal review
  * edits the files and not the code (`@/legal/text`). The company's own fields (`LEGAL_*`, `GET /api/app/legal`) are
- * filled in where the server has them, and read `[a preencher]` where it does not, which keeps the draft a draft.
+ * filled in where the server has them, and read `[a preencher]` where it does not, and each paragraph that depends on
+ * a setting (a backup bucket, the usage report, an outside service) shows only where the server has it. The language
+ * is the address's: the switch moves to the other language's address, so a link shared from here opens in the same one.
  */
-export function LegalPage({ kind, lang: initial }: { kind: LegalDoc; lang: LegalLang }) {
-  const [lang, setLang] = useState<LegalLang>(initial);
-  const facts = useLegalFacts().data;
+export function LegalPage({ kind, lang }: { kind: LegalDoc; lang: LegalLang }) {
+  const navigate = useNavigate();
+  const loaded = useLegalFacts();
+  const facts = loaded.data;
   const t = usePageT(lang as LocaleCode);
   const { t: words } = useTranslation();
   const other: LegalDoc = kind === "terms" ? "privacy" : "terms";
-  const text = useMemo(() => stripDraftBanner(fillLegal(legalText(kind, lang), facts, lang)), [kind, lang, facts]);
+  const ready = facts !== undefined;
+  const text = useMemo(
+    () => (ready ? stripDraftBanner(fillLegal(legalText(kind, lang), facts, lang)) : ""),
+    [kind, lang, facts, ready],
+  );
   const title = useMemo(() => docTitle(text), [text]);
   const sections = useMemo(() => docSections(text), [text]);
   const otherTitle = useMemo(() => docTitle(fillLegal(legalText(other, lang), facts, lang)), [other, lang, facts]);
-  useDocumentTitle(title ? `${title} · ${BRAND}` : BRAND);
+  // The static heading of the document (before the facts arrive) keeps the tab and the page from showing nothing.
+  const heading = title || docTitle(legalText(kind, lang));
+  useDocumentTitle(heading ? `${heading} · ${BRAND}` : BRAND);
+  // The page's language is the document's, for screen readers and the browser's hyphenation, and the app's own comes back.
+  useEffect(() => {
+    const root = document.documentElement;
+    const before = root.lang;
+    root.lang = lang;
+    return () => {
+      root.lang = before;
+    };
+  }, [lang]);
 
   return (
     <div className="legal" lang={lang}>
@@ -63,18 +81,31 @@ export function LegalPage({ kind, lang: initial }: { kind: LegalDoc; lang: Legal
           size="sm"
           aria-label={words("shell.language")}
           value={lang}
-          onValueChange={(v) => setLang(v === "en" ? "en" : "pt-BR")}
+          onValueChange={(v) => {
+            const next = v === "en" ? "en" : "pt-BR";
+            if (next !== lang) void navigate({ to: PATHS[kind][next === "en" ? "en" : "pt"], replace: true });
+          }}
           options={LANGS}
         />
       </header>
       <main className="page page--narrow">
         <header className="legal__head">
-          <h1 className="page-title">{title}</h1>
-          <Alert tone="neutral" className="legal__draft">
-            {t("legal.draft")}
-          </Alert>
+          <h1 className="page-title">{heading}</h1>
+          {facts?.draft && (
+            <Alert tone="neutral" className="legal__draft">
+              {t("legal.draft")}
+            </Alert>
+          )}
         </header>
-        {sections.length > 2 && (
+        {!ready && (
+          <SkeletonGroup label={t("common.loading")} className="legal__loading">
+            <Skeleton width="100%" height={14} />
+            <Skeleton width="92%" height={14} />
+            <Skeleton width="96%" height={14} />
+            <Skeleton width="60%" height={14} />
+          </SkeletonGroup>
+        )}
+        {ready && sections.length > 2 && (
           <nav className="legal__toc" aria-label={t("legal.contents")}>
             <ol>
               {sections.map((s) => (
@@ -85,9 +116,11 @@ export function LegalPage({ kind, lang: initial }: { kind: LegalDoc; lang: Legal
             </ol>
           </nav>
         )}
-        <article className="md legal__doc">
-          <Markdown source={text} title={title} />
-        </article>
+        {ready && (
+          <article className="md legal__doc">
+            <Markdown source={text} title={title} />
+          </article>
+        )}
         <footer className="legal__foot">
           <Link to={PATHS[other][lang === "en" ? "en" : "pt"]}>{otherTitle}</Link>
         </footer>

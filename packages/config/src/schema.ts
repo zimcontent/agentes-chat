@@ -230,16 +230,16 @@ export const envVars = {
     section: "Sign-in",
   },
   TERMS_URL: {
-    schema: z.string().min(1).optional(),
+    schema: z.url({ protocol: /^https?$/ }).optional(),
     description:
-      "Your terms of service, linked on the sign-in and sign-up screens when `PRIVACY_URL` is set too. Default: this server's own page, `/termos` (`docs/legal/`, in Portuguese, with the English at `/terms`). A full address sends the reader (and the sign-in screen's link) to a page elsewhere.",
+      "Your terms of service, linked on the sign-in and sign-up screens when `PRIVACY_URL` is set too, and where this server's /terms leads. Default on agentes.chat Cloud (https://app.agentes.chat): its /terms page. Default when `LEGAL_COMPANY_NAME` is set: this server's own Terms, `/termos` (`docs/legal/`, the English at `/terms`). With neither, the sign-in screen links nothing.",
     section: "Sign-in",
     example: "https://example.com/terms",
   },
   PRIVACY_URL: {
-    schema: z.string().min(1).optional(),
+    schema: z.url({ protocol: /^https?$/ }).optional(),
     description:
-      "Your privacy policy, linked on the sign-in and sign-up screens together with `TERMS_URL`. Default: this server's own page, `/privacidade` (`docs/legal/`, in Portuguese, with the English at `/privacy`, and the Data Processing Addendum as an annex). A full address sends the reader elsewhere.",
+      "Your privacy policy, linked on the sign-in and sign-up screens together with `TERMS_URL`, and where this server's /privacy leads. Default on agentes.chat Cloud (https://app.agentes.chat): its /privacy page. Default when `LEGAL_COMPANY_NAME` is set: this server's own Privacy Policy, `/privacidade` (`docs/legal/`, the English at `/privacy`, with the Data Processing Addendum as an annex). With neither, the sign-in screen links nothing.",
     section: "Sign-in",
     example: "https://example.com/privacy",
   },
@@ -1115,6 +1115,13 @@ export const envVars = {
     section: "Storage",
     example: "/data/files",
   },
+  S3_BACKUP_BUCKET: {
+    schema: z.string().trim().min(1).optional(),
+    description:
+      "The bucket the `backup` service of the compose file writes its daily database dump to (`S3_ENDPOINT` and the other `S3_*` credentials are shared). The server itself writes nothing there: it reads this only so the Privacy Policy mentions backups when there are some.",
+    section: "Storage",
+    example: "doug-backups",
+  },
   S3_ENDPOINT: {
     schema: z.url().optional(),
     description:
@@ -1402,10 +1409,16 @@ export const envVars = {
     description: "The environment error reports are filed under (`production`, `staging`).",
     section: "Observability",
   },
+  LEGAL_DRAFT: {
+    schema: z.stringbool().default(true),
+    description:
+      'Whether the Terms of Use and the Privacy Policy (`/termos`, `/privacidade`) carry the "draft, subject to legal review" notice. Default `true`: set it to `false` once a lawyer has reviewed the documents. The notice also shows, whatever this says, while any of the `LEGAL_COMPANY_*`, `LEGAL_DPO_*` or `LEGAL_SERVER_LOCATION` fields is still unset.',
+    section: "Legal",
+  },
   LEGAL_COMPANY_NAME: {
     schema: z.string().trim().min(1).max(200).optional(),
     description:
-      "Legal name of the company that runs this installation, shown in the published Terms of Use and Privacy Policy (`/termos`, `/privacidade`) and in the Data Processing Addendum. Unset (default): the pages show `[a preencher]` where it belongs, which is how they read as a draft.",
+      "Legal name of the company that runs this installation, shown in the published Terms of Use and Privacy Policy (`/termos`, `/privacidade`) and in the Data Processing Addendum. Setting it also makes those pages the sign-in screen's Terms and Privacy links, when `TERMS_URL` and `PRIVACY_URL` are not set. Unset (default): the pages show `[a preencher]` where it belongs, which is how they read as a draft.",
     section: "Legal",
     example: "Padaria Aurora Serviços Ltda.",
   },
@@ -1446,7 +1459,7 @@ export const envVars = {
   LEGAL_BACKUP_RETENTION_DAYS: {
     schema: z.coerce.number().int().min(0).default(14),
     description:
-      "Days the Privacy Policy says the installation's database backups are kept. Keep it equal to the `backup` service's `BACKUP_RETENTION_DAYS`. 0 = the pages say backups are kept only while the service keeps them, which a legal review should confirm.",
+      "Days the Privacy Policy says the installation's database backups are kept. Keep it equal to the `backup` service's `BACKUP_RETENTION_DAYS`. 0 = the Privacy Policy gives no number and says backups are kept until the backup bucket's own rules delete them. The paragraph shows only when `S3_BACKUP_BUCKET` is set.",
     section: "Legal",
     example: "14",
   },

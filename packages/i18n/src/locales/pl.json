@@ -1929,7 +1929,7 @@
     "updated": "Ostatnia aktualizacja: {{date}}",
     "contents": "Na tej stronie",
     "home": "Przejdź na stronę główną",
-    "draft": "Projekt, wymaga przeglądu prawnego. Pola w nawiasach należą do firmy prowadzącej ten serwer i są wypełniane przez osobę, która go instaluje.",
+    "draft": "Wersja robocza, podlegająca weryfikacji prawnej. To, co jest w [nawiasach kwadratowych], nie zostało jeszcze uzupełnione.",
     "none": {
       "terms": "Ten serwer nie ma strony z regulaminem",
       "privacy": "Ten serwer nie ma strony z polityką prywatności"
@@ -18127,7 +18127,6 @@
     "account": {
       "plans": "Limity twoich planów",
       "legal": "Warunki i prywatność",
-      "open": "Otwórz",
       "device": "Na tym urządzeniu",
       "activity": "Pokazuj, co zrobili agenci, pod każdą odpowiedzią",
       "activityHelp": "Narzędzia, z których skorzystali, i ile to trwało. W trakcie pracy dalej widzisz, co robią.",
