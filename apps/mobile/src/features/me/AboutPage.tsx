@@ -34,9 +34,11 @@ export function AboutPage() {
       </View>
       <GroupedList>
         <GroupedRow label={t("settings.about.version")} value={instance.data?.version ?? "…"} />
+        {/* The address under its label: side by side both were cut with "…" (ui-polish 17). */}
         <GroupedRow
           label={t("mobile.brand.source")}
-          value={shownAddress(source)}
+          sub={shownAddress(source)}
+          subLines={2}
           chevron
           onPress={() => openPage(source)}
         />
