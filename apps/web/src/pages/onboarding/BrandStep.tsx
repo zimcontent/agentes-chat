@@ -1,10 +1,10 @@
 import {
   type BrandInput,
+  type BrandToneWord,
   type BrandView,
   brandFields,
   brandMissing,
   keys,
-  useBrand,
 } from "@agenteschat/client";
 import { errorText } from "@agenteschat/client/lib/errors";
 import { Button, ChipButton, Field, Icon, Input, Locked, Textarea } from "@agenteschat/ui";
@@ -14,8 +14,14 @@ import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";
 import "./brand-step.css";
 
-/** What `GET …/brand` answers, as the step holds it (the hook's `data`, and what it keeps after a save). */
-type BrandData = NonNullable<ReturnType<typeof useBrand>["data"]>;
+/** What `GET …/brand` answers, as the step holds it (and what it keeps after a save). */
+interface BrandData {
+  pending: boolean;
+  brand: BrandView | null;
+  skillId: string | null;
+  /** The tones to tap, in the person's language. */
+  tones: BrandToneWord[];
+}
 
 /**
  * "Ensine a sua marca ao time" (docs/adr/doug-0020-time-doug.md), required once the Doug team was made: the company's
@@ -200,6 +206,7 @@ export function BrandStep({
             )}
           </Field>
           <BrandManual
+            company={company.trim()}
             files={files}
             links={links}
             link={link}
@@ -252,6 +259,7 @@ export function BrandStep({
 
 /** The brand manual: files in the Drive and links, each one removable, the way in always saying what it takes. */
 function BrandManual({
+  company,
   files,
   links,
   link,
@@ -264,6 +272,8 @@ function BrandManual({
   onAddLink,
   onRemoveLink,
 }: {
+  /** The name typed: what the skill it becomes is called ("Marca <empresa>"). */
+  company: string;
   files: BrandView["files"];
   links: string[];
   link: string;
@@ -286,7 +296,9 @@ function BrandManual({
         </span>
         <div className="onb-brand__drop-text">
           <b>{t("onboarding.flow.brand.manual")}</b>
-          <span>{t("onboarding.flow.brand.manualText")}</span>
+          <span>
+            {t("onboarding.flow.brand.manualText", { company: company || t("onboarding.flow.brand.company") })}
+          </span>
         </div>
         <span className="onb-brand__drop-acts">
           <Button size="sm" loading={uploading} onClick={onPick}>

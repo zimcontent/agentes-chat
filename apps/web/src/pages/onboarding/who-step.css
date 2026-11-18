@@ -1,17 +1,12 @@
 /*
  * "Quem entra no seu time?" (docs/adr/doug-0020-time-doug.md): the Doug team's agents, every box checked, the QG de
- * Tráfego's team under its MARK, and the summary beside them. On the onboarding's column, the kit's ruler.
+ * Tráfego's team under its MARK, and what they bring counted under the list. The step's own column (560), the kit's
+ * ruler: nothing beside the rows takes their width.
  */
 .onb-who {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: var(--space-4);
-}
-/* The list and its summary side by side from 900 (the preview took the room beside the step). */
-@media (min-width: 900px) {
-  .onb-who {
-    grid-template-columns: minmax(0, 1fr) 200px;
-  }
 }
 .onb-who__list {
   display: flex;
@@ -21,13 +16,16 @@
   padding: 0;
   list-style: none;
 }
-/* A row: the box, the face, the name and role, then what it brings. A border, the card's plate: whole row presses. */
+/*
+ * A row: the box, the face, the name and role, then what it brings. A border, the card's plate: the whole row presses.
+ * 8 above and below, the controls' room from every edge (rule 9); the words take the row's width.
+ */
 .onb-who__row {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 0;
   min-height: var(--control-h-lg);
-  padding: 6px 12px;
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--raised);
@@ -41,7 +39,7 @@ label.onb-who__row:hover {
   background: var(--sunken);
   cursor: default;
 }
-/* A row of a QG's team, under its lead: a hairline and a smaller face, the whole line pressing. */
+/* A QG's lead and, under it, its team: a hairline at the team's start, a smaller face, the whole line pressing. */
 .onb-who__group {
   display: flex;
   flex-direction: column;
@@ -51,37 +49,52 @@ label.onb-who__row:hover {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin: 0 0 0 18px;
-  padding: 4px 0 4px 12px;
+  margin: 0 0 0 24px;
+  padding: 4px 0 4px var(--space-3);
   border-left: 1px solid var(--line2);
   list-style: none;
 }
 .onb-who__row[data-small] {
   min-height: var(--control-h-sm);
-  padding: 4px 10px;
+  padding: var(--space-2);
   border-color: transparent;
   background: transparent;
 }
 label.onb-who__row[data-small]:hover {
   border-color: var(--line);
 }
-.onb-who__text {
+/* The row's first line: the box, the face, the words, and whatever ends the row (a count, "Stays"). */
+.onb-who__lead {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
+  align-items: center;
+  gap: var(--space-3);
   min-width: 0;
   flex: 1;
+}
+/* What the row ends with at a glance, on the words' line while it's short. */
+.onb-who__tag {
+  flex: none;
+  white-space: nowrap;
+}
+/* The role, then what the agent brings and, where it only works on a computer, its button: the row's full width. */
+.onb-who__under {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: 1px;
+  padding-left: 24px;
 }
 .onb-who__name {
   display: flex;
   align-items: baseline;
-  gap: 8px;
+  gap: var(--space-2);
   min-width: 0;
   font-weight: 600;
   color: var(--ink);
-  overflow-wrap: anywhere;
 }
 .onb-who__qg {
+  flex: none;
   color: var(--faint);
   font-size: 12px;
   font-weight: 500;
@@ -92,11 +105,18 @@ label.onb-who__row[data-small]:hover {
   color: var(--muted);
   overflow-wrap: anywhere;
 }
-/* What an agent that only works on a computer needs, and the button beside it. */
+/*
+ * The row's second line: the role, then what the agent brings. The role never shares the line with a button that keeps
+ * its width (it would wrap to a sliver): it leads the line, whole, and the button goes under it when both are there.
+ */
+.onb-who__under > .onb-who__role {
+  flex: 1 1 100%;
+}
+/* What an agent that only works on a computer needs, and the button beside it: never the words' room. */
 .onb-who__needs {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   flex: none;
   font-size: 12.5px;
   color: var(--muted);
@@ -110,27 +130,37 @@ label.onb-who__row[data-small]:hover {
   font-weight: 600;
   color: var(--faint);
 }
-/* The summary: three counts, a large number over its line, then the note under a hairline. */
+/*
+ * What the checked agents bring, under the list: three counts in a row on the step's own plate, then the note under a
+ * hairline. Beside the rows it would take their width (the step's column is 560).
+ */
 .onb-who__side {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
-  align-self: start;
-  padding: var(--card-pad);
+  padding: var(--space-4);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background: var(--card-well);
 }
+/* The counts in one row of three on a wide box; on a phone the longest line takes the room it needs, not a sliver. */
 .onb-who__counts {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: var(--space-4);
   margin: 0;
+}
+@media (max-width: 400px) {
+  .onb-who__counts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 .onb-who__counts > div {
   display: flex;
   flex-direction: column-reverse;
   gap: 2px;
+  min-width: 0;
 }
 .onb-who__counts dd {
   margin: 0;
@@ -143,6 +173,7 @@ label.onb-who__row[data-small]:hover {
 .onb-who__counts dt {
   font-size: 12.5px;
   color: var(--muted);
+  text-wrap: pretty;
 }
 .onb-who__note {
   margin: 0;
@@ -150,9 +181,4 @@ label.onb-who__row[data-small]:hover {
   border-top: 1px solid var(--line);
   font-size: 12.5px;
   color: var(--faint);
-  align-items: flex-start;
-}
-.onb-who__note .ac-icon {
-  flex: none;
-  margin-top: 2px;
 }

@@ -30,6 +30,7 @@
 }
 .onb-brand__own.ac-input {
   margin-top: var(--space-2);
+  min-height: var(--control-h-md);
   padding-block: var(--space-2);
   resize: none;
 }
@@ -42,31 +43,38 @@
   flex-direction: column;
   gap: var(--space-2);
 }
+/*
+ * Two rows: the mark and its words on the first, full width (the words never squeezed beside the buttons), the two ways
+ * in under them at the box's start.
+ */
 .onb-brand__drop {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: var(--space-3);
-  padding: var(--card-pad);
+  padding: var(--space-4);
   border: 1.5px dashed var(--line2);
   border-radius: var(--radius-lg);
   background: var(--sunken);
 }
+/*
+ * The upload mark stays under the kit's square (a face or a tile owns no column beside 3 or more lines, rule 4): an
+ * inline glyph at the words' first line, inside their own start.
+ */
 .onb-brand__drop-mark {
   flex: none;
+  align-self: start;
   display: grid;
   place-items: center;
-  width: var(--control-h-md);
-  height: var(--control-h-md);
-  border-radius: var(--radius-md);
-  background: var(--raised);
-  box-shadow: var(--e1);
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
   color: var(--muted);
 }
 .onb-brand__drop-text {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  flex: 1;
   min-width: 0;
 }
 .onb-brand__drop-text b {
@@ -80,8 +88,9 @@
 }
 .onb-brand__drop-acts {
   display: flex;
-  flex: none;
-  gap: 8px;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 /* The files and links already taken, each one line with its ×. */
 .onb-brand__files {

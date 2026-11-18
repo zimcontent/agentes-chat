@@ -169,38 +169,46 @@ function WhoRow({
   const needsOne = member.needsComputer || needsComputer.some((c) => c.handle === member.handle);
   const qg = qgOf(member);
   const id = `onb-who-${member.handle}`;
+  // The face, the name and role on one line, and what the agent brings (`tag`) at the row's end when it's short.
+  // Something longer, such as the computer's notice and its button, goes on a line of its own under the words: a button
+  // never takes the words' room (rule 4, and `edge`'s 8 from the row's sides).
+  const tag = needsOne ? (
+    <span className="onb-who__tag ac-iconline">
+      <Icon name="computer" size={14} />
+      <span>{t("onboarding.flow.who.needsComputer")}</span>
+    </span>
+  ) : !small && member.skills > 0 ? (
+    <Chip className="onb-who__tag">{t("onboarding.flow.who.skills", { count: member.skills })}</Chip>
+  ) : null;
+  // The face and the name on the first line (`lead`), the role and what the agent brings under them at the row's full
+  // width: a square never owns a column while the words beside it take 3 lines or more (rule 4, `squarecol`).
   const inner = (
     <>
-      {!fixed && <Checkbox id={id} checked={checked} onCheckedChange={(on) => onToggle?.(on)} />}
-      <AgentAvatar
-        name={member.name}
-        agent={{ name: member.name, handle: member.handle, role: member.role }}
-        size={small ? "sm" : "md"}
-        labelled
-      />
-      <span className="onb-who__text">
+      <span className="onb-who__lead">
+        {!fixed && <Checkbox id={id} checked={checked} onCheckedChange={(on) => onToggle?.(on)} />}
+        <AgentAvatar
+          name={member.name}
+          agent={{ name: member.name, handle: member.handle, role: member.role }}
+          size={small ? "sm" : "md"}
+          labelled
+        />
         <span className="onb-who__name">
           <b>{member.name}</b>
           {qg && !small && (
             <span className="onb-who__qg">{t("onboarding.flow.who.qg", { channel: `#${member.channel}` })}</span>
           )}
         </span>
-        <span className="onb-who__role">{member.role}</span>
+        {fixed && <span className="onb-who__fixed">{t("onboarding.flow.who.fixed")}</span>}
       </span>
-      {needsOne ? (
-        <span className="onb-who__needs">
-          <span className="ac-iconline">
-            <Icon name="computer" size={14} />
-            <span>{t("onboarding.flow.who.needsComputer")}</span>
-          </span>
+      <span className="onb-who__under">
+        <span className="onb-who__role">{member.role}</span>
+        {tag}
+        {needsOne && (
           <Button size="sm" onClick={onConnectComputer}>
             {t("onboarding.flow.who.connectComputer")}
           </Button>
-        </span>
-      ) : (
-        !small && member.skills > 0 && <Chip>{t("onboarding.flow.who.skills", { count: member.skills })}</Chip>
-      )}
-      {fixed && <span className="onb-who__fixed">{t("onboarding.flow.who.fixed")}</span>}
+        )}
+      </span>
     </>
   );
   if (small || fixed || !onToggle)
