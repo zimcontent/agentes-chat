@@ -137,6 +137,10 @@ import type {
   CliInstall,
   CodeSent,
   CommandApproval,
+  CompanyRequest,
+  CompanyRequestInvite,
+  CompanyRequestPage,
+  CompanyRequestStatus,
   ComposioUsage,
   ComputerDevice,
   ComputerDeviceInput,
@@ -474,6 +478,24 @@ export interface ApiClient {
     /** Tried with the provider first: `speech_key_invalid` (422) when it refuses. */
     saveSpeechKey(input: SpeechKeyInput): Promise<SpeechKey>;
     removeSpeechKey(): Promise<SpeechKey>;
+    /**
+     * The company requests, newest first (`GET /api/app/companies`): `null` unless I am the installation's owner on a
+     * self-hosted server.
+     */
+    companyRequests(query?: {
+      status?: string;
+      q?: string;
+      limit?: number;
+      cursor?: string;
+    }): Promise<CompanyRequestPage | null>;
+    companyRequest(id: string): Promise<CompanyRequest>;
+    setCompanyStatus(id: string, status: CompanyRequestStatus): Promise<CompanyRequest>;
+    saveCompanyNotes(id: string, notes: string): Promise<CompanyRequest>;
+    saveCompanyClientCode(id: string, clientCode: string | null): Promise<CompanyRequest>;
+    /** Erases the request and everything it holds (LGPD): `DELETE …/companies/{id}`. */
+    deleteCompanyRequest(id: string): Promise<void>;
+    /** Sends the company its early-access link: `early_access.no_email` (409) where the server sends no email. */
+    inviteCompany(id: string): Promise<CompanyRequestInvite>;
   };
   /** Voice messages (ADR 0100). */
   voice: {

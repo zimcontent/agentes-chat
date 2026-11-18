@@ -432,10 +432,13 @@ describe("the paragraphs that depend on the installation", () => {
   test("the waiting list's section describes the form only where there is one, with its retention", () => {
     expect(privacy()).toContain("Esta instalação não tem formulário de lista de espera");
     const on = privacy({ companyRequestsRetentionDays: 365 });
-    expect(on).toContain("guardados por 365 dias");
+    expect(on).toContain("por 365 dias sem movimento");
     expect(on).toContain("consentimento");
-    expect(on).toContain("botão de apagar");
-    expect(privacy({ companyRequestsRetentionDays: 365 }, "en")).toContain("kept for 365 days");
+    // The three things the sweep and the link do, which the text says in its own words.
+    expect(on).toContain("ninguém confirma");
+    expect(on).toContain("convidou ou que virou cliente");
+    expect(on).toContain("link de apagar");
+    expect(privacy({ companyRequestsRetentionDays: 365 }, "en")).toContain("for 365 days with no activity");
   });
 
   test("deletion says what happens to the files and what holds it back, and 'restaurable' is gone", () => {

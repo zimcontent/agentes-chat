@@ -1020,6 +1020,8 @@ export const featureKeysPtBR = {
       invitation_accepted_other: "{{names}} aceitaram seu convite",
       composio_limit_one: "As chamadas da Composio deste mês acabaram",
       composio_limit_other: "As chamadas da Composio deste mês acabaram",
+      company_request_one: "{{names}} pediu o DougBot para uma empresa",
+      company_request_other: "{{names}} pediram o DougBot para uma empresa",
       change_request_one: "{{names}} pede uma mudança no time",
       change_request_other: "{{names}} pedem uma mudança no time",
       usage_limit_warning: "Você usou {{percent}}% do seu limite deste mês",

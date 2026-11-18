@@ -1014,7 +1014,9 @@
       "computer_no_chrome_one": "Een computer heeft Google Chrome nodig. Download het op google.com/chrome",
       "computer_no_chrome_other": "Computers hebben Google Chrome nodig. Download het op google.com/chrome",
       "app_created_one": "Een AI-app heeft dingen voor je aangemaakt",
-      "app_created_other": "AI-apps hebben dingen voor je aangemaakt"
+      "app_created_other": "AI-apps hebben dingen voor je aangemaakt",
+      "company_request_one": "{{names}} vroeg DougBot aan voor een bedrijf",
+      "company_request_other": "{{names}} vroegen DougBot aan voor een bedrijf"
     },
     "markRead": "Markeren als gelezen",
     "markUnread": "Markeren als ongelezen",

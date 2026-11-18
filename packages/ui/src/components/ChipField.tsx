@@ -218,11 +218,15 @@ export function ChipField({
   return (
     <RPopover.Root open={shown} onOpenChange={(o) => !o && setOpen(false)}>
       <RPopover.Anchor asChild>
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: a press on the box's empty room focuses its input */}
+        {/* biome-ignore lint/a11y/noStaticElementInteractions: the box's empty room focuses its input */}
+        {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: `role="group"` is set beside the label, below */}
         <div
           ref={box}
           className={cx("ac-chipfield", className)}
           data-focus={focused || undefined}
+          // In a `Field group`, the label names the field itself (the tokens and the box are one group).
+          role={wiring.labelledBy ? "group" : undefined}
+          aria-labelledby={wiring.labelledBy}
           aria-invalid={wiring["aria-invalid"]}
           aria-disabled={off || undefined}
           onMouseDown={(e) => {

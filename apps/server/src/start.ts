@@ -574,6 +574,7 @@ async function boot(
     outbox,
     holdLong: () => restartHold.held(),
     builtInDatabase: !database.client,
+    companyRequestsRetentionDays: config.COMPANY_REQUESTS_RETENTION_DAYS,
     carry: carryDepsOf({
       db: database.db,
       config,

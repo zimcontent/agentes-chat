@@ -118,6 +118,9 @@ import type {
   ChannelEvent,
   ChannelInput,
   ChannelOverride,
+  CompanyRequest,
+  CompanyRequestInvite,
+  CompanyRequestStatus,
   ComputerSetup,
   DatabaseActionName,
   DatabaseConnectionInput,
@@ -451,6 +454,79 @@ function useSpeechKeyChange<T>(change: (api: ApiClient, input: T) => Promise<Spe
 export const useSaveSpeechKey = () =>
   useSpeechKeyChange((api, input: SpeechKeyInput) => api.system.saveSpeechKey(input), true);
 export const useRemoveSpeechKey = () => useSpeechKeyChange<void>((api) => api.system.removeSpeechKey());
+
+/**
+ * The company requests, for the installation's owner (`null` to everyone else, and on agentes.chat itself), one page
+ * at a time, filtered by step and by a search over the company, the person and the address.
+ */
+export const useCompanyRequests = (query: { status?: string; q?: string } = {}) => {
+  const api = useApi();
+  const key = JSON.stringify(query);
+  return useInfiniteQuery({
+    queryKey: keys.companyRequests(key),
+    queryFn: ({ pageParam }) => api.system.companyRequests({ ...query, cursor: pageParam }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (last) => last?.next ?? undefined,
+  });
+};
+
+/** One company request, read afresh as its notes or step change. */
+export const useCompanyRequest = (id: string) => {
+  const api = useApi();
+  return useQuery({ queryKey: keys.companyRequest(id), queryFn: () => api.system.companyRequest(id) });
+};
+
+/** Every write to a request: the list and the request are read again, so the counts and the card follow. */
+function useCompanyChange<T>(change: (api: ApiClient, input: T) => Promise<CompanyRequest>, silent = false) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: T) => change(api, input),
+    onSuccess: (request) => {
+      qc.setQueryData(keys.companyRequest(request.id), request);
+      void qc.invalidateQueries({ predicate: (q) => q.queryKey[0] === "companies" && q.queryKey.length === 2 });
+    },
+    ...(silent ? { meta: { silent: true } } : {}),
+  });
+}
+export const useSetCompanyStatus = () =>
+  useCompanyChange((api, input: { id: string; status: CompanyRequestStatus }) =>
+    api.system.setCompanyStatus(input.id, input.status),
+  );
+export const useSaveCompanyNotes = () =>
+  useCompanyChange((api, input: { id: string; notes: string }) => api.system.saveCompanyNotes(input.id, input.notes));
+export const useSaveCompanyClientCode = () =>
+  useCompanyChange((api, input: { id: string; clientCode: string | null }) =>
+    api.system.saveCompanyClientCode(input.id, input.clientCode),
+  );
+
+/** Erases a request and everything it holds (LGPD): the list and the counts are read again. */
+export const useDeleteCompanyRequest = () => {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.system.deleteCompanyRequest(id),
+    onSuccess: (_done, id) => {
+      qc.removeQueries({ queryKey: keys.companyRequest(id) });
+      void qc.invalidateQueries({ predicate: (q) => q.queryKey[0] === "companies" && q.queryKey.length === 2 });
+    },
+    meta: { silent: true },
+  });
+};
+
+/** The Invite: its answer's outcome is the caller's to read (an email sent, one too recent, an account allowed). */
+export const useInviteCompany = () => {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string): Promise<CompanyRequestInvite> => api.system.inviteCompany(id),
+    onSuccess: ({ request }) => {
+      qc.setQueryData(keys.companyRequest(request.id), request);
+      void qc.invalidateQueries({ predicate: (q) => q.queryKey[0] === "companies" && q.queryKey.length === 2 });
+    },
+    meta: { silent: true },
+  });
+};
 
 /** Whether calls with agents and "Ouvir" work in this workspace (ADR doug-0006). */
 export const useLiveVoice = (orgId: string) => {
