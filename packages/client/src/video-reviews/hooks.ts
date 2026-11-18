@@ -73,8 +73,11 @@ export const useDeleteReviewNote = (orgId: string, reviewId: string) =>
   useReviewChange(orgId, reviewId, (api, noteId: string) => reviewsOf(api).deleteNote(orgId, reviewId, noteId));
 
 export const useDecideVideoReview = (orgId: string, reviewId: string) =>
-  useReviewChange(orgId, reviewId, (api, input: { decision: VideoReviewDecision; message?: string }) =>
-    reviewsOf(api).decide(orgId, reviewId, input),
+  useReviewChange(
+    orgId,
+    reviewId,
+    (api, input: { decision: VideoReviewDecision; message?: string; caption?: string }) =>
+      reviewsOf(api).decide(orgId, reviewId, input),
   );
 
 /** A design version's editable page (a version never changes: read once). */

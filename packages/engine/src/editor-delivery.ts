@@ -712,7 +712,7 @@ export async function runEditorSend(
       files: [await video()],
       ...(cover ? { cover } : {}),
       title: review.title,
-      ...(post.caption ? { caption: post.caption } : {}),
+      ...(post.caption || card?.caption ? { caption: post.caption || card?.caption } : {}),
       card: review.portalCard ?? undefined,
       key: `editor:${review.id}:v${payload.version}`,
       by: by?.name ?? undefined,

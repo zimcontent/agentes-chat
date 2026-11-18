@@ -85,6 +85,35 @@ export async function portalPlaceOf(
   return { client: client || null, card: null };
 }
 
+/**
+ * The caption the post's card at the portal holds: what goes up with a send that names no caption of its own (a
+ * post's caption is written on its card, ADR 9001 §11). The card is the review's own, else the card of the task it
+ * delivers. Best effort: a portal that doesn't answer, or a card gone, is no caption.
+ */
+export async function cardCaptionOf(
+  db: Database,
+  portal: ApprovalPortal | null | undefined,
+  review: { orgId: string; portalClient: string | null; portalCard: string | null; taskId: string | null },
+): Promise<string> {
+  if (!portal) return "";
+  let client = review.portalClient;
+  let cardId = review.portalCard;
+  if (!cardId && review.taskId) {
+    const [task] = await db
+      .select({ source: issues.source })
+      .from(issues)
+      .where(and(eq(issues.orgId, review.orgId), eq(issues.id, review.taskId)));
+    const source = (task?.source ?? {}) as { type?: string; client?: string; cardId?: string };
+    if (source.type === "portal" && source.cardId) {
+      cardId = source.cardId;
+      client ??= source.client ?? null;
+    }
+  }
+  if (!client || !cardId) return "";
+  const cards = await portal.cards(client).catch(() => []);
+  return (cards.find((c) => c.id === cardId)?.caption ?? "").trim();
+}
+
 /** Asks for the delivery of an approved design version, once per version (a second approval is refused before). */
 export async function queueDesignDelivery(db: Database, orgId: string, reviewId: string, version: number) {
   await enqueue(db, { orgId, kind: DESIGN_DELIVER_JOB, payload: { reviewId, version }, maxAttempts: 6 });
@@ -145,11 +174,14 @@ export async function deliverDesign(deps: DeliveryDeps, reviewId: string, versio
       if (!object) throw new Error(`slide ${i + 1} of review ${review.id} is missing`);
       files.push(await portal.upload(`${String(i + 1).padStart(2, "0")}.png`, object.body));
     }
+    // The caption the team confirmed on "Aprovar", else the card's: a post never goes up without the caption it has.
+    const caption = review.post?.caption?.trim() || (await cardCaptionOf(deps.db, portal, review));
     job = await portal.send({
       client,
       type: pages.length > 1 ? "carousel" : "image",
       files,
       title: review.title,
+      ...(caption ? { caption } : {}),
       card: review.portalCard ?? undefined,
       key: `review:${review.id}:v${version}`,
       by: decider?.name ?? undefined,

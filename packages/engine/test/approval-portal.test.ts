@@ -159,6 +159,22 @@ describe("sendForApproval", () => {
     expect(portalColumnOf({ status: "sent" })).toBe("approval");
   });
 
+  test("a send that finishes a card and names no caption takes the card's", async () => {
+    const portal = createFakeApprovalPortal();
+    const card = await portal.createCard("acme", { title: "Post", type: "carousel", caption: "Da tarefa #promo" });
+    await sendForApproval(portal, read, { client: "acme", type: "carousel", artifactIds: ["a"], card: card.id });
+    expect(portal.sends[0]?.caption).toBe("Da tarefa #promo");
+    const other = await portal.createCard("acme", { title: "Post 2", type: "image", caption: "Do cartão" });
+    await sendForApproval(portal, read, {
+      client: "acme",
+      type: "image",
+      artifactIds: ["b"],
+      card: other.id,
+      caption: "A minha",
+    });
+    expect(portal.sends[1]?.caption).toBe("A minha");
+  });
+
   test("a file the caller can't read stops the send with nothing uploaded; a reel is one video", async () => {
     const portal = createFakeApprovalPortal();
     await expect(

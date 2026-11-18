@@ -206,6 +206,13 @@ export async function sendForApproval(
   for (const file of cover ? [...files, cover] : files) {
     if (file.bytes.byteLength > PORTAL_FILE_BYTES) throw new ValidationError(`"${file.name}" is too large to send`);
   }
+  // A send that finishes a card and says no caption takes the card's: the caption is written on the card (ADR 9001
+  // §11), and a post that went up without it reached the client with none.
+  let caption = input.caption?.trim() || undefined;
+  if (!caption && input.card) {
+    const cards = await portal.cards(input.client).catch(() => []);
+    caption = cards.find((c) => c.id === input.card)?.caption.trim() || undefined;
+  }
   const uploaded = [];
   for (const file of files) uploaded.push(await portal.upload(file.name, file.bytes));
   return portal.send({
@@ -214,7 +221,7 @@ export async function sendForApproval(
     files: uploaded,
     cover: cover ? await portal.upload(cover.name, cover.bytes) : undefined,
     title: input.title?.trim() || undefined,
-    caption: input.caption,
+    caption,
     editor: input.editor,
     card: input.card,
     key: input.key,
@@ -537,7 +544,7 @@ function sendTool(deps: PortalToolDeps, portal: ApprovalPortal): ToolDefinition 
   return {
     name: SEND_FOR_APPROVAL_TOOL,
     description:
-      'Send a post to the client\'s approval at the approval portal. Only what the team already approved in Review goes up: every file must be the approved version of a review (`send_for_review` first, then wait for "Aprovado"; an approved piece usually goes to the portal by itself), and anything else is refused. Use it when a person of the team tells you to send something for approval ("sobe para aprovação", "send it for approval"), never on your own judgment. `artifact_ids` are uploaded files of this conversation or the Drive (a file on your computer goes to the Drive first, with `upload_file`). A reel is one video, and its cover goes in `cover_artifact_id`; a carousel takes its images in order. Nothing is required beyond the client, the type and the files: a missing title, caption or cover is listed back as missing and can be completed later. The send goes on by itself after this answers; the answer carries the post\'s link.',
+      'Send a post to the client\'s approval at the approval portal. Only what the team already approved in Review goes up: every file must be the approved version of a review (`send_for_review` first, then wait for "Aprovado"; an approved piece usually goes to the portal by itself), and anything else is refused. Use it when a person of the team tells you to send something for approval ("sobe para aprovação", "send it for approval"), never on your own judgment. `artifact_ids` are uploaded files of this conversation or the Drive (a file on your computer goes to the Drive first, with `upload_file`). A reel is one video, and its cover goes in `cover_artifact_id`; a carousel takes its images in order. Nothing is required beyond the client, the type and the files: a missing title, caption or cover is listed back as missing and can be completed later. With `card`, the card\'s caption goes up when you give none. The send goes on by itself after this answers; the answer carries the post\'s link.',
     scope: "",
     external: true,
     inputSchema: {

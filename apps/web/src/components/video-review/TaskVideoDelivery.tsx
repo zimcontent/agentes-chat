@@ -584,13 +584,15 @@ function CaptionStep({ review, locked }: { review: VideoReview; locked: boolean 
   const w = useReviewWords().editor;
   const set = useSetReviewPost(org.id, review.id);
   const saved = review.post?.caption ?? "";
-  const [text, setText] = useState(saved);
+  // Nothing saved yet: the field starts with the caption already written on the post's card at the portal.
+  const start = saved || (review.portal?.caption ?? "");
+  const [text, setText] = useState(start);
   const [error, setError] = useState<string | null>(null);
   // Another person's save shows up here while this one hasn't typed anything else.
   const typed = useRef(false);
   useEffect(() => {
-    if (!typed.current) setText(saved);
-  }, [saved]);
+    if (!typed.current) setText(start);
+  }, [start]);
   const dirty = text.trim() !== saved;
   const run = (p: Promise<unknown>) =>
     p

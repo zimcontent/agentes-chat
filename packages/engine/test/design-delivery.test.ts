@@ -25,8 +25,9 @@ afterEach(async () => {
 const PNG = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 9]);
 
 /** A portal that answers at once and writes down what it was asked. */
-function fakePortal(card: { id: string; date: string | null } | null) {
+function fakePortal(card: { id: string; date: string | null; caption?: string } | null) {
   const calls: string[] = [];
+  const captions: (string | undefined)[] = [];
   const job: PortalJob = {
     id: "job-1",
     state: "done",
@@ -42,7 +43,15 @@ function fakePortal(card: { id: string; date: string | null } | null) {
       calls.push(`upload ${name}`);
       return `file-${name}`;
     },
-    send: async (input: { client: string; type: string; files: string[]; card?: string; key?: string }) => {
+    send: async (input: {
+      client: string;
+      type: string;
+      files: string[];
+      card?: string;
+      key?: string;
+      caption?: string;
+    }) => {
+      captions.push(input.caption);
       calls.push(`send ${input.client} ${input.type} ${input.files.length} card=${input.card ?? "-"} key=${input.key}`);
       return job;
     },
@@ -55,7 +64,7 @@ function fakePortal(card: { id: string; date: string | null } | null) {
     },
     cards: async () => (card ? [{ ...card, client: "lexeer" }] : []),
   } as unknown as ApprovalPortal;
-  return { portal, calls };
+  return { portal, calls, captions };
 }
 
 const deps = (portal: ApprovalPortal | null): VideoReviewDeps => ({
@@ -76,7 +85,7 @@ const ctx = () => ({
   triggerMessageId: "",
 });
 
-async function approvedPiece(portal: ApprovalPortal | null, card: string | null) {
+async function approvedPiece(portal: ApprovalPortal | null, card: string | null, caption?: string) {
   const slides = [];
   for (const name of ["01.png", "02.png"]) {
     slides.push(
@@ -96,7 +105,10 @@ async function approvedPiece(portal: ApprovalPortal | null, card: string | null)
   });
   if (card)
     await f.db.update(schema.videoReviews).set({ portalCard: card }).where(eq(schema.videoReviews.id, sent.review.id));
-  await decideVideoReview(deps(portal), f.owner.id, f.org.id, sent.review.id, { decision: "approve" });
+  await decideVideoReview(deps(portal), f.owner.id, f.org.id, sent.review.id, {
+    decision: "approve",
+    ...(caption !== undefined ? { caption } : {}),
+  });
   return sent.review.id;
 }
 
@@ -145,6 +157,43 @@ describe("design delivery", () => {
     // Run again (a retried job): nothing is sent twice.
     await deliverDesign({ ...deps(portal), portal }, id, 1);
     expect(calls.filter((c) => c.startsWith("send")).length).toBe(1);
+  });
+
+  test("the caption goes up with the slides: the card's, or the one confirmed beside Aprovar", async () => {
+    f = await setup({ rightHand: true });
+    const card = { id: "card-7", date: null, caption: "Vendida! #glenwood" };
+    const { portal, captions } = fakePortal(card);
+    // Before the decision the page shows the card's caption, to confirm or change.
+    const first = await approvedPiece(portal, "card-7");
+    await deliverDesign({ ...deps(portal), portal }, first, 1);
+    expect(captions).toEqual(["Vendida! #glenwood"]);
+
+    const second = await approvedPiece(portal, "card-7", "  Outra legenda  ");
+    await deliverDesign({ ...deps(portal), portal }, second, 1);
+    expect(captions.at(-1)).toBe("Outra legenda");
+  });
+
+  test("before Aprovar, the review shows the card's caption", async () => {
+    f = await setup({ rightHand: true });
+    const { portal } = fakePortal({ id: "card-7", date: null, caption: "Do cartão" });
+    const slide = await createFileArtifact(f.artifactDeps, { type: "person", userId: f.owner.id }, f.org.id, {
+      title: "01.png",
+      name: "01.png",
+      bytes: PNG,
+      contentType: "image/png",
+      channelId: f.general.id,
+    });
+    const sent = await sendDesignForReview(deps(portal), ctx(), {
+      pages: [slide.id],
+      title: "Peça",
+      portalClient: "lexeer",
+    });
+    await f.db
+      .update(schema.videoReviews)
+      .set({ portalCard: "card-7" })
+      .where(eq(schema.videoReviews.id, sent.review.id));
+    const view = await getVideoReview(deps(portal), f.owner.id, f.org.id, sent.review.id);
+    expect(view.portal?.caption).toBe("Do cartão");
   });
 
   test("approved for a `direct` client: approved at the portal, never scheduled, even with a day on the card", async () => {

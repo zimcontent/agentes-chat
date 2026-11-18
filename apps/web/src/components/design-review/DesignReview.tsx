@@ -21,7 +21,18 @@ import {
 import { relativeTime } from "@agenteschat/client/lib/format";
 import { PAGE_SANDBOX } from "@agenteschat/client/lib/isolated-page";
 import { portalClientName } from "@agenteschat/client/lib/portal";
-import { Button, Chip, type ChipTone, Dialog, DialogFooter, Icon, Segmented, Spinner, Textarea } from "@agenteschat/ui";
+import {
+  Button,
+  Chip,
+  type ChipTone,
+  Dialog,
+  DialogFooter,
+  Field,
+  Icon,
+  Segmented,
+  Spinner,
+  Textarea,
+} from "@agenteschat/ui";
 import { type PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";
@@ -173,6 +184,9 @@ export function DesignReviewBody({ review, w }: { review: VideoReview; w: Review
   const [draftText, setDraftText] = useState("");
   const [wholeText, setWholeText] = useState("");
   const [message, setMessage] = useState("");
+  // The caption that goes up with the post on "Aprovar": the card's until the person changes it here.
+  const [caption, setCaption] = useState<string | null>(null);
+  const captionShown = caption ?? review.portal?.caption ?? "";
   const [activeNote, setActiveNote] = useState<string | null>(null);
   const [dropping, setDropping] = useState(false);
   const draftFiles = useAttachments(review);
@@ -415,7 +429,11 @@ export function DesignReviewBody({ review, w }: { review: VideoReview; w: Review
   };
   const decideAs = (decision: "approve" | "changes") =>
     decide.mutate(
-      { decision, message: message.trim() || undefined },
+      {
+        decision,
+        message: message.trim() || undefined,
+        ...(decision === "approve" && review.portal ? { caption: captionShown } : {}),
+      },
       { onSuccess: () => setMessage(""), onError: failed },
     );
 
@@ -1017,6 +1035,17 @@ export function DesignReviewBody({ review, w }: { review: VideoReview; w: Review
                 {d.afterApprove[review.portal.afterApprove](portalClientName(review.portal.client))}
               </p>
             )}
+            {review.portal && (
+              <Field label={d.caption}>
+                <Textarea
+                  value={captionShown}
+                  rows={3}
+                  maxLength={2200}
+                  placeholder={d.captionPlaceholder}
+                  onChange={(e) => setCaption(e.target.value)}
+                />
+              </Field>
+            )}
             <div className="vr-decide__acts">
               <Button
                 variant="default"
@@ -1034,7 +1063,7 @@ export function DesignReviewBody({ review, w }: { review: VideoReview; w: Review
                 loading={decide.isPending && decide.variables?.decision === "approve"}
                 onClick={() => decideAs("approve")}
               >
-                {w.approve}
+                {review.portal && captionShown.trim() ? d.approveWithCaption : w.approve}
               </Button>
             </div>
           </div>
