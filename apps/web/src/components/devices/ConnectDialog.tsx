@@ -53,7 +53,16 @@ const WIDTH: Record<ConnectStep, number> = {
  * "Connect a device": a chooser (this computer, another computer, a server, an Android phone, an iPhone), then each
  * flow in place. Back goes to the chooser when the dialog started there; the × and Cancel always close it.
  */
-export function ConnectDialog({ start, onClose }: { start: ConnectStart | null; onClose: () => void }) {
+export function ConnectDialog({
+  start,
+  onClose,
+  stay,
+}: {
+  start: ConnectStart | null;
+  onClose: () => void;
+  /** Opened over a screen it must not leave (the onboarding's "Quem entra"): a page opens in a new tab. */
+  stay?: boolean;
+}) {
   const { t } = useTranslation();
   const [step, setStep] = useState<ConnectStep>(start?.step ?? "choose");
   const [title, setTitle] = useState<ReactNode>(null);
@@ -64,7 +73,7 @@ export function ConnectDialog({ start, onClose }: { start: ConnectStart | null; 
   }, [start]);
   const fromChooser = start?.step === "choose";
   const back = fromChooser ? () => setStep("choose") : undefined;
-  const flowProps = { onClose, onBack: back, setTitle };
+  const flowProps = { onClose, onBack: back, setTitle, stay };
   const toLine = (shell?: "unix" | "windows") => {
     setLineShell(shell);
     setStep("link");
@@ -268,6 +277,7 @@ function ComputerFlow({
   onBack,
   setTitle,
   onLine,
+  stay,
 }: FlowProps & { onLine: (shell?: "unix" | "windows") => void }) {
   const { t } = useTranslation();
   const { org } = useOrg();
@@ -306,14 +316,26 @@ function ComputerFlow({
             <Icon name="check" size={14} />
             <span>
               {t("devices.computer.connected", { name: found.name })}{" "}
-              <Link
-                to="/org/$orgId/settings/devices/$deviceId"
-                params={{ orgId: org.id, deviceId: found.id }}
-                className="ac-link"
-                onClick={onClose}
-              >
-                {t("devices.link.openPage")}
-              </Link>
+              {stay ? (
+                // Still in a step it must not leave: its own page opens in a new tab.
+                <a
+                  href={`/org/${org.id}/settings/devices/${found.id}`}
+                  className="ac-link"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t("devices.link.openPage")}
+                </a>
+              ) : (
+                <Link
+                  to="/org/$orgId/settings/devices/$deviceId"
+                  params={{ orgId: org.id, deviceId: found.id }}
+                  className="ac-link"
+                  onClick={onClose}
+                >
+                  {t("devices.link.openPage")}
+                </Link>
+              )}
             </span>
           </p>
         ) : (
@@ -356,6 +378,7 @@ function LinkFlow({
   onClose,
   onBack,
   setTitle,
+  stay,
 }: FlowProps & {
   kind: "server" | "computer";
   shell?: "unix" | "windows";
@@ -381,7 +404,7 @@ function LinkFlow({
     else setTitle(t(kind === "server" ? "devices.link.serverTitle" : "devices.link.computerTitle"));
   }, [joined, phase, request, kind, viaApp, org.name, setTitle, t]);
 
-  if (joined) return <Joined joined={joined} onClose={onClose} />;
+  if (joined) return <Joined joined={joined} onClose={onClose} stay={stay} />;
   if (phase === "asking" && request)
     return (
       <JoinRequestForm
@@ -559,9 +582,12 @@ function OpenInApp({
 function Joined({
   joined,
   onClose,
+  stay,
 }: {
   joined: { machineId: string; name: string; request: DeviceJoinRequest };
   onClose: () => void;
+  /** Over a screen it must not leave (the onboarding's "Quem entra"): its own page opens in a new tab. */
+  stay?: boolean;
 }) {
   const { t } = useTranslation();
   const { org } = useOrg();
@@ -588,14 +614,26 @@ function Joined({
           </span>
         </div>
         <p className="small muted">
-          <Link
-            to="/org/$orgId/settings/devices/$deviceId"
-            params={{ orgId: org.id, deviceId: joined.machineId }}
-            className="ac-link"
-            onClick={onClose}
-          >
-            {t("devices.link.openPage")}
-          </Link>
+          {stay ? (
+            // Still in a step it must not leave: its own page opens in a new tab, the step stays where it is.
+            <a
+              href={`/org/${org.id}/settings/devices/${joined.machineId}`}
+              className="ac-link"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t("devices.link.openPage")}
+            </a>
+          ) : (
+            <Link
+              to="/org/$orgId/settings/devices/$deviceId"
+              params={{ orgId: org.id, deviceId: joined.machineId }}
+              className="ac-link"
+              onClick={onClose}
+            >
+              {t("devices.link.openPage")}
+            </Link>
+          )}
         </p>
       </DialogBody>
       <DialogFooter>

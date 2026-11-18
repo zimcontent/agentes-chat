@@ -23,6 +23,7 @@ export const en = {
     nextMonth: "Next month",
     chooseDate: "Choose a date",
     cancel: "Cancel",
+    remove: "Remove",
     save: "Save",
     back: "Back",
     continue: "Continue",
@@ -1071,6 +1072,8 @@ export const en = {
       context: "Context",
       import: "Bring your agents",
       agents: "Agents",
+      /** "Sua marca", after the Doug team (docs/adr/doug-0030-time-doug.md). */
+      brand: "Your brand",
       computer: "Computer",
       ai: "AI",
       team: "Team",
@@ -1098,6 +1101,9 @@ export const en = {
         /** The person's own step: their photo, their name and their area. */
         you: "About you",
         team: "Your team",
+        /** The Doug team's, between its card and its brand (docs/adr/doug-0030-time-doug.md). */
+        who: "Who joins",
+        brand: "Your brand",
         plan: "Turn the team on",
         /** The rail's last step: connecting the AI the team thinks with. */
         ai: "Connect an AI",
@@ -1106,6 +1112,8 @@ export const en = {
         /** A personal workspace's first step: what it is for ("For me"). */
         namePersonal: "What it's for",
         teamPersonal: "Your agents",
+        whoPersonal: "Who joins",
+        brandPersonal: "Your brand",
         planPersonal: "Turn the agents on",
         aiPersonal: "Connect an AI",
       },
@@ -1117,6 +1125,9 @@ export const en = {
         /** Back on the team step once the team is made: the list of who is in it. */
         teamMade: "The team is already put together. We move on whenever you're ready.",
         teamMadePersonal: "Your agents are already here. We move on whenever you're ready.",
+        /** On "Quem entra" and "Sua marca", the Doug team's (docs/adr/doug-0030-time-doug.md). */
+        who: "The Doug team already knows the craft. Pick who joins now, the rest can come later.",
+        brand: "Last thing before I put them to work: teach them your brand. ROSA and SONY read it before every piece.",
         plan: "After the plan, all that's left is connecting an AI. I'll show you where.",
         /** On the plan step, with the AI step right after it. */
         planThen: "Once the plan is on, the next screen is where you connect your AI.",
@@ -1210,6 +1221,17 @@ export const en = {
           see: "See the ready-made team",
           /** The button, with "Start from scratch" picked. */
           scratchGo: "Go on with just {{name}}",
+          /** The Doug team's card (docs/adr/doug-0030-time-doug.md): first, already picked. */
+          doug: "Start with the Doug team",
+          /** Beside its title: the card that comes picked. */
+          dougBadge: "Recommended",
+          dougText:
+            "The team that runs Doug's operation: design, video, ads, strategy, social media, code and finance. They arrive with no memory at all, ready to learn your company.",
+          /** Under its faces: how many agents the card brings. */
+          dougWho_one: "{{count}} agent",
+          dougWho_other: "{{count}} agents",
+          /** The button, with the Doug team picked. */
+          dougGo: "Choose who joins",
         },
         /** The team step opens on this question; the cards are the import page's apps, then "none". */
         ask: {
@@ -1254,6 +1276,81 @@ export const en = {
           bring: "Bring the team",
           bringPersonal: "Bring the agents",
         },
+      },
+      /**
+       * "Quem entra no seu time?" (docs/adr/doug-0030-time-doug.md): the Doug team's agents, all checked, the right
+       * hand fixed, and the QG de Tráfego's team under its MARK. "Who enters it" before the team is made.
+       */
+      who: {
+        title: "Who joins your team?",
+        lead: "Uncheck whoever you don't need now. You can call any of them later, in Team › New agent.",
+        /** The right hand's row: it never leaves (it is already here). */
+        fixed: "Stays",
+        /** Under the MARK's rows: the QG de Tráfego it opens. `{{count}}`: how many it holds. */
+        teamOf_one: "{{count}} in its team",
+        teamOf_other: "{{count}} in its team",
+        /** What the checked ones bring, above the list: a name under a number (a `dt` before its `dd`). */
+        countAgents_one: "agent on the team",
+        countAgents_other: "agents on the team",
+        countSkills_one: "craft skill",
+        countSkills_other: "craft skills",
+        countRoutines_one: "ready routine, paused until you turn it on",
+        countRoutines_other: "ready routines, paused until you turn them on",
+        /** The chip at a row's end: what that one agent brings, with its number. */
+        skillsCount_one: "{{count}} craft skill",
+        skillsCount_other: "{{count}} craft skills",
+        note: "None of them arrives with memory, a client or a file from another company.",
+        /** The channel a row's agent works in: its HQ. */
+        qg: "in {{channel}}",
+        /** The notice on an agent that only works on a computer, and the button beside it. */
+        needsComputer: "needs a computer connected",
+        connectComputer: "Use a computer",
+        /** What still waits after the team is made: the agents that need a computer, named. */
+        computerPending: "Needs a computer connected: {{names}}.",
+        create: "Create the team",
+        /** The boxes that must be answered, beside their labels. */
+        required: "Required",
+      },
+      /**
+       * "Ensine a sua marca ao time" (docs/adr/doug-0030-time-doug.md): the company's name and tone, required, and the
+       * site, the profile, the audience and the brand manual, optional. It becomes the workspace skill "Marca".
+       */
+      brand: {
+        title: "Teach your brand to the team",
+        lead: "This is where ROSA takes the identity, SONY the style of the videos and the Social Media the tone. All of it stays in your workspace.",
+        company: "Company name",
+        companyPlaceholder: "Aurora Bakery",
+        site: "Website",
+        instagram: "Instagram",
+        instagramPlaceholder: "@thecompany",
+        audience: "Audience",
+        audiencePlaceholder: "Who buys from you?",
+        tone: "Tone of voice",
+        /** The chip that opens the field for a tone of the person's own. */
+        toneOwn: "Write your own",
+        tonePlaceholder: "In your words: how the brand talks",
+        /** The brand manual: a file or a link, optional. */
+        manual: "Brand manual, logo, fonts and colors",
+        manualText: "A PDF, Figma, images or a link. It becomes the skill “Brand {{company}}” for the whole team.",
+        manualPick: "Choose files",
+        manualLink: "Paste a link",
+        manualLinkPlaceholder: "https://drive.google.com/…",
+        /** The button that keeps the pasted link, beside its field. */
+        manualAdd: "Add",
+        /** Beside the company's name and the tone: what the step can't be answered without. */
+        required: "Required",
+        /** Under the file's title, once it's in the Drive. */
+        saved: "Uploaded",
+        /** A file that didn't go to the Drive, under its name. */
+        failed: "Not uploaded: {{reason}}",
+        /** What saves the step, and what it still waits for under a button that can't press yet. */
+        missingCompany: "Say the company's name.",
+        missingTone: "Pick a tone of voice or write your own.",
+        /** The × beside a file or a link, once the brand saved: it goes from the skill too. */
+        removeSaved: "Removes it from the saved brand too. Take it off?",
+        /** The skill it becomes, once saved. */
+        madeTitle: "The team learned your brand",
+        made: "“Brand {{company}}” is now the skill ROSA, SONY, the Social Media and CHESS read.",
       },
       plan: {
         title: "Turn your team on",
@@ -15651,6 +15748,24 @@ export const en = {
       undoExpired:
         "It is more than a day since this team was created, so it can't be undone here. Archive its agents on their pages.",
     },
+    /** The Doug team and its brand step (docs/adr/doug-0030-time-doug.md). */
+    dougTeam: {
+      made: "This workspace already has the Doug team. Undo the one it made, or add the agents you want one by one.",
+      none: "Check at least one agent of the Doug team.",
+      unknown: "The Doug team has no {{handles}}.",
+      ownPath: "The Doug team is made from its own card, in the onboarding, not this one.",
+    },
+    brand: {
+      /** `onboarding.brand_pending`: the onboarding's "Sua marca" was still open when it tried to finish. */
+      pending: "Save the brand before finishing. It's the step right after the team.",
+      companyRequired: "Say the company's name.",
+      toneRequired: "Pick a tone of voice or write it in your own words.",
+      unknownTone:
+        "That tone of voice isn't one of the options. Pick one from the list, or write it in your own words.",
+      invalidLink: "That link doesn't look like a web address. Check it and try again.",
+      invalidInstagram: "That doesn't look like an Instagram profile. Write @yourprofile or paste the profile's link.",
+      fileMissing: "One of the files you picked isn't in your Drive anymore. Choose it again.",
+    },
     agentProposal: {
       decided: "Someone already decided this proposal.",
       expired: "This proposal expired: nobody decided it in a day.",
@@ -20931,6 +21046,7 @@ export const en = {
       createdYouPersonal: "Agents created by you",
       skillsWait: "The skills wait for an admin.",
       weeklyWait: "My weekly check waits for whoever manages my routines.",
+      rightHandWait: "The DOUG's role as manager waits for an admin.",
       undone: "Team undone",
       dismissed: "Team dismissed",
       undonePersonal: "Agents undone",
@@ -21981,6 +22097,124 @@ export const en = {
       more: "Show more",
       add_one: "Add {{count}} file",
       add_other: "Add {{count}} files",
+    },
+  },
+  /** The Doug team template (docs/adr/doug-0030-time-doug.md): the gallery's first card, its channels, each agent's words and hello, and the brand step's tones. */
+  dougTeam: {
+    name: "Doug Team",
+    sub: "Design, video, ads, strategy, social media, code and finance",
+    desc: "The house's whole team, each agent with its craft, its routines and its skills, with a channel for each HQ.",
+    lead: "The Doug team for {{org}}, each HQ in its own channel. Every routine starts paused.",
+    approvals: "Spending, publishing and sending anything outside wait for your ok.",
+    channels: {
+      design: "hq-design",
+      video: "hq-video",
+      trafego: "hq-ads",
+      estrategia: "hq-strategy",
+      social: "hq-social",
+      codigo: "hq-code",
+      financeiro: "hq-finance",
+    },
+    agents: {
+      doug: {
+        role: "Operations manager",
+        line: "Coordinates the team, follows deadlines, hands out requests, reviews deliveries and asks for approval at the right moment.",
+        hello: "Hi. I keep the team moving and bring you only what needs you.",
+      },
+      rosa: {
+        role: "Art director",
+        line: "Makes covers, carousels, posts, stories, thumbnails and decks at agency level, always in the client's brand.",
+        hello: "Hi. Covers, carousels and posts are on me, always in the brand.",
+      },
+      sony: {
+        role: "Video editor",
+        line: "Edits, cuts and animates videos at studio level, from the raw footage to the approved Reel, always in the client's brand.",
+        hello: "Hi. Send me the raw footage and I'll bring back the edited video.",
+      },
+      mark: {
+        role: "Head of the ads HQ",
+        line: "Runs paid ads end to end with the ads team and reports what was spent, what came in and what comes next.",
+        hello: "Hi. I lead the ads team and tell you what was spent and what came in.",
+      },
+      analistaResultado: {
+        role: "Results analyst of the ads HQ",
+        line: "Reads the ad account and real sales, measures cost per sale, cash return and fatigue, and says what to cut and what to scale.",
+        hello: "Hi. I read the numbers and say what to cut and what to scale.",
+      },
+      copywriter: {
+        role: "Copywriter of the ads HQ",
+        line: "Writes ad text, headlines, descriptions, hooks and short scripts, by angle and only with claims that have proof.",
+        hello: "Hi. Ad copy and hooks are on me, only with claims that have proof.",
+      },
+      diretorCriativo: {
+        role: "Creative director of the ads HQ",
+        line: "Turns hypotheses and copy into video and art briefs, keeps different concepts live and builds each piece ready for review.",
+        hello: "Hi. I turn ideas into briefs and pieces ready for review.",
+      },
+      estrategistaMidia: {
+        role: "Media strategist of the ads HQ",
+        line: "Sets up the campaign structure, picks the week's tests and writes the cut and scale orders within the cap.",
+        hello: "Hi. I plan the campaigns and the week's tests within the cap.",
+      },
+      financeiroTrafego: {
+        role: "Finance of the ads HQ",
+        line: "Does each project's math, keeps the daily and monthly cap, controls the budget and measures the real cash return.",
+        hello: "Hi. I keep the ad budget within the cap and measure the real return.",
+      },
+      humanizador: {
+        role: "Last pass on the copy",
+        line: "Gives the copy a last pass so it sounds like a person, without changing facts, claims, limits or format.",
+        hello: "Hi. I give every copy a last pass so it sounds like a person.",
+      },
+      operador: {
+        role: "Operator of the ads HQ",
+        line: "Carries out the approved orders in the ad account, one by one, and returns the result exactly as it came.",
+        hello: "Hi. I carry out the approved orders in the ad account, one by one.",
+      },
+      pesquisadorGrowth: {
+        role: "Growth researcher of the ads HQ",
+        line: "Researches hooks, creatives and ad strategies in the market and turns what it finds into test hypothesis cards.",
+        hello: "Hi. I research what works in the market and bring hypotheses to test.",
+      },
+      revisorPolitica: {
+        role: "Policy reviewer of the ads HQ",
+        line: "Checks each ad before it goes live against the platform's rules, the law and the project's claims, and says pass, warn or block.",
+        hello: "Hi. I check every ad against the rules before it goes live.",
+      },
+      chess: {
+        role: "Marketing strategist",
+        line: "Reads the brand and the moment, researches what works in the niche and delivers the strategy and copy of each piece, with a thesis, hooks and the why.",
+        hello: "Hi. Strategy and copy for each piece are on me, always with the why.",
+      },
+      socialMedia: {
+        role: "Social media manager",
+        line: "Owns the calendar and the brands' networks, brings content ideas, takes each post to approval and schedules what was approved.",
+        hello: "Hi. The calendar and the networks are on me, and nothing goes out without approval.",
+      },
+      junin: {
+        role: "Vibe coder",
+        line: "Builds and maintains the company's sites, pages, automations and integrations, tests, publishes with an ok and explains the result in plain words.",
+        hello: "Hi. Sites, pages and automations are on me, published only with your ok.",
+      },
+      kiara: {
+        role: "Finance",
+        line: "Takes care of invoices, collections, bank alerts, due dates and sales reports, always with approval before sending.",
+        hello: "Hi. Invoices and collections are on me, always with your ok before sending.",
+      },
+    },
+    brand: {
+      tones: {
+        proximo: "Friendly",
+        profissional: "Professional",
+        divertido: "Fun",
+        inspirador: "Inspiring",
+        direto: "Straightforward",
+        acolhedor: "Warm",
+        tecnico: "Technical",
+        sofisticado: "Sophisticated",
+        ousado: "Bold",
+        educativo: "Educational",
+      },
     },
   },
 };

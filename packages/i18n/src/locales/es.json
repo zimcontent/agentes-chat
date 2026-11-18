@@ -14,6 +14,7 @@
     "nextMonth": "Mes siguiente",
     "chooseDate": "Elige una fecha",
     "cancel": "Cancelar",
+    "remove": "Quitar",
     "save": "Guardar",
     "back": "Volver",
     "continue": "Continuar",
@@ -776,6 +777,9 @@
       "message": "Algo más",
       "messageExample": "Publicamos dos videos a la semana a mano.",
       "messageOptional": "Opcional",
+      "messageTooLong": "Esto es más largo de lo que el formulario acepta. Acórtalo.",
+      "invalidField": "Revisa esta parte del formulario e inténtalo de nuevo.",
+      "invalidEmail": "Usa un correo como ana@empresa.com.",
       "consent": "Acepto que DougBot guarde estas respuestas para contactarme, como se describe en la <link>Política de Privacidad</link>.",
       "consentRequired": "Acepta la Política de Privacidad para continuar.",
       "submit": "Enviar solicitud",
@@ -783,11 +787,6 @@
       "doneTitle": "Recibimos tu solicitud",
       "doneLead": "El equipo lee cada solicitud y habla con cada empresa por WhatsApp. También recibirás un correo.",
       "again": "Enviar otra solicitud",
-      "failed": "No se pudo enviar la solicitud. Inténtalo de nuevo.",
-      "privacy": "Política de Privacidad",
-      "messageTooLong": "Esto es más largo de lo que el formulario acepta. Acórtalo.",
-      "invalidField": "Revisa esta parte del formulario e inténtalo de nuevo.",
-      "invalidEmail": "Usa un correo como ana@empresa.com.",
       "confirmTitle": "Confirmando tu correo…",
       "confirmLead": "Un momento.",
       "confirmFailedTitle": "Este enlace es desconocido o caducó",
@@ -799,7 +798,9 @@
       "deletedTitle": "Solicitud eliminada",
       "deletedLead": "Todo lo que guardaba se ha ido. No se guarda nada más.",
       "deleteFailedTitle": "Este enlace es desconocido o ya se usó",
-      "deleteFailedLead": "No queda nada que eliminar con él, o ha caducado."
+      "deleteFailedLead": "No queda nada que eliminar con él, o ha caducado.",
+      "failed": "No se pudo enviar la solicitud. Inténtalo de nuevo.",
+      "privacy": "Política de Privacidad"
     },
     "interests": {
       "design": "Diseño",
@@ -823,6 +824,7 @@
       "search": "Buscar empresa, persona o correo",
       "none": "No se encontró ninguna solicitud.",
       "count": "{{count}} solicitudes",
+      "more": "Más",
       "status": {
         "new": "Nueva",
         "talking": "En conversación",
@@ -857,7 +859,6 @@
       "noEmail": "Este servidor no envía correo, así que no puede salir ninguna invitación.",
       "codeTaken": "Otra empresa ya tiene este código.",
       "codeInvalid": "El código de cliente tiene tres dígitos.",
-      "more": "Más",
       "pendingConfirm": "Esta dirección tiene un formulario nuevo por confirmar: el equipo ve la solicitud como estaba hasta que se confirme.",
       "delete": "Eliminar",
       "deleteTitle": "¿Eliminar la solicitud de {{company}}?",
@@ -1030,6 +1031,7 @@
       "context": "Contexto",
       "import": "Trae tus agentes",
       "agents": "Agentes",
+      "brand": "Tu marca",
       "computer": "Computadora",
       "ai": "IA",
       "team": "Equipo",
@@ -1053,11 +1055,15 @@
         "business": "Qué hacen",
         "you": "Sobre ti",
         "team": "Tu equipo",
+        "who": "Quién entra",
+        "brand": "Tu marca",
         "plan": "Activar el equipo",
         "ai": "Conectar una IA",
         "people": "Invitar personas",
         "namePersonal": "Para qué lo usarás",
         "teamPersonal": "Tus agentes",
+        "whoPersonal": "Quién entra",
+        "brandPersonal": "Tu marca",
         "planPersonal": "Activar los agentes",
         "aiPersonal": "Conectar una IA"
       },
@@ -1068,6 +1074,8 @@
         "team": "Este es el equipo que yo armaría. Puedes cambiar todo después.",
         "teamMade": "El equipo ya está armado. Seguimos cuando quieras.",
         "teamMadePersonal": "Tus agentes ya están aquí. Seguimos cuando quieras.",
+        "who": "El Equipo Doug ya sabe el oficio. Elige quién entra ahora, el resto puede venir después.",
+        "brand": "Antes de ponerlos a trabajar, enséñales tu marca. ROSA y SONY la leen antes de cada pieza.",
         "plan": "Después del plan, solo falta conectar una IA. Te muestro dónde.",
         "planThen": "Con el plan activado, la siguiente pantalla es la de conectar tu IA.",
         "you": "Antes del equipo, un poco sobre ti.",
@@ -1131,7 +1139,14 @@
           "scratchText": "Solo {{name}}, tu mano derecha. Creas cada agente después, a tu manera.",
           "scratchWho": "{{name}} y quien tú crees",
           "see": "Ver el equipo listo",
-          "scratchGo": "Seguir solo con {{name}}"
+          "scratchGo": "Seguir solo con {{name}}",
+          "doug": "Empezar con el Equipo Doug",
+          "dougBadge": "Recomendado",
+          "dougText": "El equipo que lleva la operación de Doug: diseño, vídeo, tráfico, estrategia, redes sociales, código y finanzas. Llegan sin ninguna memoria, listos para aprender tu empresa.",
+          "dougWho_one": "{{count}} agente",
+          "dougWho_many": "{{count}} agentes",
+          "dougWho_other": "{{count}} agentes",
+          "dougGo": "Elegir quién entra"
         },
         "ask": {
           "title": "¿Ya tienes agentes en otra app?",
@@ -1168,6 +1183,61 @@
           "bring": "Traer el equipo",
           "bringPersonal": "Traer los agentes"
         }
+      },
+      "who": {
+        "title": "¿Quién entra en tu equipo?",
+        "lead": "Desmarca a quien no necesites ahora. Puedes llamar a cualquiera después, en Equipo › Nuevo agente.",
+        "fixed": "Se queda",
+        "teamOf_one": "{{count}} en su equipo",
+        "teamOf_many": "{{count}} en su equipo",
+        "teamOf_other": "{{count}} en su equipo",
+        "countAgents_one": "agente en el equipo",
+        "countAgents_many": "agentes en el equipo",
+        "countAgents_other": "agentes en el equipo",
+        "countSkills_one": "skill de oficio",
+        "countSkills_many": "skills de oficio",
+        "countSkills_other": "skills de oficio",
+        "countRoutines_one": "rutina lista, en pausa hasta que la actives",
+        "countRoutines_many": "rutinas listas, en pausa hasta que las actives",
+        "countRoutines_other": "rutinas listas, en pausa hasta que las actives",
+        "skillsCount_one": "{{count}} skill de oficio",
+        "skillsCount_many": "{{count}} skills de oficio",
+        "skillsCount_other": "{{count}} skills de oficio",
+        "note": "Ninguno llega con memoria, cliente o archivo de otra empresa.",
+        "qg": "en {{channel}}",
+        "needsComputer": "necesita una computadora conectada",
+        "connectComputer": "Usar una computadora",
+        "computerPending": "Falta un ordenador conectado: {{names}}.",
+        "create": "Crear el equipo",
+        "required": "Obligatorio"
+      },
+      "brand": {
+        "title": "Enséñale tu marca al equipo",
+        "lead": "De aquí toma ROSA la identidad, SONY el estilo de los vídeos y el Social Media el tono. Todo se queda solo en tu espacio de trabajo.",
+        "company": "Nombre de la empresa",
+        "companyPlaceholder": "Panadería Aurora",
+        "site": "Sitio web",
+        "instagram": "Instagram",
+        "instagramPlaceholder": "@laempresa",
+        "audience": "Público",
+        "audiencePlaceholder": "¿Quién te compra?",
+        "tone": "Tono de voz",
+        "toneOwn": "Escribir el tuyo",
+        "tonePlaceholder": "Con tus palabras: cómo habla la marca",
+        "manual": "Manual de marca, logo, fuentes y colores",
+        "manualText": "Un PDF, Figma, imágenes o un enlace. Se convierte en la skill «Marca {{company}}» de todo el equipo.",
+        "manualPick": "Elegir archivos",
+        "manualLink": "Pegar un enlace",
+        "manualLinkPlaceholder": "https://drive.google.com/…",
+        "manualAdd": "Añadir",
+        "required": "Obligatorio",
+        "saved": "Subido",
+        "failed": "No se subió: {{reason}}",
+        "missingCompany": "Di el nombre de la empresa.",
+        "missingTone": "Elige un tono de voz o escríbelo con tus palabras.",
+        "removeSaved": "También sale de la marca guardada. ¿Quitarlo?",
+        "madeTitle": "El equipo aprendió tu marca",
+        "made": "«Marca {{company}}» ahora es la skill que leen ROSA, SONY, el Social Media y CHESS."
       },
       "plan": {
         "title": "Activa tu equipo",
@@ -5501,6 +5571,7 @@
       "adminAskCreate": "<b>{{name}}</b> pide poder crear agentes",
       "adminAskWebhook": "<b>{{name}}</b> te pide configurar el webhook de {{service}} para rutinas",
       "invitationAccepted": "<b>{{name}}</b> aceptó tu invitación y se unió a {{org}}",
+      "companyRequest": "<b>{{company}}</b> pidió DougBot: una solicitud de <b>{{name}}</b>",
       "invitationAcceptedAny": "<b>{{name}}</b> aceptó tu invitación",
       "reaction_one": "<b>{{names}}</b> reaccionó a tu mensaje",
       "reaction_many": "<b>{{names}}</b> reaccionaron a tu mensaje",
@@ -5510,8 +5581,7 @@
       "usageLimitReached": "<b>{{name}}</b> llegó al límite de {{amount}}",
       "usageLimitRequest": "<b>{{name}}</b> llegó al límite de {{amount}} y pide más",
       "usageLimitRaised": "<b>{{name}}</b> subió tu límite de este mes",
-      "usageLimitRefused": "<b>{{name}}</b> rechazó tu pedido de más uso",
-      "companyRequest": "<b>{{company}}</b> pidió DougBot: una solicitud de <b>{{name}}</b>"
+      "usageLimitRefused": "<b>{{name}}</b> rechazó tu pedido de más uso"
     },
     "usageLimit": {
       "runs_one": "{{count}} pedido este mes",
@@ -15841,6 +15911,21 @@
     "teamProposal": {
       "undoExpired": "Ya pasó más de un día desde que se creó este equipo, así que no se puede deshacer aquí. Archiva los agentes en sus páginas."
     },
+    "dougTeam": {
+      "made": "Este espacio de trabajo ya tiene el Equipo Doug.",
+      "none": "Marca al menos un agente para que entre en el equipo.",
+      "unknown": "El Equipo Doug no tiene {{handles}}.",
+      "ownPath": "El Equipo Doug se crea desde su propia tarjeta, en el onboarding, no desde esta."
+    },
+    "brand": {
+      "pending": "Antes de terminar, enséñale tu marca al equipo: el nombre de la empresa y el tono de voz.",
+      "companyRequired": "Di el nombre de la empresa.",
+      "toneRequired": "Elige o escribe el tono de voz.",
+      "unknownTone": "Uno de los tonos elegidos ya no existe. Recarga y vuelve a elegir.",
+      "invalidLink": "Ese sitio o enlace no parece una dirección válida. Revísalo e inténtalo de nuevo.",
+      "invalidInstagram": "Ese perfil de Instagram no parece válido: escribe @algo.",
+      "fileMissing": "Uno de los archivos del manual ya no está en tu Drive. Súbelo de nuevo."
+    },
     "agentProposal": {
       "decided": "Alguien ya decidió esta propuesta.",
       "expired": "Esta propuesta venció: nadie la decidió en un día.",
@@ -17373,14 +17458,6 @@
     "change": {
       "mergedWithoutAsking": "Hizo merge en {{repo}} sin preguntar",
       "portalApprovedForClient": "Aprobó “{{title}}” en nombre del cliente en el portal",
-      "portalClient": {
-        "renamed": "Renombró al cliente {{client}} en el portal",
-        "hidden": "Quitó al cliente {{client}} de las listas del portal",
-        "shown": "Volvió a mostrar al cliente {{client}} en el portal",
-        "color": "Cambió el color del cliente {{client}} en el portal",
-        "logo": "Cambió el logo del cliente {{client}} en el portal",
-        "logoRemoved": "Quitó el logo del cliente {{client}} en el portal"
-      },
       "pattern": "{{verb}} {{area}}",
       "approval": {
         "approved": "Aprobó una solicitud",
@@ -17560,13 +17637,12 @@
       "voice": "Voz",
       "apps": "Apps de IA",
       "approvals": "Aprobaciones",
-      "portal": "Clientes del portal",
+      "companies": "Solicitudes de empresas",
       "support": "Soporte",
       "about": "Acerca de DougBot",
       "generalPersonal": "Sobre ti",
       "keysPersonal": "IA y apps",
-      "membersPersonal": "Personas",
-      "companies": "Solicitudes de empresas"
+      "membersPersonal": "Personas"
     },
     "advanced": "Avanzado",
     "tab": {
@@ -17594,15 +17670,14 @@
       "voice": "Mensajes de voz en las conversaciones, y quién convierte la voz en texto.",
       "apps": "Pide tareas a los agentes desde Claude, Cursor y otras apps.",
       "approvals": "Quién decide por ti cuando un agente pide tu aprobación.",
-      "portal": "Los clientes que aprueban tus publicaciones, y el enlace que abre cada uno.",
+      "companies": "Empresas que pidieron DougBot en la página.",
       "support": "Quién administra esta instalación y cómo contactarles.",
       "about": "Quién lo hace, su licencia y dónde está su código fuente.",
       "generalPersonal": "Lo que tus agentes saben de ti, y cómo funciona este espacio de trabajo.",
       "usagePersonal": "Cuánta IA usan tus agentes, y tu plan.",
       "connectorsPersonal": "Tus apps y servidores MCP, conectados una vez para tus agentes.",
       "membersPersonal": "Quién está aquí contigo.",
-      "rolesPersonal": "Lo que cada persona de aquí puede hacer. Quien es propietario puede hacerlo todo.",
-      "companies": "Empresas que pidieron DougBot en la página."
+      "rolesPersonal": "Lo que cada persona de aquí puede hacer. Quien es propietario puede hacerlo todo."
     },
     "support": {
       "title": "Contactar al soporte",
@@ -20914,6 +20989,7 @@
       "createdYouPersonal": "Agentes creados por ti",
       "skillsWait": "Las skills esperan a un admin.",
       "weeklyWait": "Mi revisión semanal espera a quien gestiona mis rutinas.",
+      "rightHandWait": "El papel del DOUG como gerente espera a un admin.",
       "undone": "Equipo deshecho",
       "dismissed": "Equipo descartado",
       "undonePersonal": "Agentes deshechos",
@@ -21533,44 +21609,6 @@
       "spent": "{{spent}} de {{monthly}} créditos usados este mes"
     }
   },
-  "portalClients": {
-    "title": "Clientes del portal",
-    "lead": "Cada cliente aprueba tus publicaciones en un enlace propio, sin cuenta. A los contactos del cliente se les avisa por correo y WhatsApp cuando una publicación los espera.",
-    "add": "Añadir cliente",
-    "addTitle": "Nuevo cliente",
-    "edit": "Editar",
-    "editTitle": "Cliente",
-    "remove": "Quitar",
-    "removeTitle": "¿Quitar este cliente?",
-    "removeText": "Su enlace deja de funcionar y sus publicaciones salen de su página. El trabajo sigue en el tablero.",
-    "loading": "Cargando…",
-    "empty": "Aún no hay clientes. Añade uno para tener un enlace que enviar.",
-    "noContacts": "Aún no hay contactos: a nadie se le avisa cuando una publicación espera.",
-    "id": "Id del cliente (minúsculas, sin espacios)",
-    "name": "Nombre",
-    "contactName": "Nombre del contacto",
-    "email": "Correo",
-    "whatsapp": "WhatsApp con el código de país",
-    "addContact": "Añadir contacto",
-    "dropContact": "Quitar contacto",
-    "link": "Enlace del cliente",
-    "copy": "Copiar enlace",
-    "copied": "Enlace copiado",
-    "copyFailed": "No se pudo copiar el enlace",
-    "revoked": "El enlace fue revocado",
-    "linkStale": "Este enlace hay que rehacerlo: crea uno nuevo para enviarlo",
-    "noticesTitle": "Avisos por WhatsApp",
-    "noticesLead": "Los contactos del cliente siempre reciben un correo. El WhatsApp solo sale del número que elijas aquí: sin ninguno, no se envía nada por WhatsApp, y no se usa el número personal de nadie.",
-    "noticesNumber": "Número que avisa",
-    "noticesNone": "Ninguno: solo correo",
-    "noticesNoNumbers": "Todavía no hay ningún número conectado. Conecta uno en Ajustes › WhatsApp para avisar también por ahí.",
-    "locale": "Avisado en {{language}}",
-    "localeLabel": "Idioma",
-    "localeHint": "El idioma de los correos y mensajes que reciben los contactos de este cliente. Nunca se adivina por un nombre; sin elegirlo aquí, es el idioma del equipo.",
-    "localeOwner": "El idioma del equipo",
-    "newLink": "Nuevo enlace",
-    "revoke": "Revocar enlace"
-  },
   "portal": {
     "title": "Portal",
     "subtitle": "Lo que tus clientes aprueban, por cliente",
@@ -21652,19 +21690,6 @@
       "remove": "Quitar logo",
       "saved": "Logo guardado",
       "removed": "Logo quitado"
-    },
-    "clientEdit": {
-      "rename": "Renombrar cliente",
-      "renameTitle": "Renombrar cliente",
-      "renameHelp": "El nombre que tu equipo ve en todas partes. Déjalo vacío para volver a «{{id}}».",
-      "name": "Nombre",
-      "renamed": "Nombre guardado",
-      "hide": "Quitar cliente",
-      "hideTitle": "¿Quitar a «{{name}}»?",
-      "hideText": "Sale de todas las listas y recuentos de aquí. Sus publicaciones y tarjetas siguen en el portal, y puedes traerlo de vuelta desde Clientes ocultos.",
-      "hidden": "«{{name}}» quitado",
-      "hiddenTitle": "Clientes ocultos",
-      "show": "Mostrar de nuevo"
     },
     "clientColor": {
       "label": "Color del cliente",
@@ -21932,5 +21957,160 @@
       "add_many": "Agregar {{count}} archivos",
       "add_other": "Agregar {{count}} archivos"
     }
+  },
+  "dougTeam": {
+    "name": "Equipo Doug",
+    "sub": "Diseño, video, anuncios, estrategia, redes sociales, código y finanzas",
+    "desc": "Todo el equipo de la casa, cada agente con su oficio, sus rutinas y sus skills, con un canal para cada cuartel.",
+    "lead": "El equipo Doug para {{org}}, cada cuartel en su propio canal. Todas las rutinas empiezan en pausa.",
+    "approvals": "Los gastos, las publicaciones y los envíos hacia afuera esperan tu ok.",
+    "channels": {
+      "design": "cg-diseno",
+      "video": "cg-video",
+      "trafego": "cg-anuncios",
+      "estrategia": "cg-estrategia",
+      "social": "cg-redes",
+      "codigo": "cg-codigo",
+      "financeiro": "cg-finanzas"
+    },
+    "agents": {
+      "doug": {
+        "role": "Gerente de operaciones",
+        "line": "Coordina al equipo, sigue los plazos, reparte los pedidos, revisa las entregas y pide aprobación en el momento justo.",
+        "hello": "Hola. Hago que el equipo avance y te traigo solo lo que te necesita."
+      },
+      "rosa": {
+        "role": "Directora de arte",
+        "line": "Hace portadas, carruseles, posts, historias, miniaturas y presentaciones a nivel de agencia, siempre con la identidad de la marca del cliente.",
+        "hello": "Hola. Portadas, carruseles y posts quedan conmigo, siempre en la marca."
+      },
+      "sony": {
+        "role": "Editor de video",
+        "line": "Edita, corta y anima videos a nivel de productora, del material en bruto al Reel aprobado, siempre con la identidad de la marca del cliente.",
+        "hello": "Hola. Mándame el material en bruto y te devuelvo el video editado."
+      },
+      "mark": {
+        "role": "Líder del cuartel de anuncios",
+        "line": "Lleva los anuncios pagados de punta a punta con el equipo de anuncios y cuenta cuánto se gastó, cuánto entró y qué viene.",
+        "hello": "Hola. Lidero el equipo de anuncios y te cuento cuánto se gastó y cuánto entró."
+      },
+      "analistaResultado": {
+        "role": "Analista de resultados del cuartel de anuncios",
+        "line": "Lee la cuenta de anuncios y las ventas reales, mide el costo por venta, el retorno en caja y la fatiga, y dice qué cortar y qué escalar.",
+        "hello": "Hola. Leo los números y digo qué cortar y qué escalar."
+      },
+      "copywriter": {
+        "role": "Redactor del cuartel de anuncios",
+        "line": "Escribe textos, títulos, descripciones, ganchos y guiones cortos de los anuncios, por ángulo y solo con afirmaciones que tienen prueba.",
+        "hello": "Hola. Los textos y ganchos de los anuncios quedan conmigo, solo con afirmaciones probadas."
+      },
+      "diretorCriativo": {
+        "role": "Director creativo del cuartel de anuncios",
+        "line": "Convierte hipótesis y textos en briefs de video y arte, mantiene conceptos distintos al aire y arma cada pieza lista para revisar.",
+        "hello": "Hola. Convierto ideas en briefs y piezas listas para revisar."
+      },
+      "estrategistaMidia": {
+        "role": "Estratega de medios del cuartel de anuncios",
+        "line": "Arma la estructura de las campañas, elige las pruebas de la semana y escribe las órdenes de corte y escala dentro del tope.",
+        "hello": "Hola. Planifico las campañas y las pruebas de la semana dentro del tope."
+      },
+      "financeiroTrafego": {
+        "role": "Finanzas del cuartel de anuncios",
+        "line": "Hace las cuentas de cada proyecto, cuida el tope del día y del mes, controla el presupuesto y mide el retorno real en caja.",
+        "hello": "Hola. Mantengo el presupuesto dentro del tope y mido el retorno real."
+      },
+      "humanizador": {
+        "role": "Última pasada del texto",
+        "line": "Le da la última pasada al texto para que suene humano, sin cambiar hechos, afirmaciones, límites ni formato.",
+        "hello": "Hola. Le doy la última pasada a cada texto para que suene humano."
+      },
+      "operador": {
+        "role": "Operador del cuartel de anuncios",
+        "line": "Ejecuta en la cuenta de anuncios, una por una, las órdenes aprobadas y devuelve el resultado tal como llegó.",
+        "hello": "Hola. Ejecuto en la cuenta de anuncios las órdenes aprobadas, una por una."
+      },
+      "pesquisadorGrowth": {
+        "role": "Investigador de growth del cuartel de anuncios",
+        "line": "Investiga ganchos, creatividades y estrategias de anuncios en el mercado y convierte lo que encuentra en tarjetas de hipótesis de prueba.",
+        "hello": "Hola. Investigo lo que funciona en el mercado y traigo hipótesis para probar."
+      },
+      "revisorPolitica": {
+        "role": "Revisor de políticas del cuartel de anuncios",
+        "line": "Revisa cada anuncio antes de salir contra las reglas de la plataforma, la ley y las afirmaciones del proyecto, y dice pasa, avisa o bloquea.",
+        "hello": "Hola. Reviso cada anuncio contra las reglas antes de que salga."
+      },
+      "chess": {
+        "role": "Estratega de marketing",
+        "line": "Lee la marca y el momento, investiga lo que funciona en el nicho y entrega la estrategia y el texto de cada pieza, con tesis, ganchos y el porqué.",
+        "hello": "Hola. La estrategia y el texto de cada pieza quedan conmigo, siempre con el porqué."
+      },
+      "socialMedia": {
+        "role": "Community manager",
+        "line": "Lleva el calendario y las redes de las marcas, trae ideas de contenido, lleva cada post a aprobación y programa lo aprobado.",
+        "hello": "Hola. El calendario y las redes quedan conmigo, y nada sale sin aprobación."
+      },
+      "junin": {
+        "role": "Programador con IA",
+        "line": "Hace y mantiene los sitios, páginas, automatizaciones e integraciones de la empresa, prueba, publica con el ok y explica el resultado en palabras simples.",
+        "hello": "Hola. Sitios, páginas y automatizaciones quedan conmigo, publicados solo con tu ok."
+      },
+      "kiara": {
+        "role": "Finanzas",
+        "line": "Se encarga de facturas, cobros, alertas del banco, vencimientos e informes de ventas, siempre con aprobación antes de enviar.",
+        "hello": "Hola. Facturas y cobros quedan conmigo, siempre con tu ok antes de enviar."
+      }
+    },
+    "brand": {
+      "tones": {
+        "proximo": "Cercano",
+        "profissional": "Profesional",
+        "divertido": "Divertido",
+        "inspirador": "Inspirador",
+        "direto": "Directo",
+        "acolhedor": "Cálido",
+        "tecnico": "Técnico",
+        "sofisticado": "Sofisticado",
+        "ousado": "Audaz",
+        "educativo": "Educativo"
+      }
+    }
+  },
+  "portalClients": {
+    "title": "Clientes del portal",
+    "lead": "Cada cliente aprueba tus publicaciones en un enlace propio, sin cuenta. A los contactos del cliente se les avisa por correo y WhatsApp cuando una publicación los espera.",
+    "add": "Añadir cliente",
+    "addTitle": "Nuevo cliente",
+    "edit": "Editar",
+    "editTitle": "Cliente",
+    "remove": "Quitar",
+    "removeTitle": "¿Quitar este cliente?",
+    "removeText": "Su enlace deja de funcionar y sus publicaciones salen de su página. El trabajo sigue en el tablero.",
+    "loading": "Cargando…",
+    "empty": "Aún no hay clientes. Añade uno para tener un enlace que enviar.",
+    "noContacts": "Aún no hay contactos: a nadie se le avisa cuando una publicación espera.",
+    "id": "Id del cliente (minúsculas, sin espacios)",
+    "name": "Nombre",
+    "contactName": "Nombre del contacto",
+    "email": "Correo",
+    "whatsapp": "WhatsApp con el código de país",
+    "addContact": "Añadir contacto",
+    "dropContact": "Quitar contacto",
+    "link": "Enlace del cliente",
+    "copy": "Copiar enlace",
+    "copied": "Enlace copiado",
+    "copyFailed": "No se pudo copiar el enlace",
+    "revoked": "El enlace fue revocado",
+    "linkStale": "Este enlace hay que rehacerlo: crea uno nuevo para enviarlo",
+    "noticesTitle": "Avisos por WhatsApp",
+    "noticesLead": "Los contactos del cliente siempre reciben un correo. El WhatsApp solo sale del número que elijas aquí: sin ninguno, no se envía nada por WhatsApp, y no se usa el número personal de nadie.",
+    "noticesNumber": "Número que avisa",
+    "noticesNone": "Ninguno: solo correo",
+    "noticesNoNumbers": "Todavía no hay ningún número conectado. Conecta uno en Ajustes › WhatsApp para avisar también por ahí.",
+    "locale": "Avisado en {{language}}",
+    "localeLabel": "Idioma",
+    "localeHint": "El idioma de los correos y mensajes que reciben los contactos de este cliente. Nunca se adivina por un nombre; sin elegirlo aquí, es el idioma del equipo.",
+    "localeOwner": "El idioma del equipo",
+    "newLink": "Nuevo enlace",
+    "revoke": "Revocar enlace"
   }
 }

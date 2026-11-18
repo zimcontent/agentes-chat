@@ -4517,9 +4517,6 @@
   "legal.home": {
     "value": "Go to the home page"
   },
-  "legal.draft": {
-    "value": "Draft, subject to legal review. What is in [brackets] has not been filled in yet."
-  },
   "legal.none.terms": {
     "value": "This server has no terms page"
   },
@@ -35342,9 +35339,6 @@
   "toolNames.label.offer_feedback": {
     "value": "Offer to report a problem"
   },
-  "toolNames.label.contact_support": {
-    "value": "Ask support for help"
-  },
   "toolReview.title": {
     "value": "Review what the agent can do on its own"
   },
@@ -41333,24 +41327,6 @@
   "audit.change.portalApprovedForClient": {
     "value": "Approved “{{title}}” for the client at the portal"
   },
-  "audit.change.portalClient.renamed": {
-    "value": "Renamed the client {{client}} at the portal"
-  },
-  "audit.change.portalClient.hidden": {
-    "value": "Removed the client {{client}} from the portal's lists"
-  },
-  "audit.change.portalClient.shown": {
-    "value": "Showed the client {{client}} again at the portal"
-  },
-  "audit.change.portalClient.color": {
-    "value": "Changed the client {{client}}'s colour at the portal"
-  },
-  "audit.change.portalClient.logo": {
-    "value": "Changed the client {{client}}'s logo at the portal"
-  },
-  "audit.change.portalClient.logoRemoved": {
-    "value": "Removed the client {{client}}'s logo at the portal"
-  },
   "audit.change.pattern": {
     "value": "{{verb}} {{area}}"
   },
@@ -41816,12 +41792,6 @@
   "settings.section.approvals": {
     "value": "Approvals"
   },
-  "settings.section.portal": {
-    "value": "Portal clients"
-  },
-  "settings.section.support": {
-    "value": "Support"
-  },
   "settings.section.about": {
     "value": "About agentes.chat"
   },
@@ -41903,12 +41873,6 @@
   "settings.sectionText.approvals": {
     "value": "Who decides for you when an agent asks for your approval."
   },
-  "settings.sectionText.portal": {
-    "value": "The clients who approve your posts, and the link each one opens."
-  },
-  "settings.sectionText.support": {
-    "value": "Who runs this installation, and how to reach them."
-  },
   "settings.sectionText.about": {
     "value": "Who makes it, its license and where its source code is."
   },
@@ -41926,54 +41890,6 @@
   },
   "settings.sectionText.rolesPersonal": {
     "value": "What each person here can do. The owner can do everything."
-  },
-  "settings.support.title": {
-    "value": "Reach support"
-  },
-  "settings.support.lead": {
-    "value": "The people who run this installation, for something in the system that doesn't work."
-  },
-  "settings.support.email": {
-    "value": "Email"
-  },
-  "settings.support.whatsapp": {
-    "value": "WhatsApp"
-  },
-  "settings.support.client": {
-    "value": "This installation"
-  },
-  "settings.support.askTitle": {
-    "value": "Ask {{name}} for help"
-  },
-  "settings.support.askLead": {
-    "value": "{{name}} writes down what happened and sends it to support, in your name. You read the message before it goes."
-  },
-  "settings.support.askStatus": {
-    "value": "Opens the conversation with the details already in the box."
-  },
-  "settings.support.ask": {
-    "value": "Ask {{name}} for help"
-  },
-  "settings.support.draft": {
-    "value": "{{name}}, I need help with the system:"
-  },
-  "settings.support.draftWith": {
-    "value": "{{name}}, I need help with the system ({{facts}}):"
-  },
-  "settings.support.draftVersion": {
-    "value": "server version {{version}}"
-  },
-  "settings.support.draftClient": {
-    "value": "installation {{code}}"
-  },
-  "settings.support.draftPage": {
-    "value": "on the page {{page}}"
-  },
-  "settings.support.draftAsk": {
-    "value": "Send this to support with contact_support, in my name."
-  },
-  "settings.support.askNoEmail": {
-    "value": "{{name}} opens the conversation with the details in the box. Write what happened and send it."
   },
   "settings.about.basedOn": {
     "value": "Based on <site>agentes.chat</site> by Codari Global, LLC · AGPL-3.0"
@@ -41995,9 +41911,6 @@
   },
   "settings.account.plans": {
     "value": "Your plans' limits"
-  },
-  "settings.account.legal": {
-    "value": "Terms and privacy"
   },
   "settings.account.device": {
     "value": "On this device"
@@ -44296,9 +44209,6 @@
   "chat.work.step.offeringFeedback": {
     "value": "Offered to report a problem"
   },
-  "chat.work.step.askingSupport": {
-    "value": "Asked support for help"
-  },
   "chat.work.step.deletingRoutine": {
     "value": "Deleted a routine"
   },
@@ -44658,9 +44568,6 @@
   },
   "chat.activity.offeringFeedback": {
     "value": "preparing a report"
-  },
-  "chat.activity.askingSupport": {
-    "value": "asking support for help"
   },
   "chat.activity.deletingRoutine": {
     "value": "deleting a routine"
@@ -50925,114 +50832,6 @@
   "mediaGen.agent.spent": {
     "value": "{{spent}} of {{monthly}} credits used this month"
   },
-  "portalClients.title": {
-    "value": "Portal clients"
-  },
-  "portalClients.lead": {
-    "value": "Each client approves your posts at a link of its own, with no account. A client's contacts are told by e-mail and WhatsApp when a post waits on them."
-  },
-  "portalClients.add": {
-    "value": "Add client"
-  },
-  "portalClients.addTitle": {
-    "value": "New client"
-  },
-  "portalClients.edit": {
-    "value": "Edit"
-  },
-  "portalClients.editTitle": {
-    "value": "Client"
-  },
-  "portalClients.remove": {
-    "value": "Remove"
-  },
-  "portalClients.removeTitle": {
-    "value": "Remove this client?"
-  },
-  "portalClients.removeText": {
-    "value": "Its link stops working and its posts are no longer on its page. The work stays on the board."
-  },
-  "portalClients.loading": {
-    "value": "Loading…"
-  },
-  "portalClients.empty": {
-    "value": "No clients yet. Add one to get a link you can send."
-  },
-  "portalClients.noContacts": {
-    "value": "No contacts yet: nobody is told when a post waits."
-  },
-  "portalClients.id": {
-    "value": "Client id (lowercase, no spaces)"
-  },
-  "portalClients.name": {
-    "value": "Name"
-  },
-  "portalClients.contactName": {
-    "value": "Contact name"
-  },
-  "portalClients.email": {
-    "value": "E-mail"
-  },
-  "portalClients.whatsapp": {
-    "value": "WhatsApp with the country code"
-  },
-  "portalClients.addContact": {
-    "value": "Add contact"
-  },
-  "portalClients.dropContact": {
-    "value": "Remove contact"
-  },
-  "portalClients.link": {
-    "value": "Client link"
-  },
-  "portalClients.copy": {
-    "value": "Copy link"
-  },
-  "portalClients.copied": {
-    "value": "Link copied"
-  },
-  "portalClients.copyFailed": {
-    "value": "Couldn't copy the link"
-  },
-  "portalClients.revoked": {
-    "value": "The link was revoked"
-  },
-  "portalClients.linkStale": {
-    "value": "This link has to be made again: make a new one to send"
-  },
-  "portalClients.noticesTitle": {
-    "value": "WhatsApp notices"
-  },
-  "portalClients.noticesLead": {
-    "value": "A client's contacts are always told by e-mail. WhatsApp goes out only from the number you pick here: with none, nothing is sent on WhatsApp, and nobody's personal number is used."
-  },
-  "portalClients.noticesNumber": {
-    "value": "Number that tells them"
-  },
-  "portalClients.noticesNone": {
-    "value": "None: e-mail only"
-  },
-  "portalClients.noticesNoNumbers": {
-    "value": "No number connected yet. Connect one in Settings › WhatsApp to tell them there too."
-  },
-  "portalClients.locale": {
-    "value": "Told in {{language}}"
-  },
-  "portalClients.localeLabel": {
-    "value": "Language"
-  },
-  "portalClients.localeHint": {
-    "value": "The language of the e-mails and messages this client's contacts get. Never guessed from a name; the team's own when it isn't picked here."
-  },
-  "portalClients.localeOwner": {
-    "value": "The team's language"
-  },
-  "portalClients.newLink": {
-    "value": "New link"
-  },
-  "portalClients.revoke": {
-    "value": "Revoke link"
-  },
   "portal.title": {
     "value": "Portal"
   },
@@ -51218,39 +51017,6 @@
   },
   "portal.clientLogo.removed": {
     "value": "Logo removed"
-  },
-  "portal.clientEdit.rename": {
-    "value": "Rename client"
-  },
-  "portal.clientEdit.renameTitle": {
-    "value": "Rename client"
-  },
-  "portal.clientEdit.renameHelp": {
-    "value": "The name your team sees everywhere. Leave it empty to go back to “{{id}}”."
-  },
-  "portal.clientEdit.name": {
-    "value": "Name"
-  },
-  "portal.clientEdit.renamed": {
-    "value": "Name saved"
-  },
-  "portal.clientEdit.hide": {
-    "value": "Remove client"
-  },
-  "portal.clientEdit.hideTitle": {
-    "value": "Remove “{{name}}”?"
-  },
-  "portal.clientEdit.hideText": {
-    "value": "It leaves every list and count here. Its posts and cards stay at the portal, and you can bring it back from Hidden clients."
-  },
-  "portal.clientEdit.hidden": {
-    "value": "“{{name}}” removed"
-  },
-  "portal.clientEdit.hiddenTitle": {
-    "value": "Hidden clients"
-  },
-  "portal.clientEdit.show": {
-    "value": "Show again"
   },
   "portal.clientColor.label": {
     "value": "Client's colour"
@@ -52223,5 +51989,668 @@
         "value": "The notes are longer than fit here. Shorten them."
       }
     }
+  },
+  "toolNames.label.contact_support": {
+    "value": "Ask support for help"
+  },
+  "settings.section.support": {
+    "value": "Support"
+  },
+  "settings.sectionText.support": {
+    "value": "Who runs this installation, and how to reach them."
+  },
+  "settings.support.title": {
+    "value": "Reach support"
+  },
+  "settings.support.lead": {
+    "value": "The people who run this installation, for something in the system that doesn't work."
+  },
+  "settings.support.email": {
+    "value": "Email"
+  },
+  "settings.support.whatsapp": {
+    "value": "WhatsApp"
+  },
+  "settings.support.client": {
+    "value": "This installation"
+  },
+  "settings.support.askTitle": {
+    "value": "Ask {{name}} for help"
+  },
+  "settings.support.askLead": {
+    "value": "{{name}} writes down what happened and sends it to support, in your name. You read the message before it goes."
+  },
+  "settings.support.askStatus": {
+    "value": "Opens the conversation with the details already in the box."
+  },
+  "settings.support.ask": {
+    "value": "Ask {{name}} for help"
+  },
+  "settings.support.draft": {
+    "value": "{{name}}, I need help with the system:"
+  },
+  "settings.support.draftWith": {
+    "value": "{{name}}, I need help with the system ({{facts}}):"
+  },
+  "settings.support.draftVersion": {
+    "value": "server version {{version}}"
+  },
+  "settings.support.draftClient": {
+    "value": "installation {{code}}"
+  },
+  "settings.support.draftPage": {
+    "value": "on the page {{page}}"
+  },
+  "settings.support.draftAsk": {
+    "value": "Send this to support with contact_support, in my name."
+  },
+  "settings.support.askNoEmail": {
+    "value": "{{name}} opens the conversation with the details in the box. Write what happened and send it."
+  },
+  "chat.work.step.askingSupport": {
+    "value": "Asked support for help"
+  },
+  "chat.activity.askingSupport": {
+    "value": "asking support for help"
+  },
+  "legal.draft": {
+    "value": "Draft, subject to legal review. What is in [brackets] has not been filled in yet."
+  },
+  "settings.account.legal": {
+    "value": "Terms and privacy"
+  },
+  "onboarding.stepNames.brand": {
+    "value": "Your brand"
+  },
+  "errors.dougTeam.made": {
+    "value": "This workspace already has the Doug team. Undo the one it made, or add the agents you want one by one."
+  },
+  "errors.dougTeam.none": {
+    "value": "Check at least one agent of the Doug team."
+  },
+  "errors.dougTeam.unknown": {
+    "value": "The Doug team has no {{handles}}."
+  },
+  "errors.brand.pending": {
+    "value": "Save the brand before finishing. It's the step right after the team."
+  },
+  "errors.brand.companyRequired": {
+    "value": "Say the company's name."
+  },
+  "errors.brand.toneRequired": {
+    "value": "Pick a tone of voice or write it in your own words."
+  },
+  "errors.brand.unknownTone": {
+    "value": "That tone of voice isn't one of the options. Pick one from the list, or write it in your own words."
+  },
+  "errors.brand.invalidLink": {
+    "value": "That link doesn't look like a web address. Check it and try again."
+  },
+  "errors.brand.invalidInstagram": {
+    "value": "That doesn't look like an Instagram profile. Write @yourprofile or paste the profile's link."
+  },
+  "errors.brand.fileMissing": {
+    "value": "One of the files you picked isn't in your Drive anymore. Choose it again."
+  },
+  "dougTeam.name": {
+    "value": "Doug Team"
+  },
+  "dougTeam.sub": {
+    "value": "Design, video, ads, strategy, social media, code and finance"
+  },
+  "dougTeam.desc": {
+    "value": "The house's whole team, each agent with its craft, its routines and its skills, with a channel for each HQ."
+  },
+  "dougTeam.lead": {
+    "value": "The Doug team for {{org}}, each HQ in its own channel. Every routine starts paused."
+  },
+  "dougTeam.approvals": {
+    "value": "Spending, publishing and sending anything outside wait for your ok."
+  },
+  "dougTeam.channels.design": {
+    "value": "hq-design"
+  },
+  "dougTeam.channels.video": {
+    "value": "hq-video"
+  },
+  "dougTeam.channels.trafego": {
+    "value": "hq-ads"
+  },
+  "dougTeam.channels.estrategia": {
+    "value": "hq-strategy"
+  },
+  "dougTeam.channels.social": {
+    "value": "hq-social"
+  },
+  "dougTeam.channels.codigo": {
+    "value": "hq-code"
+  },
+  "dougTeam.channels.financeiro": {
+    "value": "hq-finance"
+  },
+  "dougTeam.agents.doug.role": {
+    "value": "Operations manager"
+  },
+  "dougTeam.agents.doug.line": {
+    "value": "Coordinates the team, follows deadlines, hands out requests, reviews deliveries and asks for approval at the right moment."
+  },
+  "dougTeam.agents.doug.hello": {
+    "value": "Hi. I keep the team moving and bring you only what needs you."
+  },
+  "dougTeam.agents.rosa.role": {
+    "value": "Art director"
+  },
+  "dougTeam.agents.rosa.line": {
+    "value": "Makes covers, carousels, posts, stories, thumbnails and decks at agency level, always in the client's brand."
+  },
+  "dougTeam.agents.rosa.hello": {
+    "value": "Hi. Covers, carousels and posts are on me, always in the brand."
+  },
+  "dougTeam.agents.sony.role": {
+    "value": "Video editor"
+  },
+  "dougTeam.agents.sony.line": {
+    "value": "Edits, cuts and animates videos at studio level, from the raw footage to the approved Reel, always in the client's brand."
+  },
+  "dougTeam.agents.sony.hello": {
+    "value": "Hi. Send me the raw footage and I'll bring back the edited video."
+  },
+  "dougTeam.agents.mark.role": {
+    "value": "Head of the ads HQ"
+  },
+  "dougTeam.agents.mark.line": {
+    "value": "Runs paid ads end to end with the ads team and reports what was spent, what came in and what comes next."
+  },
+  "dougTeam.agents.mark.hello": {
+    "value": "Hi. I lead the ads team and tell you what was spent and what came in."
+  },
+  "dougTeam.agents.analistaResultado.role": {
+    "value": "Results analyst of the ads HQ"
+  },
+  "dougTeam.agents.analistaResultado.line": {
+    "value": "Reads the ad account and real sales, measures cost per sale, cash return and fatigue, and says what to cut and what to scale."
+  },
+  "dougTeam.agents.analistaResultado.hello": {
+    "value": "Hi. I read the numbers and say what to cut and what to scale."
+  },
+  "dougTeam.agents.copywriter.role": {
+    "value": "Copywriter of the ads HQ"
+  },
+  "dougTeam.agents.copywriter.line": {
+    "value": "Writes ad text, headlines, descriptions, hooks and short scripts, by angle and only with claims that have proof."
+  },
+  "dougTeam.agents.copywriter.hello": {
+    "value": "Hi. Ad copy and hooks are on me, only with claims that have proof."
+  },
+  "dougTeam.agents.diretorCriativo.role": {
+    "value": "Creative director of the ads HQ"
+  },
+  "dougTeam.agents.diretorCriativo.line": {
+    "value": "Turns hypotheses and copy into video and art briefs, keeps different concepts live and builds each piece ready for review."
+  },
+  "dougTeam.agents.diretorCriativo.hello": {
+    "value": "Hi. I turn ideas into briefs and pieces ready for review."
+  },
+  "dougTeam.agents.estrategistaMidia.role": {
+    "value": "Media strategist of the ads HQ"
+  },
+  "dougTeam.agents.estrategistaMidia.line": {
+    "value": "Sets up the campaign structure, picks the week's tests and writes the cut and scale orders within the cap."
+  },
+  "dougTeam.agents.estrategistaMidia.hello": {
+    "value": "Hi. I plan the campaigns and the week's tests within the cap."
+  },
+  "dougTeam.agents.financeiroTrafego.role": {
+    "value": "Finance of the ads HQ"
+  },
+  "dougTeam.agents.financeiroTrafego.line": {
+    "value": "Does each project's math, keeps the daily and monthly cap, controls the budget and measures the real cash return."
+  },
+  "dougTeam.agents.financeiroTrafego.hello": {
+    "value": "Hi. I keep the ad budget within the cap and measure the real return."
+  },
+  "dougTeam.agents.humanizador.role": {
+    "value": "Last pass on the copy"
+  },
+  "dougTeam.agents.humanizador.line": {
+    "value": "Gives the copy a last pass so it sounds like a person, without changing facts, claims, limits or format."
+  },
+  "dougTeam.agents.humanizador.hello": {
+    "value": "Hi. I give every copy a last pass so it sounds like a person."
+  },
+  "dougTeam.agents.operador.role": {
+    "value": "Operator of the ads HQ"
+  },
+  "dougTeam.agents.operador.line": {
+    "value": "Carries out the approved orders in the ad account, one by one, and returns the result exactly as it came."
+  },
+  "dougTeam.agents.operador.hello": {
+    "value": "Hi. I carry out the approved orders in the ad account, one by one."
+  },
+  "dougTeam.agents.pesquisadorGrowth.role": {
+    "value": "Growth researcher of the ads HQ"
+  },
+  "dougTeam.agents.pesquisadorGrowth.line": {
+    "value": "Researches hooks, creatives and ad strategies in the market and turns what it finds into test hypothesis cards."
+  },
+  "dougTeam.agents.pesquisadorGrowth.hello": {
+    "value": "Hi. I research what works in the market and bring hypotheses to test."
+  },
+  "dougTeam.agents.revisorPolitica.role": {
+    "value": "Policy reviewer of the ads HQ"
+  },
+  "dougTeam.agents.revisorPolitica.line": {
+    "value": "Checks each ad before it goes live against the platform's rules, the law and the project's claims, and says pass, warn or block."
+  },
+  "dougTeam.agents.revisorPolitica.hello": {
+    "value": "Hi. I check every ad against the rules before it goes live."
+  },
+  "dougTeam.agents.chess.role": {
+    "value": "Marketing strategist"
+  },
+  "dougTeam.agents.chess.line": {
+    "value": "Reads the brand and the moment, researches what works in the niche and delivers the strategy and copy of each piece, with a thesis, hooks and the why."
+  },
+  "dougTeam.agents.chess.hello": {
+    "value": "Hi. Strategy and copy for each piece are on me, always with the why."
+  },
+  "dougTeam.agents.socialMedia.role": {
+    "value": "Social media manager"
+  },
+  "dougTeam.agents.socialMedia.line": {
+    "value": "Owns the calendar and the brands' networks, brings content ideas, takes each post to approval and schedules what was approved."
+  },
+  "dougTeam.agents.socialMedia.hello": {
+    "value": "Hi. The calendar and the networks are on me, and nothing goes out without approval."
+  },
+  "dougTeam.agents.junin.role": {
+    "value": "Vibe coder"
+  },
+  "dougTeam.agents.junin.line": {
+    "value": "Builds and maintains the company's sites, pages, automations and integrations, tests, publishes with an ok and explains the result in plain words."
+  },
+  "dougTeam.agents.junin.hello": {
+    "value": "Hi. Sites, pages and automations are on me, published only with your ok."
+  },
+  "dougTeam.agents.kiara.role": {
+    "value": "Finance"
+  },
+  "dougTeam.agents.kiara.line": {
+    "value": "Takes care of invoices, collections, bank alerts, due dates and sales reports, always with approval before sending."
+  },
+  "dougTeam.agents.kiara.hello": {
+    "value": "Hi. Invoices and collections are on me, always with your ok before sending."
+  },
+  "dougTeam.brand.tones.proximo": {
+    "value": "Friendly"
+  },
+  "dougTeam.brand.tones.profissional": {
+    "value": "Professional"
+  },
+  "dougTeam.brand.tones.divertido": {
+    "value": "Fun"
+  },
+  "dougTeam.brand.tones.inspirador": {
+    "value": "Inspiring"
+  },
+  "dougTeam.brand.tones.direto": {
+    "value": "Straightforward"
+  },
+  "dougTeam.brand.tones.acolhedor": {
+    "value": "Warm"
+  },
+  "dougTeam.brand.tones.tecnico": {
+    "value": "Technical"
+  },
+  "dougTeam.brand.tones.sofisticado": {
+    "value": "Sophisticated"
+  },
+  "dougTeam.brand.tones.ousado": {
+    "value": "Bold"
+  },
+  "dougTeam.brand.tones.educativo": {
+    "value": "Educational"
+  },
+  "common.remove": {
+    "value": "Remove"
+  },
+  "onboarding.flow.steps.who": {
+    "value": "Who joins"
+  },
+  "onboarding.flow.steps.brand": {
+    "value": "Your brand"
+  },
+  "onboarding.flow.steps.whoPersonal": {
+    "value": "Who joins"
+  },
+  "onboarding.flow.steps.brandPersonal": {
+    "value": "Your brand"
+  },
+  "onboarding.flow.lodi.who": {
+    "value": "The Doug team already knows the craft. Pick who joins now, the rest can come later."
+  },
+  "onboarding.flow.lodi.brand": {
+    "value": "Last thing before I put them to work: teach them your brand. ROSA and SONY read it before every piece."
+  },
+  "onboarding.flow.team.start.doug": {
+    "value": "Start with the Doug team"
+  },
+  "onboarding.flow.team.start.dougBadge": {
+    "value": "Recommended"
+  },
+  "onboarding.flow.team.start.dougText": {
+    "value": "The team that runs Doug's operation: design, video, ads, strategy, social media, code and finance. They arrive with no memory at all, ready to learn your company."
+  },
+  "onboarding.flow.team.start.dougWho": {
+    "value": {
+      "one": "{{count}} agent",
+      "other": "{{count}} agents"
+    }
+  },
+  "onboarding.flow.team.start.dougGo": {
+    "value": "Choose who joins"
+  },
+  "onboarding.flow.who.title": {
+    "value": "Who joins your team?"
+  },
+  "onboarding.flow.who.lead": {
+    "value": "Uncheck whoever you don't need now. You can call any of them later, in Team › New agent."
+  },
+  "onboarding.flow.who.fixed": {
+    "value": "Stays"
+  },
+  "onboarding.flow.who.teamOf": {
+    "value": {
+      "one": "{{count}} in its team",
+      "other": "{{count}} in its team"
+    }
+  },
+  "onboarding.flow.who.note": {
+    "value": "None of them arrives with memory, a client or a file from another company."
+  },
+  "onboarding.flow.who.qg": {
+    "value": "in {{channel}}"
+  },
+  "onboarding.flow.who.needsComputer": {
+    "value": "needs a computer connected"
+  },
+  "onboarding.flow.who.connectComputer": {
+    "value": "Use a computer"
+  },
+  "onboarding.flow.who.countAgents": {
+    "value": {
+      "one": "agent on the team",
+      "other": "agents on the team"
+    }
+  },
+  "onboarding.flow.who.countSkills": {
+    "value": {
+      "one": "craft skill",
+      "other": "craft skills"
+    }
+  },
+  "onboarding.flow.who.countRoutines": {
+    "value": {
+      "one": "ready routine, paused until you turn it on",
+      "other": "ready routines, paused until you turn them on"
+    }
+  },
+  "onboarding.flow.who.computerPending": {
+    "value": "Needs a computer connected: {{names}}."
+  },
+  "onboarding.flow.who.required": {
+    "value": "Required"
+  },
+  "onboarding.flow.who.create": {
+    "value": "Create the team"
+  },
+  "onboarding.flow.brand.title": {
+    "value": "Teach your brand to the team"
+  },
+  "onboarding.flow.brand.lead": {
+    "value": "This is where ROSA takes the identity, SONY the style of the videos and the Social Media the tone. All of it stays in your workspace."
+  },
+  "onboarding.flow.brand.company": {
+    "value": "Company name"
+  },
+  "onboarding.flow.brand.companyPlaceholder": {
+    "value": "Aurora Bakery"
+  },
+  "onboarding.flow.brand.site": {
+    "value": "Website"
+  },
+  "onboarding.flow.brand.instagram": {
+    "value": "Instagram"
+  },
+  "onboarding.flow.brand.instagramPlaceholder": {
+    "value": "@thecompany"
+  },
+  "onboarding.flow.brand.audience": {
+    "value": "Audience"
+  },
+  "onboarding.flow.brand.audiencePlaceholder": {
+    "value": "Who buys from you?"
+  },
+  "onboarding.flow.brand.tone": {
+    "value": "Tone of voice"
+  },
+  "onboarding.flow.brand.toneOwn": {
+    "value": "Write your own"
+  },
+  "onboarding.flow.brand.tonePlaceholder": {
+    "value": "In your words: how the brand talks"
+  },
+  "onboarding.flow.brand.manual": {
+    "value": "Brand manual, logo, fonts and colors"
+  },
+  "onboarding.flow.brand.manualText": {
+    "value": "A PDF, Figma, images or a link. It becomes the skill “Brand {{company}}” for the whole team."
+  },
+  "onboarding.flow.brand.manualPick": {
+    "value": "Choose files"
+  },
+  "onboarding.flow.brand.manualLink": {
+    "value": "Paste a link"
+  },
+  "onboarding.flow.brand.manualLinkPlaceholder": {
+    "value": "https://drive.google.com/…"
+  },
+  "onboarding.flow.brand.manualAdd": {
+    "value": "Add"
+  },
+  "onboarding.flow.brand.saved": {
+    "value": "Saved"
+  },
+  "onboarding.flow.brand.madeTitle": {
+    "value": "The team learned your brand"
+  },
+  "onboarding.flow.brand.made": {
+    "value": "“Brand {{company}}” is now the skill ROSA, SONY, the Social Media and CHESS read."
+  },
+  "onboarding.flow.brand.required": {
+    "value": "Required"
+  },
+  "onboarding.flow.brand.failed": {
+    "value": "Not uploaded: {{reason}}"
+  },
+  "onboarding.flow.brand.missingCompany": {
+    "value": "Say the company's name."
+  },
+  "onboarding.flow.brand.missingTone": {
+    "value": "Pick a tone of voice or write your own."
+  },
+  "onboarding.flow.brand.removeSaved": {
+    "value": "Removes it from the saved brand too. Take it off?"
+  },
+  "onboarding.flow.who.skillsCount": {
+    "value": {
+      "one": "{{count}} craft skill",
+      "other": "{{count}} craft skills"
+    }
+  },
+  "audit.change.portalClient.renamed": {
+    "value": "Renamed the client {{client}} at the portal"
+  },
+  "audit.change.portalClient.hidden": {
+    "value": "Removed the client {{client}} from the portal's lists"
+  },
+  "audit.change.portalClient.shown": {
+    "value": "Showed the client {{client}} again at the portal"
+  },
+  "audit.change.portalClient.color": {
+    "value": "Changed the client {{client}}'s colour at the portal"
+  },
+  "audit.change.portalClient.logo": {
+    "value": "Changed the client {{client}}'s logo at the portal"
+  },
+  "audit.change.portalClient.logoRemoved": {
+    "value": "Removed the client {{client}}'s logo at the portal"
+  },
+  "settings.section.portal": {
+    "value": "Portal clients"
+  },
+  "settings.sectionText.portal": {
+    "value": "The clients who approve your posts, and the link each one opens."
+  },
+  "portalClients.title": {
+    "value": "Portal clients"
+  },
+  "portalClients.lead": {
+    "value": "Each client approves your posts at a link of its own, with no account. A client's contacts are told by e-mail and WhatsApp when a post waits on them."
+  },
+  "portalClients.add": {
+    "value": "Add client"
+  },
+  "portalClients.addTitle": {
+    "value": "New client"
+  },
+  "portalClients.edit": {
+    "value": "Edit"
+  },
+  "portalClients.editTitle": {
+    "value": "Client"
+  },
+  "portalClients.remove": {
+    "value": "Remove"
+  },
+  "portalClients.removeTitle": {
+    "value": "Remove this client?"
+  },
+  "portalClients.removeText": {
+    "value": "Its link stops working and its posts are no longer on its page. The work stays on the board."
+  },
+  "portalClients.loading": {
+    "value": "Loading…"
+  },
+  "portalClients.empty": {
+    "value": "No clients yet. Add one to get a link you can send."
+  },
+  "portalClients.noContacts": {
+    "value": "No contacts yet: nobody is told when a post waits."
+  },
+  "portalClients.id": {
+    "value": "Client id (lowercase, no spaces)"
+  },
+  "portalClients.name": {
+    "value": "Name"
+  },
+  "portalClients.contactName": {
+    "value": "Contact name"
+  },
+  "portalClients.email": {
+    "value": "E-mail"
+  },
+  "portalClients.whatsapp": {
+    "value": "WhatsApp with the country code"
+  },
+  "portalClients.addContact": {
+    "value": "Add contact"
+  },
+  "portalClients.dropContact": {
+    "value": "Remove contact"
+  },
+  "portalClients.link": {
+    "value": "Client link"
+  },
+  "portalClients.copy": {
+    "value": "Copy link"
+  },
+  "portalClients.copied": {
+    "value": "Link copied"
+  },
+  "portalClients.copyFailed": {
+    "value": "Couldn't copy the link"
+  },
+  "portalClients.revoked": {
+    "value": "The link was revoked"
+  },
+  "portalClients.linkStale": {
+    "value": "This link has to be made again: make a new one to send"
+  },
+  "portalClients.noticesTitle": {
+    "value": "WhatsApp notices"
+  },
+  "portalClients.noticesLead": {
+    "value": "A client's contacts are always told by e-mail. WhatsApp goes out only from the number you pick here: with none, nothing is sent on WhatsApp, and nobody's personal number is used."
+  },
+  "portalClients.noticesNumber": {
+    "value": "Number that tells them"
+  },
+  "portalClients.noticesNone": {
+    "value": "None: e-mail only"
+  },
+  "portalClients.noticesNoNumbers": {
+    "value": "No number connected yet. Connect one in Settings › WhatsApp to tell them there too."
+  },
+  "portalClients.locale": {
+    "value": "Told in {{language}}"
+  },
+  "portalClients.localeLabel": {
+    "value": "Language"
+  },
+  "portalClients.localeHint": {
+    "value": "The language of the e-mails and messages this client's contacts get. Never guessed from a name; the team's own when it isn't picked here."
+  },
+  "portalClients.localeOwner": {
+    "value": "The team's language"
+  },
+  "portalClients.newLink": {
+    "value": "New link"
+  },
+  "portalClients.revoke": {
+    "value": "Revoke link"
+  },
+  "portal.clientEdit.rename": {
+    "value": "Rename client"
+  },
+  "portal.clientEdit.renameTitle": {
+    "value": "Rename client"
+  },
+  "portal.clientEdit.renameHelp": {
+    "value": "The name your team sees everywhere. Leave it empty to go back to “{{id}}”."
+  },
+  "portal.clientEdit.name": {
+    "value": "Name"
+  },
+  "portal.clientEdit.renamed": {
+    "value": "Name saved"
+  },
+  "portal.clientEdit.hide": {
+    "value": "Remove client"
+  },
+  "portal.clientEdit.hideTitle": {
+    "value": "Remove “{{name}}”?"
+  },
+  "portal.clientEdit.hideText": {
+    "value": "It leaves every list and count here. Its posts and cards stay at the portal, and you can bring it back from Hidden clients."
+  },
+  "portal.clientEdit.hidden": {
+    "value": "“{{name}}” removed"
+  },
+  "portal.clientEdit.hiddenTitle": {
+    "value": "Hidden clients"
+  },
+  "portal.clientEdit.show": {
+    "value": "Show again"
   }
 }

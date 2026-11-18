@@ -187,11 +187,9 @@ export function carryRoutes(deps: AppDeps) {
         .array(Copy)
         .openapi({ description: "The same agent in your other workspaces, trained as one with it." }),
       hidden: z.number().int().openapi({ description: "Copies in workspaces you aren't in." }),
-      candidates: z
-        .array(Copy)
-        .openapi({
-          description: "Agents of its handle in your other workspaces, where you manage agents, that can join.",
-        }),
+      candidates: z.array(Copy).openapi({
+        description: "Agents of its handle in your other workspaces, where you manage agents, that can join.",
+      }),
       off: z.boolean().openapi({ description: "Taken out on purpose: it isn't joined on its own again." }),
       syncedAt: z.date().nullable(),
       missing: z.array(z.object({ orgName: z.string(), kind: z.enum(["connection", "skill"]), label: z.string() })),

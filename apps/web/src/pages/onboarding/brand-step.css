@@ -1,0 +1,213 @@
+/*
+ * "Ensine a sua marca ao time" (docs/adr/doug-0030-time-doug.md): the company's fields two by two, the tone's chips,
+ * the brand manual as one dashed box with its files under it. The kit's ruler, the onboarding's column.
+ */
+.onb-brand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+/* The four optional facts, two by two from 640, each a field of its own. */
+.onb-brand__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+@media (min-width: 640px) {
+  .onb-brand__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+/* "Obrigatório" beside a label that is: quiet, after the word. */
+.onb-brand__req {
+  flex: none;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--faint);
+}
+/*
+ * The tones are a group of toggles (a fieldset, so screen readers hear the label): no border, no margin of its own. The
+ * chips wrap on the kit's 8, every one the same height (a fieldset is a block, so its chips would be inline boxes that
+ * break on the text's line height and its baseline gap).
+ */
+fieldset.onb-brand__tones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+fieldset.onb-brand__tones .tp-chip {
+  flex: none;
+}
+/* A picked chip: the kit's chip button darkens its plate; its ring says it's on. */
+.onb-brand__tones .tp-chip[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--raised);
+}
+.onb-brand__own.ac-input {
+  margin-top: var(--space-2);
+  min-height: var(--control-h-md);
+  padding-block: var(--space-2);
+  resize: none;
+}
+/*
+ * The brand manual: a dashed box (a drop zone), its mark, its words and the two ways in, its files below on the same
+ * plate. Dashed, never a plain border: it is where something goes, not where something is.
+ */
+.onb-brand__manual {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+/*
+ * Two rows: the mark and its words on the first, full width (the words never squeezed beside the buttons), the two ways
+ * in under them at the box's start.
+ */
+.onb-brand__drop {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1.5px dashed var(--line2);
+  border-radius: var(--radius-lg);
+  background: var(--sunken);
+}
+/*
+ * The upload mark stays under the kit's square (a face or a tile owns no column beside 3 or more lines, rule 4): an
+ * inline glyph at the words' first line, inside their own start.
+ */
+.onb-brand__drop-mark {
+  flex: none;
+  align-self: start;
+  display: grid;
+  place-items: center;
+  width: var(--control-icon-lg);
+  height: var(--control-icon-lg);
+  margin-top: 1px;
+  color: var(--muted);
+}
+.onb-brand__drop-text {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space-1) / 2);
+  min-width: 0;
+}
+.onb-brand__drop-text b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.onb-brand__drop-text span {
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.onb-brand__drop-acts {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+/* The files and links already taken, each one line with its ×. */
+.onb-brand__files {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.onb-brand__file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--control-h-sm);
+  padding: 0 var(--space-2) 0 var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--plate);
+  color: var(--muted);
+}
+.onb-brand__file-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 13.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.onb-brand__file-state {
+  flex: none;
+  font-size: 12px;
+  color: var(--faint);
+}
+/* The × on its plate, 8 from the row's end (its words' height, the row's). */
+.onb-brand__file-x {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--faint);
+  cursor: pointer;
+}
+/* On touch, the ×'s target grows to 44 past its 24 plate, as a small button's does. */
+@media (pointer: coarse) {
+  .onb-brand__file-x {
+    position: relative;
+  }
+  .onb-brand__file-x::after {
+    content: "";
+    position: absolute;
+    inset: calc((var(--space-6) - var(--touch-target)) / 2) 0;
+  }
+}
+/* "Take it off?" in place of a file's state and ×, once the brand is saved: the words, then its two actions. */
+.onb-brand__file-ask {
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.onb-brand__file-x:hover {
+  background: var(--raised);
+  color: var(--ink);
+}
+html:not([data-pointer]) .onb-brand__file-x:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+/* The link's field and its "Add", one row. */
+.onb-brand__linkrow {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.onb-brand__linkrow .ac-input {
+  flex: 1;
+  min-width: 0;
+}
+/* A phone: the box's ways in under its words, the row's ends 8 from its edges. */
+@media (max-width: 560px) {
+  .onb-brand__drop {
+    flex-wrap: wrap;
+  }
+  .onb-brand__drop-text {
+    flex-basis: calc(100% - var(--control-h-md) - var(--space-3));
+  }
+  .onb-brand__drop-acts {
+    flex-basis: 100%;
+  }
+  .onb-brand__drop-acts .ac-btn {
+    flex: 1;
+  }
+}

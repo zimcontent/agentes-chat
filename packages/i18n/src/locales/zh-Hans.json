@@ -14,6 +14,7 @@
     "nextMonth": "下个月",
     "chooseDate": "选择日期",
     "cancel": "取消",
+    "remove": "去掉",
     "save": "保存",
     "back": "返回",
     "continue": "继续",
@@ -748,6 +749,9 @@
       "message": "其他",
       "messageExample": "我们每周手工发布两条视频。",
       "messageOptional": "选填",
+      "messageTooLong": "这比表单能接受的长，请缩短。",
+      "invalidField": "请检查表单的这一部分后重试。",
+      "invalidEmail": "请填写类似 ana@company.com 的邮箱。",
       "consent": "我同意 DougBot 保存这些回答以便与我联系，具体如 <link>隐私政策</link> 所述。",
       "consentRequired": "接受隐私政策才能继续。",
       "submit": "发送申请",
@@ -755,11 +759,6 @@
       "doneTitle": "我们已收到你的申请",
       "doneLead": "团队会阅读每一份申请，并通过 WhatsApp 与每家公司沟通。你也会收到一封邮件。",
       "again": "再发一份申请",
-      "failed": "申请未能发送。请重试。",
-      "privacy": "隐私政策",
-      "messageTooLong": "这比表单能接受的长，请缩短。",
-      "invalidField": "请检查表单的这一部分后重试。",
-      "invalidEmail": "请填写类似 ana@company.com 的邮箱。",
       "confirmTitle": "正在确认你的邮箱…",
       "confirmLead": "请稍候。",
       "confirmFailedTitle": "此链接未知或已过期",
@@ -771,7 +770,9 @@
       "deletedTitle": "请求已删除",
       "deletedLead": "其中的一切都不在了。不再保留任何其他内容。",
       "deleteFailedTitle": "此链接无法识别或已被使用",
-      "deleteFailedLead": "没有可用它删除的内容了，或者链接已过期。"
+      "deleteFailedLead": "没有可用它删除的内容了，或者链接已过期。",
+      "failed": "申请未能发送。请重试。",
+      "privacy": "隐私政策"
     },
     "interests": {
       "design": "设计",
@@ -795,6 +796,7 @@
       "search": "搜索公司、联系人或邮箱",
       "none": "没有找到申请。",
       "count": "{{count}} 份申请",
+      "more": "更多",
       "status": {
         "new": "新",
         "talking": "洽谈中",
@@ -829,7 +831,6 @@
       "noEmail": "此服务器不发送邮件，因此无法发出邀请。",
       "codeTaken": "另一家公司已使用此编号。",
       "codeInvalid": "客户编号是三位数字。",
-      "more": "更多",
       "pendingConfirm": "这个地址有一份待确认的新表单：确认之前，团队看到的仍是原来的申请。",
       "delete": "删除",
       "deleteTitle": "删除 {{company}} 的申请？",
@@ -994,6 +995,7 @@
       "context": "背景信息",
       "import": "带上你的智能体",
       "agents": "智能体",
+      "brand": "你的品牌",
       "computer": "电脑",
       "ai": "AI",
       "team": "团队",
@@ -1015,11 +1017,15 @@
         "business": "你们做什么",
         "you": "关于你",
         "team": "你的团队",
+        "who": "谁加入",
+        "brand": "你的品牌",
         "plan": "开启团队",
         "ai": "连接 AI",
         "people": "邀请成员",
         "namePersonal": "用途",
         "teamPersonal": "你的智能体",
+        "whoPersonal": "谁加入",
+        "brandPersonal": "你的品牌",
         "planPersonal": "开启智能体",
         "aiPersonal": "连接 AI"
       },
@@ -1030,6 +1036,8 @@
         "team": "这是我会组建的团队。之后可以随时修改。",
         "teamMade": "团队已经组好了。准备好了我们就继续。",
         "teamMadePersonal": "你的智能体已经到了。准备好了我们就继续。",
+        "who": "Doug 团队已经懂这门手艺。现在选择谁加入，其余的以后再说。",
+        "brand": "在让他们开工之前，教他们你的品牌。ROSA 和 SONY 每做一条内容前都会读它。",
         "plan": "有了套餐之后，只差连接一个 AI。我会告诉你在哪里连接。",
         "planThen": "套餐开通后，下一个界面就是连接你的 AI。",
         "you": "组建团队前，先简单了解一下你。",
@@ -1091,7 +1099,12 @@
           "scratchText": "只有你的得力助手 {{name}}。每个智能体之后按你的方式逐个创建。",
           "scratchWho": "{{name}}，以及你将创建的智能体",
           "see": "查看现成的团队",
-          "scratchGo": "只带着 {{name}} 继续"
+          "scratchGo": "只带着 {{name}} 继续",
+          "doug": "从 Doug 团队开始",
+          "dougBadge": "推荐",
+          "dougText": "负责 Doug 运营的团队：设计、视频、广告、策略、社交媒体、代码和财务。他们不带任何记忆，准备好学习你的公司。",
+          "dougWho_other": "{{count}} 个 智能体",
+          "dougGo": "选择谁加入"
         },
         "ask": {
           "title": "你已经在其他应用中有智能体了吗？",
@@ -1126,6 +1139,51 @@
           "bring": "导入团队",
           "bringPersonal": "导入智能体"
         }
+      },
+      "who": {
+        "title": "谁加入你的团队？",
+        "lead": "取消勾选你现在不需要的人。以后可以在 团队 › 新建 智能体 里叫任何人。",
+        "fixed": "保留",
+        "teamOf_other": "他的团队有 {{count}} 个",
+        "countAgents_other": "团队的智能体",
+        "countSkills_other": "专业技能",
+        "countRoutines_other": "就绪例程（在你开启前暂停）",
+        "skillsCount_other": "{{count}} 项专业技能",
+        "note": "没有人带着别的公司的记忆、客户或文件。",
+        "qg": "在 {{channel}}",
+        "needsComputer": "需要一台已连接的电脑",
+        "connectComputer": "使用电脑",
+        "computerPending": "还缺一台已连接的电脑：{{names}}。",
+        "create": "创建团队",
+        "required": "必填"
+      },
+      "brand": {
+        "title": "把你的品牌教给团队",
+        "lead": "ROSA 从这里取视觉识别，SONY 取视频风格，社交媒体取语气。一切都只留在你的工作区。",
+        "company": "公司名称",
+        "companyPlaceholder": "Aurora 面包店",
+        "site": "网站",
+        "instagram": "Instagram",
+        "instagramPlaceholder": "@company",
+        "audience": "受众",
+        "audiencePlaceholder": "谁向你购买？",
+        "tone": "语气",
+        "toneOwn": "自己写",
+        "tonePlaceholder": "用你的话：品牌怎么说话",
+        "manual": "品牌手册、logo、字体和颜色",
+        "manualText": "PDF、Figma、图片或链接。它会变成整个团队的「{{company}} 品牌」技能。",
+        "manualPick": "选择文件",
+        "manualLink": "粘贴链接",
+        "manualLinkPlaceholder": "https://drive.google.com/…",
+        "manualAdd": "添加",
+        "required": "必填",
+        "saved": "已上传",
+        "failed": "未上传：{{reason}}",
+        "missingCompany": "填写公司名称。",
+        "missingTone": "选择一种语气，或用自己的话写。",
+        "removeSaved": "也会从已保存的品牌里去掉。去掉吗?",
+        "madeTitle": "团队学会了你的品牌",
+        "made": "「{{company}} 品牌」现在是 ROSA、SONY、社交媒体和 CHESS 读取的技能。"
       },
       "plan": {
         "title": "开启你的团队",
@@ -5155,6 +5213,7 @@
       "adminAskCreate": "<b>{{name}}</b> 请求获得创建智能体的权限",
       "adminAskWebhook": "<b>{{name}}</b> 请你为例行任务设置 {{service}} Webhook",
       "invitationAccepted": "<b>{{name}}</b> 接受了你的邀请并加入了 {{org}}",
+      "companyRequest": "<b>{{company}}</b> 申请了 DougBot：来自 <b>{{name}}</b> 的申请",
       "invitationAcceptedAny": "<b>{{name}}</b> 接受了你的邀请",
       "reaction_other": "<b>{{names}}</b> 对你的消息发了表情回应",
       "usageLimitWarning": "本月你已用掉额度的 {{percent}}%",
@@ -5162,8 +5221,7 @@
       "usageLimitReached": "<b>{{name}}</b> 已达到 {{amount}} 的额度",
       "usageLimitRequest": "<b>{{name}}</b> 已达到 {{amount}} 的额度并申请增加",
       "usageLimitRaised": "<b>{{name}}</b> 提高了你本月的额度",
-      "usageLimitRefused": "<b>{{name}}</b> 拒绝了你增加使用的申请",
-      "companyRequest": "<b>{{company}}</b> 申请了 DougBot：来自 <b>{{name}}</b> 的申请"
+      "usageLimitRefused": "<b>{{name}}</b> 拒绝了你增加使用的申请"
     },
     "usageLimit": {
       "runs_other": "本月 {{count}} 次请求",
@@ -14900,6 +14958,21 @@
     "teamProposal": {
       "undoExpired": "这个团队创建已超过一天，无法在这里撤销。请在各智能体的页面上归档它们。"
     },
+    "dougTeam": {
+      "made": "这个工作区已经有 Doug 团队了。",
+      "none": "至少勾选一个 智能体 加入团队。",
+      "unknown": "Doug 团队没有 {{handles}}。",
+      "ownPath": "Doug 团队在引导流程中通过它自己的卡片创建，而不是这张卡片。"
+    },
+    "brand": {
+      "pending": "结束之前，把品牌教给团队：公司名称和语气。",
+      "companyRequired": "请填写公司名称。",
+      "toneRequired": "请选择或填写语气。",
+      "unknownTone": "所选语气之一已不存在。请刷新后重新选择。",
+      "invalidLink": "那个网站或链接不像有效地址。请检查后重试。",
+      "invalidInstagram": "那个 Instagram 资料不像有效：请写成 @something。",
+      "fileMissing": "手册中的一个文件已不在你的 Drive 里。请重新上传。"
+    },
     "agentProposal": {
       "decided": "已经有人对这条建议做出了决定。",
       "expired": "这条建议已过期：一天内没有人做出决定。",
@@ -16394,14 +16467,6 @@
     "change": {
       "mergedWithoutAsking": "未经询问在 {{repo}} 中合并",
       "portalApprovedForClient": "在门户中代客户批准了“{{title}}”",
-      "portalClient": {
-        "renamed": "在门户中重命名了客户 {{client}}",
-        "hidden": "在门户中把客户 {{client}} 从列表中隐藏了",
-        "shown": "在门户中重新显示了客户 {{client}}",
-        "color": "在门户中更改了客户 {{client}} 的颜色",
-        "logo": "在门户中更改了客户 {{client}} 的标志",
-        "logoRemoved": "在门户中移除了客户 {{client}} 的标志"
-      },
       "pattern": "{{verb}}{{area}}",
       "approval": {
         "approved": "批准了一个请求",
@@ -16581,13 +16646,12 @@
       "voice": "语音",
       "apps": "AI 应用",
       "approvals": "审批",
-      "portal": "门户客户",
+      "companies": "公司申请",
       "support": "支持",
       "about": "关于 DougBot",
       "generalPersonal": "关于你",
       "keysPersonal": "AI 和应用",
-      "membersPersonal": "成员",
-      "companies": "公司申请"
+      "membersPersonal": "成员"
     },
     "advanced": "高级",
     "tab": {
@@ -16615,15 +16679,14 @@
       "voice": "对话中的语音消息，以及由谁把语音转成文字。",
       "apps": "从 Claude、Cursor 等应用给智能体分配任务。",
       "approvals": "当智能体请求你的批准时，替你做决定的人。",
-      "portal": "审批你帖子的客户，以及各自打开的链接。",
+      "companies": "在页面上申请 DougBot 的公司。",
       "support": "谁维护这套系统，以及如何联系他们。",
       "about": "开发者、许可证以及源代码的位置。",
       "generalPersonal": "你的智能体对你的了解，以及这个工作区的使用方式。",
       "usagePersonal": "你的智能体用了多少 AI，以及你的套餐。",
       "connectorsPersonal": "你的应用和 MCP 服务器，连接一次即可供智能体使用。",
       "membersPersonal": "谁和你一起在这里。",
-      "rolesPersonal": "这里每个人可以做什么。所有者可以做任何事。",
-      "companies": "在页面上申请 DougBot 的公司。"
+      "rolesPersonal": "这里每个人可以做什么。所有者可以做任何事。"
     },
     "support": {
       "title": "联系支持",
@@ -19885,6 +19948,7 @@
       "createdYouPersonal": "由你创建的智能体",
       "skillsWait": "技能在等管理员。",
       "weeklyWait": "我的每周回顾在等管理我例行任务的人。",
+      "rightHandWait": "DOUG 作为管理者的角色正等待管理员确认。",
       "undone": "团队已撤销",
       "dismissed": "团队已舍弃",
       "undonePersonal": "智能体已撤销",
@@ -20486,44 +20550,6 @@
       "spent": "本月已用 {{spent}} / {{monthly}} 积分"
     }
   },
-  "portalClients": {
-    "title": "门户客户",
-    "lead": "每位客户在自己的链接上审批你的帖子，无需账号。帖子等待审批时，会通过电子邮件和 WhatsApp 通知客户的联系人。",
-    "add": "添加客户",
-    "addTitle": "新客户",
-    "edit": "编辑",
-    "editTitle": "客户",
-    "remove": "移除",
-    "removeTitle": "移除此客户？",
-    "removeText": "它的链接将失效，其帖子会从页面上消失。工作仍保留在看板上。",
-    "loading": "正在加载…",
-    "empty": "还没有客户。添加一个即可获得可发送的链接。",
-    "noContacts": "还没有联系人：帖子等待时没有人会收到通知。",
-    "id": "客户 ID（小写，无空格）",
-    "name": "名称",
-    "contactName": "联系人姓名",
-    "email": "电子邮件",
-    "whatsapp": "带国家代码的 WhatsApp",
-    "addContact": "添加联系人",
-    "dropContact": "移除联系人",
-    "link": "客户链接",
-    "copy": "复制链接",
-    "copied": "已复制链接",
-    "copyFailed": "无法复制链接",
-    "revoked": "链接已被撤销",
-    "linkStale": "此链接需要重做：创建一个新链接来发送",
-    "noticesTitle": "WhatsApp 通知",
-    "noticesLead": "客户的联系人总是会收到邮件通知。WhatsApp 只会从你在这里选择的号码发出：不选号码就不会发任何 WhatsApp 消息，也绝不会使用任何人的私人号码。",
-    "noticesNumber": "通知用的号码",
-    "noticesNone": "无：仅邮件",
-    "noticesNoNumbers": "还没有连接号码。在设置 › WhatsApp 中连接一个，就能在那里也通知。",
-    "locale": "以{{language}}通知",
-    "localeLabel": "语言",
-    "localeHint": "此客户联系人收到的邮件和消息所用的语言。绝不会从名字猜测；不在这里选择时，用团队的语言。",
-    "localeOwner": "团队的语言",
-    "newLink": "新链接",
-    "revoke": "撤销链接"
-  },
   "portal": {
     "title": "门户",
     "subtitle": "按客户查看待审批的内容",
@@ -20595,19 +20621,6 @@
       "remove": "移除徽标",
       "saved": "徽标已保存",
       "removed": "徽标已移除"
-    },
-    "clientEdit": {
-      "rename": "重命名客户",
-      "renameTitle": "重命名客户",
-      "renameHelp": "你的团队在各处看到的名称。留空会回到“{{id}}”。",
-      "name": "名称",
-      "renamed": "名称已保存",
-      "hide": "移除客户",
-      "hideTitle": "移除“{{name}}”？",
-      "hideText": "它会从这里的所有列表和计数中消失。它的帖子和卡片仍留在门户中，你可以从“隐藏的客户”中把它找回来。",
-      "hidden": "已移除“{{name}}”",
-      "hiddenTitle": "隐藏的客户",
-      "show": "重新显示"
     },
     "clientColor": {
       "label": "客户颜色",
@@ -20863,5 +20876,160 @@
       "more": "显示更多",
       "add_other": "添加 {{count}} 个文件"
     }
+  },
+  "dougTeam": {
+    "name": "Doug 团队",
+    "sub": "设计、视频、广告、策略、社交媒体、代码和财务",
+    "desc": "整个团队都在这里，每个智能体有自己的专长、例行任务和技能，每个总部有一个频道。",
+    "lead": "{{org}} 的 Doug 团队，每个总部都有自己的频道。所有例行任务开始时都处于暂停状态。",
+    "approvals": "花费、发布和对外发送都要等你同意。",
+    "channels": {
+      "design": "hq-design",
+      "video": "hq-video",
+      "trafego": "hq-ads",
+      "estrategia": "hq-strategy",
+      "social": "hq-social",
+      "codigo": "hq-code",
+      "financeiro": "hq-finance"
+    },
+    "agents": {
+      "doug": {
+        "role": "运营经理",
+        "line": "协调团队，跟进截止日期，分派请求，审核交付，并在合适的时候请求批准。",
+        "hello": "你好。我让团队运转起来，只把需要你处理的事带给你。"
+      },
+      "rosa": {
+        "role": "艺术总监",
+        "line": "以代理公司的水准制作封面、轮播图、帖子、快拍、缩略图和演示文稿，始终符合客户的品牌形象。",
+        "hello": "你好。封面、轮播图和帖子交给我，始终符合品牌形象。"
+      },
+      "sony": {
+        "role": "视频剪辑师",
+        "line": "以制作公司的水准剪辑、裁切和制作动画，从原始素材到获批的短视频，始终符合客户的品牌形象。",
+        "hello": "你好。把原始素材发给我，我交回剪好的视频。"
+      },
+      "mark": {
+        "role": "广告总部负责人",
+        "line": "和广告团队一起从头到尾负责付费广告，告诉你花了多少、进账多少、接下来做什么。",
+        "hello": "你好。我带领广告团队，告诉你花了多少、进账多少。"
+      },
+      "analistaResultado": {
+        "role": "广告总部的效果分析师",
+        "line": "读取广告账户和真实销售，衡量单次销售成本、实际回款和疲劳度，并说明该砍掉什么、该放大什么。",
+        "hello": "你好。我读数字，告诉你该砍掉什么、该放大什么。"
+      },
+      "copywriter": {
+        "role": "广告总部的文案",
+        "line": "按角度撰写广告正文、标题、描述、钩子和短脚本，只使用有证据的说法。",
+        "hello": "你好。广告文案和钩子交给我，只用有证据的说法。"
+      },
+      "diretorCriativo": {
+        "role": "广告总部的创意总监",
+        "line": "把假设和文案变成视频和设计的简报，保持不同概念同时投放，并把每件素材做到可以审核。",
+        "hello": "你好。我把想法变成简报和可以审核的素材。"
+      },
+      "estrategistaMidia": {
+        "role": "广告总部的媒体策略师",
+        "line": "搭建广告活动结构，选出本周的测试，并在上限内写下暂停和放量的指令。",
+        "hello": "你好。我在上限内规划广告活动和本周的测试。"
+      },
+      "financeiroTrafego": {
+        "role": "广告总部的财务",
+        "line": "为每个项目算账，守住每日和每月上限，控制预算，并衡量真实回款。",
+        "hello": "你好。我把预算控制在上限内，并衡量真实回款。"
+      },
+      "humanizador": {
+        "role": "文案的最后润色",
+        "line": "在不改变事实、说法、限制和格式的前提下，最后润色文案，让它听起来像人写的。",
+        "hello": "你好。我给每段文案做最后润色，让它听起来像人写的。"
+      },
+      "operador": {
+        "role": "广告总部的执行员",
+        "line": "在广告账户中逐条执行已批准的指令，并原样返回结果。",
+        "hello": "你好。我在广告账户中逐条执行已批准的指令。"
+      },
+      "pesquisadorGrowth": {
+        "role": "广告总部的增长研究员",
+        "line": "研究市场上的钩子、创意和广告策略，把发现整理成测试假设卡片。",
+        "hello": "你好。我研究市场上有效的做法，带来值得测试的假设。"
+      },
+      "revisorPolitica": {
+        "role": "广告总部的政策审核员",
+        "line": "在上线前按平台规则、法律和项目的说法检查每条广告，给出通过、提醒或拦截。",
+        "hello": "你好。每条广告上线前我都会按规则检查。"
+      },
+      "chess": {
+        "role": "营销策略师",
+        "line": "解读品牌和当下时机，研究细分领域里有效的做法，交付每件作品的策略和文案，附上论点、钩子和理由。",
+        "hello": "你好。每件作品的策略和文案交给我，始终附上理由。"
+      },
+      "socialMedia": {
+        "role": "社交媒体运营",
+        "line": "负责品牌的日历和社交账号，提出内容创意，为每条帖子取得批准，并排期已批准的内容。",
+        "hello": "你好。日历和社交账号交给我，没有批准什么都不会发出去。"
+      },
+      "junin": {
+        "role": "借助 AI 写代码的开发者",
+        "line": "制作并维护公司的网站、页面、自动化和集成，测试后在获得同意时发布，并用简单的话说明结果。",
+        "hello": "你好。网站、页面和自动化交给我，只在你同意后发布。"
+      },
+      "kiara": {
+        "role": "财务",
+        "line": "负责发票、催款、银行提醒、到期日和销售报告，发送前一定先取得批准。",
+        "hello": "你好。发票和催款交给我，发送前一定先征得你同意。"
+      }
+    },
+    "brand": {
+      "tones": {
+        "proximo": "亲切",
+        "profissional": "专业",
+        "divertido": "有趣",
+        "inspirador": "鼓舞人心",
+        "direto": "直接",
+        "acolhedor": "温暖",
+        "tecnico": "技术性",
+        "sofisticado": "精致",
+        "ousado": "大胆",
+        "educativo": "教育性"
+      }
+    }
+  },
+  "portalClients": {
+    "title": "门户客户",
+    "lead": "每位客户在自己的链接上审批你的帖子，无需账号。帖子等待审批时，会通过电子邮件和 WhatsApp 通知客户的联系人。",
+    "add": "添加客户",
+    "addTitle": "新客户",
+    "edit": "编辑",
+    "editTitle": "客户",
+    "remove": "移除",
+    "removeTitle": "移除此客户？",
+    "removeText": "它的链接将失效，其帖子会从页面上消失。工作仍保留在看板上。",
+    "loading": "正在加载…",
+    "empty": "还没有客户。添加一个即可获得可发送的链接。",
+    "noContacts": "还没有联系人：帖子等待时没有人会收到通知。",
+    "id": "客户 ID（小写，无空格）",
+    "name": "名称",
+    "contactName": "联系人姓名",
+    "email": "电子邮件",
+    "whatsapp": "带国家代码的 WhatsApp",
+    "addContact": "添加联系人",
+    "dropContact": "移除联系人",
+    "link": "客户链接",
+    "copy": "复制链接",
+    "copied": "已复制链接",
+    "copyFailed": "无法复制链接",
+    "revoked": "链接已被撤销",
+    "linkStale": "此链接需要重做：创建一个新链接来发送",
+    "noticesTitle": "WhatsApp 通知",
+    "noticesLead": "客户的联系人总是会收到邮件通知。WhatsApp 只会从你在这里选择的号码发出：不选号码就不会发任何 WhatsApp 消息，也绝不会使用任何人的私人号码。",
+    "noticesNumber": "通知用的号码",
+    "noticesNone": "无：仅邮件",
+    "noticesNoNumbers": "还没有连接号码。在设置 › WhatsApp 中连接一个，就能在那里也通知。",
+    "locale": "以{{language}}通知",
+    "localeLabel": "语言",
+    "localeHint": "此客户联系人收到的邮件和消息所用的语言。绝不会从名字猜测；不在这里选择时，用团队的语言。",
+    "localeOwner": "团队的语言",
+    "newLink": "新链接",
+    "revoke": "撤销链接"
   }
 }

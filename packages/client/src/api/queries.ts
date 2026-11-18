@@ -1105,17 +1105,50 @@ export function useTeamTemplates(orgId: string, locale: string, enabled = true) 
   });
 }
 
+/** "Sua marca" (docs/adr/doug-0030-time-doug.md): the brand, the tones to tap in this language, and whether it waits. */
+export function useBrand(orgId: string, locale: string, enabled = true) {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.brand(orgId, locale),
+    queryFn: () => api.orgs.brand(orgId, locale),
+    enabled,
+  });
+}
+
+/**
+ * The Doug team's card (docs/adr/doug-0030-time-doug.md): not a gallery template, so it is asked for apart. `enabled`
+ * false (an app that doesn't draw it) asks for nothing.
+ */
+export function useDougTemplate(orgId: string, locale: string, enabled = true) {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.dougTemplate(orgId, locale),
+    // A server from before the Doug team sends none: `null`, never `undefined` (which the query reads as an error).
+    queryFn: async () => (await api.agents.dougTemplate(orgId, locale)) ?? null,
+    enabled,
+    staleTime: 60_000,
+  });
+}
+
 /**
  * "Usar este modelo": its card and the right hand's first question land in the person's DM with it. Made, it stays
  * pending until the team is in the agents' list, its routines and channels read before it: a screen that shows the
  * team (the onboarding's last step, the sidebar) finds them there, and nothing on it changes while it arrives.
+ * `handles`: the Doug team's agents chosen (docs/adr/doug-0030-time-doug.md), every one when absent.
  */
 export function useApplyTeamTemplate(orgId: string) {
   const api = useApi();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ templateId, locale }: { templateId: string; locale?: string }) =>
-      api.agents.applyTeamTemplate(orgId, templateId, locale),
+    mutationFn: ({
+      templateId,
+      locale,
+      handles,
+    }: {
+      templateId: string;
+      locale?: string;
+      handles?: readonly string[];
+    }) => api.agents.applyTeamTemplate(orgId, templateId, locale, handles),
     onSuccess: async ({ channelId, state }) => {
       void qc.invalidateQueries({ queryKey: keys.messages(orgId, channelId) });
       if (state === "created")

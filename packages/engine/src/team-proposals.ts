@@ -1,5 +1,5 @@
 import { holdEvents, type PubSub } from "@agenteschat/adapters";
-import { and, type Database, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+import { and, type Database, eq, inArray, isNull, or, schema, sql } from "@agenteschat/db";
 import { serverText } from "@agenteschat/i18n";
 import type { AppLocale } from "@agenteschat/i18n/locale";
 import {
@@ -38,6 +38,7 @@ import { cardPlace, NO_PERSON_READS } from "./consultations";
 import type { ContextDeps } from "./context/summaries";
 import { publishDelivery } from "./delivery";
 import { openPersonAgentDm } from "./dms";
+import { DOUG_TEMPLATE } from "./doug-team";
 import { queuePlanWaiting } from "./email";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "./errors";
 import { publishAgentsChanged, publishChannelEvent, publishMessageCreated } from "./events";
@@ -142,10 +143,19 @@ export interface TeamCreated {
   channelIds: string[];
   routineIds: string[];
   skillIds: string[];
-  /** Lines the clicker may not give: `skills` (admins), `weekly` (who manages routines). */
-  skipped: ("skills" | "weekly")[];
+  /** Lines the clicker may not give: `skills` (admins), `weekly` (who manages routines), `rightHand` (the DOUG's role, admins). */
+  skipped: ("skills" | "weekly" | "rightHand")[];
   /** Agents with nothing to think with yet (the app opens Connect for them). */
   noAi: string[];
+  /** The Doug team's (docs/adr/doug-0030-time-doug.md): its agents that work on a computer, for the app's notice. */
+  needsComputer?: string[];
+  /** The Doug team's: the right hand took the DOUG's role, which Desfazer takes back. */
+  rightHandRole?: boolean;
+  /**
+   * The Doug team's third-party skills that failed to install for good (the link holds no such skill now, or it is
+   * past the skill limits), named on the receipt with the code the app says.
+   */
+  failedSkills?: { slug: string; code: string | null }[];
 }
 
 export interface TeamProposalCard {
@@ -245,7 +255,7 @@ export async function channelPlaces(db: Database, orgId: string, personId: strin
   return { existing, archived, outside, blocked, fresh: names.filter((n) => !existing.has(n)) };
 }
 
-const blockedError = (names: string[]) =>
+export const blockedError = (names: string[]) =>
   new ValidationError(
     `${names.map((n) => `#${n}`).join(", ")}: a channel you can't name here (private, or archived by someone else). Pick another name.`,
   );
@@ -403,7 +413,9 @@ export async function postTeamCard(
     },
   });
   if (deps.pubsub && announce) await publishMessageCreated(deps.pubsub, messageView(message));
-  // A newer team in the same conversation takes the place of the open ones before it (the person revised it).
+  // A newer team in the same conversation takes the place of the open ones before it (the person revised it). Only the
+  // ones before it: two cards posted at once (two clicks) would otherwise supersede each other, and neither would be
+  // made. The ids are v7, so they order like the times they were posted at.
   const older = await deps.db
     .select()
     .from(messages)
@@ -414,6 +426,7 @@ export async function postTeamCard(
         sql`${messages.meta}->'actionCard'->>'kind' = ${TEAM_PROPOSAL_CARD}`,
         sql`${messages.meta}->'actionCard'->>'state' = 'pending'`,
         sql`${messages.id} <> ${message.id}`,
+        sql`(${messages.createdAt}, ${messages.id}) < (${message.createdAt}, ${message.id})`,
       ),
     );
   for (const m of older) {
@@ -424,7 +437,7 @@ export async function postTeamCard(
 }
 
 /** Writes the card if it is still in state `from` (two clicks at once: one wins), and tells the conversation. */
-async function writeCard(
+export async function writeCard(
   deps: { db: Database; pubsub?: PubSub },
   message: Pick<Message, "id" | "orgId" | "channelId" | "threadId">,
   card: TeamProposalCard,
@@ -490,7 +503,7 @@ export interface TeamDeps {
 }
 
 /** Runs `step`, naming it in the error that undoes everything. */
-class StepError extends Error {
+export class StepError extends Error {
   constructor(
     readonly step: string,
     readonly failure: unknown,
@@ -500,7 +513,7 @@ class StepError extends Error {
 }
 
 /** The failure as the card keeps it: the step, the English reason, and the code and status the app translates. */
-function teamFailure(step: string, error: unknown): NonNullable<TeamProposalCard["error"]> {
+export function teamFailure(step: string, error: unknown): NonNullable<TeamProposalCard["error"]> {
   const cause = error instanceof StepError ? error.failure : error;
   const status =
     cause instanceof ForbiddenError
@@ -523,7 +536,7 @@ function teamFailure(step: string, error: unknown): NonNullable<TeamProposalCard
     ...(coded.params ? { params: coded.params } : {}),
   };
 }
-const stepped = async <T>(step: string, run: () => Promise<T>) => {
+export const stepped = async <T>(step: string, run: () => Promise<T>) => {
   try {
     return await run();
   } catch (error) {
@@ -547,6 +560,23 @@ export async function createTeam(deps: TeamDeps, userId: string, orgId: string, 
     throw new ConflictError("This team card expired", "team_proposal.expired");
   }
   const claimed: TeamProposalCard = { ...card, state: "creating", error: null };
+  // The Doug team is made by its own path (`useDougTeam`, docs/adr/doug-0030-time-doug.md): its card outgrew this
+  // one, and a card forged for it would make a plain team. Claimed and denied here, so nothing is left behind.
+  if (card.params.template === DOUG_TEMPLATE) {
+    if (!(await writeCard(deps, message, claimed, "pending"))) throw decided();
+    const back: TeamProposalCard = {
+      ...claimed,
+      state: "denied",
+      error: teamFailure(
+        "Doug team",
+        new ConflictError("The Doug team is made from its own card", "doug_team.own_path"),
+      ),
+      decidedByUserId: userId,
+      decidedAt: new Date().toISOString(),
+    };
+    await writeCard(deps, message, back, "creating");
+    return { card: back, noAi: [] as string[] };
+  }
   if (!(await writeCard(deps, message, claimed, "pending"))) throw decided();
   const p = card.params;
   const admin = can(membership, "manage_agents");
@@ -795,11 +825,19 @@ export async function undoTeam(deps: TeamDeps, userId: string, orgId: string, me
         if (!(e instanceof NotFoundError)) throw e;
       });
     }
+    // The card's skills, and any the job made and marked as this card's (docs/adr/doug-0030-time-doug.md): a job that
+    // failed halfway had added none to `skillIds` yet, so Desfazer finds them by `metadata.dougTeam`.
+    const marked = sql`${skills.metadata}->>'dougTeam' = ${message.id}`;
     if (made.skillIds.length > 0) {
       await tx
         .update(skills)
         .set({ deletedAt: new Date() })
-        .where(and(eq(skills.orgId, orgId), inArray(skills.id, made.skillIds)));
+        .where(and(eq(skills.orgId, orgId), or(inArray(skills.id, made.skillIds), marked)));
+    } else {
+      await tx
+        .update(skills)
+        .set({ deletedAt: new Date() })
+        .where(and(eq(skills.orgId, orgId), marked));
     }
     const live = await tx
       .select({ id: agents.id })
@@ -810,6 +848,18 @@ export async function undoTeam(deps: TeamDeps, userId: string, orgId: string, me
       await archiveChannel(tx, userId, orgId, id, events).catch((e) => {
         if (!(e instanceof NotFoundError)) throw e;
       });
+    }
+    // The Doug team's mark goes with it: the right hand's role, the brand step it asked for (docs/adr/doug-0030-time-doug.md).
+    if (card.params.template === DOUG_TEMPLATE) {
+      await tx
+        .update(schema.organizationSettings)
+        .set({ dougTeam: null })
+        .where(
+          and(
+            eq(schema.organizationSettings.orgId, orgId),
+            sql`${schema.organizationSettings.dougTeam}->>'cardId' = ${message.id}`,
+          ),
+        );
     }
   });
   invalidateOrg(orgId);

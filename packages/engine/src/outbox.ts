@@ -109,6 +109,9 @@ export const LONG_JOB_KINDS = [
   "search.reindex",
   "storage.migrate",
   "skills.update",
+  // A Doug team's third-party skills, read from GitHub after the team is made (docs/adr/doug-0030-time-doug.md): the
+  // same reads as an update, and a quick job never waits behind them.
+  "doug_team.skills",
   "vault.sync",
   "org.delete",
   "account.delete",

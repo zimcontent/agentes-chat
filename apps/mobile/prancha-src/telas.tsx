@@ -80,6 +80,7 @@ import {
   RevisaoVideo,
 } from "./revisao";
 import { TarefasEquipe, TarefasEquipeAberta, TarefasEquipeVazia, TarefasMinhas } from "./tarefas";
+import { TimeDougComo, TimeDougMarca, TimeDougQuem } from "./time-doug";
 import { ConversaOpcoes, Tudo } from "./tudo";
 import { WhatsAppConversa, WhatsAppLista } from "./whatsapp";
 
@@ -1248,6 +1249,9 @@ export const TELAS: Record<string, () => ReactNode> = {
   "tarefas-equipe-aberta": TarefasEquipeAberta,
   "tarefas-equipe-vazia": TarefasEquipeVazia,
   "tarefas-minhas": TarefasMinhas,
+  "time-doug-como": TimeDougComo,
+  "time-doug-quem": TimeDougQuem,
+  "time-doug-marca": TimeDougMarca,
   whatsapp: WhatsAppLista,
   "whatsapp-conversa": WhatsAppConversa,
   arquivos: Arquivos,

@@ -30,13 +30,15 @@ describe("which DougBot an agent is (brand/dougbot-time.ts)", () => {
   });
   test("a look with a form draws as picked: form, color, eyes and accessory; the Doug stays the Doug", () => {
     const who = { name: "Mila", handle: "mila", role: "Social media" };
-    expect(botDoAgente({ ...who, look: { shape: "torre", color: "#ff0000", eyes: "dots", accessory: "tie" } })).toEqual({
-      forma: "torre",
-      cor: "#ff0000",
-      olhos: "ponto",
-      acessorio: "gravata",
-      sorriso: false,
-    });
+    expect(botDoAgente({ ...who, look: { shape: "torre", color: "#ff0000", eyes: "dots", accessory: "tie" } })).toEqual(
+      {
+        forma: "torre",
+        cor: "#ff0000",
+        olhos: "ponto",
+        acessorio: "gravata",
+        sorriso: false,
+      },
+    );
     // A preset color is one tone of its gradient; an accessory the bot doesn't draw is left off.
     const indigo = botDoAgente({ ...who, look: { shape: "moeda", color: "indigo", eyes: "wide", accessory: "crown" } });
     expect(indigo.forma).toBe("moeda");

@@ -19,6 +19,7 @@ import { useTheme } from "@/ui/theme";
 import type { AgentLookInput } from "./looks";
 import { type AgentMode, agentLayout, framedLayout, poseFor, STILL_T } from "./poses";
 import { asCtx, compile, RecordingContext } from "./recorder";
+
 const GAZE: Record<Gaze, { look: [number, number]; turn: [number, number] }> = {
   up: { look: [0, -0.14], turn: [0, -0.35] },
   down: { look: [0, 0.14], turn: [0, 0.35] },

@@ -4,6 +4,8 @@ import { portalDigest, portalZone } from "./approval-portal-watch";
 import { seesAgentDetails } from "./audience";
 import { listChannels } from "./channels";
 import type { WorkspaceComputer } from "./context";
+import { DOUG_RIGHT_HAND, dougAgent } from "./doug-team";
+import { brandMissing } from "./doug-team/brand";
 import { can, getMembership } from "./organizations";
 import type { RolePermission } from "./permissions";
 import { type LodiLane, type LodiSwitch, liveLodiSwitches, lodiPromptBlocks } from "./right-hand-lane";
@@ -161,6 +163,21 @@ export async function rightHandPrompt(
     // A personal workspace (ADR 0159): one person and their agents, so no team words and no nudge to invite people.
     isPersonalWorkspace(db, orgId),
   ]);
+  // The Doug team made here (docs/adr/doug-0030-time-doug.md): the right hand is its DOUG, with the DOUG's role.
+  const [settings] = await db
+    .select({ dougTeam: schema.organizationSettings.dougTeam })
+    .from(schema.organizationSettings)
+    .where(eq(schema.organizationSettings.orgId, orgId));
+  // The Doug team's role is this agent's only while it is the workspace's DOUG (the right hand the team was made on):
+  // another agent made the right hand afterwards talks as itself, never with the DOUG's instructions.
+  const dougRole =
+    settings?.dougTeam?.rightHand && settings.dougTeam.agents[DOUG_RIGHT_HAND] === agent.id
+      ? (dougAgent(DOUG_RIGHT_HAND)?.instructions ?? "")
+      : "";
+  // The team's brand, whether the onboarding is over or not (a screen that isn't drawn finishes without the brand): the
+  // DOUG asks for it here, so a workspace that got its team never works on a piece without it. Only to who may write
+  // it (`manage_agents`, `PUT …/brand`): anyone else is asked, and there is nothing they could do with the card.
+  const brandWaits = dougRole !== "" && can(membership, "manage_agents") && (await brandMissing(db, orgId));
   // What each of its own features adds while it talks to this person alone (`right-hand-lane.ts`).
   const laneBlocks = input.inDm ? await lodiPromptBlocks(db, { orgId, agentId: agent.id, personId }, input.lanes) : [];
   // Changes that are always a card someone reads first, named once the catalog has them. Loaded here: the catalog
@@ -273,6 +290,12 @@ export async function rightHandPrompt(
   ].filter(Boolean);
   // What the team's agents lack, which no row of the first-run checklist shows.
   const teamThings = [
+    // The Doug team's brand (docs/adr/doug-0030-time-doug.md): the agents read it before any piece, so it is asked for
+    // first, in the DOUG's words, before any work that needs it. You have no tool that writes it: only the person
+    // does, in the onboarding's "Your brand" step, or whoever manages the agents.
+    brandWaits
+      ? "The workspace has no brand yet: the team's agents read the brand skill before any piece. Ask the person to fill it in in the onboarding's brand step or with whoever manages the agents (the company's name and a tone of voice are all it needs); you have no tool that writes it yourself."
+      : "",
     // A personal workspace's agents may live in their DMs with the person (ADR 0159): no channel is nothing to fix.
     !personal && seen.some((a) => seatsOf(a.id).length === 0)
       ? "An agent is in no channel: offer to add it to one (propose_settings_change, its channels)."
@@ -326,6 +349,9 @@ export async function rightHandPrompt(
     personal
       ? `You are ${agent.name} (@${agent.handle}), this person's right hand in their personal workspace: the one agent they talk to about their agents. What's going on: team_status. A question for one of their agents: ask_agent. Real work for one: create_issue assigned to it, which starts it in the task's own conversation. A small thing: tell_agent, follow_up if it may take long. Either way it reports back here by itself: tell them once. You also set up and change their agents and the workspace with them. Small things you do yourself with your tools (look something up on the web, read or write a file, use an app). Work that is an agent's job${noComputer}: hand it on, or propose an agent. In this workspace the app calls channels "group conversations": use those words with them.`
       : `You are ${agent.name} (@${agent.handle}), this workspace's assistant: the team's right hand and the one agent people talk to. What's going on: team_status. A question for a teammate: ask_agent. Real work for one: create_issue assigned to it, which starts it in the task's own conversation. A small thing: tell_agent, follow_up if it may take long. Either way it reports back here by itself: tell them once. You also set up and change the team and the workspace with them. Small things you do yourself with your tools (look something up on the web, read or write a file, use an app). Work that is a teammate's job${noComputer}: hand it on, or propose an agent.`,
+    dougRole
+      ? `# Your role in this workspace\nThe workspace chose the Doug team: besides being its right hand, you are its operations manager, as below. Where these lines and the rest of this block differ, the rest of this block wins.\n\n${dougRole}`
+      : "",
     [
       "# Who you talk to",
       `${name}${owner ? (personal ? ", whose workspace this is" : ", an owner of this workspace") : ""}${roleNames.length ? ` (roles: ${roleNames.join(", ")})` : ""}. You act with their permissions, never more.`,
