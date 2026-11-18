@@ -13832,7 +13832,8 @@
       "vault_make_password": "パスワードを作成",
       "get_my_usage": "自分の使用量を表示",
       "send_feedback": "フィードバックを送信",
-      "offer_feedback": "問題の報告を提案"
+      "offer_feedback": "問題の報告を提案",
+      "contact_support": "サポートに助けを求める"
     }
   },
   "toolReview": {
@@ -16442,7 +16443,14 @@
       "askTitle": "{{name}}に助けを求める",
       "askLead": "{{name}}が起きたことを書き留め、あなたの名前でサポートに送ります。送る前にあなたがメッセージを読みます。",
       "askStatus": "詳細が入力済みの会話が開きます。",
-      "ask": "{{name}}に助けを求める"
+      "ask": "{{name}}に助けを求める",
+      "draft": "{{name}}さん、システムのことで助けが必要です:",
+      "draftWith": "{{name}}さん、システムのことで助けが必要です（{{facts}}）:",
+      "draftVersion": "サーバーのバージョン {{version}}",
+      "draftClient": "インストール {{code}}",
+      "draftPage": "ページ {{page}}",
+      "draftAsk": "これを contact_support で私の名前でサポートに送ってください。",
+      "askNoEmail": "{{name}}さんが詳細を入力欄に入れた状態で会話を開きます。起きたことを書いて送ってください。"
     },
     "about": {
       "basedOn": "Codari Global, LLC の <site>DougBot</site> をもとにしています · AGPL-3.0",
@@ -17344,6 +17352,7 @@
         "settingCommitLine": "コミットのエージェントの行を調整しました",
         "sendingFeedback": "フィードバックの送信を依頼しました",
         "offeringFeedback": "問題の報告を提案しました",
+        "askingSupport": "サポートに助けを求めました",
         "deletingRoutine": "ルーティンを削除しました",
         "runningRoutine": "ルーティンを今すぐ実行しました",
         "proposingTeam": "チームを提案しました",
@@ -17467,6 +17476,7 @@
       "settingCommitLine": "コミットのエージェントの行を調整中",
       "sendingFeedback": "フィードバックを準備中",
       "offeringFeedback": "報告を準備中",
+      "askingSupport": "サポートに助けを求めています",
       "deletingRoutine": "ルーティンを削除中",
       "runningRoutine": "ルーティンを今すぐ実行中",
       "proposingTeam": "チームを提案中",

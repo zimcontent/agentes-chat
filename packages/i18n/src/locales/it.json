@@ -14854,7 +14854,8 @@
       "vault_make_password": "Crea password",
       "get_my_usage": "Vedi il mio utilizzo",
       "send_feedback": "Invia feedback",
-      "offer_feedback": "Offri di segnalare un problema"
+      "offer_feedback": "Offri di segnalare un problema",
+      "contact_support": "Chiedere aiuto al supporto"
     }
   },
   "toolReview": {
@@ -17568,7 +17569,14 @@
       "askTitle": "Chiedi aiuto a {{name}}",
       "askLead": "{{name}} scrive cosa è successo e lo invia all'assistenza a tuo nome. Leggi il messaggio prima che parta.",
       "askStatus": "Apre la conversazione con i dettagli già nel campo.",
-      "ask": "Chiedi aiuto a {{name}}"
+      "ask": "Chiedi aiuto a {{name}}",
+      "draft": "{{name}}, mi serve aiuto con il sistema:",
+      "draftWith": "{{name}}, mi serve aiuto con il sistema ({{facts}}):",
+      "draftVersion": "versione del server {{version}}",
+      "draftClient": "installazione {{code}}",
+      "draftPage": "nella pagina {{page}}",
+      "draftAsk": "Manda questo al supporto con contact_support, a mio nome.",
+      "askNoEmail": "{{name}} apre la conversazione con i dettagli già nel campo. Scrivi cosa è successo e invialo."
     },
     "about": {
       "basedOn": "Basato su <site>DougBot</site> di Codari Global, LLC · AGPL-3.0",
@@ -18515,6 +18523,7 @@
         "settingCommitLine": "Ha regolato la riga degli agenti nei commit",
         "sendingFeedback": "Ha chiesto di inviare un feedback",
         "offeringFeedback": "Ha proposto di segnalare un problema",
+        "askingSupport": "Ha chiesto aiuto al supporto",
         "deletingRoutine": "Ha eliminato una routine",
         "runningRoutine": "Ha eseguito una routine adesso",
         "proposingTeam": "Ha proposto un team",
@@ -18638,6 +18647,7 @@
       "settingCommitLine": "regolando la riga degli agenti nei commit",
       "sendingFeedback": "preparando un feedback",
       "offeringFeedback": "preparando una segnalazione",
+      "askingSupport": "chiedendo aiuto al supporto",
       "deletingRoutine": "eliminando una routine",
       "runningRoutine": "eseguendo una routine adesso",
       "proposingTeam": "proponendo un team",

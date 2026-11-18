@@ -35339,6 +35339,9 @@
   "toolNames.label.offer_feedback": {
     "value": "Offer to report a problem"
   },
+  "toolNames.label.contact_support": {
+    "value": "Ask support for help"
+  },
   "toolReview.title": {
     "value": "Review what the agent can do on its own"
   },
@@ -41924,6 +41927,27 @@
   "settings.support.ask": {
     "value": "Ask {{name}} for help"
   },
+  "settings.support.draft": {
+    "value": "{{name}}, I need help with the system:"
+  },
+  "settings.support.draftWith": {
+    "value": "{{name}}, I need help with the system ({{facts}}):"
+  },
+  "settings.support.draftVersion": {
+    "value": "server version {{version}}"
+  },
+  "settings.support.draftClient": {
+    "value": "installation {{code}}"
+  },
+  "settings.support.draftPage": {
+    "value": "on the page {{page}}"
+  },
+  "settings.support.draftAsk": {
+    "value": "Send this to support with contact_support, in my name."
+  },
+  "settings.support.askNoEmail": {
+    "value": "{{name}} opens the conversation with the details in the box. Write what happened and send it."
+  },
   "settings.about.basedOn": {
     "value": "Based on <site>agentes.chat</site> by Codari Global, LLC · AGPL-3.0"
   },
@@ -44242,6 +44266,9 @@
   "chat.work.step.offeringFeedback": {
     "value": "Offered to report a problem"
   },
+  "chat.work.step.askingSupport": {
+    "value": "Asked support for help"
+  },
   "chat.work.step.deletingRoutine": {
     "value": "Deleted a routine"
   },
@@ -44601,6 +44628,9 @@
   },
   "chat.activity.offeringFeedback": {
     "value": "preparing a report"
+  },
+  "chat.activity.askingSupport": {
+    "value": "asking support for help"
   },
   "chat.activity.deletingRoutine": {
     "value": "deleting a routine"

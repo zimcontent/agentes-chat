@@ -13886,7 +13886,8 @@
       "vault_make_password": "Buat kata sandi",
       "get_my_usage": "Lihat pemakaian saya",
       "send_feedback": "Kirim masukan",
-      "offer_feedback": "Tawarkan laporan masalah"
+      "offer_feedback": "Tawarkan laporan masalah",
+      "contact_support": "Minta bantuan dukungan"
     }
   },
   "toolReview": {
@@ -16496,7 +16497,14 @@
       "askTitle": "Minta bantuan {{name}}",
       "askLead": "{{name}} menuliskan apa yang terjadi dan mengirimnya ke dukungan atas namamu. Kamu membaca pesannya sebelum terkirim.",
       "askStatus": "Membuka percakapan dengan detailnya sudah terisi.",
-      "ask": "Minta bantuan {{name}}"
+      "ask": "Minta bantuan {{name}}",
+      "draft": "{{name}}, saya butuh bantuan dengan sistem:",
+      "draftWith": "{{name}}, saya butuh bantuan dengan sistem ({{facts}}):",
+      "draftVersion": "versi server {{version}}",
+      "draftClient": "instalasi {{code}}",
+      "draftPage": "di halaman {{page}}",
+      "draftAsk": "Kirim ini ke dukungan dengan contact_support, atas nama saya.",
+      "askNoEmail": "{{name}} membuka percakapan dengan detailnya sudah di kolom. Tulis apa yang terjadi lalu kirim."
     },
     "about": {
       "basedOn": "Berdasarkan <site>DougBot</site> oleh Codari Global, LLC · AGPL-3.0",
@@ -17398,6 +17406,7 @@
         "settingCommitLine": "Menyesuaikan baris agen di commit",
         "sendingFeedback": "Meminta mengirim masukan",
         "offeringFeedback": "Menawarkan untuk melaporkan masalah",
+        "askingSupport": "Meminta bantuan dukungan",
         "deletingRoutine": "Menghapus rutinitas",
         "runningRoutine": "Menjalankan rutinitas sekarang",
         "proposingTeam": "Mengusulkan tim",
@@ -17521,6 +17530,7 @@
       "settingCommitLine": "menyesuaikan baris agen di commit",
       "sendingFeedback": "menyiapkan masukan",
       "offeringFeedback": "menyiapkan laporan",
+      "askingSupport": "meminta bantuan dukungan",
       "deletingRoutine": "menghapus rutinitas",
       "runningRoutine": "menjalankan rutinitas sekarang",
       "proposingTeam": "mengusulkan tim",

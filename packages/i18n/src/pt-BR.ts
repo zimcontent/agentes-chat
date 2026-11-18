@@ -14619,6 +14619,7 @@ export const ptBR = {
       get_my_usage: "Ver meu uso",
       send_feedback: "Enviar feedback",
       offer_feedback: "Oferecer um relato de problema",
+      contact_support: "Pedir ajuda ao suporte",
     },
   },
   toolReview: {
@@ -17285,6 +17286,14 @@ export const ptBR = {
         "{{name}} escreve o que aconteceu e manda para o suporte no seu nome. Você lê a mensagem antes de ela ir.",
       askStatus: "Abre a conversa com os detalhes já no campo.",
       ask: "Peça ajuda a {{name}}",
+      /** A mensagem que o campo abre: a da pessoa, com os fatos, e o pedido que faz o agente enviar. */
+      draft: "{{name}}, preciso de ajuda com o sistema:",
+      draftWith: "{{name}}, preciso de ajuda com o sistema ({{facts}}):",
+      draftVersion: "versão do servidor {{version}}",
+      draftClient: "instalação {{code}}",
+      draftPage: "na página {{page}}",
+      draftAsk: "Manda isso para o suporte com a ferramenta contact_support, no meu nome.",
+      askNoEmail: "{{name}} abre a conversa com os detalhes já no campo. Escreva o que aconteceu e envie.",
     },
     about: {
       basedOn: "Baseado no <site>DougBot</site> da Codari Global, LLC · AGPL-3.0",
@@ -18270,6 +18279,7 @@ export const ptBR = {
         settingCommitLine: "Ajustou a linha dos agentes nos commits",
         sendingFeedback: "Pediu para enviar um feedback",
         offeringFeedback: "Ofereceu relatar um problema",
+        askingSupport: "Pediu ajuda ao suporte",
         deletingRoutine: "Apagou uma rotina",
         runningRoutine: "Rodou uma rotina agora",
         proposingTeam: "Propôs um time",
@@ -18393,6 +18403,7 @@ export const ptBR = {
       settingCommitLine: "ajustando a linha dos agentes nos commits",
       sendingFeedback: "preparando um feedback",
       offeringFeedback: "preparando um relato",
+      askingSupport: "pedindo ajuda ao suporte",
       deletingRoutine: "apagando uma rotina",
       runningRoutine: "rodando uma rotina agora",
       proposingTeam: "propondo um time",

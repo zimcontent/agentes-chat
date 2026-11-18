@@ -14291,7 +14291,8 @@
       "vault_make_password": "Şifre oluştur",
       "get_my_usage": "Kullanımımı görüntüle",
       "send_feedback": "Geri bildirim gönder",
-      "offer_feedback": "Sorun bildirmeyi öner"
+      "offer_feedback": "Sorun bildirmeyi öner",
+      "contact_support": "Destekten yardım istemek"
     }
   },
   "toolReview": {
@@ -16954,7 +16955,14 @@
       "askTitle": "{{name}}'dan yardım iste",
       "askLead": "{{name}} ne olduğunu yazar ve senin adına desteğe gönderir. Mesaj gitmeden önce sen okursun.",
       "askStatus": "Ayrıntılar alana yazılmış olarak konuşmayı açar.",
-      "ask": "{{name}}'dan yardım iste"
+      "ask": "{{name}}'dan yardım iste",
+      "draft": "{{name}}, sistemle ilgili yardıma ihtiyacım var:",
+      "draftWith": "{{name}}, sistemle ilgili yardıma ihtiyacım var ({{facts}}):",
+      "draftVersion": "sunucu sürümü {{version}}",
+      "draftClient": "kurulum {{code}}",
+      "draftPage": "sayfada {{page}}",
+      "draftAsk": "Bunu benim adıma contact_support ile desteğe gönder.",
+      "askNoEmail": "{{name}} sohbeti ayrıntılar alanda hazır açıyor. Ne olduğunu yaz ve gönder."
     },
     "about": {
       "basedOn": "Codari Global, LLC tarafından geliştirilen <site>DougBot</site> tabanlı · AGPL-3.0",
@@ -17870,6 +17878,7 @@
         "settingCommitLine": "Commit'lerdeki ajan satırını ayarladı",
         "sendingFeedback": "Geri bildirim göndermeyi istedi",
         "offeringFeedback": "Bir sorunu bildirmeyi önerdi",
+        "askingSupport": "Destekten yardım istedi",
         "deletingRoutine": "Bir rutini sildi",
         "runningRoutine": "Bir rutini şimdi çalıştırdı",
         "proposingTeam": "Bir ekip önerdi",
@@ -17993,6 +18002,7 @@
       "settingCommitLine": "commit'lerdeki ajan satırını ayarlıyor",
       "sendingFeedback": "geri bildirim hazırlıyor",
       "offeringFeedback": "bildirim hazırlıyor",
+      "askingSupport": "destekten yardım istiyor",
       "deletingRoutine": "bir rutini siliyor",
       "runningRoutine": "bir rutini şimdi çalıştırıyor",
       "proposingTeam": "bir ekip öneriyor",

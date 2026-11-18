@@ -15335,7 +15335,8 @@
       "vault_make_password": "Utwórz hasło",
       "get_my_usage": "Zobacz moje zużycie",
       "send_feedback": "Wyślij opinię",
-      "offer_feedback": "Zaproponuj zgłoszenie problemu"
+      "offer_feedback": "Zaproponuj zgłoszenie problemu",
+      "contact_support": "Poprosić support o pomoc"
     }
   },
   "toolReview": {
@@ -18105,7 +18106,14 @@
       "askTitle": "Poproś {{name}} o pomoc",
       "askLead": "{{name}} zapisze, co się stało, i wyśle to do pomocy w Twoim imieniu. Przeczytasz wiadomość, zanim zostanie wysłana.",
       "askStatus": "Otwiera rozmowę ze szczegółami już wpisanymi.",
-      "ask": "Poproś {{name}} o pomoc"
+      "ask": "Poproś {{name}} o pomoc",
+      "draft": "{{name}}, potrzebuję pomocy z systemem:",
+      "draftWith": "{{name}}, potrzebuję pomocy z systemem ({{facts}}):",
+      "draftVersion": "wersja serwera {{version}}",
+      "draftClient": "instalacja {{code}}",
+      "draftPage": "na stronie {{page}}",
+      "draftAsk": "Wyślij to do wsparcia przez contact_support, w moim imieniu.",
+      "askNoEmail": "{{name}} otwiera rozmowę z danymi już w polu. Napisz, co się stało, i wyślij."
     },
     "about": {
       "basedOn": "Oparte na <site>DougBot</site> od Codari Global, LLC · AGPL-3.0",
@@ -19072,6 +19080,7 @@
         "settingCommitLine": "Dostosowano linię agentów w commitach",
         "sendingFeedback": "Poproszono o wysłanie opinii",
         "offeringFeedback": "Zaproponowano zgłoszenie problemu",
+        "askingSupport": "Poprosił o pomoc support",
         "deletingRoutine": "Usunięto rutynę",
         "runningRoutine": "Uruchomiono rutynę teraz",
         "proposingTeam": "Zaproponowano zespół",
@@ -19195,6 +19204,7 @@
       "settingCommitLine": "dostosowywanie linii agentów w commitach",
       "sendingFeedback": "przygotowywanie opinii",
       "offeringFeedback": "przygotowywanie zgłoszenia",
+      "askingSupport": "prosi o pomoc support",
       "deletingRoutine": "usuwanie rutyny",
       "runningRoutine": "uruchamianie rutyny teraz",
       "proposingTeam": "proponowanie zespołu",

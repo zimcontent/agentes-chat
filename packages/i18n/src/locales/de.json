@@ -14354,7 +14354,8 @@
       "vault_make_password": "Passwort erstellen",
       "get_my_usage": "Meine Nutzung anzeigen",
       "send_feedback": "Feedback senden",
-      "offer_feedback": "Problemmeldung anbieten"
+      "offer_feedback": "Problemmeldung anbieten",
+      "contact_support": "Support um Hilfe bitten"
     }
   },
   "toolReview": {
@@ -17017,7 +17018,14 @@
       "askTitle": "Bitte {{name}} um Hilfe",
       "askLead": "{{name}} schreibt auf, was passiert ist, und schickt es in deinem Namen an den Support. Du liest die Nachricht, bevor sie rausgeht.",
       "askStatus": "Öffnet das Gespräch mit den Angaben schon im Feld.",
-      "ask": "Bitte {{name}} um Hilfe"
+      "ask": "Bitte {{name}} um Hilfe",
+      "draft": "{{name}}, ich brauche Hilfe mit dem System:",
+      "draftWith": "{{name}}, ich brauche Hilfe mit dem System ({{facts}}):",
+      "draftVersion": "Serverversion {{version}}",
+      "draftClient": "Installation {{code}}",
+      "draftPage": "auf der Seite {{page}}",
+      "draftAsk": "Schick das mit contact_support an den Support, in meinem Namen.",
+      "askNoEmail": "{{name}} öffnet das Gespräch mit den Angaben schon im Feld. Schreib auf, was passiert ist, und sende es."
     },
     "about": {
       "basedOn": "Basiert auf <site>DougBot</site> von Codari Global, LLC · AGPL-3.0",
@@ -17939,6 +17947,7 @@
         "settingCommitLine": "Die Zeile der Agenten in Commits angepasst",
         "sendingFeedback": "Um das Senden von Feedback gebeten",
         "offeringFeedback": "Angeboten, ein Problem zu melden",
+        "askingSupport": "Hat den Support um Hilfe gebeten",
         "deletingRoutine": "Eine Routine gelöscht",
         "runningRoutine": "Eine Routine jetzt ausgeführt",
         "proposingTeam": "Ein Team vorgeschlagen",
@@ -18062,6 +18071,7 @@
       "settingCommitLine": "Anpassen der Zeile der Agenten in Commits",
       "sendingFeedback": "Feedback vorbereiten",
       "offeringFeedback": "Bericht vorbereiten",
+      "askingSupport": "bittet den Support um Hilfe",
       "deletingRoutine": "Löschen einer Routine",
       "runningRoutine": "Ausführen einer Routine",
       "proposingTeam": "Vorschlagen eines Teams",

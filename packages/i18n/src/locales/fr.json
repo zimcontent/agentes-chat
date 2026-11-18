@@ -14842,7 +14842,8 @@
       "vault_make_password": "Générer un mot de passe",
       "get_my_usage": "Voir mon utilisation",
       "send_feedback": "Envoyer un retour",
-      "offer_feedback": "Proposer de signaler un problème"
+      "offer_feedback": "Proposer de signaler un problème",
+      "contact_support": "Demander de l’aide au support"
     }
   },
   "toolReview": {
@@ -17556,7 +17557,14 @@
       "askTitle": "Demande de l'aide à {{name}}",
       "askLead": "{{name}} écrit ce qui s'est passé et l'envoie au support en ton nom. Tu lis le message avant qu'il parte.",
       "askStatus": "Ouvre la conversation avec les détails déjà saisis.",
-      "ask": "Demande de l'aide à {{name}}"
+      "ask": "Demande de l'aide à {{name}}",
+      "draft": "{{name}}, j’ai besoin d’aide avec le système :",
+      "draftWith": "{{name}}, j’ai besoin d’aide avec le système ({{facts}}) :",
+      "draftVersion": "version du serveur {{version}}",
+      "draftClient": "installation n° {{code}}",
+      "draftPage": "sur la page {{page}}",
+      "draftAsk": "Envoie ça au support avec contact_support, en mon nom.",
+      "askNoEmail": "{{name}} ouvre la conversation avec les détails déjà dans le champ. Écris ce qui s’est passé et envoie."
     },
     "about": {
       "basedOn": "Basé sur <site>DougBot</site> de Codari Global, LLC · AGPL-3.0",
@@ -18509,6 +18517,7 @@
         "settingCommitLine": "A ajusté la ligne des agents dans les commits",
         "sendingFeedback": "A demandé à envoyer un retour",
         "offeringFeedback": "A proposé de signaler un problème",
+        "askingSupport": "A demandé de l’aide au support",
         "deletingRoutine": "A supprimé une routine",
         "runningRoutine": "A lancé une routine maintenant",
         "proposingTeam": "A proposé une équipe",
@@ -18632,6 +18641,7 @@
       "settingCommitLine": "réglage de la ligne des agents dans les commits",
       "sendingFeedback": "prépare un retour",
       "offeringFeedback": "prépare un rapport",
+      "askingSupport": "demande de l’aide au support",
       "deletingRoutine": "suppression d'une routine",
       "runningRoutine": "lancement d'une routine maintenant",
       "proposingTeam": "proposition d'une équipe",
