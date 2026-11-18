@@ -14,6 +14,7 @@ import {
   askAgentProposal,
   audienceMailLoss,
   audienceOf,
+  BRAND_TONES,
   budgetPercent,
   cancelUsageQueue,
   canTalkTo,
@@ -28,17 +29,21 @@ import {
   createProposedAgent,
   createProposedRoutine,
   createTeam,
+  DOUG_QGS,
+  DOUG_TEMPLATE,
   decideCostlyProposal,
   deleteAgent,
   deleteAgentGroup,
   deleteCredential,
   denyAgentProposal,
   denyTeam,
+  dougTemplateView,
   type EndpointNet,
   endpointOrgsOf,
   getAgent,
   getAgentBrain,
   getAgentProposal,
+  getBrand,
   getMembership,
   getNewAgentSetup,
   getRonda,
@@ -70,6 +75,7 @@ import {
   rightHandWidgetsReady,
   routineTimezone,
   SETUP_AGENTS_MAX,
+  saveBrand,
   seesAgentDetails,
   setAgentAppearance,
   setAgentAudience,
@@ -89,6 +95,7 @@ import {
   updateEndpointModels,
   usageQueue,
   usageSummary,
+  useDougTeam,
   useTeamTemplate,
   ValidationError,
 } from "@agenteschat/engine";
@@ -404,8 +411,15 @@ const TeamProposalCard = z
         channelIds: z.array(z.uuid()),
         routineIds: z.array(z.uuid()),
         skillIds: z.array(z.uuid()),
-        skipped: z.array(z.enum(["skills", "weekly"])),
+        skipped: z.array(z.enum(["skills", "weekly", "rightHand"])),
         noAi: z.array(z.uuid()),
+        failedSkills: z
+          .array(z.object({ slug: z.string(), code: z.string().nullable() }))
+          .optional()
+          .openapi({
+            description:
+              "The Doug team only: third-party skills that failed to install for good, by slug and the code the app says.",
+          }),
       })
       .optional(),
     error: z
@@ -1384,15 +1398,57 @@ export function agentRoutes(deps: AppDeps) {
     },
   );
 
+  const TEMPLATE_IDS = [DOUG_TEMPLATE, ...TEAM_TEMPLATES] as const;
+  /**
+   * The team templates' ids as the gallery gives them: without the Doug team (docs/adr/doug-0030-time-doug.md), which
+   * one of the business ones at a time and is asked for apart (`?with=doug`). `TEMPLATE_IDS` stays the addressable ones.
+   */
+  const GALLERY_IDS = [...TEAM_TEMPLATES, DOUG_TEMPLATE] as const;
+
+  const DougMember = z
+    .object({
+      handle: z.string().openapi({ description: "The template's handle, what `handles` names on `…/use`." }),
+      name: z.string(),
+      role: z.string(),
+      line: z.string(),
+      qg: z.enum(DOUG_QGS).nullable().openapi({ description: "Its HQ; null for the right hand." }),
+      channel: z.string().nullable().openapi({ description: "The channel it would live in; null for the right hand." }),
+      reportsTo: z.string().nullable().openapi({ description: "The template it reports to (`mark`), or null." }),
+      needsComputer: z.boolean(),
+      rightHand: z
+        .boolean()
+        .openapi({ description: "The workspace's right hand takes this role: no agent is made for it." }),
+      routines: z.number().int().openapi({ description: "Its routines, all made paused." }),
+      skills: z.number().int().openapi({ description: "Its house and third-party skills." }),
+    })
+    .openapi("DougTemplateMember");
+
   const TemplateView = z
     .object({
-      id: z.enum(TEAM_TEMPLATES),
+      id: z.enum(GALLERY_IDS),
       name: z.string(),
       sub: z.string(),
       description: z.string(),
       team: TeamProposalCard.shape.params,
     })
     .openapi("TeamTemplate");
+
+  const DougView = z
+    .object({
+      id: z.literal(DOUG_TEMPLATE),
+      name: z.string(),
+      sub: z.string(),
+      description: z.string(),
+      team: TeamProposalCard.shape.params,
+      members: z.array(DougMember).openapi({
+        description:
+          "Every agent to check or uncheck, all checked by default. `team` lists those made with every one checked.",
+      }),
+      needsComputer: z.array(z.string()).openapi({
+        description: "Handles of the agents that work on a computer, for the notice.",
+      }),
+    })
+    .openapi("DougTeamTemplate");
 
   app.openapi(
     createRoute({
@@ -1402,15 +1458,32 @@ export function agentRoutes(deps: AppDeps) {
       security,
       summary: 'The team templates ("See team templates"), in your language',
       description:
-        "By business type; in a personal workspace, by area of the person's life instead, whose agents live in their DM with the person and make no channel (ADR 0159). Any template's id can be used in either mode.",
-      request: { params: OrgParams, query: z.object({ locale: z.string().max(20).optional() }) },
-      responses: { 200: json(z.object({ templates: z.array(TemplateView) })), ...errors },
+        "The business types, in a team's workspace; in a personal one, the areas of the person's life instead, whose agents live in their DM with the person and make no channel (ADR 0159). Any template's id can be used in either mode. The Doug team (docs/adr/doug-0030-time-doug.md) is not one of them: it needs a screen of its own, so `?with=doug` gives it apart, in `doug`, with each of its agents to check or uncheck.",
+      request: {
+        params: OrgParams,
+        query: z.object({
+          locale: z.string().max(20).optional(),
+          with: z.enum(["doug"]).optional().openapi({ description: "Ask for the Doug team apart, in `doug`." }),
+        }),
+      },
+      responses: {
+        200: json(
+          z.object({
+            templates: z.array(TemplateView),
+            doug: DougView.optional().openapi({ description: "With `?with=doug` only: the Doug team." }),
+          }),
+        ),
+        ...errors,
+      },
     }),
     async (c) => {
       const { orgId } = c.req.valid("param");
+      const { locale, with: ask } = c.req.valid("query");
+      const userId = c.get("user").id;
       const context = deps.extras?.context;
-      const templates = await listTeamTemplates({ db, context }, c.get("user").id, orgId, c.req.valid("query").locale);
-      return c.json({ templates }, 200);
+      const templates = await listTeamTemplates({ db, context }, userId, orgId, locale);
+      if (ask !== "doug") return c.json({ templates }, 200);
+      return c.json({ templates, doug: await dougTemplateView({ db, context }, userId, orgId, locale) }, 200);
     },
   );
 
@@ -1422,10 +1495,22 @@ export function agentRoutes(deps: AppDeps) {
       security,
       summary: 'Create a template\'s team at once ("Criar o time")',
       description:
-        "No model call, so it works on a billing hold too: the team is made, and its card in your DM with the right hand reads created, with Undo for a day (ADR 0155 §6). `state` is `pending` with the card's error when a step failed.",
+        "No model call, so it works on a billing hold too: the team is made, and its card in your DM with the right hand reads created, with Undo for a day (ADR 0155 §6). `state` is `pending` with the card's error when a step failed. `doug` (docs/adr/doug-0030-time-doug.md): the agents named in `handles` (every one when absent; `doug` is the right hand's role), a channel per HQ, every routine paused, the house skills given at once and the third-party ones installed after by a job; 400 `doug_team.unknown` for a handle it doesn't have, `doug_team.none` for none, 409 `doug_team.made` when this workspace already has it.",
       request: {
-        params: OrgParams.extend({ templateId: z.enum(TEAM_TEMPLATES) }),
-        body: { ...body(z.object({ locale: z.string().max(20).optional() })), required: false },
+        params: OrgParams.extend({ templateId: z.enum(TEMPLATE_IDS) }),
+        body: {
+          ...body(
+            z.object({
+              locale: z.string().max(20).optional(),
+              handles: z
+                .array(z.string().max(40))
+                .max(40)
+                .optional()
+                .openapi({ description: "The Doug team only: the templates' handles chosen (`members[].handle`)." }),
+            }),
+          ),
+          required: false,
+        },
       },
       responses: {
         200: json(
@@ -1443,6 +1528,15 @@ export function agentRoutes(deps: AppDeps) {
               })
               .nullable()
               .openapi({ description: "The step that failed and why, as the card keeps it; null once created." }),
+            needsComputer: z
+              .array(z.object({ agentId: z.uuid(), handle: z.string(), name: z.string() }))
+              .optional()
+              .openapi({
+                description: "The Doug team only: its agents made that work on a computer, for the notice and Connect.",
+              }),
+            brandPending: z.boolean().optional().openapi({
+              description: "The Doug team only: the onboarding's brand step waits (`PUT …/brand`).",
+            }),
           }),
         ),
         ...errors,
@@ -1452,7 +1546,91 @@ export function agentRoutes(deps: AppDeps) {
       const { orgId, templateId } = c.req.valid("param");
       const context = deps.extras?.context;
       const input = c.req.valid("json");
+      if (templateId === DOUG_TEMPLATE) {
+        const out = await useDougTeam({ ...teamDeps(), context }, c.get("user").id, orgId, {
+          handles: input?.handles ?? null,
+          locale: input?.locale,
+        });
+        return c.json(out, 200);
+      }
       const out = await useTeamTemplate({ ...teamDeps(), context }, c.get("user").id, orgId, templateId, input?.locale);
+      return c.json(out, 200);
+    },
+  );
+
+  const BrandView = z
+    .object({
+      company: z.string(),
+      tones: z.array(z.enum(BRAND_TONES)),
+      tone: z.string().nullable(),
+      site: z.string().nullable(),
+      instagram: z.string().nullable().openapi({ description: "As `@handle`." }),
+      audience: z.string().nullable(),
+      files: z.array(z.object({ id: z.uuid(), title: z.string() })),
+      links: z.array(z.string()),
+    })
+    .openapi("Brand");
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/brand",
+      tags,
+      security,
+      summary: 'The workspace\'s brand ("Sua marca"), the tones to tap and whether the onboarding waits for it',
+      description:
+        "docs/adr/doug-0030-time-doug.md: the brand step follows the Doug team in the onboarding and is required there (`pending` until `PUT …/brand`). `brand`: what was said, null before. Any member reads it.",
+      request: { params: OrgParams, query: z.object({ locale: z.string().max(20).optional() }) },
+      responses: {
+        200: json(
+          z.object({
+            pending: z.boolean(),
+            brand: BrandView.nullable(),
+            skillId: z.uuid().nullable().openapi({ description: "The workspace skill `marca`, once saved." }),
+            tones: z.array(z.object({ id: z.enum(BRAND_TONES), label: z.string() })),
+          }),
+        ),
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      return c.json(await getBrand(db, c.get("user").id, orgId, c.req.valid("query").locale), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/brand",
+      tags,
+      security,
+      summary: 'Save the brand: the workspace skill "Marca <empresa>"',
+      description:
+        "Who manages agents. Creates or rewrites the workspace skill `marca` (a new version each time), in the sections the Doug team's ROSA, SONY, SOCIAL MEDIA and CHESS read, and gives it to them. `company` and a tone (`tones` and/or `tone`) are required (400 `brand.company_required`, `brand.tone_required`); `files` are Drive files (`POST …/artifacts/files` first) you can read (400 `brand.file_missing`).",
+      request: {
+        params: OrgParams,
+        body: body(
+          z.object({
+            company: z.string().max(120),
+            tones: z.array(z.enum(BRAND_TONES)).max(10).optional(),
+            tone: z.string().max(2000).nullable().optional().openapi({ description: "The tone in your own words." }),
+            site: z.string().max(500).nullable().optional(),
+            instagram: z.string().max(200).nullable().optional(),
+            audience: z.string().max(2000).nullable().optional(),
+            files: z.array(z.uuid()).max(20).optional(),
+            links: z.array(z.string().max(500)).max(20).optional(),
+          }),
+        ),
+      },
+      responses: {
+        200: json(z.object({ skillId: z.uuid(), brand: BrandView, pending: z.boolean() })),
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      const out = await saveBrand({ db, pubsub: adapters.pubsub }, c.get("user").id, orgId, c.req.valid("json"));
       return c.json(out, 200);
     },
   );

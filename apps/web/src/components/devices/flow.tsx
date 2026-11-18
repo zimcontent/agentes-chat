@@ -7,6 +7,11 @@ export interface FlowProps {
   onClose: () => void;
   onBack?: () => void;
   setTitle: (title: ReactNode) => void;
+  /**
+   * The flow was opened over a screen it must not leave (the onboarding's "Quem entra"): a page it would open in this
+   * window is opened in a new tab instead.
+   */
+  stay?: boolean;
 }
 
 /** The flow's own Back (to the chooser) and Cancel, with an optional note on the left. */

@@ -26,15 +26,18 @@ import "./team-source.css";
  * to bring them, what was found, and the report of what came (kept on screen until its Continue when something stayed
  * behind).
  */
-export type TeamSourceView = "ask" | "start" | "template" | "bring" | "found" | "report";
+export type TeamSourceView = "ask" | "start" | "who" | "template" | "bring" | "found" | "report";
 
-/** How a team with no agents yet starts: a template's team, or from scratch with the right hand alone. */
-export type TeamStartPick = "template" | "scratch";
+/**
+ * How a team with no agents yet starts: the Doug team (docs/adr/doug-0030-time-doug.md, first and already picked), a
+ * ready-made template's team, or from scratch with the right hand alone.
+ */
+export type TeamStartPick = "doug" | "template" | "scratch";
 
 /** An answer to the question: one of the import's apps, or none yet. */
 export type TeamSourceChoice = ImportCard | "none";
 
-type Stage = "ask" | "start" | "template" | "import";
+type Stage = "ask" | "start" | "who" | "template" | "import";
 
 /** What the import holds now, as the page's heading, Lodi's line and the preview read it (the views publish it). */
 export interface TeamSourceFacts {
@@ -92,8 +95,9 @@ export function useTeamSource(
   const qc = useQueryClient();
   const [stage, setStage] = useState<Stage | null>(null);
   const [chosen, choose] = useState<TeamSourceChoice | null>(null);
-  // How a team with no agents yet starts: from scratch until the person picks the template's team.
-  const [start, pickStart] = useState<TeamStartPick>("scratch");
+  // How a team with no agents yet starts: the Doug team until the person picks another (docs/adr/doug-0030-time-doug.md),
+  // a server older than it from scratch.
+  const [start, pickStart] = useState<TeamStartPick>("doug");
   const [holding, setHolding] = useState(false);
   const [facts, setFacts] = useState<TeamSourceFacts>(NO_FACTS);
   const resetFlow = useRef<(() => void) | null>(null);
@@ -180,17 +184,19 @@ export function useTeamSource(
     if (holding) hold(false);
   };
   const back =
-    view === "template"
+    view === "who"
       ? () => setStage("start")
-      : view === "start" || view === "bring"
-        ? ask
-        : view === "found" && !facts.applying && !facts.report
-          ? () => {
-              // Back to the request or the files; an apply that failed lets the step go with it.
-              resetFlow.current?.();
-              if (holding) hold(false);
-            }
-          : null;
+      : view === "template"
+        ? () => setStage("start")
+        : view === "start" || view === "bring"
+          ? ask
+          : view === "found" && !facts.applying && !facts.report
+            ? () => {
+                // Back to the request or the files; an apply that failed lets the step go with it.
+                resetFlow.current?.();
+                if (holding) hold(false);
+              }
+            : null;
 
   /** The step's heading and Lodi's line for the view on screen. */
   const head = (t: TFunction, _org: string): { title: string; lead: string; say: string } => {
@@ -225,6 +231,12 @@ export function useTeamSource(
         lead: t("teamPlan.templates.heldLead"),
         say: t("onboarding.flow.lodi.team"),
       };
+    if (view === "who")
+      return {
+        title: t("onboarding.flow.who.title"),
+        lead: t("onboarding.flow.who.lead"),
+        say: t("onboarding.flow.lodi.who"),
+      };
     return {
       title: t("onboarding.flow.team.ask.title"),
       lead: t(o.personal ? "onboarding.flow.team.ask.leadPersonal" : "onboarding.flow.team.ask.lead"),
@@ -245,13 +257,17 @@ export function useTeamSource(
     preview: view === "found" || view === "report" ? facts.coming : null,
     /** "No agents yet". */
     none,
-    /** How a team with no agents yet starts, picked on its start ("Start from scratch" until changed). */
+    /** How a team with no agents yet starts, picked on its start (the Doug team until changed). */
     start,
     pickStart,
     /** A team's "Skip this step" and "Start from scratch": the step left with no agents. */
     skip,
     /** Back to the question. */
     ask,
+    /** The step's own view, from the rail: how the team starts, its card still picked (the `who` stage's return). */
+    go: (next: Stage) => setStage(next),
+    /** The view on screen, so the page tells "Quem entra" (a stage of this step) from the card. */
+    stage: base,
     /** For the step's views (`TeamSource`) only. */
     link: { stage: base, chosen, choose, go: setStage, hold, publish, bindReset, replyCard },
   };

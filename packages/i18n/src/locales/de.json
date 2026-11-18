@@ -14,6 +14,7 @@
     "nextMonth": "Nächster Monat",
     "chooseDate": "Datum wählen",
     "cancel": "Abbrechen",
+    "remove": "Entfernen",
     "save": "Speichern",
     "back": "Zurück",
     "continue": "Weiter",
@@ -762,6 +763,9 @@
       "message": "Sonst noch etwas",
       "messageExample": "Wir posten zwei Videos pro Woche von Hand.",
       "messageOptional": "Optional",
+      "messageTooLong": "Das ist länger, als das Formular annimmt. Kürzen Sie es.",
+      "invalidField": "Prüfen Sie diesen Teil des Formulars und versuchen Sie es erneut.",
+      "invalidEmail": "Geben Sie eine E-Mail wie ana@firma.de an.",
       "consent": "Ich stimme zu, dass DougBot diese Antworten speichert, um mich zu kontaktieren, wie in der <link>Datenschutzerklärung</link> beschrieben.",
       "consentRequired": "Akzeptiere die Datenschutzerklärung, um fortzufahren.",
       "submit": "Anfrage senden",
@@ -769,11 +773,6 @@
       "doneTitle": "Deine Anfrage ist bei uns",
       "doneLead": "Das Team liest jede Anfrage und spricht mit jedem Unternehmen per WhatsApp. Du bekommst auch eine E-Mail.",
       "again": "Weitere Anfrage senden",
-      "failed": "Die Anfrage konnte nicht gesendet werden. Versuch es erneut.",
-      "privacy": "Datenschutzerklärung",
-      "messageTooLong": "Das ist länger, als das Formular annimmt. Kürzen Sie es.",
-      "invalidField": "Prüfen Sie diesen Teil des Formulars und versuchen Sie es erneut.",
-      "invalidEmail": "Geben Sie eine E-Mail wie ana@firma.de an.",
       "confirmTitle": "Ihre E-Mail wird bestätigt…",
       "confirmLead": "Einen Moment.",
       "confirmFailedTitle": "Dieser Link ist unbekannt oder abgelaufen",
@@ -785,7 +784,9 @@
       "deletedTitle": "Anfrage gelöscht",
       "deletedLead": "Alles, was sie enthielt, ist weg. Sonst wird nichts aufbewahrt.",
       "deleteFailedTitle": "Dieser Link ist unbekannt oder schon benutzt",
-      "deleteFailedLead": "Damit lässt sich nichts mehr löschen, oder er ist abgelaufen."
+      "deleteFailedLead": "Damit lässt sich nichts mehr löschen, oder er ist abgelaufen.",
+      "failed": "Die Anfrage konnte nicht gesendet werden. Versuch es erneut.",
+      "privacy": "Datenschutzerklärung"
     },
     "interests": {
       "design": "Design",
@@ -809,6 +810,7 @@
       "search": "Unternehmen, Person oder E-Mail suchen",
       "none": "Keine Anfrage gefunden.",
       "count": "{{count}} Anfragen",
+      "more": "Mehr",
       "status": {
         "new": "Neu",
         "talking": "Im Gespräch",
@@ -843,7 +845,6 @@
       "noEmail": "Dieser Server versendet keine E-Mail, also kann keine Einladung rausgehen.",
       "codeTaken": "Ein anderes Unternehmen hat diesen Code schon.",
       "codeInvalid": "Der Kundencode hat drei Ziffern.",
-      "more": "Mehr",
       "pendingConfirm": "Diese Adresse hat ein neues Formular zum Bestätigen: Das Team sieht die Anfrage so, wie sie war, bis sie bestätigt ist.",
       "delete": "Löschen",
       "deleteTitle": "Die Anfrage von {{company}} löschen?",
@@ -1012,6 +1013,7 @@
       "context": "Kontext",
       "import": "Deine Agenten mitbringen",
       "agents": "Agenten",
+      "brand": "Deine Marke",
       "computer": "Computer",
       "ai": "KI",
       "team": "Team",
@@ -1034,11 +1036,15 @@
         "business": "Was ihr macht",
         "you": "Über dich",
         "team": "Dein Team",
+        "who": "Wer beitritt",
+        "brand": "Deine Marke",
         "plan": "Team einschalten",
         "ai": "KI verbinden",
         "people": "Leute einladen",
         "namePersonal": "Wofür du es nutzt",
         "teamPersonal": "Deine Agenten",
+        "whoPersonal": "Wer beitritt",
+        "brandPersonal": "Deine Marke",
         "planPersonal": "Agenten einschalten",
         "aiPersonal": "KI verbinden"
       },
@@ -1049,6 +1055,8 @@
         "team": "So würde ich das Team zusammenstellen. Du kannst später alles ändern.",
         "teamMade": "Das Team steht schon. Wir machen weiter, wann immer du bereit bist.",
         "teamMadePersonal": "Deine Agenten sind schon da. Wir machen weiter, wann immer du bereit bist.",
+        "who": "Das Doug-Team kennt das Handwerk schon. Wähle, wer jetzt beitritt, der Rest kann später kommen.",
+        "brand": "Bevor sie loslegen: bring ihnen deine Marke bei. ROSA und SONY lesen sie vor jedem Stück.",
         "plan": "Nach dem Tarif fehlt nur noch eine KI. Ich zeige dir, wo.",
         "planThen": "Sobald der Tarif läuft, verbindest du auf dem nächsten Bildschirm deine KI.",
         "you": "Vor dem Team ein bisschen über dich.",
@@ -1111,7 +1119,13 @@
           "scratchText": "Nur {{name}}, deine rechte Hand. Jeden Agenten erstellst du später, auf deine Art.",
           "scratchWho": "{{name}} und wen du erstellst",
           "see": "Das fertige Team ansehen",
-          "scratchGo": "Nur mit {{name}} weiter"
+          "scratchGo": "Nur mit {{name}} weiter",
+          "doug": "Mit dem Doug-Team starten",
+          "dougBadge": "Empfohlen",
+          "dougText": "Das Team, das Dougs Betrieb trägt: Design, Video, Werbung, Strategie, Social Media, Code und Finanzen. Sie kommen ganz ohne Erinnerung und sind bereit, dein Unternehmen zu lernen.",
+          "dougWho_one": "{{count}} Agent",
+          "dougWho_other": "{{count}} Agenten",
+          "dougGo": "Wählen, wer beitritt"
         },
         "ask": {
           "title": "Hast du schon Agenten in einer anderen App?",
@@ -1147,6 +1161,56 @@
           "bring": "Team holen",
           "bringPersonal": "Agenten holen"
         }
+      },
+      "who": {
+        "title": "Wer tritt deinem Team bei?",
+        "lead": "Hake ab, wen du jetzt nicht brauchst. Du kannst jeden später in Team › Neuer Agent holen.",
+        "fixed": "Bleibt",
+        "teamOf_one": "{{count}} in seinem Team",
+        "teamOf_other": "{{count}} in seinem Team",
+        "countAgents_one": "Agent im Team",
+        "countAgents_other": "Agenten im Team",
+        "countSkills_one": "Handwerks-Skill",
+        "countSkills_other": "Handwerks-Skills",
+        "countRoutines_one": "fertige Routine, pausiert bis du sie einschaltest",
+        "countRoutines_other": "fertige Routinen, pausiert bis du sie einschaltest",
+        "skillsCount_one": "{{count}} Handwerks-Skill",
+        "skillsCount_other": "{{count}} Handwerks-Skills",
+        "note": "Keiner kommt mit Erinnerung, Kunde oder Datei eines anderen Unternehmens.",
+        "qg": "im {{channel}}",
+        "needsComputer": "braucht einen verbundenen Computer",
+        "connectComputer": "Computer nutzen",
+        "computerPending": "Ein Computer fehlt noch: {{names}}.",
+        "create": "Team erstellen",
+        "required": "Pflicht"
+      },
+      "brand": {
+        "title": "Bring deinem Team deine Marke bei",
+        "lead": "Hierher nimmt ROSA die Identität, SONY den Stil der Videos und Social Media den Ton. Alles bleibt in deinem Workspace.",
+        "company": "Firmenname",
+        "companyPlaceholder": "Bäckerei Aurora",
+        "site": "Webseite",
+        "instagram": "Instagram",
+        "instagramPlaceholder": "@dasunternehmen",
+        "audience": "Zielgruppe",
+        "audiencePlaceholder": "Wer kauft bei dir?",
+        "tone": "Tonalität",
+        "toneOwn": "Eigene schreiben",
+        "tonePlaceholder": "In deinen Worten: wie die Marke spricht",
+        "manual": "Markenhandbuch, Logo, Schriften und Farben",
+        "manualText": "Eine PDF, Figma, Bilder oder ein Link. Daraus wird der Skill „Marke {{company}}“ für das ganze Team.",
+        "manualPick": "Dateien wählen",
+        "manualLink": "Link einfügen",
+        "manualLinkPlaceholder": "https://drive.google.com/…",
+        "manualAdd": "Hinzufügen",
+        "required": "Pflicht",
+        "saved": "Hochgeladen",
+        "failed": "Nicht hochgeladen: {{reason}}",
+        "missingCompany": "Sag den Firmennamen.",
+        "missingTone": "Wähle einen Tonfall oder schreib deinen eigenen.",
+        "removeSaved": "Verschwindet auch aus der gespeicherten Marke. Entfernen?",
+        "madeTitle": "Das Team hat deine Marke gelernt",
+        "made": "„Marke {{company}}“ ist jetzt der Skill, den ROSA, SONY, Social Media und CHESS lesen."
       },
       "plan": {
         "title": "Schalte dein Team ein",
@@ -5342,6 +5406,7 @@
       "adminAskCreate": "<b>{{name}}</b> möchte Agenten erstellen dürfen",
       "adminAskWebhook": "<b>{{name}}</b> bittet dich, den {{service}}-Webhook für Routinen einzurichten",
       "invitationAccepted": "<b>{{name}}</b> hat deine Einladung angenommen und ist {{org}} beigetreten",
+      "companyRequest": "<b>{{company}}</b> hat DougBot angefragt: eine Anfrage von <b>{{name}}</b>",
       "invitationAcceptedAny": "<b>{{name}}</b> hat deine Einladung angenommen",
       "reaction_one": "<b>{{names}}</b> hat auf deine Nachricht reagiert",
       "reaction_other": "<b>{{names}}</b> haben auf deine Nachricht reagiert",
@@ -5350,8 +5415,7 @@
       "usageLimitReached": "<b>{{name}}</b> hat das Limit von {{amount}} erreicht",
       "usageLimitRequest": "<b>{{name}}</b> hat das Limit von {{amount}} erreicht und bittet um mehr",
       "usageLimitRaised": "<b>{{name}}</b> hat dein Limit für diesen Monat erhöht",
-      "usageLimitRefused": "<b>{{name}}</b> hat deine Bitte um mehr Nutzung abgelehnt",
-      "companyRequest": "<b>{{company}}</b> hat DougBot angefragt: eine Anfrage von <b>{{name}}</b>"
+      "usageLimitRefused": "<b>{{name}}</b> hat deine Bitte um mehr Nutzung abgelehnt"
     },
     "usageLimit": {
       "runs_one": "{{count}} Anfrage diesen Monat",
@@ -15392,6 +15456,21 @@
     "teamProposal": {
       "undoExpired": "Seit der Erstellung dieses Teams ist mehr als ein Tag vergangen, daher lässt es sich hier nicht rückgängig machen. Archiviere die Agenten auf ihren Seiten."
     },
+    "dougTeam": {
+      "made": "Dieser Workspace hat das Doug-Team schon.",
+      "none": "Hake mindestens einen Agenten für das Team an.",
+      "unknown": "Das Doug-Team hat {{handles}} nicht.",
+      "ownPath": "Das Doug-Team entsteht über seine eigene Karte, im Onboarding, nicht über diese."
+    },
+    "brand": {
+      "pending": "Bring dem Team vor dem Abschluss deine Marke bei: den Firmennamen und die Tonalität.",
+      "companyRequired": "Nenne den Firmennamen.",
+      "toneRequired": "Wähle oder schreibe die Tonalität.",
+      "unknownTone": "Einer der gewählten Töne gibt es nicht mehr. Lade neu und wähle erneut.",
+      "invalidLink": "Diese Website oder dieser Link sieht nicht wie eine gültige Adresse aus. Prüfe und versuche es erneut.",
+      "invalidInstagram": "Dieses Instagram-Profil sieht nicht gültig aus: schreibe @etwas.",
+      "fileMissing": "Eine Datei des Handbuchs ist nicht mehr in deinem Drive. Lade sie erneut hoch."
+    },
     "agentProposal": {
       "decided": "Über diesen Vorschlag hat schon jemand entschieden.",
       "expired": "Dieser Vorschlag ist abgelaufen: Niemand hat innerhalb eines Tages entschieden.",
@@ -17084,12 +17163,12 @@
       "voice": "Sprachnachrichten",
       "apps": "KI-Apps",
       "approvals": "Freigaben",
+      "companies": "Unternehmensanfragen",
       "support": "Support",
       "about": "Über DougBot",
       "generalPersonal": "Über dich",
       "keysPersonal": "KI und Apps",
-      "membersPersonal": "Personen",
-      "companies": "Unternehmensanfragen"
+      "membersPersonal": "Personen"
     },
     "advanced": "Erweitert",
     "tab": {
@@ -17117,14 +17196,14 @@
       "voice": "Sprachnachrichten in Unterhaltungen und wer Sprache in Text umwandelt.",
       "apps": "Gib den Agenten Aufgaben aus Claude, Cursor und anderen Apps.",
       "approvals": "Wer für dich entscheidet, wenn ein Agent deine Freigabe braucht.",
+      "companies": "Unternehmen, die DougBot auf der Seite angefragt haben.",
       "support": "Wer diese Installation betreibt und wie man sie erreicht.",
       "about": "Wer es macht, seine Lizenz und wo sein Quellcode liegt.",
       "generalPersonal": "Was deine Agenten über dich wissen und wie dieser Workspace funktioniert.",
       "usagePersonal": "Wie viel KI deine Agenten nutzen, und dein Tarif.",
       "connectorsPersonal": "Deine Apps und MCP-Server, einmal für deine Agenten verbunden.",
       "membersPersonal": "Wer mit dir hier ist.",
-      "rolesPersonal": "Was jede Person hier tun kann. Inhaber können alles.",
-      "companies": "Unternehmen, die DougBot auf der Seite angefragt haben."
+      "rolesPersonal": "Was jede Person hier tun kann. Inhaber können alles."
     },
     "support": {
       "title": "Support erreichen",
@@ -20331,6 +20410,7 @@
       "createdYouPersonal": "Agenten von dir erstellt",
       "skillsWait": "Die Skills warten auf einen Admin.",
       "weeklyWait": "Mein Wochenrückblick wartet auf die Person, die meine Routinen verwaltet.",
+      "rightHandWait": "Die Rolle des DOUG als Manager wartet auf einen Admin.",
       "undone": "Team rückgängig gemacht",
       "dismissed": "Team verworfen",
       "undonePersonal": "Agenten rückgängig gemacht",
@@ -21277,6 +21357,123 @@
       "more": "Mehr anzeigen",
       "add_one": "{{count}} Datei hinzufügen",
       "add_other": "{{count}} Dateien hinzufügen"
+    }
+  },
+  "dougTeam": {
+    "name": "Doug-Team",
+    "sub": "Design, Video, Anzeigen, Strategie, Social Media, Code und Finanzen",
+    "desc": "Das ganze Team des Hauses, jeder Agent mit seinem Handwerk, seinen Routinen und seinen Skills, mit einem Kanal für jede Zentrale.",
+    "lead": "Das Doug-Team für {{org}}, jede Zentrale in ihrem eigenen Kanal. Alle Routinen starten pausiert.",
+    "approvals": "Ausgaben, Veröffentlichungen und alles, was nach außen geht, warten auf dein Okay.",
+    "channels": {
+      "design": "zentrale-design",
+      "video": "zentrale-video",
+      "trafego": "zentrale-anzeigen",
+      "estrategia": "zentrale-strategie",
+      "social": "zentrale-social",
+      "codigo": "zentrale-code",
+      "financeiro": "zentrale-finanzen"
+    },
+    "agents": {
+      "doug": {
+        "role": "Leiter des Betriebs",
+        "line": "Koordiniert das Team, verfolgt Fristen, verteilt Anfragen, prüft Lieferungen und bittet im richtigen Moment um Freigabe.",
+        "hello": "Hallo. Ich halte das Team in Bewegung und bringe dir nur, was dich braucht."
+      },
+      "rosa": {
+        "role": "Art Directorin",
+        "line": "Macht Cover, Karussells, Posts, Stories, Thumbnails und Präsentationen auf Agenturniveau, immer im Stil der Kundenmarke.",
+        "hello": "Hallo. Cover, Karussells und Posts übernehme ich, immer im Stil der Marke."
+      },
+      "sony": {
+        "role": "Videoeditor",
+        "line": "Schneidet und animiert Videos auf Studioniveau, vom Rohmaterial bis zum freigegebenen Reel, immer im Stil der Kundenmarke.",
+        "hello": "Hallo. Schick mir das Rohmaterial, ich bringe dir das fertige Video."
+      },
+      "mark": {
+        "role": "Leiter der Anzeigenzentrale",
+        "line": "Betreut bezahlte Anzeigen von Anfang bis Ende mit dem Anzeigenteam und sagt, was ausgegeben wurde, was reinkam und was als Nächstes kommt.",
+        "hello": "Hallo. Ich leite das Anzeigenteam und sage dir, was ausgegeben wurde und was reinkam."
+      },
+      "analistaResultado": {
+        "role": "Ergebnisanalyst der Anzeigenzentrale",
+        "line": "Liest das Werbekonto und die echten Verkäufe, misst Kosten pro Verkauf, Rückfluss in die Kasse und Ermüdung und sagt, was gekürzt und was skaliert wird.",
+        "hello": "Hallo. Ich lese die Zahlen und sage, was gekürzt und was skaliert wird."
+      },
+      "copywriter": {
+        "role": "Texter der Anzeigenzentrale",
+        "line": "Schreibt Anzeigentexte, Titel, Beschreibungen, Hooks und kurze Skripte, nach Blickwinkel und nur mit belegten Aussagen.",
+        "hello": "Hallo. Anzeigentexte und Hooks übernehme ich, nur mit belegten Aussagen."
+      },
+      "diretorCriativo": {
+        "role": "Kreativdirektor der Anzeigenzentrale",
+        "line": "Macht aus Hypothesen und Texten Briefings für Video und Grafik, hält verschiedene Konzepte live und baut jedes Stück prüfbereit.",
+        "hello": "Hallo. Ich mache aus Ideen Briefings und prüfbereite Stücke."
+      },
+      "estrategistaMidia": {
+        "role": "Mediastratege der Anzeigenzentrale",
+        "line": "Baut die Struktur der Kampagnen, wählt die Tests der Woche und schreibt die Anweisungen zum Kürzen und Skalieren innerhalb der Obergrenze.",
+        "hello": "Hallo. Ich plane die Kampagnen und die Tests der Woche innerhalb der Obergrenze."
+      },
+      "financeiroTrafego": {
+        "role": "Finanzen der Anzeigenzentrale",
+        "line": "Rechnet jedes Projekt durch, hält die Tages- und Monatsgrenze, steuert das Budget und misst den echten Rückfluss in die Kasse.",
+        "hello": "Hallo. Ich halte das Budget unter der Grenze und messe den echten Rückfluss."
+      },
+      "humanizador": {
+        "role": "Letzter Schliff am Text",
+        "line": "Gibt dem Text den letzten Schliff, damit er menschlich klingt, ohne Fakten, Aussagen, Grenzen oder Format zu ändern.",
+        "hello": "Hallo. Ich gebe jedem Text den letzten Schliff, damit er menschlich klingt."
+      },
+      "operador": {
+        "role": "Operator der Anzeigenzentrale",
+        "line": "Führt im Werbekonto die freigegebenen Anweisungen eine nach der anderen aus und gibt das Ergebnis genau so zurück, wie es kam.",
+        "hello": "Hallo. Ich führe die freigegebenen Anweisungen im Werbekonto aus, eine nach der anderen."
+      },
+      "pesquisadorGrowth": {
+        "role": "Growth-Rechercheur der Anzeigenzentrale",
+        "line": "Recherchiert Hooks, Creatives und Anzeigenstrategien am Markt und macht aus den Funden Karten mit Testhypothesen.",
+        "hello": "Hallo. Ich recherchiere, was am Markt funktioniert, und bringe Hypothesen zum Testen."
+      },
+      "revisorPolitica": {
+        "role": "Richtlinienprüfer der Anzeigenzentrale",
+        "line": "Prüft jede Anzeige vor dem Start gegen die Regeln der Plattform, das Gesetz und die Aussagen des Projekts und sagt bestanden, Warnung oder gesperrt.",
+        "hello": "Hallo. Ich prüfe jede Anzeige gegen die Regeln, bevor sie startet."
+      },
+      "chess": {
+        "role": "Marketingstratege",
+        "line": "Liest die Marke und den Moment, recherchiert, was in der Nische funktioniert, und liefert Strategie und Text jedes Stücks, mit These, Hooks und dem Warum.",
+        "hello": "Hallo. Strategie und Text jedes Stücks übernehme ich, immer mit dem Warum."
+      },
+      "socialMedia": {
+        "role": "Social-Media-Manager",
+        "line": "Betreut den Kalender und die Kanäle der Marken, bringt Ideen für Inhalte, holt für jeden Post die Freigabe und plant, was freigegeben ist.",
+        "hello": "Hallo. Kalender und Kanäle übernehme ich, und nichts geht ohne Freigabe raus."
+      },
+      "junin": {
+        "role": "KI-Entwickler",
+        "line": "Baut und pflegt Websites, Seiten, Automationen und Integrationen der Firma, testet, veröffentlicht mit Okay und erklärt das Ergebnis in einfachen Worten.",
+        "hello": "Hallo. Websites, Seiten und Automationen übernehme ich, veröffentlicht nur mit deinem Okay."
+      },
+      "kiara": {
+        "role": "Finanzen",
+        "line": "Kümmert sich um Rechnungen, Mahnungen, Bankmeldungen, Fälligkeiten und Verkaufsberichte, immer mit Freigabe vor dem Senden.",
+        "hello": "Hallo. Rechnungen und Mahnungen übernehme ich, immer mit deinem Okay vor dem Senden."
+      }
+    },
+    "brand": {
+      "tones": {
+        "proximo": "Nahbar",
+        "profissional": "Professionell",
+        "divertido": "Witzig",
+        "inspirador": "Inspirierend",
+        "direto": "Direkt",
+        "acolhedor": "Herzlich",
+        "tecnico": "Technisch",
+        "sofisticado": "Edel",
+        "ousado": "Mutig",
+        "educativo": "Lehrreich"
+      }
     }
   }
 }

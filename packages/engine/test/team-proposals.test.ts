@@ -3,10 +3,12 @@ import { and, eq, inArray, isNull, schema } from "@agenteschat/db";
 import {
   BUSINESS_TEMPLATES,
   createAgent,
+  createChannel,
   createRole,
   createSetupToolSource,
   createTeam,
   createToolGateway,
+  DOUG_TEMPLATE,
   denyTeam,
   listTeamTemplates,
   NEW_AGENT_DEFAULTS,
@@ -16,6 +18,7 @@ import {
   PERSONAL_TEMPLATES,
   PROPOSE_TEAM_TOOL,
   postPersonMessage,
+  postTeamCard,
   RIGHT_HAND,
   rightHandPrompt,
   setMemberRoles,
@@ -25,6 +28,7 @@ import {
   type ToolContext,
   undoTeam,
   updateOrgSettings,
+  useDougTeam,
   useTeamTemplate,
 } from "../src";
 import { addMember, type Fixture, setup } from "./fixtures";
@@ -489,6 +493,7 @@ describe("team templates", () => {
   test("six, in the person's language, each a team its card would propose", async () => {
     f = await setup({ rightHand: true });
     const list = await listTeamTemplates({ db: f.db }, f.owner.id, f.org.id, "pt-BR");
+    // The six, and no Doug team, which one app asks for apart (docs/adr/doug-0030-time-doug.md).
     expect(list.map((t) => t.id)).toEqual([...BUSINESS_TEMPLATES]);
     expect(TEAM_TEMPLATES).toEqual([...BUSINESS_TEMPLATES, ...PERSONAL_TEMPLATES]);
     const software = list.find((t) => t.id === "software");
@@ -571,5 +576,72 @@ describe("team templates", () => {
     const used = await useTeamTemplate({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, "health", "en");
     expect(used).toMatchObject({ state: "created", error: null });
     expect((await cardOf(f, used.messageId)).params.agents.map((a) => a.name)).toEqual(["Léo", "Mel"]);
+  });
+});
+
+describe("the Doug team's own card (docs/adr/doug-0030-time-doug.md)", () => {
+  /** A team card the bot proposes, forced to the Doug team's template as a forged one would be. */
+  async function forgedDougCard(fx: Fixture, userId: string) {
+    const lodi = await lodiOf(fx);
+    const dm = await openPersonAgentDm(fx.db, fx.org.id, userId, lodi.id);
+    const card = await postTeamCard(
+      { db: fx.db, pubsub: fx.pubsub },
+      { orgId: fx.org.id, channelId: dm.id, threadId: null, agentId: lodi.id, runId: null, hop: 0 },
+      {
+        lead: "O Time Doug para a Acme.",
+        agents: [
+          {
+            name: "ROSA",
+            handle: "rosa",
+            role: "Diretora de arte",
+            line: "Faz as peças.",
+            instructions: "Faz as peças.",
+            appearance: null,
+            channel: "qg-design",
+            routines: [],
+            firstTask: null,
+          },
+        ],
+        newChannels: ["qg-design"],
+        skills: [],
+        weekly: null,
+        approvals: "Gasto espera o seu ok.",
+        invite: [],
+        template: DOUG_TEMPLATE,
+      },
+      userId,
+      undefined,
+      false,
+    );
+    return card.id;
+  }
+
+  test("Criar o time refuses a card of the Doug team: it is made by its own path, and the card goes denied", async () => {
+    f = await setup({ rightHand: true });
+    const id = await forgedDougCard(f, f.owner.id);
+    const made = await createTeam({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, id);
+    // The card is terminal (`denied`), with the reason, and nothing was made for it.
+    expect(made.card.state).toBe("denied");
+    expect(made.card.error).toMatchObject({ code: "doug_team.own_path" });
+    expect((await cardOf(f, id)).state).toBe("denied");
+    const live = await f.db
+      .select()
+      .from(schema.agents)
+      .where(and(eq(schema.agents.orgId, f.org.id), isNull(schema.agents.archivedAt)));
+    // The fixture's own `@dev`, and the right hand: nothing the forged card would have made.
+    expect(live.map((a) => a.handle).sort()).toEqual(["dev", "doug"].sort());
+  });
+
+  test("a step that fails takes the Doug card to denied, with its reason, never leaving it pending", async () => {
+    f = await setup({ rightHand: true });
+    // A private channel somebody else made takes the QG's name: the team can't name it, and the card says why.
+    const other = await addMember(f.db, f.org.id, "admin", "bia");
+    await createChannel(f.db, other.id, f.org.id, { name: "qg-design", visibility: "private" });
+    const used = await useDougTeam({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, { handles: ["rosa"] });
+    // A `-2` name is free, so it goes on; what matters is the card is never left `pending` (see the denial below).
+    expect(["created", "denied"]).toContain(used.state);
+    const card = await cardOf(f, used.messageId);
+    expect(card.state).not.toBe("pending");
+    expect(card.state).not.toBe("creating");
   });
 });

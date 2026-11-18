@@ -184,6 +184,10 @@ export const Organization = z
         generalChannelId: z
           .uuid()
           .openapi({ description: "#general, where the onboarding puts the agents and posts the first message." }),
+        brandPending: z.boolean().optional().openapi({
+          description:
+            "The Doug team was made and its brand step waits (docs/adr/doug-0030-time-doug.md): `PUT …/brand` first, or `PATCH …/onboarding` refuses `finished` with 409 `onboarding.brand_pending`.",
+        }),
       })
       .optional()
       .openapi({

@@ -14,6 +14,8 @@ export const useDevices = (orgId: string, pollMs: number | false = false) => {
   return useQuery({
     queryKey: keys.devices(orgId),
     queryFn: () => api.devices.list(orgId),
+    // No workspace yet (the onboarding's first steps): nothing to ask for, never `GET /devices` on an empty id.
+    enabled: orgId !== "",
     retry: false,
     refetchInterval: pollMs,
     meta: { quiet: true },

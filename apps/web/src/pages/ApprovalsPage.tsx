@@ -286,8 +286,10 @@ export function ApprovalsPage() {
     if (!openId || linked.current === openId || !approvals.data) return;
     linked.current = openId;
     const target = approvals.data.find((a) => a.id === openId);
-    if (target && filter !== "all" && bucketOf(phaseOf(target)) !== filter) setFilter("all");
-  }, [openId, approvals.data, filter]);
+    // Its phase read here, not from the render's `phaseOf`: that one is made anew each render and would re-run this.
+    if (target && filter !== "all" && bucketOf(approvalPhase(target, Date.now(), lines.get(target.id))) !== filter)
+      setFilter("all");
+  }, [openId, approvals.data, filter, lines]);
   const selectedId = openId && order.includes(openId) ? openId : (order[0] ?? null);
   const selected = all.find((a) => a.id === selectedId) ?? null;
   const cardOf = new Map(shownCards.flatMap((items) => items.map((a) => [a.id, items] as const)));

@@ -25,6 +25,7 @@ export const ptBR = {
     nextMonth: "Próximo mês",
     chooseDate: "Escolher data",
     cancel: "Cancelar",
+    remove: "Remover",
     save: "Salvar",
     back: "Voltar",
     continue: "Continuar",
@@ -1054,6 +1055,8 @@ export const ptBR = {
       context: "Contexto",
       import: "Trazer seus agentes",
       agents: "Agentes",
+      /** "Sua marca", depois do Time Doug (docs/adr/doug-0030-time-doug.md). */
+      brand: "Sua marca",
       computer: "Computador",
       ai: "IA",
       team: "Time",
@@ -1080,11 +1083,15 @@ export const ptBR = {
         business: "O que vocês fazem",
         you: "Sobre você",
         team: "Seu time",
+        who: "Quem entra",
+        brand: "Sua marca",
         plan: "Ligar o time",
         ai: "Conectar uma IA",
         people: "Convidar pessoas",
         namePersonal: "Para que vai usar",
         teamPersonal: "Seus agentes",
+        whoPersonal: "Quem entra",
+        brandPersonal: "Sua marca",
         planPersonal: "Ligar os agentes",
         aiPersonal: "Conectar uma IA",
       },
@@ -1096,6 +1103,9 @@ export const ptBR = {
         team: "Esse é o time que eu montaria. Você muda tudo depois.",
         teamMade: "O time já está montado. Quando quiser, a gente segue.",
         teamMadePersonal: "Os seus agentes já estão aqui. Quando quiser, a gente segue.",
+        /** Em "Quem entra" e "Sua marca", as do Time Doug (docs/adr/doug-0030-time-doug.md). */
+        who: "O Time Doug já sabe o ofício. Escolha quem entra agora, o resto vem quando você quiser.",
+        brand: "Antes de botar o time pra trabalhar, ensine a sua marca. A ROSA e a SONY leem ela antes de cada peça.",
         plan: "Depois do plano, falta só conectar uma IA. Eu mostro onde.",
         planThen: "Com o plano ligado, a próxima tela já é a de conectar a sua IA.",
         you: "Antes do time, um pouco sobre você.",
@@ -1163,6 +1173,17 @@ export const ptBR = {
           see: "Ver o time pronto",
           scratchGo: "Seguir só com o {{name}}",
           scratchGo_female: "Seguir só com a {{name}}",
+          /** The Doug team's card (docs/adr/doug-0030-time-doug.md): first, already picked. */
+          doug: "Começar com o Time Doug",
+          /** Beside its title: the card that comes picked. */
+          dougBadge: "Recomendado",
+          dougText:
+            "O time que roda a operação do Doug: design, vídeo, tráfego, estratégia, social media, código e financeiro. Chegam sem nenhuma memória, prontos para aprender a sua empresa.",
+          /** Under its faces: who the card brings. */
+          dougWho_one: "{{count}} agente",
+          dougWho_other: "{{count}} agentes",
+          /** The button, with the Doug team picked. */
+          dougGo: "Escolher quem entra",
         },
         ask: {
           title: "Você já tem agentes em outro app?",
@@ -1198,6 +1219,81 @@ export const ptBR = {
           bring: "Trazer o time",
           bringPersonal: "Trazer os agentes",
         },
+      },
+      /**
+       * "Quem entra no seu time?" (docs/adr/doug-0030-time-doug.md): os agentes do Time Doug, todos marcados, o braço
+       * direito fixo, e o time do QG de Tráfego sob o MARK.
+       */
+      who: {
+        title: "Quem entra no seu time?",
+        lead: "Desmarque quem você não precisa agora. Dá para chamar qualquer um depois, em Equipe › Novo agente.",
+        /** A linha do braço direito: ele nunca sai (já está aqui). */
+        fixed: "Fica",
+        /** Sob as linhas do MARK: o QG de Tráfego que ele abre. `{{count}}`: quantos ele tem. */
+        teamOf_one: "{{count}} no time dele",
+        teamOf_other: "{{count}} no time dele",
+        /** O que os marcados trazem, acima da lista: um nome sob o número (um `dt` antes do `dd`). */
+        countAgents_one: "agente no time",
+        countAgents_other: "agentes no time",
+        countSkills_one: "skill de ofício",
+        countSkills_other: "skills de ofício",
+        countRoutines_one: "rotina pronta, pausada até você ligar",
+        countRoutines_other: "rotinas prontas, pausadas até você ligar",
+        /** O chip no fim da linha: o que aquele agente traz, com o número. */
+        skillsCount_one: "{{count}} skill de ofício",
+        skillsCount_other: "{{count}} skills de ofício",
+        note: "Nenhum chega com memória, cliente ou arquivo de outra empresa.",
+        /** O canal em que o agente da linha trabalha: o QG dele. */
+        qg: "no {{channel}}",
+        /** O aviso no agente que só trabalha num computador, e o botão ao lado. */
+        needsComputer: "precisa de um computador conectado",
+        connectComputer: "Conectar computador",
+        /** O que ainda falta depois do time criado: os agentes que precisam de um computador, nomeados. */
+        computerPending: "Falta um computador conectado: {{names}}.",
+        create: "Criar o time",
+        /** As caixas que precisam de resposta, ao lado dos nomes. */
+        required: "Obrigatório",
+      },
+      /**
+       * "Ensine a sua marca ao time" (docs/adr/doug-0030-time-doug.md): o nome da empresa e o tom, obrigatórios, e o
+       * site, o perfil, o público e o manual de marca, opcionais. Vira a skill "Marca" do workspace.
+       */
+      brand: {
+        title: "Ensine a sua marca ao time",
+        lead: "É daqui que a ROSA tira a identidade, a SONY o estilo dos vídeos e o Social Media o tom. Tudo fica só no seu workspace.",
+        company: "Nome da empresa",
+        companyPlaceholder: "Padaria Aurora",
+        site: "Site",
+        instagram: "Instagram",
+        instagramPlaceholder: "@aempresa",
+        audience: "Público",
+        audiencePlaceholder: "Quem compra de você?",
+        tone: "Tom de voz",
+        /** O chip que abre o campo para um tom escrito pela pessoa. */
+        toneOwn: "Escrever o seu",
+        tonePlaceholder: "Nas suas palavras: como a marca fala",
+        /** O manual de marca: um arquivo ou um link, opcionais. */
+        manual: "Manual de marca, logo, fontes e cores",
+        manualText: "Um PDF, Figma, imagens ou um link. Vira a skill “Marca {{company}}” do time inteiro.",
+        manualPick: "Escolher arquivos",
+        manualLink: "Colar um link",
+        manualLinkPlaceholder: "https://drive.google.com/…",
+        /** O botão que guarda o link colado, ao lado do campo. */
+        manualAdd: "Adicionar",
+        /** Ao lado do nome da empresa e do tom: o que a etapa não dispensa. */
+        required: "Obrigatório",
+        /** Sob o título do arquivo, depois que ele está no Drive. */
+        saved: "Enviado",
+        /** Um arquivo que não foi para o Drive, sob o nome dele. */
+        failed: "Não foi enviado: {{reason}}",
+        /** O que a etapa ainda espera, sob o botão que ainda não dá. */
+        missingCompany: "Diga o nome da empresa.",
+        missingTone: "Escolha um tom de voz ou escreva com as suas palavras.",
+        /** O × ao lado de um arquivo ou link, depois de a marca salva: ele sai da skill também. */
+        removeSaved: "Sai da marca salva também. Tirar?",
+        /** A skill em que vira, depois de salva. */
+        madeTitle: "O time aprendeu a sua marca",
+        made: "“Marca {{company}}” agora é a skill que a ROSA, a SONY, o Social Media e o CHESS leem.",
       },
       plan: {
         title: "Ligue o time",
@@ -15613,6 +15709,23 @@ export const ptBR = {
       undoExpired:
         "Já passou um dia desde que este time foi criado, então não dá para desfazer aqui. Arquive os agentes nas páginas deles.",
     },
+    /** O Time Doug e o passo da marca (docs/adr/doug-0030-time-doug.md). */
+    dougTeam: {
+      made: "Este workspace já tem o Time Doug. Desfaça o que ele criou, ou adicione os agentes que quiser, um por um.",
+      none: "Marque pelo menos um agente do Time Doug.",
+      unknown: "O Time Doug não tem {{handles}}.",
+      ownPath: "O Time Doug é feito pelo cartão dele, passo a passo do onboarding, não por este.",
+    },
+    brand: {
+      /** `onboarding.brand_pending`: o passo "Sua marca" ainda estava aberto ao tentar terminar. */
+      pending: "Salve a marca antes de terminar. É o passo logo depois do time.",
+      companyRequired: "Diga o nome da empresa.",
+      toneRequired: "Escolha um tom de voz ou escreva com as suas palavras.",
+      unknownTone: "Esse tom de voz não é uma das opções. Escolha um da lista, ou escreva com as suas palavras.",
+      invalidLink: "Esse link não parece um endereço de site. Confira e tente de novo.",
+      invalidInstagram: "Isso não parece um perfil do Instagram. Escreva @seuperfil ou cole o link do perfil.",
+      fileMissing: "Um dos arquivos que você escolheu não está mais no seu Drive. Escolha de novo.",
+    },
     agentProposal: {
       decided: "Alguém já decidiu esta proposta.",
       expired: "Esta proposta expirou: ninguém decidiu em um dia.",
@@ -20894,6 +21007,7 @@ export const ptBR = {
       createdYouPersonal: "Agentes criados por você",
       skillsWait: "As skills esperam um admin.",
       weeklyWait: "A minha revisão da semana espera quem cuida das minhas rotinas.",
+      rightHandWait: "O papel do DOUG como gerente espera um admin.",
       undone: "Time desfeito",
       dismissed: "Time descartado",
       undonePersonal: "Agentes desfeitos",
@@ -21844,6 +21958,124 @@ export const ptBR = {
       more: "Mostrar mais",
       add_one: "Adicionar {{count}} arquivo",
       add_other: "Adicionar {{count}} arquivos",
+    },
+  },
+  /** The Doug team template (docs/adr/doug-0030-time-doug.md): the gallery's first card, its channels, each agent's words and hello, and the brand step's tones. */
+  dougTeam: {
+    name: "Time Doug",
+    sub: "Design, vídeo, tráfego, estratégia, social media, código e financeiro",
+    desc: "O time inteiro da casa, cada agente com o seu ofício, as suas rotinas e as suas skills, com um canal para cada QG.",
+    lead: "O Time Doug para {{org}}, cada QG no seu canal. Todas as rotinas começam pausadas.",
+    approvals: "Gasto, publicação e envio para fora esperam o seu ok.",
+    channels: {
+      design: "qg-design",
+      video: "qg-video",
+      trafego: "qg-trafego",
+      estrategia: "qg-estrategia",
+      social: "qg-social",
+      codigo: "qg-codigo",
+      financeiro: "qg-financeiro",
+    },
+    agents: {
+      doug: {
+        role: "Gerente da operação",
+        line: "Coordena o time, acompanha prazos, distribui pedidos, revisa entregas e pede aprovação no momento certo.",
+        hello: "Oi. Eu faço o time andar e trago para você só o que precisa de você.",
+      },
+      rosa: {
+        role: "Diretora de arte",
+        line: "Faz capas, carrosséis, posts, stories, thumbs e apresentações no nível de agência, sempre na identidade da marca do cliente.",
+        hello: "Oi. Capas, carrosséis e posts ficam comigo, sempre na identidade da marca.",
+      },
+      sony: {
+        role: "Editor de vídeo",
+        line: "Edita, corta e anima vídeos no nível de produtora, do bruto ao Reels aprovado, sempre na identidade da marca do cliente.",
+        hello: "Oi. Me mande o bruto que eu devolvo o vídeo editado.",
+      },
+      mark: {
+        role: "Líder do QG de Tráfego",
+        line: "Cuida dos anúncios pagos de ponta a ponta com o time de tráfego e fala de quanto gastou, quanto entrou e o que vem.",
+        hello: "Oi. Eu lidero o time de tráfego e conto quanto gastou e quanto entrou.",
+      },
+      analistaResultado: {
+        role: "Analista de Resultado do QG de Tráfego",
+        line: "Lê a conta de anúncios e as vendas reais, mede custo por venda, retorno no caixa e fadiga, e diz o que cortar e o que escalar.",
+        hello: "Oi. Eu leio os números e digo o que cortar e o que escalar.",
+      },
+      copywriter: {
+        role: "Copywriter do QG de Tráfego",
+        line: "Escreve texto, título, descrição, ganchos e roteiros curtos dos anúncios, por ângulo e só com alegação que tem prova.",
+        hello: "Oi. Texto e ganchos dos anúncios ficam comigo, só com alegação que tem prova.",
+      },
+      diretorCriativo: {
+        role: "Diretor de Criativo do QG de Tráfego",
+        line: "Transforma hipótese e copy em briefing de vídeo e arte, garante conceitos diferentes no ar e monta cada peça pronta para revisão.",
+        hello: "Oi. Eu transformo ideia em briefing e peça pronta para revisão.",
+      },
+      estrategistaMidia: {
+        role: "Estrategista de Mídia do QG de Tráfego",
+        line: "Monta a estrutura das campanhas, escolhe os testes da semana e escreve as ordens de corte e escala dentro do teto.",
+        hello: "Oi. Eu planejo as campanhas e os testes da semana dentro do teto.",
+      },
+      financeiroTrafego: {
+        role: "Financeiro do QG de Tráfego",
+        line: "Faz a conta de cada projeto, guarda o teto do dia e do mês, controla a verba e mede o retorno real no caixa.",
+        hello: "Oi. Eu seguro a verba dentro do teto e meço o retorno real.",
+      },
+      humanizador: {
+        role: "Última camada da copy",
+        line: "Dá a última passada na copy para que soe como gente, sem mudar fato, alegação, limite nem formato.",
+        hello: "Oi. Eu dou a última passada na copy para soar como gente.",
+      },
+      operador: {
+        role: "Operador do QG de Tráfego",
+        line: "Executa na conta de anúncios, uma por uma, as ordens aprovadas do MARK, e devolve o resultado exatamente como veio.",
+        hello: "Oi. Eu executo na conta de anúncios as ordens aprovadas, uma por uma.",
+      },
+      pesquisadorGrowth: {
+        role: "Pesquisador de Growth do QG de Tráfego",
+        line: "Pesquisa ganchos, criativos e estratégias de tráfego no mercado e transforma o que acha em cartões de hipótese de teste.",
+        hello: "Oi. Eu pesquiso o que funciona no mercado e trago hipóteses para testar.",
+      },
+      revisorPolitica: {
+        role: "Revisor de Política do QG de Tráfego",
+        line: "Confere cada anúncio antes do ar contra as regras da plataforma, a lei e as alegações do projeto, e dá PASSA, AVISA ou BLOQUEIA.",
+        hello: "Oi. Eu confiro cada anúncio contra as regras antes de ir ao ar.",
+      },
+      chess: {
+        role: "Estrategista de marketing",
+        line: "Lê a marca e o momento, pesquisa o que funciona no nicho e entrega a estratégia e a copy de cada peça, com tese, hooks e o porquê.",
+        hello: "Oi. Estratégia e copy de cada peça ficam comigo, sempre com o porquê.",
+      },
+      socialMedia: {
+        role: "Social media",
+        line: "Cuida do calendário e das redes das marcas, traz ideias de conteúdo, leva cada post à aprovação e agenda o que foi aprovado.",
+        hello: "Oi. Calendário e redes ficam comigo, e nada sai sem aprovação.",
+      },
+      junin: {
+        role: "Vibecoder",
+        line: "Faz e mantém os sites, páginas, automações e integrações da empresa, testa, publica com o ok e conta o resultado em linguagem simples.",
+        hello: "Oi. Sites, páginas e automações ficam comigo, publicados só com o seu ok.",
+      },
+      kiara: {
+        role: "Financeiro",
+        line: "Cuida das invoices, cobranças, alertas do banco, vencimentos e relatórios de vendas, sempre com aprovação antes de enviar.",
+        hello: "Oi. Invoices e cobranças ficam comigo, sempre com o seu ok antes de enviar.",
+      },
+    },
+    brand: {
+      tones: {
+        proximo: "Próximo",
+        profissional: "Profissional",
+        divertido: "Divertido",
+        inspirador: "Inspirador",
+        direto: "Direto",
+        acolhedor: "Acolhedor",
+        tecnico: "Técnico",
+        sofisticado: "Sofisticado",
+        ousado: "Ousado",
+        educativo: "Educativo",
+      },
     },
   },
 } satisfies LocaleStrings;

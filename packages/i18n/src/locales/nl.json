@@ -14,6 +14,7 @@
     "nextMonth": "Volgende maand",
     "chooseDate": "Kies een datum",
     "cancel": "Annuleren",
+    "remove": "Weghalen",
     "save": "Opslaan",
     "back": "Terug",
     "continue": "Doorgaan",
@@ -762,6 +763,9 @@
       "message": "Nog iets",
       "messageExample": "Wij posten twee video’s per week handmatig.",
       "messageOptional": "Optioneel",
+      "messageTooLong": "Dit is langer dan het formulier aanneemt. Maak het korter.",
+      "invalidField": "Controleer dit deel van het formulier en probeer het opnieuw.",
+      "invalidEmail": "Gebruik een e-mailadres zoals ana@bedrijf.nl.",
       "consent": "Ik ga ermee akkoord dat DougBot deze antwoorden bewaart om contact met mij op te nemen, zoals beschreven in het <link>Privacybeleid</link>.",
       "consentRequired": "Accepteer het Privacybeleid om verder te gaan.",
       "submit": "Verzoek versturen",
@@ -769,11 +773,6 @@
       "doneTitle": "Je verzoek is bij ons",
       "doneLead": "Het team leest elk verzoek en praat met elk bedrijf via WhatsApp. Je krijgt ook een e-mail.",
       "again": "Nog een verzoek versturen",
-      "failed": "Het verzoek kon niet worden verstuurd. Probeer het opnieuw.",
-      "privacy": "Privacybeleid",
-      "messageTooLong": "Dit is langer dan het formulier aanneemt. Maak het korter.",
-      "invalidField": "Controleer dit deel van het formulier en probeer het opnieuw.",
-      "invalidEmail": "Gebruik een e-mailadres zoals ana@bedrijf.nl.",
       "confirmTitle": "Je e-mailadres wordt bevestigd…",
       "confirmLead": "Een moment.",
       "confirmFailedTitle": "Deze link is onbekend of verlopen",
@@ -785,7 +784,9 @@
       "deletedTitle": "Aanvraag verwijderd",
       "deletedLead": "Alles wat erin stond is weg. Er wordt niets anders bewaard.",
       "deleteFailedTitle": "Deze link is onbekend of al gebruikt",
-      "deleteFailedLead": "Er valt niets meer mee te verwijderen, of hij is verlopen."
+      "deleteFailedLead": "Er valt niets meer mee te verwijderen, of hij is verlopen.",
+      "failed": "Het verzoek kon niet worden verstuurd. Probeer het opnieuw.",
+      "privacy": "Privacybeleid"
     },
     "interests": {
       "design": "Design",
@@ -809,6 +810,7 @@
       "search": "Zoek bedrijf, persoon of e-mail",
       "none": "Geen verzoek gevonden.",
       "count": "{{count}} verzoeken",
+      "more": "Meer",
       "status": {
         "new": "Nieuw",
         "talking": "In gesprek",
@@ -843,7 +845,6 @@
       "noEmail": "Deze server verstuurt geen e-mail, dus er kan geen uitnodiging uitgaan.",
       "codeTaken": "Een ander bedrijf heeft deze code al.",
       "codeInvalid": "De klantcode heeft drie cijfers.",
-      "more": "Meer",
       "pendingConfirm": "Dit adres heeft een nieuw formulier te bevestigen: het team ziet de aanvraag zoals die was tot die bevestigd is.",
       "delete": "Verwijderen",
       "deleteTitle": "De aanvraag van {{company}} verwijderen?",
@@ -1012,6 +1013,7 @@
       "context": "Context",
       "import": "Breng je agents mee",
       "agents": "Agents",
+      "brand": "Je merk",
       "computer": "Computer",
       "ai": "AI",
       "team": "Team",
@@ -1034,11 +1036,15 @@
         "business": "Wat jullie doen",
         "you": "Over jou",
         "team": "Je team",
+        "who": "Wie komt erbij",
+        "brand": "Jouw merk",
         "plan": "Team aanzetten",
         "ai": "Een AI koppelen",
         "people": "Mensen uitnodigen",
         "namePersonal": "Waarvoor je het gebruikt",
         "teamPersonal": "Je agents",
+        "whoPersonal": "Wie komt erbij",
+        "brandPersonal": "Jouw merk",
         "planPersonal": "Agents aanzetten",
         "aiPersonal": "Een AI koppelen"
       },
@@ -1049,6 +1055,8 @@
         "team": "Dit is het team dat ik zou samenstellen. Je kunt later alles veranderen.",
         "teamMade": "Het team staat al. We gaan verder wanneer je wilt.",
         "teamMadePersonal": "Je agents zijn er al. We gaan verder wanneer je wilt.",
+        "who": "Het Doug-team kent het vak al. Kies wie er nu bij komt, de rest kan later.",
+        "brand": "Voor ik ze aan het werk zet: leer ze jouw merk. ROSA en SONY lezen het voor elk stuk.",
         "plan": "Na het abonnement hoef je alleen nog een AI te koppelen. Ik laat je zien waar.",
         "planThen": "Zodra het abonnement aanstaat, koppel je op het volgende scherm je AI.",
         "you": "Voor het team, eerst iets over jou.",
@@ -1111,7 +1119,13 @@
           "scratchText": "Alleen {{name}}, je rechterhand. Elke agent maak je later, op jouw manier.",
           "scratchWho": "{{name}} en wie je zelf maakt",
           "see": "Het kant-en-klare team bekijken",
-          "scratchGo": "Verder met alleen {{name}}"
+          "scratchGo": "Verder met alleen {{name}}",
+          "doug": "Begin met het Doug-team",
+          "dougBadge": "Aanbevolen",
+          "dougText": "Het team dat Dougs operatie draait: design, video, advertenties, strategie, social media, code en financiën. Ze komen zonder enige herinnering, klaar om jouw bedrijf te leren.",
+          "dougWho_one": "{{count}} agent in het team",
+          "dougWho_other": "{{count}} agenten in het team",
+          "dougGo": "Kies wie erbij komt"
         },
         "ask": {
           "title": "Heb je al agents in een andere app?",
@@ -1147,6 +1161,56 @@
           "bring": "Team ophalen",
           "bringPersonal": "Agents ophalen"
         }
+      },
+      "who": {
+        "title": "Wie komt er in je team?",
+        "lead": "Vink uit wie je nu niet nodig hebt. Je kunt iedereen later nog vragen, in Team › Nieuwe agent.",
+        "fixed": "Blijft",
+        "teamOf_one": "{{count}} in zijn team",
+        "teamOf_other": "{{count}} in zijn team",
+        "countAgents_one": "agent in het team",
+        "countAgents_other": "agenten in het team",
+        "countSkills_one": "vakvaardigheid",
+        "countSkills_other": "vakvaardigheden",
+        "countRoutines_one": "kant-en-klare routine, gepauzeerd tot je hem aanzet",
+        "countRoutines_other": "kant-en-klare routines, gepauzeerd tot je ze aanzet",
+        "skillsCount_one": "{{count}} vakvaardigheid",
+        "skillsCount_other": "{{count}} vakvaardigheden",
+        "note": "Niemand komt met geheugen, een klant of een bestand van een ander bedrijf.",
+        "qg": "in kanaal {{channel}}",
+        "needsComputer": "heeft een verbonden computer nodig",
+        "connectComputer": "Een computer gebruiken",
+        "computerPending": "Er mist nog een verbonden computer: {{names}}.",
+        "create": "Team maken",
+        "required": "Verplicht"
+      },
+      "brand": {
+        "title": "Leer je team jouw merk",
+        "lead": "Hier haalt ROSA de identiteit, SONY de stijl van de video's en het Social Media de toon. Alles blijft in je werkruimte.",
+        "company": "Bedrijfsnaam",
+        "companyPlaceholder": "Bakkerij Aurora",
+        "site": "Webpagina",
+        "instagram": "Instagram",
+        "instagramPlaceholder": "@hetbedrijf",
+        "audience": "Publiek",
+        "audiencePlaceholder": "Wie koopt er bij je?",
+        "tone": "Toon van stem",
+        "toneOwn": "Schrijf je eigen",
+        "tonePlaceholder": "In jouw woorden: hoe het merk praat",
+        "manual": "Merkhandleiding, logo, lettertypen en kleuren",
+        "manualText": "Een PDF, Figma, afbeeldingen of een link. Het wordt de vaardigheid ‘Merk {{company}}’ van het hele team.",
+        "manualPick": "Bestanden kiezen",
+        "manualLink": "Link plakken",
+        "manualLinkPlaceholder": "https://drive.google.com/…",
+        "manualAdd": "Toevoegen",
+        "required": "Verplicht",
+        "saved": "Geüpload",
+        "failed": "Niet geüpload: {{reason}}",
+        "missingCompany": "Noem de bedrijfsnaam.",
+        "missingTone": "Kies een toon of schrijf je eigen.",
+        "removeSaved": "Gaat ook uit het opgeslagen merk. Weghalen?",
+        "madeTitle": "Het team heeft je merk geleerd",
+        "made": "‘Merk {{company}}’ is nu de vaardigheid die ROSA, SONY, het Social Media en CHESS lezen."
       },
       "plan": {
         "title": "Zet je team aan",
@@ -5345,6 +5409,7 @@
       "adminAskCreate": "<b>{{name}}</b> vraagt om agents te mogen maken",
       "adminAskWebhook": "<b>{{name}}</b> vraagt je de {{service}}-webhook voor routines in te stellen",
       "invitationAccepted": "<b>{{name}}</b> heeft je uitnodiging geaccepteerd en doet mee in {{org}}",
+      "companyRequest": "<b>{{company}}</b> vroeg DougBot aan: een verzoek van <b>{{name}}</b>",
       "invitationAcceptedAny": "<b>{{name}}</b> heeft je uitnodiging geaccepteerd",
       "reaction_one": "<b>{{names}}</b> heeft op je bericht gereageerd",
       "reaction_other": "<b>{{names}}</b> hebben op je bericht gereageerd",
@@ -5353,8 +5418,7 @@
       "usageLimitReached": "<b>{{name}}</b> heeft de limiet van {{amount}} bereikt",
       "usageLimitRequest": "<b>{{name}}</b> heeft de limiet van {{amount}} bereikt en vraagt om meer",
       "usageLimitRaised": "<b>{{name}}</b> heeft je limiet voor deze maand verhoogd",
-      "usageLimitRefused": "<b>{{name}}</b> heeft je verzoek om meer gebruik afgewezen",
-      "companyRequest": "<b>{{company}}</b> vroeg DougBot aan: een verzoek van <b>{{name}}</b>"
+      "usageLimitRefused": "<b>{{name}}</b> heeft je verzoek om meer gebruik afgewezen"
     },
     "usageLimit": {
       "runs_one": "{{count}} verzoek deze maand",
@@ -15456,6 +15520,21 @@
     "teamProposal": {
       "undoExpired": "Er is meer dan een dag verstreken sinds dit team is gemaakt, dus het kan hier niet ongedaan worden gemaakt. Archiveer de agents op hun pagina's."
     },
+    "dougTeam": {
+      "made": "Deze werkruimte heeft het Doug-team al.",
+      "none": "Vink minstens één agent aan om in het team te komen.",
+      "unknown": "Het Doug-team heeft geen {{handles}}.",
+      "ownPath": "Het Doug-team wordt gemaakt via zijn eigen kaart, in de onboarding, niet via deze."
+    },
+    "brand": {
+      "pending": "Leer het team voor het einde jouw merk: de bedrijfsnaam en de toon van stem.",
+      "companyRequired": "Noem de bedrijfsnaam.",
+      "toneRequired": "Kies of schrijf de toon van stem.",
+      "unknownTone": "Een van de gekozen tonen bestaat niet meer. Laad opnieuw en kies weer.",
+      "invalidLink": "Die website of link lijkt geen geldig adres. Controleer en probeer opnieuw.",
+      "invalidInstagram": "Dat Instagram-profiel lijkt niet geldig: schrijf @iets.",
+      "fileMissing": "Een van de bestanden van de handleiding staat niet meer in je Drive. Upload het opnieuw."
+    },
     "agentProposal": {
       "decided": "Iemand heeft al over dit voorstel beslist.",
       "expired": "Dit voorstel is verlopen: niemand heeft er binnen een dag over beslist.",
@@ -17148,12 +17227,12 @@
       "voice": "Spraak",
       "apps": "AI-apps",
       "approvals": "Goedkeuringen",
+      "companies": "Bedrijfsverzoeken",
       "support": "Support",
       "about": "Over DougBot",
       "generalPersonal": "Over jou",
       "keysPersonal": "AI en apps",
-      "membersPersonal": "Mensen",
-      "companies": "Bedrijfsverzoeken"
+      "membersPersonal": "Mensen"
     },
     "advanced": "Geavanceerd",
     "tab": {
@@ -17181,14 +17260,14 @@
       "voice": "Spraakberichten in gesprekken, en wie spraak omzet in tekst.",
       "apps": "Geef de agents taken vanuit Claude, Cursor en andere apps.",
       "approvals": "Wie voor je beslist als een agent om je goedkeuring vraagt.",
+      "companies": "Bedrijven die DougBot via de pagina hebben aangevraagd.",
       "support": "Wie deze installatie beheert en hoe je hen bereikt.",
       "about": "Wie het maakt, de licentie en waar de broncode staat.",
       "generalPersonal": "Wat je agents over je weten, en hoe deze werkruimte werkt.",
       "usagePersonal": "Hoeveel AI je agents gebruiken, en je abonnement.",
       "connectorsPersonal": "Je apps en MCP-servers, één keer verbonden voor je agents.",
       "membersPersonal": "Wie hier met je is.",
-      "rolesPersonal": "Wat ieder hier kan doen. Eigenaren kunnen alles.",
-      "companies": "Bedrijven die DougBot via de pagina hebben aangevraagd."
+      "rolesPersonal": "Wat ieder hier kan doen. Eigenaren kunnen alles."
     },
     "support": {
       "title": "Support bereiken",
@@ -20510,6 +20589,7 @@
       "createdYouPersonal": "Agents gemaakt door jou",
       "skillsWait": "De skills wachten op een admin.",
       "weeklyWait": "Mijn weekoverzicht wacht op wie mijn routines beheert.",
+      "rightHandWait": "De rol van de DOUG als manager wacht op een admin.",
       "undone": "Team ongedaan gemaakt",
       "dismissed": "Team weggegooid",
       "undonePersonal": "Agents ongedaan gemaakt",
@@ -21456,6 +21536,123 @@
       "more": "Meer tonen",
       "add_one": "{{count}} bestand toevoegen",
       "add_other": "{{count}} bestanden toevoegen"
+    }
+  },
+  "dougTeam": {
+    "name": "Doug-team",
+    "sub": "Design, video, advertenties, strategie, sociale media, code en financiën",
+    "desc": "Het hele team van het huis, elke agent met zijn vak, zijn routines en zijn skills, met een kanaal voor elk hoofdkwartier.",
+    "lead": "Het Doug-team voor {{org}}, elk hoofdkwartier in een eigen kanaal. Alle routines starten gepauzeerd.",
+    "approvals": "Uitgaven, publicaties en alles wat naar buiten gaat wachten op je akkoord.",
+    "channels": {
+      "design": "hk-ontwerp",
+      "video": "hk-video",
+      "trafego": "hk-advertenties",
+      "estrategia": "hk-strategie",
+      "social": "hk-sociaal",
+      "codigo": "hk-code",
+      "financeiro": "hk-financien"
+    },
+    "agents": {
+      "doug": {
+        "role": "Operationeel manager",
+        "line": "Coördineert het team, volgt deadlines, verdeelt verzoeken, controleert opleveringen en vraagt op het juiste moment om goedkeuring.",
+        "hello": "Hoi. Ik houd het team in beweging en breng je alleen wat jou nodig heeft."
+      },
+      "rosa": {
+        "role": "Art director van het team",
+        "line": "Maakt covers, carrousels, posts, stories, thumbnails en presentaties op bureauniveau, altijd in de huisstijl van het merk van de klant.",
+        "hello": "Hoi. Covers, carrousels en posts zijn voor mij, altijd in de huisstijl."
+      },
+      "sony": {
+        "role": "Video-editor",
+        "line": "Monteert, knipt en animeert video's op studioniveau, van ruw materiaal tot goedgekeurde Reel, altijd in de huisstijl van het merk van de klant.",
+        "hello": "Hoi. Stuur me het ruwe materiaal en ik geef je de gemonteerde video terug."
+      },
+      "mark": {
+        "role": "Hoofd van het advertentiehoofdkwartier",
+        "line": "Regelt betaalde advertenties van begin tot eind met het advertentieteam en vertelt wat er is uitgegeven, wat er binnenkwam en wat er komt.",
+        "hello": "Hoi. Ik leid het advertentieteam en vertel je wat er is uitgegeven en binnenkwam."
+      },
+      "analistaResultado": {
+        "role": "Resultaatanalist van de advertenties",
+        "line": "Leest het advertentieaccount en de echte verkopen, meet kosten per verkoop, rendement in kas en vermoeidheid, en zegt wat er weg moet en wat opgeschaald wordt.",
+        "hello": "Hoi. Ik lees de cijfers en zeg wat weg moet en wat opgeschaald wordt."
+      },
+      "copywriter": {
+        "role": "Tekstschrijver van de advertenties",
+        "line": "Schrijft advertentieteksten, titels, beschrijvingen, haakjes en korte scripts, per invalshoek en alleen met beweringen die bewijs hebben.",
+        "hello": "Hoi. Advertentieteksten en haakjes zijn voor mij, alleen met bewezen beweringen."
+      },
+      "diretorCriativo": {
+        "role": "Creatief directeur van de advertenties",
+        "line": "Maakt van hypotheses en teksten briefings voor video en beeld, houdt verschillende concepten live en bouwt elk stuk klaar voor review.",
+        "hello": "Hoi. Ik maak van ideeën briefings en stukken klaar voor review."
+      },
+      "estrategistaMidia": {
+        "role": "Mediastrateeg van de advertenties",
+        "line": "Zet de structuur van de campagnes op, kiest de tests van de week en schrijft de opdrachten om te schrappen en op te schalen binnen het plafond.",
+        "hello": "Hoi. Ik plan de campagnes en de tests van de week binnen het plafond."
+      },
+      "financeiroTrafego": {
+        "role": "Financiën van de advertenties",
+        "line": "Rekent elk project door, bewaakt het dag- en maandplafond, beheert het budget en meet het echte rendement in kas.",
+        "hello": "Hoi. Ik houd het budget binnen het plafond en meet het echte rendement."
+      },
+      "humanizador": {
+        "role": "Laatste ronde over de tekst",
+        "line": "Gaat een laatste keer over de tekst zodat die menselijk klinkt, zonder feiten, beweringen, grenzen of vorm te veranderen.",
+        "hello": "Hoi. Ik ga een laatste keer over elke tekst zodat die menselijk klinkt."
+      },
+      "operador": {
+        "role": "Uitvoerder van de advertenties",
+        "line": "Voert in het advertentieaccount de goedgekeurde opdrachten een voor een uit en geeft het resultaat precies zo terug als het kwam.",
+        "hello": "Hoi. Ik voer de goedgekeurde opdrachten in het advertentieaccount een voor een uit."
+      },
+      "pesquisadorGrowth": {
+        "role": "Growth-onderzoeker van de advertenties",
+        "line": "Onderzoekt haakjes, creatives en advertentiestrategieën in de markt en maakt van wat hij vindt kaarten met testhypotheses.",
+        "hello": "Hoi. Ik onderzoek wat werkt in de markt en breng hypotheses om te testen."
+      },
+      "revisorPolitica": {
+        "role": "Beleidscontroleur van de advertenties",
+        "line": "Controleert elke advertentie voor die live gaat tegen de regels van het platform, de wet en de beweringen van het project, en zegt goed, waarschuwing of blokkeren.",
+        "hello": "Hoi. Ik controleer elke advertentie tegen de regels voor die live gaat."
+      },
+      "chess": {
+        "role": "Marketingstrateeg",
+        "line": "Leest het merk en het moment, onderzoekt wat werkt in de niche en levert de strategie en tekst van elk stuk, met een stelling, haakjes en het waarom.",
+        "hello": "Hoi. Strategie en tekst van elk stuk zijn voor mij, altijd met het waarom."
+      },
+      "socialMedia": {
+        "role": "Socialemediamanager",
+        "line": "Beheert de kalender en de kanalen van de merken, brengt contentideeën, laat elke post goedkeuren en plant wat is goedgekeurd.",
+        "hello": "Hoi. Kalender en kanalen zijn voor mij, en niets gaat eruit zonder goedkeuring."
+      },
+      "junin": {
+        "role": "Ontwikkelaar met AI",
+        "line": "Maakt en onderhoudt de sites, pagina's, automatiseringen en koppelingen van het bedrijf, test, publiceert met akkoord en legt het resultaat eenvoudig uit.",
+        "hello": "Hoi. Sites, pagina's en automatiseringen zijn voor mij, gepubliceerd alleen met je akkoord."
+      },
+      "kiara": {
+        "role": "Financiën",
+        "line": "Zorgt voor facturen, aanmaningen, bankmeldingen, vervaldata en verkooprapporten, altijd met goedkeuring voor het verzenden.",
+        "hello": "Hoi. Facturen en aanmaningen zijn voor mij, altijd met je akkoord voor het verzenden."
+      }
+    },
+    "brand": {
+      "tones": {
+        "proximo": "Persoonlijk",
+        "profissional": "Professioneel",
+        "divertido": "Grappig",
+        "inspirador": "Inspirerend",
+        "direto": "Direct",
+        "acolhedor": "Hartelijk",
+        "tecnico": "Technisch",
+        "sofisticado": "Verfijnd",
+        "ousado": "Gedurfd",
+        "educativo": "Leerzaam"
+      }
     }
   }
 }

@@ -5,7 +5,11 @@
 .onb-start {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-2);
+}
+/* The Doug team's card while the gallery still loads: its own shape, so nothing moves when it arrives. */
+.onb-start__ghost {
+  display: flex;
 }
 .onb-start .ac-option__text {
   flex: 1;
@@ -23,20 +27,34 @@
   flex: none;
   gap: var(--space-1);
 }
+/**
+ * Who the card brings, whole: the names wrap under the faces when the line gets narrow, never cut with an ellipsis
+ * (rule 17: the Doug team's five names are the point of the line). A row of names beside the faces wraps whole words;
+ * one squeezed under 12 characters a line goes under them, all of the row's width.
+ */
+.onb-start__who {
+  flex-wrap: wrap;
+}
 .onb-start__names {
-  min-width: 0;
-  overflow: hidden;
+  min-width: 12ch;
   font-weight: 600;
   color: var(--ink2);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: break-word;
+}
+/* The Doug team's card: its badge ("Recommended") sits on its title's line (the kit's chip), its faces wrap. */
+.onb-start__badge {
+  flex: none;
+}
+/* Eight faces or more (the QG de Tráfego's whole team): the names take a line of their own under them. */
+.onb-start__who:has(> .onb-start__faces > :nth-child(8)) > .onb-start__names {
+  flex-basis: 100%;
 }
 /* A place for an agent still to be made, the size of a face: the preview's "Your team shows up here", dashed. */
 .onb-start__seat {
   display: grid;
   place-items: center;
-  width: 24px;
-  height: 24px;
+  width: var(--space-6);
+  height: var(--space-6);
   border: 1.5px dashed var(--line2);
   border-radius: 30%;
   color: var(--faint);

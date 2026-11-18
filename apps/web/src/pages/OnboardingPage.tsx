@@ -6,7 +6,9 @@ import {
   meQuery,
   type OrgSummary,
   useAiStatus,
+  useApplyTeamTemplate,
   useAuthConfig,
+  useBrand,
   type WorkspaceMode,
 } from "@agenteschat/client";
 import { billingHoldOf } from "@agenteschat/client/lib/billing";
@@ -26,7 +28,7 @@ import {
 } from "@agenteschat/client/lib/onboarding";
 import { finishOnboarding, isRightHand, RIGHT_HAND_DEFAULT } from "@agenteschat/client/lib/right-hand";
 import { browserTimezone, timezoneName } from "@agenteschat/client/lib/routines";
-import { aboutOf, type BusinessType } from "@agenteschat/client/lib/team-plan";
+import { aboutOf, type BusinessType, teamFailureText } from "@agenteschat/client/lib/team-plan";
 import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
 import {
   AgentSticker,
@@ -52,6 +54,8 @@ import { AgentAvatar } from "@/components/AgentAvatar";
 import { BillingLinkButton } from "@/components/BillingLinkButton";
 import { DeleteAccountDialog } from "@/components/DeleteAccount";
 import { DeleteWorkspaceDialog } from "@/components/DeleteWorkspace";
+import { ConnectDialog, type ConnectStart } from "@/components/devices/ConnectDialog";
+import { useDevices } from "@/components/devices/queries";
 import { ErrorState } from "@/components/Loading";
 import { COMPACT_QUERY, DESKTOP_QUERY, useMediaQuery } from "@/components/NavDrawer";
 import { OrgProvider } from "@/components/org-context";
@@ -70,12 +74,14 @@ import { returnPlace } from "@/lib/return-to";
 import { STORAGE_KEYS, sessionStore, storage } from "@/lib/storage";
 import { useToast } from "@/lib/toast";
 import { AiHost, AiStage, AiStep } from "./onboarding/AiStep";
+import { BrandStep } from "./onboarding/BrandStep";
 import { OnboardingPreview, type PreviewAgent } from "./onboarding/OnboardingPreview";
 import { PeopleStep } from "./onboarding/PeopleStep";
 import { PurposeCards } from "./onboarding/PurposeCards";
 import { BusinessStep, PlanStep, TeamStep, useTemplate } from "./onboarding/steps";
 import { TeamSource, useTeamSource } from "./onboarding/TeamSource";
 import { TeamStart } from "./onboarding/TeamStart";
+import { WhoStep } from "./onboarding/WhoStep";
 import { YouStep } from "./onboarding/YouStep";
 import "./onboarding.css";
 
@@ -128,6 +134,7 @@ export function OnboardingPage() {
   const [picked, setPicked] = useState<RailStep | null>(null);
   // What step 2 picked in this visit: step 3 starts on its template.
   const [business, setBusiness] = useState<BusinessType | null>(null);
+  // "Quem entra" is a stage of the team step (`useTeamSource`'s `stage`), never this visit's flag of its own.
   // The AI step was on screen in this visit: once the team thinks, its done screen stays until "Go to the workspace"
   // (a team's: until Continuar, the people step next).
   const [aiSeen, setAiSeen] = useState(false);
@@ -189,12 +196,21 @@ export function OnboardingPage() {
   // for an AI again.
   const aiLaterSaved = passed !== undefined && stepIndex(passed) >= stepIndex("ai");
   const held = billingHoldOf(mine?.standing) === "payment";
+  // The Doug team's brand step waits (`GET /me`'s `onboarding.brandPending`, docs/adr/doug-0030-time-doug.md): the
+  // server refuses to finish until it is saved, so the rail is on it while its team's data may still be arriving.
+  const brandWaits = mine?.onboarding?.brandPending === true;
   // Back from paying, until the billing service lifts the hold: `/me` again meanwhile, as the hold's banner does.
   const paid = usePaidReturn(orgId ?? "", held);
   useQuery({ ...meQuery(api), enabled: paid, refetchInterval: PAID_POLL_MS });
   // Made here as "For me", one being set up that is, or "For me" picked and not made yet: the rail shows the personal
   // path from the first question on (ADR 0159).
   const personalNow = isPersonal(mine) || (personal && (created !== null || orgId === null));
+
+  // The team step's question and the agents it brings from another app (ADR 0055): at the page, so they outlive the
+  // step's own views and the rail's moves; an import applying, or its report up, pins the team step. Read before the
+  // rail: its "Quem entra" stage puts the Doug team's step there.
+  const holdTeam = useCallback((hold: boolean) => setPicked(hold ? "team" : null), []);
+  const source = useTeamSource(orgId, { personal: personalNow, passed, onHold: holdTeam });
 
   // Whether the right hand and its team think, the last step's answer: read on a hold too, so the step after the plan
   // opens as soon as it lifts.
@@ -231,6 +247,11 @@ export function OnboardingPage() {
       personal: personalNow,
       // The person's own step is answered once per account: their area said, or skipped (amended 2026-11-12).
       funnel: { thinks, passed, about: (me.data?.user.workArea ?? null) !== null },
+      // The Doug team's two steps (docs/adr/doug-0030-time-doug.md): "Quem entra" once its card is picked, which is the
+      // step's own `who` stage (the team made from it has a team, so the step isn't there), and "Sua marca" while the
+      // server says the brand still waits (`onboarding.brandPending`, `GET /me`).
+      dougPicked: source.stage === "who",
+      brandWaits,
     });
   const reachedRail = railAt(picked);
   // Connected on its step in this visit, a team's AI step stays on screen (what was connected, the Connect dialog still
@@ -296,7 +317,7 @@ export function OnboardingPage() {
   const template = useTemplate(
     orgId,
     kind,
-    step === "business" || ((step === "you" || step === "team") && !personalNow),
+    step === "business" || ((step === "you" || step === "team" || step === "who") && !personalNow),
   );
 
   // The AI step shown from a read that lists every agent: from then on, the team thinking shows its done screen.
@@ -311,12 +332,35 @@ export function OnboardingPage() {
   // after it): a key needs the workspace's key, a plan no key that came after it.
   const keyNow = status.data?.apiKey === true;
   const aiNamed = aiPick && (aiPick.choice === "key" ? keyNow : !keyNow || aiPick.key) ? aiPick.choice : null;
-  // The team step's question and the agents it brings from another app (ADR 0055): at the page, so they outlive the
-  // step's own views and the rail's moves; an import applying, or its report up, pins the team step.
-  const holdTeam = useCallback((hold: boolean) => setPicked(hold ? "team" : null), []);
-  const source = useTeamSource(orgId, { personal: personalNow, passed, onHold: holdTeam });
   const holding = source.holding;
   const view = source.view;
+  // "Sua marca" (docs/adr/doug-0030-time-doug.md): read once the Doug team was made and its step is next, and again
+  // whenever the workspace says it still waits (`onboarding.brandPending`), as a step gone back to starts from it.
+  const brand = useBrand(orgId ?? "", i18n.language, orgId !== null && step === "brand");
+  // The Doug team made on "Quem entra": its card's answer, the agents that need a computer and the card's failure.
+  const makeDoug = useApplyTeamTemplate(orgId ?? "");
+  const [dougFailed, setDougFailed] = useState<string | null>(null);
+  const [dougNeedsComputer, setDougNeedsComputer] = useState<{ agentId: string; handle: string; name: string }[]>([]);
+  // The handles unchecked on "Quem entra", at the page so going back to how the team starts and on to here again keeps
+  // them (the step's own view unmounts on the way).
+  const [dougOff, setDougOff] = useState<ReadonlySet<string>>(() => new Set());
+  // A second press never makes a second team: a ref, so two presses in one tick both see it on, then the button's own
+  // `pending` says it from the next render on.
+  const [dougMaking, setDougMaking] = useState(false);
+  const dougMakingNow = useRef(false);
+  // A computer connected from "Quem entra": the app's own device flow (Settings › Devices' ConnectDialog), over the
+  // step. It needs the workspace's context, which the `who` step is hosted in.
+  const [connecting, setConnecting] = useState(false);
+  // The agents of the Doug team just made that only work on a computer, named for the post-creation note (the brand
+  // step): the workspace has none yet, so they wait. Once it has one, the note goes.
+  const computers = (useDevices(orgId ?? "", false).data?.devices.length ?? 0) > 0;
+  const computerNote =
+    dougNeedsComputer.length > 0 && !computers
+      ? {
+          names: dougNeedsComputer.map((c) => c.name),
+          onConnect: () => setConnecting(true),
+        }
+      : null;
   // A team just made or brought, on the team step it was made on, until the AI's read places the next step.
   const arriving = frozen !== null && step === "team" && lastTeam.current === 0 && team.length > 0;
   // The team made, and no import holding the step: who is in it.
@@ -388,7 +432,8 @@ export function OnboardingPage() {
       leaving.current = true;
       // The invitations went: kept as "team" first, so a finish that fails resumes past the step, never asking again.
       if (how === "invited") await api.orgs.saveOnboarding(target.orgId, { step: "team" });
-      const done = await finishOnboarding(api, target.orgId);
+      // The web draws the brand step ("Sua marca"), so it asks to be held by it while it waits (docs/adr/doug-0030-time-doug.md).
+      const done = await finishOnboarding(api, target.orgId, true);
       sessionStore.remove(STORAGE_KEYS.confirmationSent);
       // The answer that finished it says who the person is now: it opens without asking the server again.
       if (done.me) qc.setQueryData(keys.me, done.me);
@@ -411,6 +456,13 @@ export function OnboardingPage() {
     // Opening by itself, a failure is the page's own (below); from a button, the step stays and a toast says it.
     onError: (e, how) => {
       leaving.current = false;
+      // The brand still waits (a team made on another device): `me` is read again, so the brand's step comes.
+      if (e instanceof ApiError && e.code === "onboarding.brand_pending") {
+        void qc.invalidateQueries({ queryKey: keys.me });
+        opening.current = false;
+        open.reset();
+        return;
+      }
       if (how !== "done") toast.show(errorText(t, e), "error");
     },
   });
@@ -545,19 +597,21 @@ export function OnboardingPage() {
           : step === "team"
             ? (teamHead?.say ??
               t(personalNow ? "onboarding.flow.lodi.teamMadePersonal" : "onboarding.flow.lodi.teamMade", lodiWords))
-            : step === "plan"
-              ? t("onboarding.flow.lodi.planThen", lodiWords)
-              : step === "people"
-                ? t(emails ? "onboarding.flow.lodi.people" : "onboarding.flow.lodi.peopleLink", lodiWords)
-                : aiDone
-                  ? t(hasPeople ? "onboarding.flow.lodi.connectedThen" : "onboarding.flow.lodi.connected", lodiWords)
-                  : hasPeople
-                    ? // Not the last step: the people come after it.
-                      t(alone ? "onboarding.flow.lodi.aiThenAlone" : "onboarding.flow.lodi.aiThen", lodiWords)
-                    : t(
-                        personalNow || alone ? "onboarding.flow.lodi.aiPersonal" : "onboarding.flow.lodi.ai",
-                        lodiWords,
-                      );
+            : step === "who" || step === "brand"
+              ? t(`onboarding.flow.lodi.${step}`)
+              : step === "plan"
+                ? t("onboarding.flow.lodi.planThen", lodiWords)
+                : step === "people"
+                  ? t(emails ? "onboarding.flow.lodi.people" : "onboarding.flow.lodi.peopleLink", lodiWords)
+                  : aiDone
+                    ? t(hasPeople ? "onboarding.flow.lodi.connectedThen" : "onboarding.flow.lodi.connected", lodiWords)
+                    : hasPeople
+                      ? // Not the last step: the people come after it.
+                        t(alone ? "onboarding.flow.lodi.aiThenAlone" : "onboarding.flow.lodi.aiThen", lodiWords)
+                      : t(
+                          personalNow || alone ? "onboarding.flow.lodi.aiPersonal" : "onboarding.flow.lodi.ai",
+                          lodiWords,
+                        );
   const title =
     step === "you"
       ? t("onboarding.flow.you.title")
@@ -570,20 +624,22 @@ export function OnboardingPage() {
             : step === "team"
               ? (teamHead?.title ??
                 t(personalNow ? "onboarding.flow.steps.teamPersonal" : "onboarding.flow.team.title"))
-              : step === "plan"
-                ? t(personalNow ? "onboarding.flow.plan.titlePersonal" : "onboarding.flow.plan.title")
-                : step === "people"
-                  ? t("onboarding.flow.people.title")
-                  : aiDone
-                    ? personalNow || alone
-                      ? t("onboarding.flow.ai.doneTitlePersonal", agentGrammar(lodiName))
-                      : t("onboarding.flow.ai.doneTitle", { org: name })
-                    : personalNow
-                      ? t("onboarding.flow.ai.titlePersonal")
-                      : alone
-                        ? // The right hand alone (the team step left with no agents): by its name, as its stage says it.
-                          t("onboarding.flow.ai.titleAlone", agentGrammar(lodiName))
-                        : t("arrival.connect.title");
+              : step === "who" || step === "brand"
+                ? t(`onboarding.flow.${step}.title`)
+                : step === "plan"
+                  ? t(personalNow ? "onboarding.flow.plan.titlePersonal" : "onboarding.flow.plan.title")
+                  : step === "people"
+                    ? t("onboarding.flow.people.title")
+                    : aiDone
+                      ? personalNow || alone
+                        ? t("onboarding.flow.ai.doneTitlePersonal", agentGrammar(lodiName))
+                        : t("onboarding.flow.ai.doneTitle", { org: name })
+                      : personalNow
+                        ? t("onboarding.flow.ai.titlePersonal")
+                        : alone
+                          ? // The right hand alone (the team step left with no agents): by its name, as its stage says it.
+                            t("onboarding.flow.ai.titleAlone", agentGrammar(lodiName))
+                          : t("arrival.connect.title");
   const lead =
     step === "you"
       ? t(personalNow ? "onboarding.flow.you.leadPersonal" : "onboarding.flow.you.lead")
@@ -595,22 +651,24 @@ export function OnboardingPage() {
             ? t("agentSetup.firstRun.about.desc")
             : step === "team"
               ? (teamHead?.lead ?? t("onboarding.flow.team.madeLead"))
-              : step === "plan"
-                ? t(
-                    personalNow
-                      ? "onboarding.flow.plan.leadPersonal"
-                      : alone
-                        ? "onboarding.flow.plan.leadAlone"
-                        : "onboarding.flow.plan.lead",
-                  )
-                : step === "people"
-                  ? // A server that sends no email invites through its link only (ADR 0090).
-                    t(emails ? "onboarding.flow.people.lead" : "members.dialog.linkStep.lead")
-                  : aiDone
-                    ? aiLabel
-                      ? t("onboarding.flow.ai.doneLead", { label: aiLabel })
-                      : t("onboarding.flow.ai.doneLeadAny")
-                    : t("arrival.connect.text");
+              : step === "who" || step === "brand"
+                ? t(`onboarding.flow.${step}.lead`)
+                : step === "plan"
+                  ? t(
+                      personalNow
+                        ? "onboarding.flow.plan.leadPersonal"
+                        : alone
+                          ? "onboarding.flow.plan.leadAlone"
+                          : "onboarding.flow.plan.lead",
+                    )
+                  : step === "people"
+                    ? // A server that sends no email invites through its link only (ADR 0090).
+                      t(emails ? "onboarding.flow.people.lead" : "members.dialog.linkStep.lead")
+                    : aiDone
+                      ? aiLabel
+                        ? t("onboarding.flow.ai.doneLead", { label: aiLabel })
+                        : t("onboarding.flow.ai.doneLeadAny")
+                      : t("arrival.connect.text");
   // Its own back: the first question from the name, the workspace the person came from, the team step's previous
   // view, the team from the AI step (nothing to go back to once it thinks), the AI step from the people step.
   let back: { label: string; go: () => void } | null = null;
@@ -624,6 +682,11 @@ export function OnboardingPage() {
     back = { label: t("onboarding.leave", { name: leaveTo.name }), go: () => void navigate({ href }) };
   } else if (step === "team" && !teamList && source.back) {
     back = { label: t("onboarding.back"), go: source.back };
+  } else if (step === "who") {
+    // Back from "Quem entra" to how the team starts, its card still picked.
+    back = { label: t("onboarding.back"), go: () => source.link.go("start") };
+  } else if (step === "brand") {
+    back = { label: t("onboarding.back"), go: () => setPicked("team") };
   } else if (step === "ai" && !aiDone) {
     back = { label: t("onboarding.back"), go: () => setPicked("team") };
   } else if (step === "people") {
@@ -646,13 +709,17 @@ export function OnboardingPage() {
           : undefined,
     // The person's own step: the name they go by.
     you: me.data.user.name || undefined,
-    // Answered with no agents (shown only once answered): they come later.
+    // The team in it. While it still waits and none was made (its own step, "Quem entra" making it, or the brand that
+    // waits for the team just made) there is no value: "Depois" belongs to the step left with no agents, once it was
+    // answered that way, never to a team that is on its way.
     team: team.length
       ? joinNames(
           team.map((a) => a.name),
           t,
         )
-      : t("onboarding.railValue.later"),
+      : step === "team" || step === "who" || brandWaits
+        ? undefined
+        : t("onboarding.railValue.later"),
     plan: steps.includes("plan") && !held ? t("onboarding.railValue.on") : undefined,
     // Connected, or (a team's) left for later on the way to its people.
     ai: thinksNow
@@ -725,13 +792,16 @@ export function OnboardingPage() {
         </div>
         {!phone && (
           <div className="onb__progress">
+            {/* The step on screen, counted once and by the rail's own `index`, the one the eyebrow under the title
+                uses: `index + 1` of the total, and what it leaves from here on (`total - index`, the current one
+                included), one less once the step on screen is answered (the AI's done screen, a step gone back to). */}
             <span className="onb__progress-text">
               <span>
-                {answered === steps.length
+                {allDone
                   ? t("onboarding.progress.done")
-                  : t("onboarding.progress.left", { count: steps.length - answered })}
+                  : t("onboarding.progress.left", { count: steps.length - index - (reached > index ? 1 : 0) })}
               </span>
-              <span>{t("agentSetup.count", { done: answered, total: steps.length })}</span>
+              <span>{t("agentSetup.count", { done: Math.min(index + 1, steps.length), total: steps.length })}</span>
             </span>
             <OnboardingProgress progress={answered / steps.length} />
           </div>
@@ -743,6 +813,10 @@ export function OnboardingPage() {
           onGo={(i) => {
             // Back on the name, its field holds the saved one, to change or clear.
             if (steps[i] === "name") setOrg(name);
+            // "Seu time" from "Quem entra": how the team starts, its card still picked, never a rail step of its own
+            // left behind (the team step's `who` stage is the one behind this person, and a pick of "team" there
+            // would open it straight into the template).
+            if (steps[i] === "team" && step === "who") source.go("start");
             setPicked(steps[i] ?? null);
           }}
           doneLabel={t("onboarding.stepDone")}
@@ -1025,6 +1099,93 @@ export function OnboardingPage() {
                 ) : (
                   <TeamSource state={source} orgId={orgId} personal={personalNow} org={name} />
                 ))}
+              {step === "who" && orgId && (
+                <WhoStep
+                  orgId={orgId}
+                  members={template.doug?.members ?? []}
+                  off={dougOff}
+                  onOff={setDougOff}
+                  pending={makeDoug.isPending || dougMaking}
+                  failed={dougFailed}
+                  needsComputer={dougNeedsComputer}
+                  onConnectComputer={() => setConnecting(true)}
+                  onCreate={(handles) => {
+                    // A second press while the first is on its way never makes a second team: the ref catches the
+                    // two presses of one tick, then the button's `pending` keeps it from the next render on.
+                    if (dougMakingNow.current || makeDoug.isPending) return;
+                    dougMakingNow.current = true;
+                    setDougMaking(true);
+                    setDougFailed(null);
+                    makeDoug.mutate(
+                      { templateId: "doug", locale: i18n.language, handles },
+                      {
+                        onSuccess: (out) => {
+                          // A card that failed a step: its words here, and the same button tries again.
+                          if (out.state !== "created") {
+                            dougMakingNow.current = false;
+                            setDougMaking(false);
+                            return setDougFailed(
+                              out.error ? teamFailureText(t, out.error, i18n.language) : t("teamPlan.templates.failed"),
+                            );
+                          }
+                          setDougNeedsComputer(out.needsComputer ?? []);
+                          setDougOff(new Set());
+                          // The team is in the list and the rail on its next step: the agents read now, and `/me`
+                          // says the brand waits before this page reads it again, so the rail never flashes back to
+                          // "connect an AI" between the team and the brand.
+                          void qc.invalidateQueries({ queryKey: keys.agents(orgId) });
+                          qc.setQueryData<Me>(
+                            keys.me,
+                            (me) =>
+                              me && {
+                                ...me,
+                                organizations: me.organizations.map((o) =>
+                                  o.id === orgId && o.onboarding
+                                    ? { ...o, onboarding: { ...o.onboarding, brandPending: out.brandPending === true } }
+                                    : o,
+                                ),
+                              },
+                          );
+                          void qc.invalidateQueries({ queryKey: keys.me });
+                          dougMakingNow.current = false;
+                          setDougMaking(false);
+                        },
+                        onError: (e) => {
+                          dougMakingNow.current = false;
+                          setDougMaking(false);
+                          // Made meanwhile (a reload, another tab): the answers are here, so the step goes on as if
+                          // this press made it.
+                          if (errorCode(e) === "doug_team.made") {
+                            setDougFailed(null);
+                            void qc.invalidateQueries({ queryKey: keys.agents(orgId) });
+                            void qc.invalidateQueries({ queryKey: keys.me });
+                            return;
+                          }
+                          setDougFailed(errorText(t, e));
+                        },
+                      },
+                    );
+                  }}
+                />
+              )}
+              {step === "who" && connecting && <ConnectComputerDialog onClose={() => setConnecting(false)} />}
+              {step === "brand" && orgId && (
+                <BrandStep
+                  orgId={orgId}
+                  state={brand.data}
+                  error={brand.isError ? (brand.error ?? new Error(t("common.loadFailed"))) : null}
+                  onRetry={() => void brand.refetch()}
+                  computerNote={computerNote}
+                  onConnectComputer={() => setConnecting(true)}
+                  onSaved={() => {
+                    // The brand saved: `/me` reads it answered (its `brandPending` gone), and the rail moves on.
+                    void qc.invalidateQueries({ queryKey: keys.me });
+                    void qc.invalidateQueries({ queryKey: keys.brand(orgId, i18n.language) });
+                    setPicked(null);
+                  }}
+                />
+              )}
+              {step === "brand" && connecting && <ConnectComputerDialog onClose={() => setConnecting(false)} />}
               {step === "plan" && orgId && (
                 <PlanStep
                   orgId={orgId}
@@ -1119,13 +1280,34 @@ function StepHost({
         {children}
       </AiHost>
     );
-  if (org && (step === "people" || step === "team" || step === "you"))
+  // The team and "Quem entra" (its computer flow), "Sua marca" (the same flow, for the agents that need a computer),
+  // the person's step and the people's: the workspace's context.
+  if (org && (step === "people" || step === "team" || step === "who" || step === "brand" || step === "you"))
     return (
       <OrgProvider org={org} me={me}>
         {children}
       </OrgProvider>
     );
   return <>{children}</>;
+}
+
+/**
+ * "Conectar computador" on "Quem entra" (docs/adr/doug-0030-time-doug.md): the app's own device flow, the same
+ * Settings › Devices opens, over the step. It needs the workspace's context, which the step is hosted in.
+ */
+function ConnectComputerDialog({ onClose }: { onClose: () => void }) {
+  const [start, setStart] = useState<ConnectStart | null>({ step: "choose" });
+  return (
+    <ConnectDialog
+      start={start}
+      // Over the onboarding: a computer's own page opens in another tab, never taking the person out of the step.
+      stay
+      onClose={() => {
+        setStart(null);
+        onClose();
+      }}
+    />
+  );
 }
 
 /**

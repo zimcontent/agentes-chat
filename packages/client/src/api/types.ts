@@ -545,6 +545,8 @@ export interface OrgOnboarding {
   step: OnboardingStepId;
   /** #general, where the onboarding puts the agents and posts the first message. */
   generalChannelId: string;
+  /** The Doug team was made and its brand step ("Sua marca") waits: finishing is refused until it is saved. */
+  brandPending?: boolean;
 }
 
 export interface Me {
@@ -1338,8 +1340,13 @@ export interface TeamProposalCard {
     channelIds: string[];
     routineIds: string[];
     skillIds: string[];
-    skipped: ("skills" | "weekly")[];
+    skipped: ("skills" | "weekly" | "rightHand")[];
     noAi: string[];
+    /**
+     * The Doug team's third-party skills that failed to install for good (docs/adr/doug-0030-time-doug.md): each by its
+     * slug, with the `code` the app says. Absent until the job reports one.
+     */
+    failedSkills?: { slug: string; code: string | null }[];
   };
   /** The last try failed at `step`, creating nothing: `reason` in English, `status`/`code`/`params` to translate. */
   error?: { step: string; reason: string; status?: number; code?: string; params?: Record<string, unknown> } | null;
@@ -1353,6 +1360,74 @@ export interface TeamTemplate {
   sub: string;
   description: string;
   team: TeamPlan;
+}
+
+/**
+ * The Doug team (docs/adr/doug-0030-time-doug.md): not a team template's card, which it outgrew, so the gallery gives
+ * it apart, only to an app that asks (`?with=doug`). Every agent is listed, checked by default; `team` lists those that
+ * become agents with every one checked.
+ */
+export interface DougTeamTemplate extends TeamTemplate {
+  id: "doug";
+  members: DougTemplateMember[];
+  /** Handles of the agents that work on a computer, for the notice and its "connect a computer" button. */
+  needsComputer: string[];
+}
+
+/** One agent of the Doug team's template, as the gallery lists it (docs/adr/doug-0030-time-doug.md). */
+export interface DougTemplateMember {
+  /** What `applyTeamTemplate`'s `handles` names, and what `dougKey` turns into the i18n key. */
+  handle: string;
+  name: string;
+  role: string;
+  line: string;
+  /** Its HQ; null for the right hand. */
+  qg: string | null;
+  /** The channel it would live in; null for the right hand. */
+  channel: string | null;
+  /** The template it reports to (`mark`), or null. */
+  reportsTo: string | null;
+  needsComputer: boolean;
+  /** The workspace's right hand takes this role: no agent is made for it. */
+  rightHand: boolean;
+  /** Its routines, all made paused. */
+  routines: number;
+  /** Its house and third-party skills. */
+  skills: number;
+}
+
+/** A tone of voice to tap in the brand step, in the person's language. */
+export interface BrandToneWord {
+  id: string;
+  label: string;
+}
+
+/** What the brand step sends (`PUT …/brand`, docs/adr/doug-0030-time-doug.md): `company` and a tone are required. */
+export interface BrandInput {
+  company: string;
+  /** Tones tapped from the list (`BRAND_TONES`); with `tone`, at least one of them is required. */
+  tones?: string[];
+  /** The tone in the person's own words. */
+  tone?: string | null;
+  site?: string | null;
+  instagram?: string | null;
+  audience?: string | null;
+  /** Files of the brand manual, from `POST …/artifacts/files` first. */
+  files?: string[];
+  /** Links to the brand manual (a shared folder, a page). */
+  links?: string[];
+}
+
+/** The workspace's brand ("Sua marca", docs/adr/doug-0030-time-doug.md), as the step shows it back. */
+export interface BrandView {
+  company: string;
+  tones: string[];
+  tone: string | null;
+  site: string | null;
+  instagram: string | null;
+  audience: string | null;
+  files: { id: string; title: string }[];
+  links: string[];
 }
 
 /** `meta.replyChips` of a right hand's question: answers to tap, each sent as the person's own message. */

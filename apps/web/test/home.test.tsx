@@ -343,7 +343,11 @@ describe("Início", () => {
     await act(async () => fireEvent.keyDown(trigger, { key: "Enter" }));
     const menu = screen().getByRole("menu");
     // Owners see the team's agenda among the sections; a server with no portal offers no "Suas tarefas".
-    expect(within(menu).getAllByRole("menuitemcheckbox").map((i) => i.textContent)).toEqual([
+    expect(
+      within(menu)
+        .getAllByRole("menuitemcheckbox")
+        .map((i) => i.textContent),
+    ).toEqual([
       "Agenda da equipe",
       "Esperando você e Trabalhando agora",
       "Desde a sua última visita",

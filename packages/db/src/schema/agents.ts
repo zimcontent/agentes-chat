@@ -463,6 +463,12 @@ export const organizationSettings = pgTable("organization_settings", {
    */
   hiddenTools: text().array().notNull().default(sql`'{}'::text[]`),
   /**
+   * The Doug team made here (docs/adr/doug-0030-time-doug.md), null for none: its card, the agents it made by their
+   * template's handle, and whether the right hand took the DOUG's role (its instructions in `rightHandPrompt`). A
+   * column of this instance's own (`EXTRA_COLUMNS`), outside the numbered migrations.
+   */
+  dougTeam: jsonb().$type<{ cardId: string; agents: Record<string, string>; rightHand: boolean }>(),
+  /**
    * How much the workspace's agents ask before acting (ADR 0173 addendum 2026-11-15): what every agent without its
    * own choice (`agents.approvals_level_own`) uses. A workspace with no row here is at `risky`.
    */

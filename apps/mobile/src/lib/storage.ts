@@ -94,6 +94,8 @@ export const STORED = {
   stopSendTaught: "stop-send-taught",
   /** The tools pinned to Início's front row, per workspace (JSON by workspace id: tool keys; features/chats/all-tools). */
   homePins: "home-pins",
+  /** "Conectar computador" asked for on the first run, per workspace (JSON: `{ orgId, needs }`; features/onboarding). */
+  dougComputer: "doug-computer",
 } as const;
 
 export async function clearStoredValues(): Promise<void> {

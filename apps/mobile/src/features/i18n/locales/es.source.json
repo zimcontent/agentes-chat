@@ -5706,6 +5706,144 @@
   "onb.failed": {
     "value": "Couldn't save. Try again."
   },
+  "dougOnb.step": {
+    "value": "Your brand"
+  },
+  "dougOnb.howTitle": {
+    "value": "How do you want to start the team?"
+  },
+  "dougOnb.howLead": {
+    "value": "Pick one. You can add or remove agents later."
+  },
+  "dougOnb.otherTitle": {
+    "value": "Another ready-made team"
+  },
+  "dougOnb.otherText": {
+    "value": "Two or three simple agents."
+  },
+  "dougOnb.scratchTitle": {
+    "value": "Start from scratch"
+  },
+  "dougOnb.scratchText": {
+    "value": "Just the Doug."
+  },
+  "dougOnb.recommended": {
+    "value": "Recommended"
+  },
+  "dougOnb.pickMembers": {
+    "value": "Choose who joins"
+  },
+  "dougOnb.pickModel": {
+    "value": "Choose a model"
+  },
+  "dougOnb.startAlone": {
+    "value": "Start with just the Doug"
+  },
+  "dougOnb.membersTitle": {
+    "value": "Who joins your team?"
+  },
+  "dougOnb.membersLead": {
+    "value": "Everyone is checked. Uncheck anyone you don't need."
+  },
+  "dougOnb.count": {
+    "value": {
+      "one": "{{count}} agent",
+      "other": "{{count}} agents"
+    }
+  },
+  "dougOnb.countNew": {
+    "value": {
+      "one": "{{count}} new agent + {{name}}",
+      "other": "{{count}} new agents + {{name}}"
+    }
+  },
+  "dougOnb.fixed": {
+    "value": "always on the team"
+  },
+  "dougOnb.fixedA11y": {
+    "value": "{{name}} is always on the team"
+  },
+  "dougOnb.toggleHint": {
+    "value": "Double tap to include or leave out {{name}}"
+  },
+  "dougOnb.usesComputer": {
+    "value": "Works on a computer"
+  },
+  "dougOnb.more": {
+    "value": "+{{n}} more in the HQ"
+  },
+  "dougOnb.less": {
+    "value": "Show less"
+  },
+  "dougOnb.computerText": {
+    "value": "These agents work on a computer: {{names}}."
+  },
+  "dougOnb.computerButton": {
+    "value": "Connect a computer"
+  },
+  "dougOnb.computerLater": {
+    "value": "The computer's setup opens as soon as the team is in."
+  },
+  "dougOnb.computerSkip": {
+    "value": "Not now"
+  },
+  "dougOnb.needOne": {
+    "value": "Keep at least one agent besides the Doug."
+  },
+  "dougOnb.create": {
+    "value": "Create the team"
+  },
+  "dougOnb.brandTitle": {
+    "value": "Teach your brand to the team"
+  },
+  "dougOnb.brandLead": {
+    "value": "The agents read this before they write, design or post."
+  },
+  "dougOnb.company": {
+    "value": "Company name"
+  },
+  "dougOnb.tone": {
+    "value": "Tone of voice"
+  },
+  "dougOnb.toneOwn": {
+    "value": "Or in your own words"
+  },
+  "dougOnb.instagram": {
+    "value": "Instagram (optional)"
+  },
+  "dougOnb.instagramPlaceholder": {
+    "value": "@yourcompany"
+  },
+  "dougOnb.site": {
+    "value": "Website (optional)"
+  },
+  "dougOnb.sitePlaceholder": {
+    "value": "yourcompany.com"
+  },
+  "dougOnb.audience": {
+    "value": "Who you sell to (optional)"
+  },
+  "dougOnb.manual": {
+    "value": "Brand manual (optional)"
+  },
+  "dougOnb.manualPick": {
+    "value": "Add a file"
+  },
+  "dougOnb.manualHelp": {
+    "value": "PDF, images or a document."
+  },
+  "dougOnb.manualLink": {
+    "value": "Or a link to the manual"
+  },
+  "dougOnb.uploading": {
+    "value": "Sending…"
+  },
+  "dougOnb.removeFile": {
+    "value": "Remove {{name}}"
+  },
+  "dougOnb.needs": {
+    "value": "The company's name and a tone of voice are required."
+  },
   "aiPanel.title": {
     "value": "AI panel"
   },

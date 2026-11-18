@@ -83,6 +83,9 @@ import type {
   BatchInviteResult,
   BlockState,
   BrainMachine,
+  BrandInput,
+  BrandToneWord,
+  BrandView,
   BrowserHandoff,
   BrowserProfile,
   CalendarEvent,
@@ -127,6 +130,7 @@ import type {
   DevicesList,
   DirectMessage,
   DmRead,
+  DougTeamTemplate,
   EmailChange,
   EndpointCheck,
   EndpointModel,
@@ -854,6 +858,16 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           }),
         ),
       get: (orgId) => request<Organization>(org(orgId)),
+      brand: (orgId, locale) =>
+        request<{ pending: boolean; brand: BrandView | null; skillId: string | null; tones: BrandToneWord[] }>(
+          `${org(orgId)}/brand`,
+          { ...(locale ? { query: { locale } } : {}) },
+        ),
+      saveBrand: (orgId, input: BrandInput) =>
+        request<{ skillId: string; brand: BrandView; pending: boolean }>(`${org(orgId)}/brand`, {
+          method: "PUT",
+          json: input,
+        }),
       deletionCode: (orgId) => request<CodeSent>(`${org(orgId)}/deletion/code`, { json: {} }),
       deleteWorkspace: async (orgId, input = {}) =>
         (await request<{ deletion: { dueAt: string } }>(`${org(orgId)}/deletion`, { json: input })).deletion,
@@ -1075,19 +1089,31 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           method: "PATCH",
           json: patch,
         }),
-      teamTemplates: async (orgId, locale) =>
+      teamTemplates: async (orgId, locale, withDoug) =>
         (
-          await request<{ templates: TeamTemplate[] }>(`${org(orgId)}/team-templates`, {
-            ...(locale ? { query: { locale } } : {}),
+          await request<{ templates: TeamTemplate[]; doug?: DougTeamTemplate }>(`${org(orgId)}/team-templates`, {
+            ...(locale || withDoug
+              ? { query: { ...(locale ? { locale } : {}), ...(withDoug ? { with: "doug" } : {}) } }
+              : {}),
           })
         ).templates,
-      applyTeamTemplate: (orgId, templateId, locale) =>
+      dougTemplate: async (orgId, locale) =>
+        (
+          await request<{ templates: TeamTemplate[]; doug?: DougTeamTemplate }>(`${org(orgId)}/team-templates`, {
+            query: { with: "doug", ...(locale ? { locale } : {}) },
+          })
+        ).doug,
+      applyTeamTemplate: (orgId, templateId, locale, handles) =>
         request<{
           channelId: string;
           messageId: string;
           state: TeamProposalCard["state"];
           error: TeamProposalCard["error"] | null;
-        }>(`${org(orgId)}/team-templates/${enc(templateId)}/use`, { json: locale ? { locale } : {} }),
+          needsComputer?: { agentId: string; handle: string; name: string }[];
+          brandPending?: boolean;
+        }>(`${org(orgId)}/team-templates/${enc(templateId)}/use`, {
+          json: { ...(locale ? { locale } : {}), ...(handles ? { handles } : {}) },
+        }),
       decideCostly: (orgId, signalId, decision) =>
         request<{ state: CostlyDecision }>(`${org(orgId)}/autonomy-proposals/${enc(signalId)}`, {
           json: { decision },
