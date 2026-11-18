@@ -15217,7 +15217,8 @@
     "dougTeam": {
       "made": "Bu çalışma alanında zaten Doug Ekibi var. Oluşturduğunu geri alın, ya da istediğiniz ajanları tek tek ekleyin.",
       "none": "Doug Ekibi'nden en az bir ajan seçin.",
-      "unknown": "Doug Ekibi'nde {{handles}} yok."
+      "unknown": "Doug Ekibi'nde {{handles}} yok.",
+      "ownPath": "Doug Ekibi, bu kartından değil, katılım sırasında kendi kartından oluşturulur."
     },
     "brand": {
       "pending": "Bitirmeden önce markayı kaydedin. Ekipten hemen sonraki adım.",
@@ -20136,6 +20137,7 @@
       "createdYouPersonal": "Ajanları sen oluşturdun",
       "skillsWait": "Skill'ler bir yöneticiyi bekliyor.",
       "weeklyWait": "Haftalık değerlendirmem, rutinlerimi yöneten kişiyi bekliyor.",
+      "rightHandWait": "DOUG’un yönetici rolü bir yöneticiyi bekliyor.",
       "undone": "Ekip geri alındı",
       "dismissed": "Ekip bırakıldı",
       "undonePersonal": "Ajanlar geri alındı",

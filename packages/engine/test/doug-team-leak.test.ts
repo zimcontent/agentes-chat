@@ -102,17 +102,55 @@ export function leaksIn(line: string, denied: ReadonlySet<string> = DENIED): str
   return found;
 }
 
+/** Every line of a file, `file:line: leak` for each finding (the same check the material gets). */
+async function scan(file: string, text: string, hits: string[], where = file) {
+  text.split("\n").forEach((line, i) => {
+    for (const leak of leaksIn(line)) hits.push(`${where}:${i + 1}: ${leak}`);
+  });
+}
+
+/** Every `dougTeam: { … }` block of an i18n file, braces balanced, as text. */
+function dougTeamBlocks(text: string) {
+  const blocks: string[] = [];
+  const at = /\bdougTeam:\s*\{/g;
+  for (let m = at.exec(text); m; m = at.exec(text)) {
+    let depth = 0;
+    const start = text.indexOf("{", m.index);
+    for (let i = start; i < text.length; i++) {
+      if (text[i] === "{") depth++;
+      else if (text[i] === "}" && --depth === 0) {
+        blocks.push(text.slice(start, i + 1));
+        break;
+      }
+    }
+  }
+  return blocks;
+}
+
 describe("the Doug team's material", () => {
   test("holds no email, phone, outside address or denied name", async () => {
     const files = [...new Glob("**/*").scanSync({ cwd: DIR, onlyFiles: true })].sort();
     expect(files.length).toBeGreaterThan(60);
     const hits: string[] = [];
-    for (const file of files) {
-      const text = await Bun.file(join(DIR, file)).text();
-      text.split("\n").forEach((line, i) => {
-        for (const leak of leaksIn(line)) hits.push(`${file}:${i + 1}: ${leak}`);
-      });
+    for (const file of files) await scan(file, await Bun.file(join(DIR, file)).text(), hits);
+    expect(hits).toEqual([]);
+  });
+
+  test("what the user sees of it — the dougTeam words and the ADR — holds none of it either", async () => {
+    const root = join(import.meta.dir, "../../..");
+    const hits: string[] = [];
+    // The i18n files hold example addresses for the whole app; only the Doug team's block is the material's words.
+    for (const file of ["packages/i18n/src/en.ts", "packages/i18n/src/pt-BR.ts"]) {
+      const text = await Bun.file(join(root, file)).text();
+      // Both `dougTeam` blocks (the messages' and the words'): from each `dougTeam: {` to its closing brace at the
+      // same depth. A simple brace counter over the file's text finds both.
+      for (const block of dougTeamBlocks(text)) await scan(file, block, hits, file);
     }
+    await scan(
+      "docs/adr/doug-0020-time-doug.md",
+      await Bun.file(join(root, "docs/adr/doug-0020-time-doug.md")).text(),
+      hits,
+    );
     expect(hits).toEqual([]);
   });
 

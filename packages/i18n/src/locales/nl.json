@@ -15344,7 +15344,8 @@
     "dougTeam": {
       "made": "Deze werkruimte heeft het Doug-team al. Maak ongedaan wat het heeft gemaakt, of voeg de agenten die je wilt één voor één toe.",
       "none": "Vink minstens één agent van het Doug-team aan.",
-      "unknown": "Het Doug-team heeft geen {{handles}}."
+      "unknown": "Het Doug-team heeft geen {{handles}}.",
+      "ownPath": "Het Doug-team wordt gemaakt via zijn eigen kaart, in de onboarding, niet via deze."
     },
     "brand": {
       "pending": "Sla het merk op voordat je afrondt. Het is de stap direct na het team.",
@@ -20384,6 +20385,7 @@
       "createdYouPersonal": "Agents gemaakt door jou",
       "skillsWait": "De skills wachten op een admin.",
       "weeklyWait": "Mijn weekoverzicht wacht op wie mijn routines beheert.",
+      "rightHandWait": "De rol van de DOUG als manager wacht op een admin.",
       "undone": "Team ongedaan gemaakt",
       "dismissed": "Team weggegooid",
       "undonePersonal": "Agents ongedaan gemaakt",

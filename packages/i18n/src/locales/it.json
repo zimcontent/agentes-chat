@@ -15812,7 +15812,8 @@
     "dougTeam": {
       "made": "Questo spazio di lavoro ha già la Squadra Doug. Annulla quella che ha creato, o aggiungi gli agenti che vuoi uno per uno.",
       "none": "Spunta almeno un agente della Squadra Doug.",
-      "unknown": "La Squadra Doug non ha {{handles}}."
+      "unknown": "La Squadra Doug non ha {{handles}}.",
+      "ownPath": "La Squadra Doug si crea dalla sua scheda, durante l’onboarding, non da questa."
     },
     "brand": {
       "pending": "Salva il marchio prima di finire. È il passo subito dopo la squadra.",
@@ -20928,6 +20929,7 @@
       "createdYouPersonal": "Agenti creati da te",
       "skillsWait": "Le skill aspettano un admin.",
       "weeklyWait": "Il mio riepilogo settimanale aspetta chi gestisce le mie routine.",
+      "rightHandWait": "Il ruolo del DOUG come manager attende un admin.",
       "undone": "Team annullato",
       "dismissed": "Team scartato",
       "undonePersonal": "Agenti annullati",

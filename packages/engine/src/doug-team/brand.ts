@@ -8,6 +8,7 @@ import { ValidationError } from "../errors";
 import { publishAgentsChanged } from "../events";
 import { requirePermission } from "../organizations";
 import { personLocale } from "../requester";
+import { untrustedBlock } from "../untrusted";
 
 const { agentSkills, agents, organizationSettings, organizations, skills } = schema;
 
@@ -86,20 +87,33 @@ function instagramHandle(raw: string) {
   return `@${handle}`;
 }
 
+/**
+ * A free-text field as the skill keeps it: its line breaks collapsed to spaces (a newline could open a heading or a
+ * list in the Markdown the agents read, or read as an instruction of its own). It is still the person's text; the body
+ * puts it inside `untrustedBlock`, which neutralises what could pass for an instruction.
+ */
+const oneLine = (v: string, max: number) =>
+  v
+    .replace(/\s*\r?\n\s*/g, " ")
+    .replace(/\s{2,}/g, " ")
+    .trim()
+    .slice(0, max);
+
 /** The input checked: the company's name and a tone (tapped or written) are required. */
 export function checkBrand(input: BrandInput) {
-  const company = str(input.company).slice(0, 120);
+  // The name is a heading and a line of the body: one line, no heading of its own.
+  const company = oneLine(str(input.company), 120);
   if (!company) throw new ValidationError("Say the company's name", "brand.company_required");
   const tones = [...new Set(input.tones ?? [])];
   const unknown = tones.filter((t) => !(BRAND_TONES as readonly string[]).includes(t));
   if (unknown.length > 0) {
     throw new ValidationError(`No tone ${unknown.join(", ")}`, "brand.unknown_tone", { tones: unknown });
   }
-  const tone = str(input.tone).slice(0, 2_000) || null;
+  const tone = oneLine(str(input.tone), 2_000) || null;
   if (tones.length === 0 && !tone) throw new ValidationError("Pick or write the tone of voice", "brand.tone_required");
   const site = str(input.site) ? webAddress(str(input.site), "site") : null;
   const instagram = str(input.instagram) ? instagramHandle(str(input.instagram)) : null;
-  const audience = str(input.audience).slice(0, 2_000) || null;
+  const audience = oneLine(str(input.audience), 2_000) || null;
   const links = [...new Set((input.links ?? []).map(str).filter(Boolean))]
     .slice(0, 20)
     .map((l) => webAddress(l, "links"));
@@ -116,7 +130,13 @@ const or = (v: string | null, missing: string) => v ?? `A definir: ${missing}.`;
  */
 export function brandBody(b: BrandView) {
   const tones = b.tones.map((t) => serverText("pt-BR", `dougTeam.brand.tones.${t}`).toLowerCase());
-  const voice = [tones.length ? `Tons: ${tones.join(", ")}.` : "", b.tone ?? ""].filter(Boolean).join("\n\n");
+  // The person's own words, inside an envelope the agents weigh as data, never as instructions of the skill itself.
+  const voice = [tones.length ? `Tons: ${tones.join(", ")}.` : "", b.tone ? untrustedBlock("tom de voz", b.tone) : ""]
+    .filter(Boolean)
+    .join("\n\n");
+  const audience = b.audience
+    ? untrustedBlock("público", b.audience)
+    : or(null, "para quem a marca fala (quem é, o que busca, o que a faz desistir)");
   return [
     `# Marca ${b.company}`,
     `Esta é a skill de marca de ${b.company}. Leia inteira antes de qualquer peça, legenda, roteiro, vídeo ou estratégia desta marca: ela manda sobre qualquer regra geral. O que estiver "A definir" você não inventa: pergunte a quem pediu ou proponha um rascunho para a pessoa responsável aprovar, e a resposta aprovada vira regra aqui.`,
@@ -125,7 +145,7 @@ export function brandBody(b: BrandView) {
     `- Site: ${or(b.site, "o site da empresa")}`,
     `- O que faz e o que ela NÃO é: ${b.site ? "leia no site antes da primeira peça e proponha o resumo para aprovação" : "A definir"}.`,
     "## Público",
-    or(b.audience, "para quem a marca fala (quem é, o que busca, o que a faz desistir)"),
+    audience,
     "## Tom de voz",
     voice,
     "- Vocabulário que a marca usa: A definir.",
@@ -149,20 +169,56 @@ export function brandBody(b: BrandView) {
     "## Manual de marca",
     b.files.length || b.links.length
       ? [
-          ...b.files.map((f) => `- Arquivo no Drive: ${f.title} (id ${f.id})`),
+          // A file's title is the person's text (a file they uploaded): one line, kept as data.
+          ...b.files.map(
+            (f) => `- Arquivo no Drive: ${untrustedBlock("título do arquivo", oneLine(f.title, 200))} (id ${f.id})`,
+          ),
           ...b.links.map((l) => `- Link: ${l}`),
         ].join("\n")
       : "Nenhum arquivo ainda. Peça o manual, os logos sem fundo, as fontes e 15 a 30 peças publicadas.",
   ].join("\n\n");
 }
 
-/** The brand skill as saved, and whether this workspace still waits for it (the Doug team made, no brand yet). */
+/**
+ * The brand skill as saved, whether this workspace still waits for it, and the skill a `marca` of another origin
+ * already holds there. The brand is the skill marked `metadata.brand` (not a slug someone else may hold): a `marca`
+ * another origin made stays as it is, and the brand is written under another slug.
+ */
 async function brandSkillRow(db: Database, orgId: string) {
-  const [row] = await db
+  const rows = await db
     .select()
     .from(skills)
     .where(and(eq(skills.orgId, orgId), eq(skills.slug, BRAND_SKILL), isNull(skills.ownerUserId)));
-  return row ?? null;
+  const live = rows.find((r) => !r.deletedAt) ?? null;
+  // The one that is the brand: marked, and not deleted.
+  if (live && (live.metadata as { brand?: unknown }).brand === true) return { row: live, live, other: null };
+  // A live `marca` of another origin: the brand picks another slug, never overwriting it.
+  if (live) return { row: null, live: null, other: live };
+  // A deleted one: it comes back with the brand if it was the brand, else it stays deleted and the brand gets `marca`.
+  const back = rows.find((r) => r.deletedAt) ?? null;
+  if (back && (back.metadata as { brand?: unknown }).brand === true) return { row: back, live: null, other: null };
+  return { row: null, live: null, other: null };
+}
+
+/**
+ * Gives the brand that already exists to the readers a workspace just gained (docs/adr/doug-0020-time-doug.md): a
+ * team made again after Desfazer kept the brand skill (Desfazer removes only what the card made), so the new ROSA,
+ * SONY, SOCIAL MEDIA and CHESS read it from the first piece. A no-op where there is no brand.
+ */
+export async function giveBrandToReaders(db: Database, orgId: string, byTemplate: Record<string, string>) {
+  const { live } = await brandSkillRow(db, orgId);
+  if (!live) return;
+  const readers = BRAND_READERS.flatMap((h) => (byTemplate[h] ? [byTemplate[h]] : []));
+  if (readers.length === 0) return;
+  const here = await db
+    .select({ id: agents.id })
+    .from(agents)
+    .where(and(eq(agents.orgId, orgId), inArray(agents.id, readers), isNull(agents.archivedAt)));
+  if (here.length === 0) return;
+  await db
+    .insert(agentSkills)
+    .values(here.map((a) => ({ orgId, agentId: a.id, skillId: live.id, enabled: true })))
+    .onConflictDoUpdate({ target: [agentSkills.agentId, agentSkills.skillId], set: { enabled: true } });
 }
 
 /**
@@ -185,30 +241,33 @@ export async function brandPendingIn(db: Database, orgIds: readonly string[]) {
         inArray(organizations.id, [...orgIds]),
         isNull(organizations.onboardedAt),
         sql`${organizationSettings.dougTeam} is not null`,
-        sql`not exists (select 1 from ${skills} s where s.org_id = ${organizations.id} and s.slug = ${BRAND_SKILL}
-          and s.owner_user_id is null and s.deleted_at is null)`,
+        // No brand skill yet: the one marked `metadata.brand`, whatever slug it holds (a `marca` of another origin
+        // doesn't count as the brand).
+        sql`not exists (select 1 from ${skills} s where s.org_id = ${organizations.id}
+          and s.owner_user_id is null and s.deleted_at is null and s.metadata->>'brand' = 'true')`,
       ),
     );
   return new Set(rows.map((r) => r.orgId));
 }
 
 const viewOf = (meta: Record<string, unknown> | null | undefined): BrandView | null => {
-  const b = (meta?.brand ?? null) as BrandView | null;
+  // The brand's own data is under `data` (`brand: true` is the mark that says this skill is the brand).
+  const b = (meta?.data ?? null) as BrandView | null;
   return b && typeof b.company === "string" ? b : null;
 };
 
 /** `GET …/brand`: the brand as said, the tones to tap in the person's language, and whether the step waits for it. */
 export async function getBrand(db: Database, userId: string, orgId: string, preferred?: string | null) {
   await requirePermission(db, userId, orgId, "read");
-  const [row, pending, locale] = await Promise.all([
+  const [{ live }, pending, locale] = await Promise.all([
     brandSkillRow(db, orgId),
     brandPending(db, orgId),
     personLocale(db, userId, preferred),
   ]);
   return {
     pending,
-    brand: row && !row.deletedAt ? viewOf(row.metadata) : null,
-    skillId: row && !row.deletedAt ? row.id : null,
+    brand: live ? viewOf(live.metadata) : null,
+    skillId: live?.id ?? null,
     tones: BRAND_TONES.map((id) => ({ id, label: serverText(locale as AppLocale, `dougTeam.brand.tones.${id}`) })),
   };
 }
@@ -233,13 +292,16 @@ export async function saveBrand(
     files.push({ id: ref.id, title: ref.title });
   }
   const brand: BrandView = { ...b, files };
+  const { row: had, other } = await brandSkillRow(deps.db, orgId);
+  // A `marca` another origin made stays as it is: the brand is written under another slug (a free `marca-2`).
+  const slug = had ? had.slug : other ? await freeBrandSlug(deps.db, orgId) : BRAND_SKILL;
   const values = {
     description: `Marca ${b.company}: o que a empresa é, público, tom de voz, identidade visual, redes e o manual. Leia antes de qualquer peça, legenda, roteiro, vídeo ou estratégia desta marca.`,
     body: brandBody(brand),
-    metadata: { title: `Marca ${b.company}`, brand },
+    // Marked as the brand (`metadata.brand`), so a `marca` of another origin is never mistaken for it.
+    metadata: { title: `Marca ${b.company}`, brand: true, data: brand },
     source: "manual" as const,
   };
-  const had = await brandSkillRow(deps.db, orgId);
   const skillId = await deps.db.transaction(async (raw) => {
     const tx = raw as unknown as Database;
     const [row] = had
@@ -247,6 +309,8 @@ export async function saveBrand(
           .update(skills)
           .set({
             ...values,
+            slug,
+            name: slug,
             deletedAt: null,
             version: sql`${skills.version} + 1`,
             editedSinceSource: false,
@@ -256,7 +320,7 @@ export async function saveBrand(
           .returning({ id: skills.id })
       : await tx
           .insert(skills)
-          .values({ orgId, slug: BRAND_SKILL, name: BRAND_SKILL, ...values, createdByUserId: userId })
+          .values({ orgId, slug, name: slug, ...values, createdByUserId: userId })
           .returning({ id: skills.id });
     if (!row) throw new Error("brand skill write returned nothing");
     const [settings] = await tx
@@ -283,10 +347,25 @@ export async function saveBrand(
       actor: { type: "person", id: userId },
       action: had && !had.deletedAt ? "skill.updated" : had ? "skill.restored" : "skill.created",
       target: { type: "skill", id: row.id },
-      details: { name: BRAND_SKILL, via: "brand" },
+      details: { name: slug, via: "brand" },
     });
     return row.id;
   });
   if (deps.pubsub) await publishAgentsChanged(deps.pubsub, orgId);
   return { skillId, brand, pending: await brandPending(deps.db, orgId) };
+}
+
+/** A free slug for the brand where another origin holds `marca`: `marca-2`, `marca-3`… */
+async function freeBrandSlug(db: Database, orgId: string) {
+  const taken = new Set(
+    (
+      await db
+        .select({ slug: skills.slug })
+        .from(skills)
+        .where(and(eq(skills.orgId, orgId), isNull(skills.ownerUserId), sql`${skills.slug} like ${`${BRAND_SKILL}%`}`))
+    ).map((r) => r.slug),
+  );
+  let slug = BRAND_SKILL;
+  for (let n = 2; taken.has(slug); n++) slug = `${BRAND_SKILL}-${n}`;
+  return slug;
 }

@@ -16329,7 +16329,8 @@
     "dougTeam": {
       "made": "Ten obszar roboczy ma już Zespół Douga. Cofnij ten, który utworzył, albo dodaj agentów, których chcesz, pojedynczo.",
       "none": "Zaznacz co najmniej jednego agenta Zespołu Douga.",
-      "unknown": "Zespół Douga nie ma {{handles}}."
+      "unknown": "Zespół Douga nie ma {{handles}}.",
+      "ownPath": "Zespół Douga powstaje ze swojej własnej karty, w procesie wdrożenia, nie z tej."
     },
     "brand": {
       "pending": "Zapisz markę, zanim skończysz. To krok zaraz po zespole.",
@@ -21486,6 +21487,7 @@
       "createdYouPersonal": "Agenci utworzeni przez ciebie",
       "skillsWait": "Skille czekają na admina.",
       "weeklyWait": "Mój tygodniowy przegląd czeka na osobę, która zarządza moimi rutynami.",
+      "rightHandWait": "Rola DOUGA jako menedżera czeka na administratora.",
       "undone": "Zespół cofnięty",
       "dismissed": "Zespół odrzucony",
       "undonePersonal": "Cofnięto utworzenie agentów",

@@ -1,5 +1,5 @@
 import { holdEvents } from "@agenteschat/adapters";
-import { and, type Database, eq, isNull, schema, sql } from "@agenteschat/db";
+import { and, type Database, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
 import { serverText } from "@agenteschat/i18n";
 import type { AppLocale } from "@agenteschat/i18n/locale";
 import { checkRoutine, giveApps, type ProposedRoutine, suggestAgentAi } from "../agent-proposals";
@@ -34,7 +34,8 @@ import {
   teamFailure,
   writeCard,
 } from "../team-proposals";
-import { brandPending } from "./brand";
+import { isPersonalWorkspace } from "../workspace-mode";
+import { brandPending, giveBrandToReaders } from "./brand";
 import {
   DOUG_QGS,
   DOUG_RIGHT_HAND,
@@ -134,9 +135,52 @@ async function dougParams(
   at: { orgId: string; channelId: string; personId: string },
   chosen: readonly DougAgentTemplate[],
   locale: AppLocale,
+  personal = false,
 ) {
   const [org, taken] = await Promise.all([orgName(deps.db, at.orgId), takenHandles(deps.db, at.orgId)]);
   const t = (key: string) => serverText(locale, key, { org });
+  // A personal workspace makes no channel: its agents live in their DM with the person (ADR 0159), and the routines
+  // report there too (docs/adr/doug-0020-time-doug.md §8).
+  if (personal) {
+    const handles = new Map<string, string>();
+    for (const a of chosen) {
+      if (a.handle === DOUG_RIGHT_HAND) continue;
+      const handle = taken.has(a.handle) ? freeHandle(a.handle, taken) : a.handle;
+      taken.add(handle);
+      handles.set(a.handle, handle);
+    }
+    const team: TeamAgent[] = [];
+    const routines = new Map<string, ProposedRoutine[]>();
+    for (const a of chosen) {
+      const read: ProposedRoutine[] = [];
+      for (const r of a.routines)
+        read.push(await checkRoutine(deps, at, { schedule: r.cron, prompt: r.prompt, title: r.name }));
+      routines.set(a.handle, read);
+      if (a.handle === DOUG_RIGHT_HAND) continue;
+      team.push({
+        name: a.name,
+        handle: handles.get(a.handle) as string,
+        role: t(`dougTeam.agents.${dougKey(a.handle)}.role`),
+        line: t(`dougTeam.agents.${dougKey(a.handle)}.line`),
+        instructions: t(`dougTeam.agents.${dougKey(a.handle)}.line`),
+        appearance: null,
+        channel: "",
+        routines: read,
+        firstTask: null,
+      });
+    }
+    const params: TeamParams = {
+      lead: t("dougTeam.lead"),
+      agents: team,
+      newChannels: [],
+      skills: [],
+      weekly: null,
+      approvals: t("dougTeam.approvals"),
+      invite: [],
+      template: DOUG_TEMPLATE,
+    };
+    return { params, handles, routines, channelOf: new Map<DougQg, string>() };
+  }
   const qgs = DOUG_QGS.filter((q) => chosen.some((a) => dougQgOf(a) === q));
   const { blocked } = await channelPlaces(
     deps.db,
@@ -208,8 +252,15 @@ export async function dougTemplateView(
   preferred?: string | null,
 ): Promise<DougTemplateView> {
   const locale = await personLocale(deps.db, userId, preferred);
+  const personal = await isPersonalWorkspace(deps.db, orgId);
   const all = dougAgents();
-  const { params, channelOf } = await dougParams(deps, { orgId, channelId: "", personId: userId }, all, locale);
+  const { params, channelOf } = await dougParams(
+    deps,
+    { orgId, channelId: "", personId: userId },
+    all,
+    locale,
+    personal,
+  );
   return {
     id: DOUG_TEMPLATE,
     name: serverText(locale, "dougTeam.name"),
@@ -243,6 +294,23 @@ export async function dougTeamOf(db: Database, orgId: string) {
     .from(organizationSettings)
     .where(eq(organizationSettings.orgId, orgId));
   return row?.dougTeam ?? null;
+}
+
+/**
+ * The Doug team made here whose agents are still here, or null: an archived agent is gone (`doug_team.made` allows a
+ * new team while none of the team's is left), and the brand step and the DOUG's role go with it.
+ */
+async function liveDougTeam(db: Database, orgId: string) {
+  const team = await dougTeamOf(db, orgId);
+  if (!team) return null;
+  const ids = Object.values(team.agents);
+  if (ids.length === 0) return team;
+  const [left] = await db
+    .select({ id: agents.id })
+    .from(agents)
+    .where(and(eq(agents.orgId, orgId), inArray(agents.id, ids), isNull(agents.archivedAt)))
+    .limit(1);
+  return left ? team : null;
 }
 
 /**
@@ -345,15 +413,23 @@ export async function useDougTeam(
   const membership = await requirePermission(deps.db, userId, orgId, "create_agents");
   const admin = can(membership, "manage_agents");
   const chosen = chosenTemplates(input.handles);
-  const had = await dougTeamOf(deps.db, orgId);
+  // Made once, while its agents are still here; after Desfazer (or with every one archived) it may be made again.
+  const had = await liveDougTeam(deps.db, orgId);
   if (had) throw new ConflictError("This workspace already has the Doug team", "doug_team.made");
   const [locale, { lodi, dm }] = await Promise.all([
     personLocale(deps.db, userId, input.locale),
     rightHandDm(deps.db, orgId, userId),
   ]);
   const at = { orgId, channelId: dm.id, personId: userId };
-  const { params, handles, routines, channelOf } = await dougParams(deps, at, chosen, locale);
-  const rightHand = chosen.find((a) => a.handle === DOUG_RIGHT_HAND) ?? null;
+  // A personal workspace's agents live in their DM with the person: no channel (ADR 0159, doug-0020 §8).
+  const personal = await isPersonalWorkspace(deps.db, orgId);
+  const { params, handles, routines, channelOf } = await dougParams(deps, at, chosen, locale, personal);
+  // The DOUG is the workspace's right hand, whose role only an admin gives it (`manage_agents`): a member who may
+  // create agents gets the team, and the receipt says the DOUG's role waits for an admin (`skipped`).
+  const wantsRightHand = chosen.some((a) => a.handle === DOUG_RIGHT_HAND);
+  const rightHand = admin ? (chosen.find((a) => a.handle === DOUG_RIGHT_HAND) ?? null) : null;
+  const skipped: TeamCreated["skipped"] = [];
+  if (wantsRightHand && !rightHand) skipped.push("rightHand");
   const members = chosen.filter((a) => a.handle !== DOUG_RIGHT_HAND);
   const place = { orgId, channelId: dm.id, threadId: null, agentId: lodi.id, runId: null, hop: 0 };
   const card = await postTeamCard(deps, place, params, userId, undefined, false);
@@ -361,13 +437,16 @@ export async function useDougTeam(
   const proposal = pending.meta.actionCard as TeamProposalCard;
   const claimed: TeamProposalCard = { ...proposal, state: "creating", error: null };
   await writeCard(deps, pending, claimed, "pending");
-  const skipped: TeamCreated["skipped"] = [];
   const events = holdEvents(deps.pubsub);
   type Made = Omit<TeamCreated, "noAi" | "skipped"> & { agents: Agent[]; byTemplate: Record<string, string> };
   let made: Made;
   try {
     made = await deps.db.transaction(async (raw) => {
       const tx = raw as unknown as Database;
+      // Two clicks at once: the second waits here, then finds the team already made and makes none of it.
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`doug-team:${orgId}`}, 0))`);
+      if (await liveDougTeam(tx, orgId))
+        throw new ConflictError("This workspace already has the Doug team", "doug_team.made");
       const out: Made = { agentIds: [], channelIds: [], routineIds: [], skillIds: [], agents: [], byTemplate: {} };
       const names = [...new Set(channelOf.values())];
       const channelStep = names.map((n) => `#${n}`).join(", ");
@@ -498,7 +577,15 @@ export async function useDougTeam(
     });
   } catch (error) {
     const step = error instanceof StepError ? error.step : members.map((a) => a.name).join(", ");
-    const back: TeamProposalCard = { ...claimed, error: teamFailure(step, error) };
+    // A failure takes the card to a terminal state (`denied`, with its reason on the receipt), never leaves it
+    // `pending` or `creating` where another click would try again: the team is made once, from its own card.
+    const back: TeamProposalCard = {
+      ...claimed,
+      state: "denied",
+      error: teamFailure(step, error),
+      decidedByUserId: userId,
+      decidedAt: new Date().toISOString(),
+    };
     await writeCard(deps, pending, back, "creating");
     const now = await getMessage(deps.db, orgId, card.id);
     if (deps.pubsub && now) await publishMessageCreated(deps.pubsub, messageView(now));
@@ -565,6 +652,8 @@ export async function useDougTeam(
   }
   const now = await getMessage(deps.db, orgId, card.id);
   if (deps.pubsub && now) await publishMessageCreated(deps.pubsub, messageView(now));
+  // A brand that already exists (a team made again after Desfazer) goes to the readers it just gained.
+  await giveBrandToReaders(deps.db, orgId, made.byTemplate).catch(() => {});
   // Only the hello in #general after it (doug-0020): the right hand, then each agent in the card's order.
   if ((await billingHold(deps.db, orgId)) === null)
     await enqueue(deps.db, {

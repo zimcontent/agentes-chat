@@ -70,6 +70,7 @@ const KNOWN = {
   "doug_team.made": "errors.dougTeam.made",
   "doug_team.none": "errors.dougTeam.none",
   "doug_team.unknown": "errors.dougTeam.unknown",
+  "doug_team.own_path": "errors.dougTeam.ownPath",
   "onboarding.brand_pending": "errors.brand.pending",
   "brand.company_required": "errors.brand.companyRequired",
   "brand.tone_required": "errors.brand.toneRequired",

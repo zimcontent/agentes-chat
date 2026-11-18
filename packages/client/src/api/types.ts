@@ -1200,7 +1200,7 @@ export interface TeamProposalCard {
     channelIds: string[];
     routineIds: string[];
     skillIds: string[];
-    skipped: ("skills" | "weekly")[];
+    skipped: ("skills" | "weekly" | "rightHand")[];
     noAi: string[];
     /**
      * The Doug team's third-party skills that failed to install for good (docs/adr/doug-0020-time-doug.md): each by its

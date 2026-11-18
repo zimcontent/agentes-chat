@@ -15800,7 +15800,8 @@
     "dougTeam": {
       "made": "Cet espace de travail a déjà l'Équipe Doug. Annulez celle qu'elle a créée, ou ajoutez les agents que vous voulez, un par un.",
       "none": "Cochez au moins un agent de l'Équipe Doug.",
-      "unknown": "L'Équipe Doug n'a pas {{handles}}."
+      "unknown": "L'Équipe Doug n'a pas {{handles}}.",
+      "ownPath": "L'Équipe Doug se crée depuis sa propre carte, dans l'intégration, pas depuis celle-ci."
     },
     "brand": {
       "pending": "Enregistrez la marque avant de terminer. C'est l'étape juste après l'équipe.",
@@ -20922,6 +20923,7 @@
       "createdYouPersonal": "Agents créés par toi",
       "skillsWait": "Les skills attendent un admin.",
       "weeklyWait": "Mon bilan de la semaine attend la personne qui gère mes routines.",
+      "rightHandWait": "Le rôle du DOUG comme manager attend un admin.",
       "undone": "Équipe annulée",
       "dismissed": "Équipe écartée",
       "undonePersonal": "Agents annulés",

@@ -338,7 +338,7 @@ describe("the steps", () => {
     await click(button("Convidar depois"), 16);
     expect(calls(state, "orgs.saveOnboarding").map((c) => c.args)).toEqual([
       [orgId, { step: "import" }],
-      [orgId, { finished: true }],
+      [orgId, { finished: true, holdBrand: true }],
     ]);
     expect(router.state.location.pathname).toMatch(new RegExp(`^/org/${orgId}/c/`));
     // The team thought before its step showed: the arrival as ever, the beta notice then Connect for whoever has none.
@@ -365,7 +365,7 @@ describe("the steps", () => {
     expect(eyebrow()).toBe("Passo 6 de 6");
     expect(document.querySelector(".onb__steps")?.textContent).toContain("Depois");
     await click(button("Convidar depois"), 16);
-    expect(calls(state, "orgs.saveOnboarding").at(-1)?.args).toEqual([orgId, { finished: true }]);
+    expect(calls(state, "orgs.saveOnboarding").at(-1)?.args).toEqual([orgId, { finished: true, holdBrand: true }]);
     expect(router.state.location.pathname).toMatch(new RegExp(`^/org/${orgId}/c/`));
     expect(landed.at(-1)?.arrival).toBe("beta");
   });
@@ -415,7 +415,9 @@ describe("the steps", () => {
     expect(heading()).toBe(PEOPLE);
     expect(calls(state, "orgs.saveOnboarding")).toEqual([]);
     await click(button("Convidar depois"), 16);
-    expect(calls(state, "orgs.saveOnboarding").map((c) => c.args)).toEqual([[ORG_ID, { finished: true }]]);
+    expect(calls(state, "orgs.saveOnboarding").map((c) => c.args)).toEqual([
+      [ORG_ID, { finished: true, holdBrand: true }],
+    ]);
     expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/c/${GENERAL_ID}`);
     expect(landed.at(-1)?.arrival).toBe("beta");
   });
@@ -566,7 +568,7 @@ describe("the plan step (DougBot Cloud)", () => {
     expect(calls(state, "orgs.saveOnboarding").map((c) => c.args)).toEqual([
       [orgId, { step: "import" }],
       [orgId, { step: "computer" }],
-      [orgId, { finished: true }],
+      [orgId, { finished: true, holdBrand: true }],
     ]);
     // Its card there leads with the plan: no Connect an AI on a workspace that waits for it.
     expect(router.state.location.pathname).toBe(`/org/${orgId}/dm/agent/${LODI_ID}`);
@@ -855,7 +857,7 @@ describe("a team with no agents for now (ADR 0162, amended 2026-11-11)", () => {
     await click(button("Convidar depois"), 16);
     expect(calls(state, "orgs.saveOnboarding").map((c) => c.args)).toEqual([
       [ORG_ID, { step: "agents" }],
-      [ORG_ID, { finished: true }],
+      [ORG_ID, { finished: true, holdBrand: true }],
     ]);
     expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/c/${GENERAL_ID}`);
   });
@@ -1027,7 +1029,7 @@ describe("inviting people, a team's last step (ADR 0162, amended 2026-11-11)", (
     // Kept as invited, then finished.
     expect(calls(state, "orgs.saveOnboarding").map((c) => c.args)).toEqual([
       [ORG_ID, { step: "team" }],
-      [ORG_ID, { finished: true }],
+      [ORG_ID, { finished: true, holdBrand: true }],
     ]);
     expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/c/${GENERAL_ID}`);
     // The team thought before the AI step could show: the arrival as ever.
@@ -1046,7 +1048,9 @@ describe("inviting people, a team's last step (ADR 0162, amended 2026-11-11)", (
     expect((button("Enviar convites") as HTMLButtonElement).disabled).toBe(true);
     await click(button("Convidar depois"), 16);
     expect(calls(state, "orgs.inviteMany")).toEqual([]);
-    expect(calls(state, "orgs.saveOnboarding").map((c) => c.args)).toEqual([[ORG_ID, { finished: true }]]);
+    expect(calls(state, "orgs.saveOnboarding").map((c) => c.args)).toEqual([
+      [ORG_ID, { finished: true, holdBrand: true }],
+    ]);
     expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/c/${GENERAL_ID}`);
   });
 
@@ -1159,7 +1163,7 @@ describe("for me (ADR 0159)", () => {
     expect(calls(state, "orgs.saveOnboarding").map((c) => c.args)).toEqual([
       [orgId, { step: "agents" }],
       [orgId, { step: "computer" }],
-      [orgId, { finished: true }],
+      [orgId, { finished: true, holdBrand: true }],
     ]);
     expect(router.state.location.pathname).toBe(`/org/${orgId}/dm/agent/${LODI_ID}`);
     expect(landed.at(-1)?.arrival).toBe("beta");
@@ -1183,7 +1187,7 @@ describe("for me (ADR 0159)", () => {
     const orgId = state.me?.organizations.at(-1)?.id;
     expect(calls(state, "orgs.saveOnboarding").map((c) => c.args)).toEqual([
       [orgId, { step: "agents" }],
-      [orgId, { finished: true }],
+      [orgId, { finished: true, holdBrand: true }],
     ]);
     expect(router.state.location.pathname).toBe(`/org/${orgId}/dm/agent/${LODI_ID}`);
     expect(landed.at(-1)?.arrival).toBe("beta");

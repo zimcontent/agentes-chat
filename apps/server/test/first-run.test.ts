@@ -170,5 +170,13 @@ test("an app that knows nothing of the brand step finishes the onboarding; the b
     organizations: { id: string; onboarding?: { brandPending?: boolean } }[];
   };
   expect(me.organizations.find((o) => o.id === orgId)?.onboarding).toBeUndefined();
-  expect(((await (await api("/brand")).json()) as { pending: boolean }).pending).toBe(true);
+  // Done, the step no longer "waits" (`pending` means the onboarding still awaits it); the brand is still saved by the
+  // same route, and the DOUG asks for it in the DM.
+  expect((await (await api("/brand")).json()) as { pending: boolean; brand: unknown }).toMatchObject({
+    pending: false,
+    brand: null,
+  });
+  const saved = await api("/brand", { method: "PUT", json: { company: "Acme", tones: ["direto"] } });
+  expect(saved.status).toBe(200);
+  expect(((await saved.json()) as { pending: boolean }).pending).toBe(false);
 });

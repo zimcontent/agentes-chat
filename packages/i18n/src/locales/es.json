@@ -15729,7 +15729,8 @@
     "dougTeam": {
       "made": "Este espacio de trabajo ya tiene el Equipo Doug. Deshaz el que creó, o añade los agentes que quieras uno por uno.",
       "none": "Marca al menos un agente del Equipo Doug.",
-      "unknown": "El Equipo Doug no tiene {{handles}}."
+      "unknown": "El Equipo Doug no tiene {{handles}}.",
+      "ownPath": "El Equipo Doug se crea desde su propia tarjeta, en el onboarding, no desde esta."
     },
     "brand": {
       "pending": "Guarda la marca antes de terminar. Es el paso justo después del equipo.",
@@ -20778,6 +20779,7 @@
       "createdYouPersonal": "Agentes creados por ti",
       "skillsWait": "Las skills esperan a un admin.",
       "weeklyWait": "Mi revisión semanal espera a quien gestiona mis rutinas.",
+      "rightHandWait": "El papel del DOUG como gerente espera a un admin.",
       "undone": "Equipo deshecho",
       "dismissed": "Equipo descartado",
       "undonePersonal": "Agentes deshechos",

@@ -15499,6 +15499,7 @@ export const ptBR = {
       made: "Este workspace já tem o Time Doug. Desfaça o que ele criou, ou adicione os agentes que quiser, um por um.",
       none: "Marque pelo menos um agente do Time Doug.",
       unknown: "O Time Doug não tem {{handles}}.",
+      ownPath: "O Time Doug é feito pelo cartão dele, passo a passo do onboarding, não por este.",
     },
     brand: {
       /** `onboarding.brand_pending`: o passo "Sua marca" ainda estava aberto ao tentar terminar. */
@@ -20755,6 +20756,7 @@ export const ptBR = {
       createdYouPersonal: "Agentes criados por você",
       skillsWait: "As skills esperam um admin.",
       weeklyWait: "A minha revisão da semana espera quem cuida das minhas rotinas.",
+      rightHandWait: "O papel do DOUG como gerente espera um admin.",
       undone: "Time desfeito",
       dismissed: "Time descartado",
       undonePersonal: "Agentes desfeitos",

@@ -411,8 +411,15 @@ const TeamProposalCard = z
         channelIds: z.array(z.uuid()),
         routineIds: z.array(z.uuid()),
         skillIds: z.array(z.uuid()),
-        skipped: z.array(z.enum(["skills", "weekly"])),
+        skipped: z.array(z.enum(["skills", "weekly", "rightHand"])),
         noAi: z.array(z.uuid()),
+        failedSkills: z
+          .array(z.object({ slug: z.string(), code: z.string().nullable() }))
+          .optional()
+          .openapi({
+            description:
+              "The Doug team only: third-party skills that failed to install for good, by slug and the code the app says.",
+          }),
       })
       .optional(),
     error: z

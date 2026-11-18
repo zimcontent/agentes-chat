@@ -15532,6 +15532,7 @@ export const en = {
       made: "This workspace already has the Doug team. Undo the one it made, or add the agents you want one by one.",
       none: "Check at least one agent of the Doug team.",
       unknown: "The Doug team has no {{handles}}.",
+      ownPath: "The Doug team is made from its own card, in the onboarding, not this one.",
     },
     brand: {
       /** `onboarding.brand_pending`: the onboarding's "Sua marca" was still open when it tried to finish. */
@@ -20781,6 +20782,7 @@ export const en = {
       createdYouPersonal: "Agents created by you",
       skillsWait: "The skills wait for an admin.",
       weeklyWait: "My weekly check waits for whoever manages my routines.",
+      rightHandWait: "The DOUG's role as manager waits for an admin.",
       undone: "Team undone",
       dismissed: "Team dismissed",
       undonePersonal: "Agents undone",

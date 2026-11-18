@@ -14788,7 +14788,8 @@
     "dougTeam": {
       "made": "这个工作区已经有 Doug 团队了。撤销它创建的，或者一个一个添加你想要的智能体。",
       "none": "至少选择一个 Doug 团队的智能体。",
-      "unknown": "Doug 团队没有 {{handles}}。"
+      "unknown": "Doug 团队没有 {{handles}}。",
+      "ownPath": "Doug 团队在引导流程中通过它自己的卡片创建，而不是这张卡片。"
     },
     "brand": {
       "pending": "完成前先保存品牌。这是团队之后的下一步。",
@@ -19749,6 +19750,7 @@
       "createdYouPersonal": "由你创建的智能体",
       "skillsWait": "技能在等管理员。",
       "weeklyWait": "我的每周回顾在等管理我例行任务的人。",
+      "rightHandWait": "DOUG 作为管理者的角色正等待管理员确认。",
       "undone": "团队已撤销",
       "dismissed": "团队已舍弃",
       "undonePersonal": "智能体已撤销",

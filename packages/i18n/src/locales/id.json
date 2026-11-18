@@ -14778,7 +14778,8 @@
     "dougTeam": {
       "made": "Ruang kerja ini sudah punya Tim Doug. Batalkan yang sudah dibuatnya, atau tambahkan agen yang kamu mau satu per satu.",
       "none": "Pilih setidaknya satu agen Tim Doug.",
-      "unknown": "Tim Doug tidak punya {{handles}}."
+      "unknown": "Tim Doug tidak punya {{handles}}.",
+      "ownPath": "Tim Doug dibuat dari kartunya sendiri, di onboarding, bukan dari kartu ini."
     },
     "brand": {
       "pending": "Simpan merek sebelum menyelesaikan. Itu langkah tepat setelah tim.",
@@ -19672,6 +19673,7 @@
       "createdYouPersonal": "Agen dibuat olehmu",
       "skillsWait": "Skill menunggu admin.",
       "weeklyWait": "Tinjauan mingguan saya menunggu orang yang mengelola rutinitas saya.",
+      "rightHandWait": "Peran DOUG sebagai manajer menunggu admin.",
       "undone": "Tim dibatalkan",
       "dismissed": "Tim dibuang",
       "undonePersonal": "Agen dibatalkan",

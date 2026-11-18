@@ -43,11 +43,15 @@ leave: what a new workspace gets is the craft, never the data.
    Desfazer for a day (`undoTeam`).
    - **The DOUG is the right hand.** No agent is made for it: the workspace records the team
      (`organization_settings.doug_team`) and `rightHandPrompt` adds the DOUG's instructions as "# Your role in this
-     workspace", under the product's own block, which wins where they differ.
+     workspace", under the product's own block, which wins where they differ. Its role is the workspace's, so **only
+     an admin gives it** (`manage_agents`): a member who may create agents (`create_agents`) makes the team but the
+     DOUG's role is left out, named on the receipt (`skipped: rightHand`). The right hand's routines are likewise for
+     who manages them.
    - **A channel per HQ**: design, video, ads (the MARK and its nine, who report to it, `reports_to_agent_id`),
      strategy, social media, code and finance, named in the person's language (`dougTeam.channels.*`), with `-2` where
-     the name is a private channel they aren't in, as the other templates do. Personal workspaces get the channels
-     too: with ten agents in one HQ, a DM each would hide the HQ's conversation.
+     the name is a private channel they aren't in, as the other templates do. A personal workspace (ADR 0159) makes
+     **no channel**: its agents live in their DM with the person, and their routines report there (`target: dm`), as
+     the personal templates do. A team's workspace gets the channels; one person's does not.
    - **Every routine is made paused.** The person turns on the ones they want; nothing runs on its own the first day.
    - **House skills** become the workspace's (one already there by that name is used as it is), each given to the
      agents that list it. Skills are an admin's, as on the team card: a member who makes the team gets the agents and
@@ -98,8 +102,11 @@ leave: what a new workspace gets is the craft, never the data.
 
 ## Consequences
 
-- A change to the team's craft is a change to the Markdown and `bun run doug-team:build`; the leak test runs on it.
-- A workspace makes the Doug team once (`doug_team.made`); after Desfazer it may make it again.
+- A change to the team's craft is a change to the Markdown and `bun run doug-team:build`; the leak test runs on it,
+  over the material, the `dougTeam.*` words and this ADR (`packages/engine/test/doug-team-leak.test.ts`).
+- A workspace makes the Doug team once while an agent of it is still here (`doug_team.made`); with every one archived,
+  or after Desfazer, it may be made again (a brand that already exists goes to the readers the new team gains). A
+  double click is one team: the second waits on the workspace's advisory lock (`pg_advisory_xact_lock`) and is refused.
 - What the third-party skills hold is their authors'; each is installed from its pinned commit under its license, its
   updates off until an admin turns them on, and a link that stops holding the skill leaves it as it was, on the card's
   `failedSkills`.

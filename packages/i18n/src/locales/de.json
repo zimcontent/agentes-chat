@@ -15280,7 +15280,8 @@
     "dougTeam": {
       "made": "Dieser Arbeitsbereich hat das Doug-Team schon. Mach das rückgängig, was es angelegt hat, oder füge die Agenten einzeln hinzu, die du willst.",
       "none": "Wähle mindestens einen Agenten des Doug-Teams.",
-      "unknown": "Das Doug-Team hat {{handles}} nicht."
+      "unknown": "Das Doug-Team hat {{handles}} nicht.",
+      "ownPath": "Das Doug-Team entsteht über seine eigene Karte, im Onboarding, nicht über diese."
     },
     "brand": {
       "pending": "Speichere die Marke, bevor du fertig wirst. Das ist der Schritt direkt nach dem Team.",
@@ -20205,6 +20206,7 @@
       "createdYouPersonal": "Agenten von dir erstellt",
       "skillsWait": "Die Skills warten auf einen Admin.",
       "weeklyWait": "Mein Wochenrückblick wartet auf die Person, die meine Routinen verwaltet.",
+      "rightHandWait": "Die Rolle des DOUG als Manager wartet auf einen Admin.",
       "undone": "Team rückgängig gemacht",
       "dismissed": "Team verworfen",
       "undonePersonal": "Agenten rückgängig gemacht",

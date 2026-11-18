@@ -410,6 +410,9 @@ export function TeamPlanCardView({ message, card }: { message: Message; card: Te
         <>
           {card.created?.skipped.includes("skills") && <p className="small muted">{t("teamPlan.card.skillsWait")}</p>}
           {card.created?.skipped.includes("weekly") && <p className="small muted">{t("teamPlan.card.weeklyWait")}</p>}
+          {card.created?.skipped.includes("rightHand") && (
+            <p className="small muted">{t("teamPlan.card.rightHandWait")}</p>
+          )}
           {wave && (
             <div className="tp-wave" aria-hidden="true">
               {plan.agents.map((a) => (

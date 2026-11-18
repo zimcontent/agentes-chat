@@ -143,8 +143,8 @@ export interface TeamCreated {
   channelIds: string[];
   routineIds: string[];
   skillIds: string[];
-  /** Lines the clicker may not give: `skills` (admins), `weekly` (who manages routines). */
-  skipped: ("skills" | "weekly")[];
+  /** Lines the clicker may not give: `skills` (admins), `weekly` (who manages routines), `rightHand` (the DOUG's role, admins). */
+  skipped: ("skills" | "weekly" | "rightHand")[];
   /** Agents with nothing to think with yet (the app opens Connect for them). */
   noAi: string[];
   /** The Doug team's (docs/adr/doug-0020-time-doug.md): its agents that work on a computer, for the app's notice. */
@@ -557,6 +557,23 @@ export async function createTeam(deps: TeamDeps, userId: string, orgId: string, 
     throw new ConflictError("This team card expired", "team_proposal.expired");
   }
   const claimed: TeamProposalCard = { ...card, state: "creating", error: null };
+  // The Doug team is made by its own path (`useDougTeam`, docs/adr/doug-0020-time-doug.md): its card outgrew this
+  // one, and a card forged for it would make a plain team. Claimed and denied here, so nothing is left behind.
+  if (card.params.template === DOUG_TEMPLATE) {
+    if (!(await writeCard(deps, message, claimed, "pending"))) throw decided();
+    const back: TeamProposalCard = {
+      ...claimed,
+      state: "denied",
+      error: teamFailure(
+        "Doug team",
+        new ConflictError("The Doug team is made from its own card", "doug_team.own_path"),
+      ),
+      decidedByUserId: userId,
+      decidedAt: new Date().toISOString(),
+    };
+    await writeCard(deps, message, back, "creating");
+    return { card: back, noAi: [] as string[] };
+  }
   if (!(await writeCard(deps, message, claimed, "pending"))) throw decided();
   const p = card.params;
   const admin = can(membership, "manage_agents");
