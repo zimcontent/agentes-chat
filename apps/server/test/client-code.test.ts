@@ -4,7 +4,7 @@ import { loadClient, overridesOf } from "@agenteschat/modules";
 import { browser, createTestServer, signUp, type TestServer } from "./harness";
 
 /**
- * A client's customizations (ADR doug-0020): `clients/<DOUG_CLIENT_CODE>/` read at boot into `GET /api/instance` and
+ * A client's customizations (ADR doug-0023): `clients/<DOUG_CLIENT_CODE>/` read at boot into `GET /api/instance` and
  * `GET /api/app/me`, and nothing at all without a code.
  */
 
@@ -24,7 +24,7 @@ async function exampleClient(): Promise<ClientOverrides> {
 
 const instance = async () => (await (await t.app.request("/api/instance")).json()) as Record<string, unknown>;
 
-describe("DOUG_CLIENT_CODE (ADR doug-0020)", () => {
+describe("DOUG_CLIENT_CODE (ADR doug-0023)", () => {
   test("without a code the server behaves as the shared code does", async () => {
     t = await createTestServer();
     expect(await instance()).toMatchObject({ name: "agentes.chat", client: null });
@@ -42,14 +42,9 @@ describe("DOUG_CLIENT_CODE (ADR doug-0020)", () => {
     const web = browser(t);
     await signUp(web, "ana@example.com");
     const me = (await (await web("/api/app/me")).json()) as {
-      client: { name: string; accent: string; hiddenTools: string[]; onboardingIntro: string } | null;
+      client: { name: string; accent: string } | null;
     };
-    expect(me.client).toMatchObject({
-      name: "Padaria Aurora",
-      accent: "#C2410C",
-      hiddenTools: ["wiki", "drive", "review"],
-      onboardingIntro: expect.stringContaining("Padaria Aurora"),
-    });
+    expect(me.client).toEqual({ name: "Padaria Aurora", accent: "#C2410C" });
   });
 
   test("what the apps read of a client never carries a secret: only what config.json declares", async () => {

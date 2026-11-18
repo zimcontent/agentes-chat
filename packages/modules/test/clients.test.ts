@@ -16,7 +16,7 @@ function clientsDir(folders: Record<string, Record<string, string>>): string {
 
 const MODULE = `const m = { name: "client-teste", onStart() {} };\nexport default m;\n`;
 
-describe("a client's folder (ADR doug-0020)", () => {
+describe("a client's folder (ADR doug-0023)", () => {
   test("no code loads nothing at all", async () => {
     expect(await loadClient(undefined)).toBeNull();
     expect(await loadClient("")).toBeNull();

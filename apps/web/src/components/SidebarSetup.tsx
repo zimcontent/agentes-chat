@@ -1,13 +1,11 @@
 import type { SidebarItem, SidebarPlace } from "@agenteschat/client";
 import {
   useAuthConfig,
-  useClientLook,
   useSetSidebarItem,
   useSetSidebarToolOrder,
   useSidebarItems,
   useSidebarToolOrder,
 } from "@agenteschat/client";
-import { hiddenToolsWith } from "@agenteschat/client/lib/client-custom";
 import {
   moveSection,
   moveShownTool,
@@ -39,7 +37,6 @@ import {
   type ReactNode,
   useEffect,
   useLayoutEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -69,15 +66,8 @@ export const SIDEBAR_TOOLS = {
 export const usePortalOn = () => portalHere(useOrgIfAny()?.org, useAuthConfig().data?.approvalPortal);
 /** Whether the server generates images and videos from a credit wallet (ADR doug-0011): Mídia is a tool only there. */
 export const useMediaOn = () => useAuthConfig().data?.zimMedia === true;
-/**
- * The tools this workspace doesn't show: the ones an admin took out for everyone (Settings › General) and the ones this
- * server's client turns off for every workspace of its own (ADR doug-0020), once each.
- */
-export const useHiddenTools = (): readonly string[] => {
-  const hidden = useOrgIfAny()?.org.hiddenTools;
-  const client = useClientLook();
-  return useMemo(() => hiddenToolsWith(client, hidden ?? []), [client, hidden]);
-};
+/** The workspace's tools an admin took out of the sidebar for everyone (Settings › General). */
+export const useHiddenTools = (): readonly string[] => useOrgIfAny()?.org.hiddenTools ?? [];
 /**
  * The tools this sidebar lists: Portal only where the approval portal is the workspace's, so nothing changes without
  * one, none an admin took out of the workspace (`hidden`), and never Aprovações, which is a tab of "Esperando você"

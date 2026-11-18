@@ -7,7 +7,6 @@ import {
   type OrgSummary,
   useAiStatus,
   useAuthConfig,
-  useClientLook,
   type WorkspaceMode,
 } from "@agenteschat/client";
 import { billingHoldOf } from "@agenteschat/client/lib/billing";
@@ -186,10 +185,6 @@ export function OnboardingPage() {
   // the team step was left with no agents, "computer" once its plan step showed, "ai" once a team left its AI step for
   // later, "team" once its people were invited (ADR 0162).
   const passed = mine?.onboarding?.step;
-  // What this server's client says on top of the rail (ADR doug-0020): its own words, in whichever language the person
-  // reads, as the client wrote them. Nothing on a server with no client. Read here, above the boot splash's return, so
-  // the hook order is the same on every render.
-  const clientIntro = useClientLook().onboardingIntro;
   // The AI step was shown, in this visit or an earlier one that left it for later: the workspace opens without asking
   // for an AI again.
   const aiLaterSaved = passed !== undefined && stepIndex(passed) >= stepIndex("ai");
@@ -704,7 +699,6 @@ export function OnboardingPage() {
           <span className="onb__brand">
             <Logo size={22} />
           </span>
-          {clientIntro && <p className="onb__intro">{clientIntro}</p>}
           <Menu
             align={phone ? "end" : "start"}
             label={t("onboarding.flow.account")}

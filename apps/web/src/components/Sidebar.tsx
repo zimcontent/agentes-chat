@@ -22,7 +22,6 @@ import {
   useArchivedChannels,
   useChannelCategories,
   useChannels,
-  useClientLook,
   useConnections,
   useCreateChannelCategory,
   useDeleteChannelCategory,
@@ -53,7 +52,6 @@ import {
   listsAllAgents,
 } from "@agenteschat/client/lib/audience";
 import { channelTitle } from "@agenteschat/client/lib/channel-name";
-import { clientHiddenAgentIds } from "@agenteschat/client/lib/client-custom";
 import { workspaceNotes } from "@agenteschat/client/lib/deletion";
 import { ErrorBoundary } from "@agenteschat/client/lib/error-boundary";
 import { errorText } from "@agenteschat/client/lib/errors";
@@ -405,13 +403,7 @@ export function Sidebar() {
     .sort()
     .join();
   // The tab's title: "(3) agentes.chat", what the sidebar's numbers add up to (agents it doesn't list left out).
-  const client = useClientLook();
-  // The ones I can't talk to, and the ones this server's client leaves out of its lists (ADR doug-0020).
-  const hiddenAgents = useMemo(() => {
-    const all = hiddenAgentIds(org, dir.agents);
-    for (const id of clientHiddenAgentIds(client, dir.agents)) all.add(id);
-    return all;
-  }, [org, dir.agents, client]);
+  const hiddenAgents = useMemo(() => hiddenAgentIds(org, dir.agents), [org, dir.agents]);
   useUnreadTitle(orgId, hiddenAgents);
   const dms = useDms(orgId);
   const dmChannels = new Set((dms.data ?? []).map((d) => d.channelId));

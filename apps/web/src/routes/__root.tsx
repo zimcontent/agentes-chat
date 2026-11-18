@@ -73,7 +73,7 @@ function Root() {
 }
 
 /**
- * This server's client customizations (ADR doug-0020), applied once they arrive: the product's name everywhere the app
+ * This server's client customizations (ADR doug-0023), applied once they arrive: the product's name everywhere the app
  * signs it (the signature, the tab's title, the strings it builds from then on: `setClientProductName`) and the
  * highlight's color on the app's own `--db-verde-acento`-fed tokens. A server with no client draws nothing and changes
  * nothing. Draws nothing at all: a side effect, kept in a component so it re-runs when `me` or the instance change.

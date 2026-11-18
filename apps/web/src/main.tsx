@@ -56,7 +56,7 @@ void authConfig.then(
   (config) => startErrorReports(config.errorReports ?? null),
   () => startErrorReports(null),
 );
-// A server deployed for one client names the product in its own words (ADR doug-0020): its name is set before the
+// A server deployed for one client names the product in its own words (ADR doug-0023): its name is set before the
 // strings are built, so the tab's title and every string that says the product's name read it. Public and one request;
 // a server with no client, or one that doesn't answer, leaves the build's own name in place.
 await Promise.race([

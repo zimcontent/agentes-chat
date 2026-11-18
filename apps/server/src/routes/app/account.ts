@@ -201,22 +201,11 @@ const Me = z
           .string()
           .nullable()
           .openapi({ description: "The color its apps highlight, `#rrggbb`; null: the product's own." }),
-        hiddenTools: z.array(z.string()).openapi({
-          description:
-            "The sidebar's tools this client turns off for every workspace on its server (ADR doug-0020), by the apps' ids.",
-        }),
-        hiddenAgents: z.array(z.string()).openapi({
-          description:
-            "Handles of the agents this client leaves out of its apps' lists (ADR doug-0020). Never the right hand.",
-        }),
-        onboardingIntro: z.string().nullable().openapi({
-          description: "What the onboarding says on top of its rail, in the client's own words; null: nothing extra.",
-        }),
       })
       .nullable()
       .openapi({
         description:
-          "This server's client customizations (ADR doug-0020), from `clients/<DOUG_CLIENT_CODE>/config.json`. Null: none, and the apps show the product's own name, color and tools.",
+          "This server's client customizations (ADR doug-0023), from `clients/<DOUG_CLIENT_CODE>/config.json`. Null: none, and the apps show the product's own name, color and tools.",
       }),
   })
   .openapi("Me");
@@ -326,9 +315,6 @@ export function accountRoutes(deps: AppDeps) {
         ? {
             name: deps.client.name,
             accent: deps.client.accent,
-            hiddenTools: deps.client.hiddenTools,
-            hiddenAgents: deps.client.hiddenAgents,
-            onboardingIntro: deps.client.onboardingIntro,
           }
         : null,
     };

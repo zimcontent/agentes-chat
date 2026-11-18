@@ -1,4 +1,4 @@
-# doug-0020: One build, one client's face — `clients/<code>/` read at boot by `DOUG_CLIENT_CODE`
+# doug-0023: One build, one client's face — `clients/<code>/` read at boot by `DOUG_CLIENT_CODE`
 
 Status: accepted. This instance's own. 2026-11-18. Builds on ADR 0002 (editions and `AgentesModule`), 0004
 (configuration), 0180 (the license the server process runs under).
@@ -42,20 +42,21 @@ two folders for one code are refused.
   defaults, routes under `/api`, `onStart`). It is the same extension point ADR 0002 gave the Cloud, and its rule
   applies unchanged: nothing under `apps/` or `packages/` imports it (`bun run check:boundaries`).
 
-### 3. The apps read the overrides from the API
+### 3. The apps read the name and the color
 
-`GET /api/instance` (public) carries `client` with the name and color; `GET /api/app/me` carries them too, plus the
-tools, the hidden agents and the onboarding's words. The apps hold them in `packages/client/src/lib/client-custom.ts`
-(`ClientLook`, `clientLookOf`, `NO_CLIENT`) and use them where they show the product:
+`GET /api/instance` (public) and `GET /api/app/me` carry `client` with the name and color, nothing else. The apps hold
+them in `packages/client/src/lib/client-custom.ts` (`ClientLook`, `clientLookOf`, `NO_CLIENT`) and use them where they
+show the product:
 
-- the signature (`Logo` on the web, `Assinatura` on the phone) and the tab's title, through `setClientProductName` and
-  `brandName` in `@agenteschat/i18n/brand`: every string that names the product reads the client's from then on;
+- the signature (`Logo` on the web, `Assinatura` and the launch splash's label on the phone) and the tab's title,
+  through `setClientProductName` and `brandName` in `@agenteschat/i18n/brand`: every string that names the product
+  reads the client's from then on;
 - the highlight through `--client-accent` on `<html>`, which the app's own accent tokens fall back to
-  (`packages/ui/src/styles/doug.css`), so a server with no client is byte-for-byte the green it was;
-- the sidebar's tools (`useHiddenTools`), the unread counts (`hiddenAgentIdsWith`) and the onboarding's rail.
+  (`packages/ui/src/styles/doug.css`), so a server with no client is byte-for-byte the green it was.
 
-The agents a client leaves out are handles read against the team the workspace has: hiding the right hand's handle
-changes nothing (ADR 0137). Every helper is a no-op for a server with no client, which is every other installation.
+`features`, `teamAgentsHidden` and `onboarding.intro` are declared, checked and held by the server (`ClientOverrides`)
+but no screen reads them yet: a screen that honors one does it for every server through shared code (§4), in its own
+change. Every helper is a no-op for a server with no client, which is every other installation.
 
 ### 4. A customization that is good for everyone goes up into the shared code
 

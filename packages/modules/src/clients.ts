@@ -5,17 +5,17 @@ import { z } from "zod";
 import type { AgentesModule } from "./index";
 
 /**
- * A client's customizations (ADR doug-0020): two files in a folder of three digits under `clients/` at the root of
+ * A client's customizations (ADR doug-0023): two files in a folder of three digits under `clients/` at the root of
  * the source, `config.json` (what the apps show and what this client turns on or off) and `client.ts` (an
  * `AgentesModule`, for anything a module can do). The server loads the folder of its `DOUG_CLIENT_CODE` at boot and
  * nothing without one, so every server built from this source behaves the same until a client names it.
  *
  * A folder never changes what the product does for everyone: it may only add through the module API and rename or
  * switch off for itself, in the shape `config.json` declares here. What turns out to be good for every client moves
- * out of `clients/` into the shared code (ADR doug-0020 §4).
+ * out of `clients/` into the shared code (ADR doug-0023 §4).
  */
 
-/** Three digits, such as `064`: the value of `DOUG_CLIENT_CODE` and the start of its folder's name (ADR doug-0020). */
+/** Three digits, such as `064`: the value of `DOUG_CLIENT_CODE` and the start of its folder's name (ADR doug-0023). */
 export const CLIENT_CODE = /^\d{3}$/;
 
 /** A folder a code names: the code alone (`064`) or the code and a slug (`064-padaria-aurora`), the deploy's own shape. */
@@ -43,7 +43,7 @@ const HEX = /^#[0-9a-fA-F]{6}$/;
 export const clientConfigSchema = z
   .object({
     /**
-     * What the apps call this workspace and the color they highlight (ADR doug-0020 §3). Both optional: without them
+     * What the apps call this workspace and the color they highlight (ADR doug-0023 §3). Both optional: without them
      * the apps say the build's own name and paint its own green.
      */
     product: z

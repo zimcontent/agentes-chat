@@ -96,7 +96,7 @@ export interface AppOptions {
   version: string;
   modules: AgentesModule[];
   /**
-   * This client's customizations (`clients/<code>/config.json`, ADR doug-0020), read at boot from `DOUG_CLIENT_CODE`;
+   * This client's customizations (`clients/<code>/config.json`, ADR doug-0023), read at boot from `DOUG_CLIENT_CODE`;
    * null or absent: a server that behaves as the shared code does. The apps read them in `GET /api/instance` and
    * `GET /api/app/me`.
    */

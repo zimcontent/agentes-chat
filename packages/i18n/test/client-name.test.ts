@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { BRAND_NAME, brandName, brandText, brandTree, setClientProductName } from "../src";
 
 /**
- * A server deployed for one client signs its name (ADR doug-0020): `setClientProductName` renames every string that
+ * A server deployed for one client signs its name (ADR doug-0023): `setClientProductName` renames every string that
  * goes through `brandText`/`brandTree` from then on, and addresses and this build's legal names stay as they are.
  */
 describe("a client's name over this build's", () => {

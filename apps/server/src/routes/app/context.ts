@@ -32,7 +32,7 @@ export interface AppDeps {
   config: Config;
   adapters: Adapters;
   /**
-   * This client's customizations (ADR doug-0020), from `clients/<code>/config.json` at boot: the name and color the
+   * This client's customizations (ADR doug-0023), from `clients/<code>/config.json` at boot: the name and color the
    * apps show, the tools it turns off, the agents it leaves out, the onboarding's words. Null: the shared behavior.
    */
   client?: ClientOverrides | null;

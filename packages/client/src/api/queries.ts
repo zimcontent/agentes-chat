@@ -261,7 +261,7 @@ export const instanceQuery = (api: ApiClient) =>
   queryOptions({ queryKey: keys.instance, queryFn: () => api.system.instance(), staleTime: 60_000 });
 
 /**
- * This server's client customizations (ADR doug-0020): its name and color (from `me`, with `/api/instance` as the
+ * This server's client customizations (ADR doug-0023): its name and color (from `me`, with `/api/instance` as the
  * fallback) and, once signed in, the tools it turns off and the onboarding's words. NO_CLIENT for a server with none,
  * so every screen that reads it paints the product's own. `me` may be dropped from the cache by a sign-out: the hook
  * then reads `null` and the instance again, which is public.

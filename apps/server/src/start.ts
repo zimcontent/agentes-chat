@@ -213,7 +213,7 @@ async function boot(
   release: string,
   errors: ErrorReporter,
 ) {
-  // This client's customizations (ADR doug-0020), read before anything serves: its config.json and, when it has one, its
+  // This client's customizations (ADR doug-0023), read before anything serves: its config.json and, when it has one, its
   // client.ts as one more module. No DOUG_CLIENT_CODE: none of it, and the server behaves as the shared code does.
   let client: ClientOverrides | null = null;
   try {

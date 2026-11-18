@@ -47,7 +47,7 @@ const InstanceResponse = z
       .nullable()
       .openapi({
         description:
-          "This server's client customizations (ADR doug-0020), from `clients/<DOUG_CLIENT_CODE>/config.json`. Null: a server with none, whose apps show the product's own name and color.",
+          "This server's client customizations (ADR doug-0023), from `clients/<DOUG_CLIENT_CODE>/config.json`. Null: a server with none, whose apps show the product's own name and color.",
       }),
   })
   .openapi("Instance");

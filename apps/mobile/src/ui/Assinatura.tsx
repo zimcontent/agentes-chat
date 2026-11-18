@@ -5,7 +5,7 @@ import { DB_FONTES } from "@/brand/tokens";
 import { LogoMark } from "./LogoMark";
 import { useTheme } from "./theme";
 
-/** This build's own name, what a server with no client signs (ADR doug-0020). */
+/** This build's own name, what a server with no client signs (ADR doug-0023). */
 const BUILD_NAME = "DougBot";
 
 /**
@@ -30,12 +30,12 @@ function SignatureName({ name, size, color }: { name: string; size: number; colo
  * is 1.42× the name's size, 0.36× the size apart. On the dark stage both in #EDEDED, on light in ink (#0A0A0A).
  * Minimum 20 tall. `color` sets the ink on a ground of its own (the island's dark glass, in either theme).
  *
- * A server deployed for one client signs its name instead (ADR doug-0020): `label` names it outright, else the
+ * A server deployed for one client signs its name instead (ADR doug-0023): `label` names it outright, else the
  * client's name from `GET /me`, else this build's.
  */
 export function Assinatura({ size = 22, label, color }: { size?: number; label?: string; color?: string }) {
   const { colors } = useTheme();
-  // This server's client names the product (ADR doug-0020); `label` names it outright where a caller says so.
+  // This server's client names the product (ADR doug-0023); `label` names it outright where a caller says so.
   const client = useClientLook();
   const name = label ?? productName(client, BUILD_NAME);
   const t = Math.max(size, 20 / 1.42);

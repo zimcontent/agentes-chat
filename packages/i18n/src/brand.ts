@@ -13,7 +13,7 @@ export const BRAND_NAME = "DougBot";
 export const UPSTREAM_NAME = "agentes.chat";
 
 /**
- * The name this server's client gives the product (`clients/<code>/config.json`, ADR doug-0020), set once by each app
+ * The name this server's client gives the product (`clients/<code>/config.json`, ADR doug-0023), set once by each app
  * when it learns it (the web before its strings load). Null: the build's own name. Module state on purpose: every
  * string and every signature goes through `brandText`/`brandName`, and passing the name through every call would leave
  * the one the app doesn't know about still saying the build's name.
