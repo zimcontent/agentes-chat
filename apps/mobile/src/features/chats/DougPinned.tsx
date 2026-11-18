@@ -9,11 +9,10 @@ import { useOrg } from "@/providers/org";
 import { router } from "@/ui/navigation";
 import { useCalls } from "../call/CallProvider";
 import { useOpenDm } from "../new/useOpenDm";
-import { AgentFace } from "../shared/Face";
 import { useDirectory, useMeId, useOrgId } from "../shared/hooks";
 import { useWorkingNow } from "../shared/queries";
 import { agentTasksHref } from "../task-manager/logic";
-import { DOUG_FACE, DougPinnedCard, useDougWords } from "./DougPinnedCard";
+import { DougIcon, DougPinnedCard, useDougWords } from "./DougPinnedCard";
 import type { ConversationRow } from "./logic";
 import { dougCardLine, dougGreetingFits } from "./logic";
 
@@ -60,11 +59,7 @@ export function DougPinned({ rows, waiting }: { rows: ConversationRow[]; waiting
       : router.navigate(agentTasksHref(doug.id, null));
   return (
     <DougPinnedCard
-      face={<AgentFace agentId={doug.id} size={DOUG_FACE} mode={working > 0 ? "run" : "idle"} />}
-      // Doug alone in the middle: the agents he coordinates aren't drawn around him (the owner's choice).
-      left={[]}
-      right={[]}
-      more={0}
+      face={<DougIcon />}
       name={doug.name}
       status={status}
       greeting={dougGreetingFits(hello, status) ? hello : ""}

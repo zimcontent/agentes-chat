@@ -20,7 +20,7 @@ import { AgentCallView } from "@/features/call/AgentCallView";
 import { ChatBackdrop } from "@/features/chat/ChatBackdrop";
 import { HeaderPill } from "@/features/chat/HeaderPill";
 import { ownBubble } from "@/features/chat/logic";
-import { CREW_FACE, DOUG_FACE, DougPinnedCard, useDougWords } from "@/features/chats/DougPinnedCard";
+import { DougIcon, DougPinnedCard, useDougWords } from "@/features/chats/DougPinnedCard";
 import { GlanceCard } from "@/features/chats/HomeGlance";
 import { CollapsibleSection } from "@/features/chats/HomeSection";
 import { ToolTile, WhatsAppMark } from "@/features/chats/HomeTools";
@@ -381,16 +381,7 @@ export function Inicio({
     <Frame tabs="home" header={<TabHeader />} scrolledBy={scrolledBy} topInset={topInset} over={over}>
       {/* Doug pinned on top (docs/adr/doug-0016-doug-pinned.md), the same card the app draws. */}
       <DougPinnedCard
-        face={<AgentAvatar agent={DOUG} size={DOUG_FACE} mode="run" name="Doug" />}
-        left={[ROSA, MARK].map((a) => ({
-          id: a.name ?? "",
-          face: <AgentAvatar agent={a} size={CREW_FACE} mode="run" name={a.name} />,
-        }))}
-        right={[SONY, JUNIN].map((a) => ({
-          id: a.name ?? "",
-          face: <AgentAvatar agent={a} size={CREW_FACE} mode="run" name={a.name} />,
-        }))}
-        more={1}
+        face={<DougIcon />}
         name="Doug"
         status={w.waiting(2)}
         greeting=""
@@ -521,10 +512,7 @@ function DougFixado() {
   ) => (
     <DougPinnedCard
       key={key}
-      face={<AgentAvatar agent={DOUG} size={DOUG_FACE} mode={o.right.length ? "run" : "idle"} name="Doug" />}
-      left={[]}
-      right={[]}
-      more={0}
+      face={<DougIcon />}
       name="Doug"
       status={o.waiting > 0 ? w.waiting(o.waiting) : w.nothingWaiting}
       greeting={o.greeting}
