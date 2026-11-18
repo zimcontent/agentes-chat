@@ -6,6 +6,7 @@ import {
   COMPANY_NAME_MAX,
   COMPANY_STATUSES,
   COMPANY_TEAM_SIZES,
+  checkCompanyRequest,
   companyEmailLimitKey,
   companyRequestById,
   companyRequestEmail,
@@ -221,6 +222,8 @@ export function registerCompanyRequests(api: OpenAPIHono, deps: AppDeps) {
     // meets a wall even across several requests. Checked on the address as it will be stored, before any email goes;
     // a form that still lands (a confirmed request's resend keeps apart) has spent one. The answer is the same either
     // way, since the list is never probed, so a refused send is a 202 that mails nothing (like the row's own window).
+    // A mistyped form answers its 400 first, spending nothing of the address's day.
+    checkCompanyRequest(input);
     const email = companyRequestEmail(input.email);
     if (email && !(await rateLimiter.consume(companyEmailLimitKey(email), ADDRESS_EMAILS)).allowed)
       return c.json({ ok: true as const }, 202);

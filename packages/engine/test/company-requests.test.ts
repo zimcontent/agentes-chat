@@ -257,23 +257,30 @@ describe("a company's request", () => {
     expect(await deleteCompanyRequestByToken(db, "short")).toBe(false);
   });
 
-  test("the person's delete link has its own lifetime, longer than the confirmation's, and then stops", async () => {
+  test("the person's delete link works as long as the request exists, then answers as gone", async () => {
     const sent = new Date("2026-11-18T10:00:00Z");
     await joinCompanyRequests(db, ANA, null, sent);
     const token = await lastDeleteToken(db);
-    // A month on: the confirmation may be spent, but the delete link still works.
-    expect(await deleteCompanyRequestByToken(db, token, new Date(sent.getTime() + 30 * 24 * 3600_000))).toBe(true);
+    // Whenever it is clicked (the Privacy Policy says "at any time"), it erases; a second click finds nothing.
+    expect(await deleteCompanyRequestByToken(db, token)).toBe(true);
+    expect(await db.select().from(schema.companyRequests)).toHaveLength(0);
+    expect(await deleteCompanyRequestByToken(db, token)).toBe(false);
   });
 
-  test("the person's delete link stops after its lifetime", async () => {
-    const { COMPANY_DELETE_TTL_MS } = await import("../src");
-    const sent = new Date("2026-11-18T10:00:00Z");
-    await joinCompanyRequests(db, ANA, null, sent);
+  test("erasing a request empties its emails in the job queue, and one not sent yet never goes", async () => {
+    await joinCompanyRequests(db, ANA, null, new Date("2026-11-18T10:00:00Z"));
     const token = await lastDeleteToken(db);
-    expect(
-      await deleteCompanyRequestByToken(db, token, new Date(sent.getTime() + COMPANY_DELETE_TTL_MS + 3600_000)),
-    ).toBe(false);
-    expect(await db.select().from(schema.companyRequests)).toHaveLength(1);
+    const before = await db.select().from(schema.outbox);
+    expect(before.some((j) => j.dedupeKey?.startsWith("email:company-request-confirm:"))).toBe(true);
+    expect(await deleteCompanyRequestByToken(db, token)).toBe(true);
+    const after = (await db.select().from(schema.outbox)).filter((j) =>
+      j.dedupeKey?.startsWith("email:company-request-"),
+    );
+    expect(after.length).toBeGreaterThan(0);
+    for (const job of after) {
+      expect(job.payload).toEqual({});
+      expect(job.status).not.toBe("pending");
+    }
   });
 
   test("a delete link stops working when a new confirmation email goes out for the same request", async () => {

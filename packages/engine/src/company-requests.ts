@@ -70,11 +70,6 @@ export const COMPANY_MAX_EMAILS_PER_ADDRESS_DAY = 3;
 export const COMPANY_CONFIRM_TTL_MS = 48 * 3600_000;
 /** A week past its expired link, an unconfirmed request the sweep deletes: an address that comes back late keeps hope. */
 export const COMPANY_UNCONFIRMED_GRACE_MS = 7 * 24 * 3600_000;
-/**
- * The delete link works this long: longer than the confirmation's, since it is what erases what was collected, and the
- * person may come back to it months later. A request the sweep deletes answers its link the same as gone.
- */
-export const COMPANY_DELETE_TTL_MS = 400 * 24 * 3600_000;
 /** What `randomToken()` makes: base64url, 32 characters for 24 bytes. */
 export const COMPANY_TOKEN = /^[A-Za-z0-9_-]{32}$/;
 /** The rate limit key of one address's confirmation emails (`RateLimiter.consume`): counted by the public routes. */
@@ -185,6 +180,39 @@ const deleteUrl = (notify: CompanyNotify | null, token: string) =>
  * link is opened (the resend is recorded beside it). A consent is required: without it nothing is kept. Answers
  * whether it was new.
  */
+/**
+ * The form's own checks (consent, name, WhatsApp, company, size, message), run before the route spends anything on an
+ * address: a mistyped form is refused with its 400 and costs none of the address's daily emails.
+ */
+export function checkCompanyRequest(input: CompanyRequestInput): void {
+  if (!input.consent) throw new ValidationError("Aceite a Política de Privacidade para continuar", "consent_required");
+  checkedForm(input);
+}
+
+/**
+ * What a request left in the job queue goes with it (LGPD): its emails' payloads (the address, the company, the links,
+ * the owner's copy with the name, WhatsApp and message) are emptied, and an email not sent yet is never sent. A job a
+ * worker holds right now is left to finish; the daily payload cleanup takes what remains of it.
+ */
+async function scrubCompanyOutbox(db: Executor, ids: readonly string[]): Promise<void> {
+  if (ids.length === 0) return;
+  const keys = ids.flatMap((id) =>
+    ["confirm", "resend", "owner"].map((kind) => `email:company-request-${kind}:${id}:%`),
+  );
+  const matches = sql.join(
+    keys.map((k) => sql`${schema.outbox.dedupeKey} like ${k}`),
+    sql` or `,
+  );
+  await db
+    .update(schema.outbox)
+    .set({
+      payload: {},
+      lastError: null,
+      status: sql`case when ${schema.outbox.status} = 'pending' then 'failed'::outbox_status else ${schema.outbox.status} end`,
+    })
+    .where(and(sql`(${matches})`, sql`${schema.outbox.status} <> 'processing'`));
+}
+
 export async function joinCompanyRequests(
   db: Database,
   input: CompanyRequestInput,
@@ -709,15 +737,16 @@ export async function deleteCompanyRequest(db: Database, id: string): Promise<vo
     .returning({ id: companyRequests.id });
   if (!row) throw new NotFoundError("Nenhuma inscrição com este id");
   await clearCompanyNotifications({ db }, [id]).catch((error) => logFailure("delete notices", error));
+  await scrubCompanyOutbox(db, [id]).catch((error) => logFailure("delete outbox", error));
   await resolveOwnerNotice(db, id).catch((error) => logFailure("delete resolve", error));
 }
 
 /**
  * The person who filled the form erases it themselves, with the delete link its confirmation email carries. The link
- * is its own token, good for `COMPANY_DELETE_TTL_MS`, spent once. An unknown or expired token erases nothing and
+ * is its own token, good while the request exists, spent once. An unknown or expired token erases nothing and
  * answers `false`; a request the retention sweep already took is gone, and reads as erased.
  */
-export async function deleteCompanyRequestByToken(db: Database, token: string, now = new Date()): Promise<boolean> {
+export async function deleteCompanyRequestByToken(db: Database, token: string): Promise<boolean> {
   if (!COMPANY_TOKEN.test(token)) return false;
   const hash = sha256(token);
   const [row] = await db
@@ -725,14 +754,15 @@ export async function deleteCompanyRequestByToken(db: Database, token: string, n
     .where(
       and(
         eq(companyRequests.deleteTokenHash, hash),
+        // The link works as long as the request exists ("a qualquer momento", the Privacy Policy's §12): its hash
+        // goes with the row, so a request already gone answers the same as an unknown link.
         isNotNull(companyRequests.deleteTokenAt),
-        // A link issued for more than its lifetime answers the same as an unknown one.
-        sql`${companyRequests.deleteTokenAt} > ${new Date(now.getTime() - COMPANY_DELETE_TTL_MS)}`,
       ),
     )
     .returning({ id: companyRequests.id });
   if (!row) return false;
   await clearCompanyNotifications({ db }, [row.id]).catch((error) => logFailure("delete notices", error));
+  await scrubCompanyOutbox(db, [row.id]).catch((error) => logFailure("delete outbox", error));
   return true;
 }
 
@@ -748,6 +778,10 @@ export async function deleteCompanyRequestsByEmail(db: Executor, emails: readonl
     { db },
     rows.map((r) => r.id),
   ).catch((error) => logFailure("delete notices", error));
+  await scrubCompanyOutbox(
+    db,
+    rows.map((r) => r.id),
+  ).catch((error) => logFailure("delete outbox", error));
   return rows.length;
 }
 
@@ -791,6 +825,7 @@ export async function sweepCompanyRequests(db: Database, days: number, now = new
     gone.push(...old.map((r) => r.id));
   }
   await clearCompanyNotifications({ db }, gone).catch((error) => logFailure("sweep notices", error));
+  await scrubCompanyOutbox(db, gone).catch((error) => logFailure("sweep outbox", error));
   return { swept: gone.length };
 }
 

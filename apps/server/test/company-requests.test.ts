@@ -218,6 +218,17 @@ test("the address's own wall: past its day's count the form is still answered 20
   expect(await allowed()).toBe(true);
 });
 
+test("a mistyped form answers its 400 without spending the address's day", async () => {
+  // Three refused forms (no consent) on the same address, then the right one: it is kept and its email goes.
+  for (let i = 0; i < COMPANY_MAX_EMAILS_PER_ADDRESS_DAY; i++) {
+    const bad = await browser(t)("/api/companies", { json: { ...ana, consent: false } });
+    expect(bad.status).toBe(400);
+  }
+  const good = await browser(t)("/api/companies", { json: ana });
+  expect(good.status).toBe(202);
+  expect(await t.db.select().from(schema.companyRequests)).toHaveLength(1);
+});
+
 test("the delete route is our own origin's alone, so another site can't erase by a link", async () => {
   await browser(t)("/api/companies", { json: ana });
   await t.drain();
