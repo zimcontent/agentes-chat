@@ -371,6 +371,8 @@
     "closed": "cerrado",
     "options": "Opciones",
     "profile": "Perfil",
+    "call": "Llamar",
+    "toneGreen": "En verde",
     "here_one": "{{count}} aquí",
     "here_many": "{{count}} aquí",
     "here_other": "{{count}} aquí",
@@ -1277,7 +1279,9 @@
       "suggested": "Sugeridas",
       "all": "Todas",
       "none": "No hay ninguna zona horaria con ese nombre"
-    }
+    },
+    "groupAlerts": "Avisos y aprobaciones",
+    "groupLook": "Apariencia y sonido"
   },
   "delete": {
     "intro": "No se puede deshacer.",
@@ -1587,7 +1591,28 @@
   },
   "homeTools": {
     "title": "Herramientas",
-    "more": "Más"
+    "more": "Más",
+    "all": "Todo",
+    "edit": "Editar atajos",
+    "done": "Listo",
+    "editHint": "Toca para fijar hasta 4 en Inicio",
+    "full": "Inicio ya tiene 4. Quita uno antes.",
+    "search": "Buscar conversaciones, archivos, personas",
+    "searchTile": "Buscar",
+    "pinned": "fijado en Inicio",
+    "attach": "Adjuntar a la conversación",
+    "here": "En esta conversación",
+    "create": "Crear",
+    "newAgent": "Nuevo agente",
+    "newChat": "Nueva conversación",
+    "mission": "Misión",
+    "summary": "Resumen",
+    "remind": "Recordatorio",
+    "calendar": "Agenda",
+    "people": "Personas",
+    "computer": "Computadora",
+    "vault": "Bóveda",
+    "settings": "Ajustes"
   },
   "homeNow": {
     "working_one": "{{count}} trabajando",
@@ -1634,7 +1659,11 @@
       "today": "hoy a las {{time}}",
       "tomorrow": "mañana a las {{time}}",
       "later": "{{day}} a las {{time}}"
-    }
+    },
+    "needsYou": "Te necesita",
+    "running": "Trabajando ahora",
+    "runningAll": "Ver todo",
+    "steps": "{{done}} de {{total}}"
   },
   "agentLite": {
     "uses": "Puede usar",
@@ -3217,5 +3246,14 @@
   "brand": {
     "basedOn": "Basado en DougBot de Codari Global, LLC · AGPL-3.0",
     "source": "Código fuente de DougBot"
+  },
+  "toSchedule": {
+    "title": "Listo para programar",
+    "row": "Publicación aprobada, toca para programar",
+    "untitled": "Publicación sin título",
+    "sheetTitle": "Programar publicación",
+    "confirm": "Programar",
+    "when": "Sale {{when}}",
+    "past": "Elige una hora que aún no haya pasado"
   }
 }

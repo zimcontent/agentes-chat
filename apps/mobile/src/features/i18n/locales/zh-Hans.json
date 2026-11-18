@@ -345,6 +345,8 @@
     "closed": "已关闭",
     "options": "选项",
     "profile": "资料",
+    "call": "通话",
+    "toneGreen": "绿色",
     "here_other": "{{count}} 人在此",
     "headerAgent": "{{who}}。打开资料",
     "headerChannel": "{{who}}。选项",
@@ -1120,7 +1122,9 @@
       "suggested": "推荐",
       "all": "全部",
       "none": "没有这个名称的时区"
-    }
+    },
+    "groupAlerts": "提醒与审批",
+    "groupLook": "外观与声音"
   },
   "delete": {
     "intro": "此操作无法撤销。",
@@ -1412,7 +1416,28 @@
   },
   "homeTools": {
     "title": "工具",
-    "more": "更多"
+    "more": "更多",
+    "all": "全部",
+    "edit": "编辑快捷方式",
+    "done": "完成",
+    "editHint": "轻点可在首页固定最多 4 个",
+    "full": "首页已有 4 个。请先取消一个。",
+    "search": "搜索对话、文件、人员",
+    "searchTile": "搜索",
+    "pinned": "已固定到首页",
+    "attach": "附加到对话",
+    "here": "在此对话中",
+    "create": "创建",
+    "newAgent": "新建智能体",
+    "newChat": "新对话",
+    "mission": "任务",
+    "summary": "摘要",
+    "remind": "提醒",
+    "calendar": "日历",
+    "people": "人员",
+    "computer": "电脑",
+    "vault": "保险库",
+    "settings": "设置"
   },
   "homeNow": {
     "working_other": "{{count}} 个工作中",
@@ -1457,7 +1482,11 @@
       "today": "今天 {{time}}",
       "tomorrow": "明天 {{time}}",
       "later": "{{day}} {{time}}"
-    }
+    },
+    "needsYou": "需要你处理",
+    "running": "正在工作",
+    "runningAll": "查看全部",
+    "steps": "{{done}}/{{total}}"
   },
   "agentLite": {
     "uses": "可使用",
@@ -2972,5 +3001,14 @@
   "brand": {
     "basedOn": "基于 Codari Global, LLC 的 DougBot · AGPL-3.0",
     "source": "DougBot 源代码"
+  },
+  "toSchedule": {
+    "title": "待排期",
+    "row": "帖子已通过，点按排期",
+    "untitled": "无标题帖子",
+    "sheetTitle": "排期发布",
+    "confirm": "排期",
+    "when": "{{when}} 发布",
+    "past": "请选择一个尚未过去的时间"
   }
 }

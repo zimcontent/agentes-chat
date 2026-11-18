@@ -1,11 +1,16 @@
-import { useAuthConfig } from "@agenteschat/client";
+import type { PlanCard } from "@agenteschat/client";
+import { useAuthConfig, usePortalToSchedule, useSendForApproval } from "@agenteschat/client";
 import { can } from "@agenteschat/client/lib/permissions";
-import { portalErrorText } from "@agenteschat/client/lib/portal";
+import { portalClientName, portalErrorText } from "@agenteschat/client/lib/portal";
 import { portalHere } from "@agenteschat/client/lib/sidebar-items";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { Alert } from "react-native";
 import { useOrg } from "@/providers/org";
 import { useToast } from "@/ui";
+import { useOrgId } from "../shared/hooks";
+import { sendInputOf } from "./model";
+import { toScheduleRows } from "./schedule";
 import { type PortalWords, portalWords } from "./words";
 
 /**
@@ -40,6 +45,21 @@ export function usePortalRights() {
   };
 }
 
+/**
+ * Approved posts nobody scheduled yet (ADR 9001, addendum 2026-11-17), for who may schedule them: the web's gate, the
+ * portal on here and `assign_work`. Pendentes lists them under "Pronto para agendar" and its tab's badge counts them,
+ * both from this one list. Asked nothing while the person may not schedule (`shown` false, no rows).
+ */
+export function useToSchedule() {
+  const orgId = useOrgId();
+  const on = usePortalOn();
+  const { changes } = usePortalRights();
+  const shown = on && changes;
+  const list = usePortalToSchedule(orgId, shown);
+  const items = useMemo(() => (shown ? toScheduleRows(list.data?.items ?? []) : []), [shown, list.data]);
+  return { shown, items };
+}
+
 /** A failed portal call as a toast, in the portal's own words when it refused. */
 export function usePortalFailed() {
   const { t, i18n } = useTranslation();
@@ -48,4 +68,28 @@ export function usePortalFailed() {
     (error: unknown) => toast({ title: portalErrorText(t, error, i18n.language), icon: "x" }),
     [t, i18n.language, toast],
   );
+}
+
+/**
+ * "Subir para aprovação" for a card, on its screen and on the board: asked first (the client, how many files), then
+ * sent with what the card knows (`sendInputOf`, one press never sends twice); `onStarted` gets the send's job to follow.
+ */
+export function useSendCard(card: PlanCard, onStarted: (jobId: string) => void) {
+  const w = usePortalWords();
+  const orgId = useOrgId();
+  const failed = usePortalFailed();
+  const send = useSendForApproval(orgId);
+  const confirm = () =>
+    Alert.alert(w.sendTitle(portalClientName(card.client)), w.sendText(card.files.length), [
+      { text: w.cancel, style: "cancel" },
+      {
+        text: w.send,
+        onPress: () =>
+          send.mutate(sendInputOf(card, `${card.id}-${Date.now().toString(36)}`), {
+            onSuccess: (started) => onStarted(started.id),
+            onError: failed,
+          }),
+      },
+    ]);
+  return { confirm, pending: send.isPending };
 }

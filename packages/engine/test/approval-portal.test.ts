@@ -71,7 +71,14 @@ describe("the portal's tools", () => {
     // A routine's run only reads (it tells each person their day); a call with no run gets none.
     // No agent schedules a post: only a person does, at the Portal (ADR 9001, addendum 2026-11-17).
     expect(await names(source, ctx())).not.toContain("schedule_post");
-    expect(await names(source, ctx({ background: true }))).toEqual([PORTAL_BOARD_TOOL, PORTAL_WORK_TOOL]);
+    // Its plan and card changes are listed for the run-policy table, which refuses them to every routine but the right
+    // hand's own at "never" (ADR 9005 §7); the sends to a client never are.
+    expect(await names(source, ctx({ background: true }))).toEqual([
+      PORTAL_BOARD_TOOL,
+      PORTAL_WORK_TOOL,
+      PORTAL_CARD_TOOL,
+      PORTAL_PLAN_TOOL,
+    ]);
     expect(await names(source, ctx({ runId: null as unknown as string }))).toEqual([]);
     // Another workspace on the same server is another operation: none of the portal's tools (ADR 9001 §18).
     expect(await names(createPortalToolSource({ portal, artifacts, here: async () => false }), ctx())).toEqual([]);
@@ -347,6 +354,67 @@ describe("a member's work and a plan written by an agent", () => {
     ]);
     expect(plan.unlisted.map((c) => c.title)).toEqual(["Loose card"]);
     expect(plan.loose.map((i) => i.id)).toEqual(["up-2"]);
+  });
+
+  test("an agent makes a card in a client's list, moves it to another list and in its list, changes its stage, deletes it", async () => {
+    const portal = createFakeApprovalPortal();
+    const tools = await createPortalToolSource({ portal, artifacts, here }).tools(ctx());
+    const tool = tools.find((t) => t.name === PORTAL_CARD_TOOL);
+    // No person behind the call: the change is the agent's own.
+    const call = async (input: Record<string, unknown>) => {
+      const out = await tool?.execute(input, ctx({ runId: undefined as unknown as string }));
+      expect(out?.isError).toBeFalsy();
+      return out?.content ?? "";
+    };
+    const idOf = (text: string) => /card (\S+?)[ :]/.exec(text)?.[1] ?? "";
+    const where = async () => {
+      const plan = await portalPlan(portal, "acme");
+      return plan.lists.map((l) => [l.name, l.cards.map((c) => `${c.title}:${c.stage}`)]);
+    };
+
+    // Created in a list by name, made since it's new; the second goes after it.
+    const a = idOf(await call({ action: "create", client: "acme", title: "Reel A", list: "Semana 1" }));
+    const b = idOf(await call({ action: "create", client: "acme", title: "Reel B", list: "Semana 1" }));
+    expect(await where()).toEqual([["Semana 1", ["Reel A:todo", "Reel B:todo"]]]);
+
+    // A place in its own list: B first.
+    await call({ action: "update", card: b, position: 1 });
+    expect(await where()).toEqual([["Semana 1", ["Reel B:todo", "Reel A:todo"]]]);
+
+    // Another list, made if new: it goes last there, then first among two with a position.
+    const c = idOf(await call({ action: "create", client: "acme", title: "Story C", list: "Semana 2" }));
+    await call({ action: "update", card: b, list: "Semana 2" });
+    expect(await where()).toEqual([
+      ["Semana 1", ["Reel A:todo"]],
+      ["Semana 2", ["Story C:todo", "Reel B:todo"]],
+    ]);
+    await call({ action: "update", card: a, list: "Semana 2", position: 1 });
+    expect(await where()).toEqual([
+      ["Semana 1", []],
+      ["Semana 2", ["Reel A:todo", "Story C:todo", "Reel B:todo"]],
+    ]);
+
+    // Its stage, to do ⇄ in production, keeps its place.
+    expect(await call({ action: "update", card: c, state: "doing" })).toContain("(doing)");
+    expect(await where()).toEqual([
+      ["Semana 1", []],
+      ["Semana 2", ["Reel A:todo", "Story C:doing", "Reel B:todo"]],
+    ]);
+    await call({ action: "update", card: c, state: "todo" });
+    expect((await portal.cards("acme")).find((x) => x.id === c)?.state).toBe("todo");
+
+    // Gone.
+    expect(await call({ action: "delete", card: a })).toBe(`Deleted card ${a}.`);
+    expect(await where()).toEqual([
+      ["Semana 1", []],
+      ["Semana 2", ["Story C:todo", "Reel B:todo"]],
+    ]);
+    // A move of a card that isn't there changes nothing and says so.
+    const missing = await tool?.execute(
+      { action: "update", card: "nope", position: 1 },
+      ctx({ runId: undefined as unknown as string }),
+    );
+    expect(missing?.isError).toBe(true);
   });
 
   test("labels are said by name; a name the team doesn't have stops with the ones it has", async () => {

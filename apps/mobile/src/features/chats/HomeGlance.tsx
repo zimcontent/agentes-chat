@@ -7,7 +7,7 @@ import { router } from "@/ui/navigation";
 import { CARD_RADIUS, panelSurface, surfaceStyle } from "@/ui/surfaces";
 import { usePortalOn } from "../portal/hooks";
 import { useColors, useMeId, useOrgId } from "../shared/hooks";
-import { type EditorNow, editorNow, portalAdjusting } from "./glance";
+import { adjustmentsHref, type EditorNow, editorNow, portalAdjusting } from "./glance";
 
 /** This fork's own words, beside it in Portuguese and English (any other language reads English). */
 const WORDS = {
@@ -45,7 +45,8 @@ export function HomeGlance() {
   const reviews: VideoReviewSummary[] = useVideoReviews(orgId).data ?? [];
   const editor = editorNow(reviews, meId);
   const portalOn = usePortalOn();
-  const adjusting = portalAdjusting(usePortalOverview(orgId, portalOn).data?.clients ?? []);
+  const portalClients = usePortalOverview(orgId, portalOn).data?.clients ?? [];
+  const adjusting = portalAdjusting(portalClients);
   const cards: GlanceCardData[] = [
     ...(editor
       ? [
@@ -69,7 +70,8 @@ export function HomeGlance() {
             big: adjusting.total > 0 ? String(adjusting.total) : w.clientNone,
             line: adjusting.clients.map(portalClientName).join(", "),
             hot: adjusting.total > 0,
-            onPress: () => router.navigate("/portal"),
+            // Straight to the changes asked: that client's Quadro, or the Portal narrowed to who asked.
+            onPress: () => router.navigate(adjustmentsHref(portalClients) as never),
           },
         ]
       : []),

@@ -8707,6 +8707,8 @@ export interface PortalClientSummary {
   color?: PortalClientColor | null;
   /** Where its logo is read (the server's own address); null or absent: none. */
   logo?: string | null;
+  /** The name the team gave it (ADR 9001, addendum 2026-11-18); null or absent: the one its id reads as. */
+  name?: string | null;
 }
 
 /**
@@ -8724,6 +8726,8 @@ export interface PortalState {
 /** Every client at a glance (`GET …/portal`). */
 export interface PortalOverview {
   clients: PortalClientSummary[];
+  /** Clients the team hid: in no list until shown again. Absent from a server that doesn't say. */
+  hidden?: { client: string; name: string | null }[];
   /** Absent from a server that doesn't say. */
   state?: PortalState;
 }

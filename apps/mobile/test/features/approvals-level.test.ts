@@ -29,7 +29,10 @@ test("Mudar quando perguntar: in the approval sheet's Da próxima vez and under 
   const sheet = read("features/approvals/ApprovalSheet.tsx");
   expect(sheet).toContain("(approveAlwaysOffered(a) || when.shown)");
   expect(sheet).toMatch(/label=\{t\("approvalsLevel\.change"\)\}[\s\S]*?chevron[\s\S]*?onPress=\{when\.open\}/);
-  expect(read("features/activity/ActivityScreen.tsx")).toContain("<WhenAsksLink approval={a} />");
+  // Pendentes: on the card's foot line, under the decision, only where it shows.
+  expect(read("features/activity/ActivityScreen.tsx")).toContain(
+    "footNote={decidable && whenAsks.shown ? <WhenAsksLink approval={decidable} /> : undefined}",
+  );
   // The conversation's cards, one request or several, as the web's.
   const cards = read("features/chat/cards.tsx");
   expect(cards).toContain("<WhenAsksLink approval={a} />");
