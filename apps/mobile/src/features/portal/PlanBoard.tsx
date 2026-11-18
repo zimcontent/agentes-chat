@@ -1,7 +1,6 @@
 import type { PlanCard, PortalListKind, PortalPlan } from "@agenteschat/client";
-import { useApi, useMovePortalCard, usePortalLists, useSavePortalCard } from "@agenteschat/client";
+import { useMovePortalCard, usePortalLists, useSavePortalCard } from "@agenteschat/client";
 import { portalOrderAt, portalWhen } from "@agenteschat/client/lib/portal";
-import { Image } from "expo-image";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, TextInput, View } from "react-native";
@@ -17,7 +16,6 @@ import {
   useTheme,
   useToast,
 } from "@/ui";
-import { ownSource } from "../review/media";
 import { useOrgId } from "../shared/hooks";
 import { pickOne } from "../shared/PickerSheet";
 import { usePortalFailed, usePortalRights, usePortalWords } from "./hooks";
@@ -27,7 +25,6 @@ import {
   boardListWidth,
   boardPaint,
   cardBadges,
-  coverOf,
   listsFor,
   type PlanGroup,
   planGroups,
@@ -291,8 +288,9 @@ function AddLabel({ label }: { label: string }) {
 }
 
 /**
- * A card on the board: its first picture as the cover, where it is (the stage's dot and word, its task's number),
- * its title whole, and a line of what it holds (the post's date, a description, the checklist, comments, files).
+ * A card on the board, as the web's (`CardFace`): its title whole first, then where it is (the stage's dot and word,
+ * its task's number) and a line of what it holds (the post's date, a description, the checklist, comments, files).
+ * No cover picture: the board is for reading the plan at a glance; the pictures are in the card when it opens.
  */
 function BoardCard({
   w,
@@ -311,9 +309,6 @@ function BoardCard({
 }) {
   const { i18n } = useTranslation();
   const { colors: c } = useTheme();
-  const api = useApi();
-  const orgId = useOrgId();
-  const cover = coverOf(card.files);
   const badges = cardBadges(card);
   const day = material ? null : portalWhen(i18n.language, card.postOn);
   const stage = card.stage === "posted" ? w.status.published : w.columns[card.stage];
@@ -371,16 +366,8 @@ function BoardCard({
         pressed ? styles.pressed : null,
       ]}
     >
-      {cover?.kind === "image" ? (
-        <Image
-          source={ownSource(api.artifacts.fileUrl(orgId, cover.file.id))}
-          style={[styles.cover, { backgroundColor: c.sunken }]}
-          contentFit="cover"
-          recyclingKey={cover.file.id}
-          accessibilityIgnoresInvertColors
-        />
-      ) : null}
       <View style={styles.cardIn}>
+        <Text variant="subhead">{card.title}</Text>
         {material && task === undefined && !card.done ? null : (
           <View style={styles.cardTop}>
             {material ? null : (
@@ -406,7 +393,6 @@ function BoardCard({
             ) : null}
           </View>
         )}
-        <Text variant="subhead">{card.title}</Text>
         {facts.length > 0 ? (
           <View style={styles.facts}>
             {facts.map((f) => (
@@ -607,7 +593,6 @@ const styles = StyleSheet.create({
   cards: { paddingHorizontal: 8, paddingBottom: 4, gap: 8 },
   listFoot: { height: 8 },
   card: { borderRadius: 8, borderWidth: StyleSheet.hairlineWidth, overflow: "hidden" },
-  cover: { width: "100%", aspectRatio: 16 / 9 },
   cardIn: { paddingHorizontal: 12, paddingVertical: 8, gap: 4 },
   cardTop: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 },
   stage: { flexDirection: "row", alignItems: "center", gap: 4 },
