@@ -4,7 +4,7 @@ import { loadClient, overridesOf } from "@agenteschat/modules";
 import { browser, createTestServer, signUp, type TestServer } from "./harness";
 
 /**
- * A client's customizations (ADR doug-0023): `clients/<DOUG_CLIENT_CODE>/` read at boot into `GET /api/instance` and
+ * A client's customizations (ADR doug-0032): `clients/<DOUG_CLIENT_CODE>/` read at boot into `GET /api/instance` and
  * `GET /api/app/me`, and nothing at all without a code.
  */
 
@@ -24,7 +24,7 @@ async function exampleClient(): Promise<ClientOverrides> {
 
 const instance = async () => (await (await t.app.request("/api/instance")).json()) as Record<string, unknown>;
 
-describe("DOUG_CLIENT_CODE (ADR doug-0023)", () => {
+describe("DOUG_CLIENT_CODE (ADR doug-0032)", () => {
   test("without a code the server behaves as the shared code does", async () => {
     t = await createTestServer();
     // The key is absent, not null: a server with no client answers exactly as the build before it did.

@@ -5,17 +5,17 @@ import { z } from "zod";
 import type { AgentesModule } from "./index";
 
 /**
- * A client's customizations (ADR doug-0023): two files in a folder of three digits under `clients/` at the root of
+ * A client's customizations (ADR doug-0032): two files in a folder of three digits under `clients/` at the root of
  * the source, `config.json` (what the apps show and what this client turns on or off) and `client.ts` (an
  * `AgentesModule`, for anything a module can do). The server loads the folder of its `DOUG_CLIENT_CODE` at boot and
  * nothing without one, so every server built from this source behaves the same until a client names it.
  *
  * A folder never changes what the product does for everyone: it may only add through the module API and rename or
  * switch off for itself, in the shape `config.json` declares here. What turns out to be good for every client moves
- * out of `clients/` into the shared code (ADR doug-0023 §4).
+ * out of `clients/` into the shared code (ADR doug-0032 §4).
  */
 
-/** Three digits, such as `064`: the value of `DOUG_CLIENT_CODE` and the start of its folder's name (ADR doug-0023). */
+/** Three digits, such as `064`: the value of `DOUG_CLIENT_CODE` and the start of its folder's name (ADR doug-0032). */
 export const CLIENT_CODE = /^\d{3}$/;
 
 /** A folder a code names: the code alone (`064`) or the code and a slug (`064-padaria-aurora`), the deploy's own shape. */
@@ -45,7 +45,7 @@ export type ClientLocation =
   /** A build without `clients/` at all: a native package or a bundle made without one, which can't carry a client. */
   | { kind: "no-root" }
   /** A server whose `clients/` has no folder for its code: the deployments of the team that runs it, whose stacks set the
-   * code and carry no folder. It runs as the shared code does (ADR doug-0023 §1). */
+   * code and carry no folder. It runs as the shared code does (ADR doug-0032 §1). */
   | { kind: "no-folder"; code: string; root: string };
 
 export function locateClient(code: string | undefined, root?: string | null): ClientLocation | null {
@@ -113,10 +113,10 @@ export const accentLegible = (color: string): boolean =>
 /**
  * An override this build declares in its schema but no screen applies yet: refused by name, instead of a setting the
  * server would hold and never honor. Each one enters here with the screen that applies it, for every server, through
- * the shared code (ADR doug-0023 §2 and §4).
+ * the shared code (ADR doug-0032 §2 and §4).
  */
 const notYet = (key: string) =>
-  `${key} isn't supported yet: an override enters with the screen that applies it for every server (ADR doug-0023)`;
+  `${key} isn't supported yet: an override enters with the screen that applies it for every server (ADR doug-0032)`;
 
 /**
  * `config.json`: every override a client may declare. Strict: a misspelled key is a boot error, never a silent no-op.
@@ -125,7 +125,7 @@ const notYet = (key: string) =>
 export const clientConfigSchema = z
   .object({
     /**
-     * What the apps call this workspace and the color they highlight (ADR doug-0023 §3). Both optional: without them
+     * What the apps call this workspace and the color they highlight (ADR doug-0032 §3). Both optional: without them
      * the apps say the build's own name and paint its own green.
      */
     product: z
@@ -224,7 +224,7 @@ const readJson = async (path: string): Promise<unknown> => {
  * The client `code` names, read from `root` (default: this build's `clients/`), or null without a code or without a
  * folder for it. A folder with neither file, a `config.json` off the schema, a `client.ts` that exports no module and
  * two folders for one code are a `ClientConfigError`: a client that was asked for is never half-applied. A code with
- * no folder is not an error (ADR doug-0023 §1): the installs the team runs set the code and ship no folder, and they
+ * no folder is not an error (ADR doug-0032 §1): the installs the team runs set the code and ship no folder, and they
  * run as the shared code does. A build that carries no `clients/` at all (a native package, a bundle made without one)
  * is not one either: it says so through `locateClient`.
  */

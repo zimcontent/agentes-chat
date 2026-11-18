@@ -1469,7 +1469,7 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         signIn: { email: true, google: false, github: true, apple: false },
         signup: "open",
         cloud: true,
-        // A server without client customizations (ADR doug-0023) sends no `client` key unless a test names one.
+        // A server without client customizations (ADR doug-0032) sends no `client` key unless a test names one.
         ...state.instance,
       }),
       legal: async () => ({

@@ -66,7 +66,7 @@ export function LaunchSplash({
   const reduced = useReducedMotion();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  // This build's name, or the client's this server belongs to (ADR doug-0023).
+  // This build's name, or the client's this server belongs to (ADR doug-0032).
   const product = productName(useClientLook(), "DougBot");
   const network = useNetworkState();
   const offline = network.isConnected === false || network.isInternetReachable === false;

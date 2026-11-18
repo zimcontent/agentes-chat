@@ -7,9 +7,9 @@ const instanceWith = (client: Instance["client"]) => ({ name: "agentes.chat", cl
 
 const EXAMPLE: ClientBrand = { name: "Padaria Aurora", accent: "#C2410C" };
 
-describe("a server's client look (ADR doug-0023)", () => {
+describe("a server's client look (ADR doug-0032)", () => {
   test("no client anywhere reads as NO_CLIENT", () => {
-    // A server with no client sends neither (`client` absent, ADR doug-0023): it reads as one that predates the field.
+    // A server with no client sends neither (`client` absent, ADR doug-0032): it reads as one that predates the field.
     expect(clientLookOf(meWith(undefined), instanceWith(undefined))).toEqual(NO_CLIENT);
     expect(clientLookOf(undefined, undefined)).toEqual(NO_CLIENT);
     expect(clientLookOf(meWith(undefined), instanceWith(undefined))).toEqual(

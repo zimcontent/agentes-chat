@@ -61,7 +61,7 @@ describe("the tab's title", () => {
   });
 
   test("a boot that hasn't learnt whether the server has a client writes no title at all", async () => {
-    // The timeout of `/api/instance` (ADR doug-0023): the build's own name is never written over a page's.
+    // The timeout of `/api/instance` (ADR doug-0032): the build's own name is never written over a page's.
     document.title = "A page's own title";
     const i18n = createI18n("en");
     translateTabTitle(i18n, { title: false });
@@ -74,7 +74,7 @@ describe("the tab's title", () => {
   });
 });
 
-describe("a client's name reaching the strings already loaded (ADR doug-0023)", () => {
+describe("a client's name reaching the strings already loaded (ADR doug-0032)", () => {
   afterEach(() => setClientProductName(null));
 
   test("the bundles in the instance are branded again, so the title already starts with the client's name", () => {

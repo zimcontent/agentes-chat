@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 
 /**
- * A client's highlight (ADR doug-0023 §3): `--client-accent` on <html> paints the highlighted words and the focus ring,
+ * A client's highlight (ADR doug-0032 §3): `--client-accent` on <html> paints the highlighted words and the focus ring,
  * and only a server that set one lets it reach a part of the page that themes itself. Without a client the nested
  * part keeps the green of its own theme, which is what keeps every other installation byte-for-byte the green it was.
  */

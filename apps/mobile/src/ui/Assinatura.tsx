@@ -5,7 +5,7 @@ import { DB_FONTES } from "@/brand/tokens";
 import { LogoMark } from "./LogoMark";
 import { useTheme } from "./theme";
 
-/** This build's own name, what a server with no client signs (ADR doug-0023). */
+/** This build's own name, what a server with no client signs (ADR doug-0032). */
 const BUILD_NAME = "DougBot";
 
 /** The first word's weight, 800: what the signature draws "Doug" in, and a client's name's first word too. */
@@ -15,7 +15,7 @@ const LIGHT = { fontFamily: DB_FONTES.titulo500, fontWeight: "500" } as const;
 
 /**
  * A name in the signature's two weights. The build's own is the identity's markup, word for word: "Doug" 800 and "Bot"
- * 500 inside the line that is drawn in 500. A client's name (ADR doug-0023) only keeps that split at its first space
+ * 500 inside the line that is drawn in 500. A client's name (ADR doug-0032) only keeps that split at its first space
  * ("Padaria" + " Aurora"), and a name of one word is all 800.
  */
 function SignatureName({ name }: { name: string }) {
@@ -43,12 +43,12 @@ function SignatureName({ name }: { name: string }) {
  * is 1.42× the name's size, 0.36× the size apart. On the dark stage both in #EDEDED, on light in ink (#0A0A0A).
  * Minimum 20 tall. `color` sets the ink on a ground of its own (the island's dark glass, in either theme).
  *
- * A server deployed for one client signs its name instead (ADR doug-0023): `label` names it outright, else the
+ * A server deployed for one client signs its name instead (ADR doug-0032): `label` names it outright, else the
  * client's name from `GET /me`, else this build's.
  */
 export function Assinatura({ size = 22, label, color }: { size?: number; label?: string; color?: string }) {
   const { colors } = useTheme();
-  // This server's client names the product (ADR doug-0023); `label` names it outright where a caller says so.
+  // This server's client names the product (ADR doug-0032); `label` names it outright where a caller says so.
   const client = useClientLook();
   const name = label ?? productName(client, BUILD_NAME);
   const t = Math.max(size, 20 / 1.42);

@@ -47,7 +47,7 @@ const InstanceResponse = z
       .optional()
       .openapi({
         description:
-          "This server's client customizations (ADR doug-0023), from `clients/<DOUG_CLIENT_CODE>/config.json`. Absent: a server with no client, which answers exactly as the build does, and its apps show the product's own name and color.",
+          "This server's client customizations (ADR doug-0032), from `clients/<DOUG_CLIENT_CODE>/config.json`. Absent: a server with no client, which answers exactly as the build does, and its apps show the product's own name and color.",
       }),
   })
   .openapi("Instance");
@@ -85,7 +85,7 @@ export function registerInstance(api: OpenAPIHono, deps: AppDeps, version: strin
         signup: open ? ("open" as const) : ("invite" as const),
         ownerClaim: users === 0 && Boolean(config.OWNER_CLAIM_SHA256),
         cloud: isAgentesCloud(config.PUBLIC_URL),
-        // Absent, not null, on a server with no client: its answer is the build's own, byte for byte (ADR doug-0023).
+        // Absent, not null, on a server with no client: its answer is the build's own, byte for byte (ADR doug-0032).
         ...(deps.client ? { client: { name: deps.client.name, accent: deps.client.accent } } : {}),
       },
       200,

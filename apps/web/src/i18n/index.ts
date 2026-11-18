@@ -1,6 +1,6 @@
 import { type LocaleState, useLocaleSync } from "@agenteschat/client/lib/locale-sync";
 import { resources } from "@agenteschat/i18n";
-import { brandName, brandTree } from "@agenteschat/i18n/brand";
+import { BRAND_NAME, brandName, brandTree } from "@agenteschat/i18n/brand";
 import { loadStrings } from "@agenteschat/i18n/load";
 import {
   type AppLocale,
@@ -186,7 +186,7 @@ export async function loadI18n(lng: LocaleCode): Promise<I18n> {
 const brandedTo = new WeakMap<I18n, string>();
 
 /**
- * Every language already in the instance, renamed under the product's name as it is now (ADR doug-0023). The strings
+ * Every language already in the instance, renamed under the product's name as it is now (ADR doug-0032). The strings
  * are branded when they load (`loadStrings`), which is before the boot knows whether this server has a client: a
  * client's name has to reach the bundles that are already there too, or every string drawn before the next language
  * change would still say the build's. `brandTree` reads the same text twice the same, so a language loaded after the
@@ -199,6 +199,8 @@ const brandedTo = new WeakMap<I18n, string>();
  */
 export function rebrandLoaded(instance: I18n) {
   const name = brandName();
+  // A server with no client: the bundles came out of `loadStrings` with the build's name, so there is nothing to do.
+  if (name === BRAND_NAME && !brandedTo.has(instance)) return;
   if (brandedTo.get(instance) === name) return;
   brandedTo.set(instance, name);
   let changed = false;
@@ -206,8 +208,9 @@ export function rebrandLoaded(instance: I18n) {
   for (const code of Object.keys(data)) {
     const bundle = data[code]?.translation;
     if (!bundle) continue;
-    const branded = brandTree(structuredClone(bundle));
-    if (JSON.stringify(branded) === JSON.stringify(bundle)) continue;
+    // `brandTree` never writes into the tree it reads and hands back the same reference when nothing changes.
+    const branded = brandTree(bundle);
+    if (branded === bundle) continue;
     data[code] = { ...data[code], translation: branded };
     changed = true;
   }
@@ -225,7 +228,7 @@ export function rebrandLoaded(instance: I18n) {
  * shows, so a page's own title stays, and so does the unread count in front of the default.
  *
  * `title: false` leaves the tab's own title alone: a boot that hasn't learnt whether this server has a client (its
- * `GET /api/instance` in time, ADR doug-0023) writes nothing rather than the build's name over a page's, which a
+ * `GET /api/instance` in time, ADR doug-0032) writes nothing rather than the build's name over a page's, which a
  * client's server would have to correct anyway. A language change writes it from then on.
  */
 export function translateTabTitle(instance: I18n, { title = true }: { title?: boolean } = {}) {

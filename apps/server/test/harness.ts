@@ -137,7 +137,7 @@ export async function createTestServer(
      */
     emailDelivers?: boolean;
     /**
-     * A client's customizations (ADR doug-0023), as `start.ts` reads them at boot (`overridesOf(await loadClient(code))`);
+     * A client's customizations (ADR doug-0032), as `start.ts` reads them at boot (`overridesOf(await loadClient(code))`);
      * absent: a server with none, as without `DOUG_CLIENT_CODE`.
      */
     client?: ClientOverrides | null;

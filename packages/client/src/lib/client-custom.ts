@@ -1,7 +1,7 @@
 import type { Instance, Me } from "../api/types";
 
 /**
- * The look a server deployed for one client gives the apps (ADR doug-0023): the name they call the product and the
+ * The look a server deployed for one client gives the apps (ADR doug-0032): the name they call the product and the
  * color they highlight, read from `GET /me` (`client`), with `GET /api/instance` filling in for a reader that only has
  * that one (the sign-in page, the server picker). A server with no client reads as NO_CLIENT.
  */
@@ -23,7 +23,7 @@ const accentOf = (color: string | null | undefined): string | null =>
 
 /**
  * The client's look as `me` and the instance say it; nothing from either: NO_CLIENT. `me` wins where both speak. A
- * server with no client sends neither (`client` absent, ADR doug-0023), so the apps read exactly as they do on one
+ * server with no client sends neither (`client` absent, ADR doug-0032), so the apps read exactly as they do on one
  * that predates the field.
  */
 export function clientLookOf(me: Me | null | undefined, instance?: Instance | null): ClientLook {

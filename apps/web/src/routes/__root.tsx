@@ -74,13 +74,13 @@ function Root() {
 }
 
 /**
- * This server's client customizations (ADR doug-0023), applied once they arrive: the product's name everywhere the app
+ * This server's client customizations (ADR doug-0032), applied once they arrive: the product's name everywhere the app
  * signs it (the signature, the tab's title, the strings it builds from then on: `setClientProductName`) and the
  * highlight's color on the app's own `--db-verde-acento`-fed tokens. A server with no client draws nothing and changes
  * nothing. Draws nothing at all: a side effect, kept in a component so it re-runs when `me` or the instance change.
  */
 function ClientBrand() {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const api = useApi();
   const client = useClientLook();
   // Both answers decide the look, and both start out empty: until they are here, a null name or color means "not
@@ -93,7 +93,7 @@ function ClientBrand() {
     if (!known) return;
     setClientProductName(client.name);
     // The name that arrives after the strings were built (a boot whose `/api/instance` timed out, or a sign-in that
-    // answered late): every bundle already in the instance is branded again, as the boot does (ADR doug-0023).
+    // answered late): every bundle already in the instance is branded again, as the boot does (ADR doug-0032).
     rebrandLoaded(i18n);
     const root = document.documentElement;
     // The variable paints the highlight; the attribute lets it reach a part of the page that themes itself
@@ -105,14 +105,10 @@ function ClientBrand() {
       root.style.removeProperty("--client-accent");
       delete root.dataset.clientAccent;
     }
-    // The tab's title was written before the name arrived, as the build's (main.tsx's answer came late, or not at
-    // all before the timeout): a client's server writes it again in the language in use. A server with no client
-    // writes nothing: its title is already the build's own, and writing it here would be a second pass that could put
-    // the default over a page's title. `t` gives it under the client's name (the bundles in the instance were branded
-    // again once the name arrived, `rebrandLoaded`), so it is written as it is: `brandText` here would grow a name
-    // that holds the build's own.
-    if (client.name) document.title = t("app.tabTitle");
-  }, [known, client.name, client.accent, t, i18n]);
+    // The tab's title follows by itself: `rebrandLoaded` announces the name as a language change, and
+    // `translateTabTitle` swaps the old default for the new wherever it shows, keeping a page's own title and the
+    // unread count in front of it.
+  }, [known, client.name, client.accent, i18n]);
   return null;
 }
 

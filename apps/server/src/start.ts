@@ -214,7 +214,7 @@ async function boot(
   release: string,
   errors: ErrorReporter,
 ) {
-  // This client's customizations (ADR doug-0023), read before anything serves: its config.json and, when it has one, its
+  // This client's customizations (ADR doug-0032), read before anything serves: its config.json and, when it has one, its
   // client.ts as one more module. No DOUG_CLIENT_CODE: none of it, and the server behaves as the shared code does.
   // Where the code's folder is first: a code with no folder is the team's own installs (their stacks set the code and
   // ship no folder) and runs the shared code, so it is said and the boot goes on, never a server kept from starting.

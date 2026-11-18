@@ -57,7 +57,7 @@ export interface LogoProps {
 
 /**
  * A name in the signature's two weights. The build's own is the identity's markup, word for word: `<b>Doug</b>Bot`,
- * "Doug" 800 and "Bot" 500. A client's name (ADR doug-0023) only keeps that split at its first space, so "Padaria
+ * "Doug" 800 and "Bot" 500. A client's name (ADR doug-0032) only keeps that split at its first space, so "Padaria
  * Aurora" reads "Padaria" 800 + "Aurora" 500, and a name of one word is all 800.
  */
 const SignatureName = ({ name }: { name: string }) => {
@@ -82,7 +82,7 @@ const SignatureName = ({ name }: { name: string }) => {
 /**
  * The signature (IDENTIDADE.md §3): the Doug close up and the name, side by side, live text in Manrope ("Doug" 800,
  * "Bot" 500, one color). No box, no seal, no shadow. Its accessible name is the brand's: the client's, on a server
- * deployed for one (ADR doug-0023), which it follows on its own (`subscribeBrand`) wherever it is drawn, since the
+ * deployed for one (ADR doug-0032), which it follows on its own (`subscribeBrand`) wherever it is drawn, since the
  * name arrives after the first paint.
  */
 export function Logo({ mono, size = 22, className, style }: LogoProps) {

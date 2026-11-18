@@ -13,7 +13,7 @@ export const BRAND_NAME = "DougBot";
 export const UPSTREAM_NAME = "agentes.chat";
 
 /**
- * The name this server's client gives the product (`clients/<code>/config.json`, ADR doug-0023), set once by each app
+ * The name this server's client gives the product (`clients/<code>/config.json`, ADR doug-0032), set once by each app
  * when it learns it (the web before its strings load). Null: the build's own name. Module state on purpose: every
  * string and every signature goes through `brandText`/`brandName`, and passing the name through every call would leave
  * the one the app doesn't know about still saying the build's name.
@@ -79,7 +79,7 @@ const KEPT = "\u0000";
 /**
  * Keys whose words are the vendor's, never the product's: `hosting.cloud.name` is the Cloud offering's own name and
  * `onboarding.import.agenteschatName` the server this instance comes from. A client's name replaces neither — the plan
- * it sells and the server it is built from stay named as they are whichever workspace reads them (ADR doug-0023 §3).
+ * it sells and the server it is built from stay named as they are whichever workspace reads them (ADR doug-0032 §3).
  */
 export const KEPT_KEYS: ReadonlySet<string> = new Set(["hosting.cloud.name", "onboarding.import.agenteschatName"]);
 
@@ -111,7 +111,7 @@ export function brandText(text: string): string {
   const upstream = (text: string) => (text.includes(UPSTREAM_NAME) ? renamed(text, UPSTREAM_WORD, name) : text);
   if (name === BRAND_NAME) return upstream(text);
   // The vendor's own phrases are held out first, whatever else the name does: the plan it sells and the cloud it runs
-  // keep their name whichever client reads them (ADR doug-0023 §3). A name of free text may carry a marker itself;
+  // keep their name whichever client reads them (ADR doug-0032 §3). A name of free text may carry a marker itself;
   // then the text takes the plain passes, exact once, and no phrase survives as a placeholder either.
   const vendor = heldOut(text);
   const markers = vendor.held.includes(HELD) || text.includes(KEPT) || name.includes(KEPT);

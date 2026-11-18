@@ -3,7 +3,7 @@
  *
  * - The edition boundary (docs/adr/0002-editions-and-modules.md): open-source code under apps/ and
  *   packages/ must never import a Cloud-only package (`@agenteschat/cloud`) or an `@agenteschat/ee` module.
- * - A client's folder (clients/<code>/, ADR doug-0023) extends only through the module API: its `client.ts` may
+ * - A client's folder (clients/<code>/, ADR doug-0032) extends only through the module API: its `client.ts` may
  *   import `@agenteschat/modules` and the public packages named in CLIENT_PACKAGES, and nothing else -- never the
  *   engine's internals, another client's folder or a private package -- so it can add through `AgentesModule` and
  *   never change what the product does for every server.
@@ -35,7 +35,7 @@ export function isPrivate(path: string): boolean {
 }
 
 /**
- * What a client's `client.ts` may import (ADR doug-0023 §4): the module API it extends through, and the public packages
+ * What a client's `client.ts` may import (ADR doug-0032 §4): the module API it extends through, and the public packages
  * a module's context is typed with. Anything else -- the engine's internals, the server's own routes, a private
  * package, another client's folder -- is refused: a folder adds through `AgentesModule`, never by reaching inside.
  */
@@ -245,7 +245,7 @@ if (import.meta.main) {
     }
   }
 
-  // A client's folder extends through the module API alone (ADR doug-0023 §4): what its `.ts` files import.
+  // A client's folder extends through the module API alone (ADR doug-0032 §4): what its `.ts` files import.
   {
     const files: { path: string; text: string }[] = [];
     for await (const file of new Glob("clients/*/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}").scan({ dot: false })) {

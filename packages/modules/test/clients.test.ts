@@ -26,7 +26,7 @@ function clientsDir(folders: Record<string, Record<string, string>>): string {
 
 const MODULE = `const m = { name: "client-teste", onStart() {} };\nexport default m;\n`;
 
-describe("a client's folder (ADR doug-0023)", () => {
+describe("a client's folder (ADR doug-0032)", () => {
   test("no code loads nothing at all", async () => {
     expect(await loadClient(undefined)).toBeNull();
     expect(await loadClient("")).toBeNull();
@@ -45,7 +45,7 @@ describe("a client's folder (ADR doug-0023)", () => {
 
   test("a code with no folder is no error: the team's own installs set the code and ship no folder", async () => {
     const root = clientsDir({});
-    // Nothing loads, and nothing stops the boot: the server runs the shared code (ADR doug-0023 §1).
+    // Nothing loads, and nothing stops the boot: the server runs the shared code (ADR doug-0032 §1).
     expect(await loadClient("064", root)).toBeNull();
     expect(locateClient("064", root)).toEqual({ kind: "no-folder", code: "064", root });
   });

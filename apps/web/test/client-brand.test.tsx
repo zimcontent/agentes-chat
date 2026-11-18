@@ -10,7 +10,7 @@ import { createFakeApi, ORG_ID, seedState } from "./fake-api";
 import { renderApp, screen, settle } from "./render";
 
 /**
- * A server deployed for one client (ADR doug-0023): the name it sets at boot stays while `me` and the instance are
+ * A server deployed for one client (ADR doug-0032): the name it sets at boot stays while `me` and the instance are
  * still being read (no flash of the build's own), the color it sets paints the highlight, and the signature follows
  * the name on its own (`subscribeBrand`), wherever it is drawn.
  */
@@ -26,7 +26,7 @@ const EXAMPLE = { name: "Padaria Aurora", accent: "#C2410C" };
 const styled = () => document.documentElement.style.getPropertyValue("--client-accent");
 const marked = () => document.documentElement.hasAttribute("data-client-accent");
 
-describe("a client's name and color in the web app (ADR doug-0023)", () => {
+describe("a client's name and color in the web app (ADR doug-0032)", () => {
   test("the name the boot set is not cleared before the answers arrive, and arrives with the color", async () => {
     const api = createFakeApi(seedState());
     // main.tsx sets the name at boot, from `/api/instance`; here it is the same call, before the first render.
@@ -54,7 +54,7 @@ describe("a client's name and color in the web app (ADR doug-0023)", () => {
   });
 });
 
-describe("the signature's markup (ADR doug-0023)", () => {
+describe("the signature's markup (ADR doug-0032)", () => {
   test("with no client it is the identity's own: <b>Doug</b>Bot, not a name split at a space", () => {
     const { container } = render(<Logo />);
     expect(container.querySelector(".ac-logo__word")?.innerHTML).toBe("<b>Doug</b>Bot");

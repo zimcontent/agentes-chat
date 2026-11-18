@@ -209,7 +209,7 @@ const Me = z
       .optional()
       .openapi({
         description:
-          "This server's client customizations (ADR doug-0023), from `clients/<DOUG_CLIENT_CODE>/config.json`. Absent: a server with no client, which answers exactly as the build does, and the apps show the product's own name, color and tools.",
+          "This server's client customizations (ADR doug-0032), from `clients/<DOUG_CLIENT_CODE>/config.json`. Absent: a server with no client, which answers exactly as the build does, and the apps show the product's own name, color and tools.",
       }),
   })
   .openapi("Me");
@@ -317,7 +317,7 @@ export function accountRoutes(deps: AppDeps) {
             : {}),
         };
       }),
-      // Absent, not null, on a server with no client: its answer is the build's own, byte for byte (ADR doug-0023).
+      // Absent, not null, on a server with no client: its answer is the build's own, byte for byte (ADR doug-0032).
       ...(deps.client ? { client: { name: deps.client.name, accent: deps.client.accent } } : {}),
     };
   };

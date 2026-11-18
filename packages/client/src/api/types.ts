@@ -263,14 +263,14 @@ export interface Instance {
    */
   cloud?: boolean;
   /**
-   * This server's client customizations (ADR doug-0023), from `clients/<DOUG_CLIENT_CODE>/config.json`: the name and
+   * This server's client customizations (ADR doug-0032), from `clients/<DOUG_CLIENT_CODE>/config.json`: the name and
    * color to show. Absent: a server with no client (and so is it on an older one), which answers exactly as the build
    * does.
    */
   client?: ClientBrand;
 }
 
-/** A client's name and color, as `GET /api/instance` sends them (ADR doug-0023). */
+/** A client's name and color, as `GET /api/instance` sends them (ADR doug-0032). */
 export interface ClientBrand {
   /** What its apps call the product; null: the product's own name. */
   name: string | null;
@@ -497,7 +497,7 @@ export interface Me {
    * carry it: only a signed-in person reads it. */
   clientCode?: string | null;
   /**
-   * This server's client customizations (ADR doug-0023), from `clients/<DOUG_CLIENT_CODE>/config.json`. Absent: a
+   * This server's client customizations (ADR doug-0032), from `clients/<DOUG_CLIENT_CODE>/config.json`. Absent: a
    * server with no client (and so is it on an older one), which answers exactly as the build does.
    */
   client?: ClientBrand;

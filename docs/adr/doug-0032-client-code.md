@@ -1,4 +1,4 @@
-# doug-0023: One build, one client's face — `clients/<code>/` read at boot by `DOUG_CLIENT_CODE`
+# doug-0032: One build, one client's face — `clients/<code>/` read at boot by `DOUG_CLIENT_CODE`
 
 Status: accepted. This instance's own. 2026-11-18. Builds on ADR 0002 (editions and `AgentesModule`), 0004
 (configuration), 0180 (the license the server process runs under).
@@ -71,7 +71,7 @@ product:
   instance, `brandTree`'d, announced as a language change so the screens redraw), because the language's file is built
   before the boot knows whether the server has a client. The web boot does **not** wait on `/api/instance`: the
   strings load as they do on any server, and the name, the rebrand and the title arrive with the answer — a server
-  with no client, or one that never answers, changes nothing (ADR doug-0023, §3);
+  with no client, or one that never answers, changes nothing (ADR doug-0032, §3);
 - the highlight through `--client-accent` on `<html>`, which the app's own accent tokens fall back to
   (`packages/ui/src/styles/doug.css`), so a server with no client is byte-for-byte the green it was. It stands where
   the identity puts the green on the screen's own accents — the highlighted words (`--accent-text`) and the focus ring
