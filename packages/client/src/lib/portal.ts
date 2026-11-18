@@ -264,6 +264,38 @@ export function portalOrderAt(others: readonly { order: number }[], index: numbe
   return (before + after) / 2;
 }
 
+/** The room left between two cards' orders when a list is numbered again, so the next drops fit between them. */
+export const PORTAL_ORDER_STEP = 1024;
+
+/**
+ * Where a card dropped at `index` among `others` (its new list's cards without it, as the list shows them) goes: an
+ * `order` strictly between its neighbours', in whole numbers. When none fits between them (two cards share an order,
+ * as cards made at the portal often do, or sit one apart) the list is numbered again around it: `renumber` holds each
+ * other card whose order changes. A midpoint alone would leave the card tied with a neighbour, and a tie keeps it
+ * after that neighbour, back where it was.
+ */
+export function portalPlaceAt(
+  others: readonly { id: string; order: number }[],
+  index: number,
+): { order: number; renumber: { cardId: string; order: number }[] } {
+  const at = Math.max(0, Math.min(index, others.length));
+  const before = others[at - 1]?.order;
+  const after = others[at]?.order;
+  const sorted = others.every((c, i) => i === 0 || (others[i - 1] as { order: number }).order < c.order);
+  if (sorted && Number.isInteger(before ?? 0) && Number.isInteger(after ?? 0)) {
+    if (before === undefined && after === undefined) return { order: PORTAL_ORDER_STEP, renumber: [] };
+    if (before === undefined) return { order: (after as number) - PORTAL_ORDER_STEP, renumber: [] };
+    if (after === undefined) return { order: before + PORTAL_ORDER_STEP, renumber: [] };
+    if (after - before >= 2) return { order: before + Math.floor((after - before) / 2), renumber: [] };
+  }
+  const renumber: { cardId: string; order: number }[] = [];
+  others.forEach((c, i) => {
+    const order = (i + (i >= at ? 2 : 1)) * PORTAL_ORDER_STEP;
+    if (c.order !== order) renumber.push({ cardId: c.id, order });
+  });
+  return { order: (at + 1) * PORTAL_ORDER_STEP, renumber };
+}
+
 /**
  * Where a card dropped on the other part's tab lands (ADR 9001 §20): at the end of that part's list named as the one it
  * left (case and spaces aside), else of that part's first list. Null: that part has no list yet, and one is made.
@@ -305,6 +337,25 @@ export function movedInPlan(plan: PortalPlan, cardId: string, list: string | nul
     lists: plan.lists.map((l) => ({ ...l, cards: l.id === list ? withIt(l.cards) : without(l.cards) })),
     unlisted: known ? without(plan.unlisted) : withIt(plan.unlisted),
   };
+}
+
+/** A card's move: its list, its order there, and the list's other cards numbered again when the drop needed it. */
+export type PortalMove = {
+  cardId: string;
+  list: string | null;
+  order: number;
+  renumber?: readonly { cardId: string; order: number }[];
+};
+
+/** The schedule with some cards' orders changed (a list numbered again), before the portal answers. */
+export function renumberedInPlan(plan: PortalPlan, renumber: readonly { cardId: string; order: number }[]): PortalPlan {
+  if (renumber.length === 0) return plan;
+  const next = new Map(renumber.map((r) => [r.cardId, r.order]));
+  const fix = (cards: PlanCard[]) =>
+    cards
+      .map((c) => (next.has(c.id) ? { ...c, order: next.get(c.id) as number } : c))
+      .sort((a, b) => a.order - b.order);
+  return { ...plan, lists: plan.lists.map((l) => ({ ...l, cards: fix(l.cards) })), unlisted: fix(plan.unlisted) };
 }
 
 /** How many of a checklist are done, or null when it has none. */

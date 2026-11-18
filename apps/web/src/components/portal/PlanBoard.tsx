@@ -7,6 +7,7 @@ import {
   portalLink,
   portalMovedAcross,
   portalOrderAt,
+  portalPlaceAt,
   portalWhen,
 } from "@agenteschat/client/lib/portal";
 import {
@@ -100,7 +101,7 @@ export function PlanBoard({
     const cardsOf = [...columns, ...elsewhere].find((c) => c.id === to)?.cards ?? [];
     const others = cardsOf.filter((c) => c.id !== card.id);
     move.mutate(
-      { cardId: card.id, list: to === PORTAL_NO_LIST ? null : to, order: portalOrderAt(others, index) },
+      { cardId: card.id, list: to === PORTAL_NO_LIST ? null : to, ...portalPlaceAt(others, index) },
       { onError: failed },
     );
   };

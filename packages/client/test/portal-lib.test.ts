@@ -26,6 +26,7 @@ import {
   portalLink,
   portalListAcross,
   portalOrderAt,
+  portalPlaceAt,
   portalPostedByMonth,
   portalScheduling,
   portalSendDate,
@@ -38,6 +39,7 @@ import {
   portalWhen,
   portalWithResponsible,
   rememberPortalClientNames,
+  renumberedInPlan,
   sortPipelineByProduction,
   sortPortalClients,
 } from "../src/lib/portal";
@@ -225,6 +227,66 @@ describe("the strategic schedule (ADR 9001 §8)", () => {
     expect(portalOrderAt(cards, 3)).toBe(5);
     expect(portalOrderAt(cards, 99)).toBe(5);
     expect(portalOrderAt([], 0)).toBe(1);
+  });
+
+  test("a card dragged up between two that share an order (cards made at the portal) still lands there", () => {
+    // Before: the midpoint of 0 and 0 was 0, and the tie put the card back after its neighbour.
+    const tied = [
+      { id: "a", order: 0 },
+      { id: "b", order: 0 },
+      { id: "c", order: 0 },
+    ];
+    expect(portalOrderAt(tied, 1)).toBe(0);
+    const place = portalPlaceAt(tied, 1);
+    expect(place.order).toBe(2048);
+    expect(place.renumber).toEqual([
+      { cardId: "a", order: 1024 },
+      { cardId: "b", order: 3072 },
+      { cardId: "c", order: 4096 },
+    ]);
+    const p = plan();
+    const board = {
+      ...p,
+      lists: [
+        {
+          ...(p.lists[0] as PortalPlan["lists"][number]),
+          cards: ["a", "b", "c", "d"].map((id) => planCard(id, "l1", 0)),
+        },
+      ],
+      unlisted: [],
+    };
+    const moved = movedInPlan(renumberedInPlan(board, place.renumber), "d", "l1", place.order);
+    expect(moved.lists[0]?.cards.map((c) => c.id)).toEqual(["a", "d", "b", "c"]);
+  });
+
+  test("a card dropped where whole orders leave room takes a whole number between them, nothing renumbered", () => {
+    const cards = [
+      { id: "a", order: 1024 },
+      { id: "b", order: 2048 },
+    ];
+    expect(portalPlaceAt(cards, 0)).toEqual({ order: 0, renumber: [] });
+    expect(portalPlaceAt(cards, 1)).toEqual({ order: 1536, renumber: [] });
+    expect(portalPlaceAt(cards, 2)).toEqual({ order: 3072, renumber: [] });
+    expect(portalPlaceAt([], 0)).toEqual({ order: 1024, renumber: [] });
+    // One apart, or a fraction a portal's whole-number column would cut: the list is numbered again.
+    expect(
+      portalPlaceAt(
+        [
+          { id: "a", order: 1 },
+          { id: "b", order: 2 },
+        ],
+        1,
+      ).renumber.length,
+    ).toBe(2);
+    expect(
+      portalPlaceAt(
+        [
+          { id: "a", order: 1 },
+          { id: "b", order: 1.5 },
+        ],
+        1,
+      ).order,
+    ).toBe(2048);
   });
 
   test("a move shows at once: the card leaves its list and sits in the other, in order", () => {
