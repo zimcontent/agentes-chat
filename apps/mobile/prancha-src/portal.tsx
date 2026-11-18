@@ -239,7 +239,7 @@ const CLIENTS: PortalClientSummary[] = [
     next: day(1),
     color: "green",
   },
-  { client: "casa-moema", counts: counts({ approval: 3, doing: 1 }), open: 4, next: day(3), color: "navy" },
+  { client: "casa-moema", counts: counts({ approval: 3, doing: 1, adjusting: 1 }), open: 5, next: day(3), color: "navy" },
   {
     client: "studio-arquitetura-e-interiores-ribeiro",
     counts: counts({ todo: 1, approved: 2 }),
