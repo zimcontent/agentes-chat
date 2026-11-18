@@ -178,13 +178,14 @@ export function inertLines(value: string, max = 64): string {
     .map((line) => line.replace(/\t/g, " ").replace(/ {2,}/g, " ").trim())
     // One blank line between paragraphs is enough; the ends carry none.
     .filter((line, i, all) => line !== "" || (all[i - 1] !== "" && all.slice(i + 1).some((l) => l !== "")));
-  const text = breakSeparators(lines.join("\n"));
-  const points = Array.from(text);
-  if (points.length <= max) return text;
+  // The limit counts what the person wrote, not the breaks this file adds after "." ":" "@" (a log full of
+  // them would lose its end, where the error is): cut first, then break.
+  const raw = lines.join("\n");
+  if (Array.from(raw).length <= max) return breakSeparators(raw);
   // Cut on grapheme boundaries and say that it was cut.
-  const parts = Array.from(new Intl.Segmenter().segment(text), (s) => s.segment);
-  return `${parts
+  const parts = Array.from(new Intl.Segmenter().segment(raw), (s) => s.segment);
+  return breakSeparators(`${parts
     .slice(0, Math.max(0, max - 1))
     .join("")
-    .trimEnd()}…`;
+    .trimEnd()}…`);
 }
