@@ -2,7 +2,7 @@
 # doug-cliente: sobe, lista, para, inicia e remove os clientes do DougBot numa máquina
 # (uma stack Docker isolada por cliente, atrás de um Caddy só). Passo a passo: deploy/swas/README.md.
 #
-#   doug-cliente novo <codigo> <slug> "<nome>" [--imagem <tag>]
+#   doug-cliente novo <codigo> <slug> "<nome>" [--imagem <tag>] [--reusar-codigo]
 #   doug-cliente lista
 #   doug-cliente parar <codigo>
 #   doug-cliente iniciar <codigo>
@@ -11,7 +11,8 @@
 #   doug-cliente remover <codigo> [--apagar-dados] [--sim]
 #   doug-cliente cota [<codigo>]
 #   doug-cliente religar-proxy
-#   doug-cliente limpar-backups <codigo> --antes <AAAA-MM-DD> [--sim]
+#   doug-cliente limpar-backups <codigo> --antes <AAAA-MM-DD> [--slug <slug>] [--sim]
+#   doug-cliente limpar-removidos [<codigo>] --antes <AAAA-MM-DD> [--sim]
 #
 # `--dry-run` (em qualquer comando) mostra o que seria feito sem escrever nada nem rodar o Docker.
 #
@@ -30,22 +31,33 @@
 #                            (padrão: <DOUG_CADDY_DIR>/clientes)
 #   DOUG_PROXY_RELOAD        (externo) comando que recarrega o proxy, por exemplo
 #                            docker exec <contêiner> caddy reload --config /etc/caddy/Caddyfile
+#   DOUG_PROXY_SITES_GRUPO   (externo) o grupo (nome ou número) com que o proxy lê a pasta dos sites,
+#                            se ele não roda como root no contêiner. Sem ele a pasta é 700 e os
+#                            arquivos 600, só do root; com ele, 750 e 640 root:<grupo>
+#   DOUG_PROXY_CADDYFILE     (externo) o caminho do Caddyfile DENTRO do contêiner do proxy (padrão
+#                            /etc/caddy/Caddyfile): depois do reload o `caddy adapt` dele tem de
+#                            listar o endereço do cliente, senão o proxy não enxerga o arquivo do site
 #   DOUG_IMAGE_REPO          repositório da imagem (padrão agentes-zim)
 #   DOUG_CLIENT_QUOTA_GB     cota de disco por cliente, em GB (padrão 40)
 #   DOUG_PORTA_INICIAL       primeira porta de loopback a tentar (padrão 3100)
 #   DOUG_PORTA_FINAL         última porta (padrão 3999)
 #   DOUG_HEALTH_TIMEOUT      segundos de espera pelo /api/health (padrão 240)
 #   DOUG_TRAVA_ESPERA        segundos de espera pela trava <raiz>/.lock (padrão 120)
+#   DOUG_UID_BASE            o uid de um cliente é DOUG_UID_BASE + o código (padrão 1000000000, longe
+#                            das faixas de /etc/subuid e /etc/subgid dos logins da máquina)
+#   DOUG_ETC_DIR             onde ficam passwd, group, subuid e subgid (padrão /etc)
 # E, só no ambiente: DOUG_IMAGE, a imagem de `novo` (senão: a mais nova agentes-zim:doug-* desta máquina).
 #
-# Cada cliente tem o uid 100000 + o código (DOUG_UID no .env), dono de dados/files, e a rede
-# 10.64.<código>.0/24 (DOUG_REDE): por isso o código vai de 000 a 255.
+# Cada cliente tem o uid DOUG_UID_BASE + o código, dono de dados/files, e a rede 10.64.<código>.0/24
+# (DOUG_REDE): por isso o código vai de 000 a 255. O `novo` confere o uid e grava DOUG_UID no .env; os
+# outros comandos leem o uid dali e nunca o calculam de novo.
 #
 # Contrato com doug-atualizar-clientes: pasta <raiz>/<codigo>-<slug>/ (root, 711) com compose.yml e
 # .env (root, sem escrita para grupo nem outros) e dados/; registro em <raiz>/clientes.tsv (codigo
 # slug nome porta imagem criado_em, sem cabeçalho, 600); projeto do Compose doug-<codigo>; serviços
 # `agentes` e `postgres`; DOUG_IMAGE no .env; trava única <raiz>/.lock (600, flock obrigatório);
-# backups em <raiz>/backups/<codigo>/ (root, 700), fora de dados/.
+# backups em <raiz>/backups/<codigo>/ (root, 700), fora de dados/: os deste script se chamam
+# manual-<slug>-<data> e remocao-<slug>-<data>; os do atualizador, pre-* e falhou-*, não são tocados.
 set -euo pipefail
 
 shopt -u patsub_replacement 2>/dev/null || true
@@ -59,7 +71,7 @@ REGISTRO=$RAIZ/clientes.tsv
 # limpa o ambiente, e um comando lido do ambiente de quem chama rodaria como root. O arquivo não
 # é executado: cada linha é NOME=valor, só de uma chave conhecida, e o valor vale como texto.
 CONF=$RAIZ/doug-cliente.conf
-CONF_CHAVES=" DOUG_CADDY_DIR DOUG_DOMINIO DOUG_PROXY_MODE DOUG_PROXY_CONTAINER DOUG_PROXY_SITES_DIR DOUG_PROXY_RELOAD DOUG_IMAGE_REPO DOUG_CLIENT_QUOTA_GB DOUG_PORTA_INICIAL DOUG_PORTA_FINAL DOUG_HEALTH_TIMEOUT DOUG_TRAVA_ESPERA "
+CONF_CHAVES=" DOUG_CADDY_DIR DOUG_DOMINIO DOUG_PROXY_MODE DOUG_PROXY_CONTAINER DOUG_PROXY_SITES_DIR DOUG_PROXY_RELOAD DOUG_IMAGE_REPO DOUG_CLIENT_QUOTA_GB DOUG_PORTA_INICIAL DOUG_PORTA_FINAL DOUG_HEALTH_TIMEOUT DOUG_TRAVA_ESPERA DOUG_PROXY_CADDYFILE DOUG_PROXY_SITES_GRUPO DOUG_UID_BASE DOUG_ETC_DIR "
 declare -A CONF_VALORES=()
 
 le_conf() {
@@ -115,18 +127,36 @@ PROXY_RELOAD=$(valor DOUG_PROXY_RELOAD "")
 PROXY_CONTAINER=$(valor DOUG_PROXY_CONTAINER "")
 SITES_DIR=$(valor DOUG_PROXY_SITES_DIR "$CADDY_DIR/clientes")
 TRAVA_S=$(valor DOUG_TRAVA_ESPERA 120)
+PROXY_CADDYFILE=$(valor DOUG_PROXY_CADDYFILE /etc/caddy/Caddyfile)
+SITES_GRUPO=$(valor DOUG_PROXY_SITES_GRUPO "")
+UID_BASE=$(valor DOUG_UID_BASE 1000000000)
+ETC_DIR=$(valor DOUG_ETC_DIR /etc)
 CADDY_ADMIN=unix//run/caddy-admin/admin.sock
 REPO_IMAGEM=$(valor DOUG_IMAGE_REPO agentes-zim)
 
 # Estes valores entram em contas e em comandos: só número.
-for v in COTA_GB PORTA_INICIAL PORTA_FINAL SAUDE_S TRAVA_S; do
+for v in COTA_GB PORTA_INICIAL PORTA_FINAL SAUDE_S TRAVA_S UID_BASE; do
   [[ ${!v} =~ ^[0-9]+([.][0-9]+)?$ ]] || {
     printf 'doug-cliente: o valor de %s não é um número: "%s"\n' "$v" "${!v}" >&2
     exit 1
   }
 done
-[[ $PORTA_INICIAL =~ ^[0-9]+$ && $PORTA_FINAL =~ ^[0-9]+$ && $SAUDE_S =~ ^[0-9]+$ && $TRAVA_S =~ ^[0-9]+$ ]] || {
-  printf 'doug-cliente: portas, tempos e a espera da trava são números inteiros\n' >&2
+[[ $PORTA_INICIAL =~ ^[0-9]+$ && $PORTA_FINAL =~ ^[0-9]+$ && $SAUDE_S =~ ^[0-9]+$ && $TRAVA_S =~ ^[0-9]+$ && $UID_BASE =~ ^[0-9]+$ ]] || {
+  printf 'doug-cliente: portas, tempos, a espera da trava e DOUG_UID_BASE são números inteiros\n' >&2
+  exit 1
+}
+# Abaixo de 65536 é a faixa dos logins e do sistema; e base + 255 tem de caber num uid de 32 bits
+# (4294967294 é o último que o kernel aceita).
+((UID_BASE >= 65536 && UID_BASE + 255 <= 4294967293)) || {
+  printf 'doug-cliente: DOUG_UID_BASE=%s fora da faixa (de 65536 a 4294967038)\n' "$UID_BASE" >&2
+  exit 1
+}
+[[ -z $SITES_GRUPO || $SITES_GRUPO =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]*$ ]] || {
+  printf 'doug-cliente: DOUG_PROXY_SITES_GRUPO tem de ser o nome ou o número de um grupo: "%s"\n' "$SITES_GRUPO" >&2
+  exit 1
+}
+[[ $PROXY_CADDYFILE =~ ^/[A-Za-z0-9._/-]+$ ]] || {
+  printf 'doug-cliente: DOUG_PROXY_CADDYFILE tem de ser um caminho absoluto simples (letras, números e . _ / -): "%s"\n' "$PROXY_CADDYFILE" >&2
   exit 1
 }
 
@@ -137,6 +167,8 @@ APAGAR=0
 IMAGEM=${DOUG_IMAGE:-}
 PEDIU_IMAGEM=0
 ANTES=""
+SLUG_FILTRO=""
+REUSAR_CODIGO=0
 POSICIONAIS=()
 
 diz() { printf '%s\n' "$*"; }
@@ -178,6 +210,13 @@ ler_argumentos() {
         shift
         ;;
       --antes=*) ANTES=${1#--antes=} ;;
+      --slug)
+        (($# >= 2)) || erro "--slug pede o slug do cliente"
+        SLUG_FILTRO=$2
+        shift
+        ;;
+      --slug=*) SLUG_FILTRO=${1#--slug=} ;;
+      --reusar-codigo) REUSAR_CODIGO=1 ;;
       -h | --ajuda | --help) AJUDA=1 ;;
       -*) erro "opção desconhecida: $1 (veja doug-cliente --ajuda)" ;;
       *) POSICIONAIS+=("$1") ;;
@@ -190,15 +229,107 @@ ler_argumentos() {
 
 RESERVADOS=" www app api admin mail caddy doug dougbot status suporte painel "
 
-# O código vira o uid (100000 + código) e a rede (10.64.<código>.0/24) do cliente: a rede só tem
+# O código vira o uid (DOUG_UID_BASE + código) e a rede (10.64.<código>.0/24) do cliente: a rede só tem
 # um terceiro número de 0 a 255, e por isso o código acaba em 255.
 valida_codigo() {
   [[ $1 =~ ^[0-9]{3}$ ]] || erro "código inválido: \"$1\" (são 3 dígitos, como 064)"
   ((10#$1 <= 255)) || erro "código inválido: \"$1\" (a rede do cliente é 10.64.<código>.0/24: o código vai de 000 a 255)"
 }
 
-uid_do_cliente() { printf '%s' "$((100000 + 10#$1))"; }
 rede_do_cliente() { printf '10.64.%s' "$((10#$1))"; }
+
+# O uid do cliente (DOUG_UID_BASE + o código) tem de ser só dele. Longe do que um login da máquina
+# pode usar: um usuário com uma faixa em /etc/subuid (ou /etc/subgid) e o newuidmap vira qualquer
+# uid dela, e leria os arquivos do cliente. Confere o uid contra passwd, group, subuid e subgid e
+# contra o DOUG_UID dos outros clientes. Escreve o uid; o que o impede sai com a causa.
+# <pasta a ignorar> é a do próprio cliente, que já pode ter o uid no .env.
+confere_uid() { # <codigo> [<pasta a ignorar>]
+  local uid arq dono env
+  uid=$((UID_BASE + 10#$1))
+  arq=$ETC_DIR/passwd
+  if [[ -r $arq ]]; then
+    dono=$(awk -F: -v u="$uid" '$3 != "" && $3 + 0 == u + 0 { print $1; exit }' "$arq")
+    [[ -z $dono ]] || erro "o uid $uid (DOUG_UID_BASE $UID_BASE + o código $1) já é do usuário $dono em $arq: troque DOUG_UID_BASE na $CONF"
+  fi
+  arq=$ETC_DIR/group
+  if [[ -r $arq ]]; then
+    dono=$(awk -F: -v u="$uid" '$3 != "" && $3 + 0 == u + 0 { print $1; exit }' "$arq")
+    [[ -z $dono ]] || erro "o gid $uid (DOUG_UID_BASE $UID_BASE + o código $1) já é do grupo $dono em $arq: troque DOUG_UID_BASE na $CONF"
+  fi
+  for arq in "$ETC_DIR/subuid" "$ETC_DIR/subgid"; do
+    [[ -r $arq ]] || continue
+    dono=$(awk -F: -v u="$uid" '$2 != "" && $3 + 0 > 0 && $2 + 0 <= u + 0 && u + 0 < $2 + $3 { print $1 " (" $2 ":" $3 ")"; exit }' "$arq")
+    [[ -z $dono ]] || erro "o uid $uid (DOUG_UID_BASE $UID_BASE + o código $1) cai na faixa de $arq de $dono: esse login leria os arquivos do cliente (newuidmap). Troque DOUG_UID_BASE na $CONF por um valor fora de todas as faixas"
+  done
+  for env in "$RAIZ"/*/.env; do
+    [[ -f $env ]] || continue
+    [[ -n ${2:-} && $env == "$2/.env" ]] && continue
+    [[ $(env_valor "$env" DOUG_UID) != "$uid" ]] || erro "o uid $uid já é o DOUG_UID do cliente de ${env%/.env} (DOUG_UID_BASE mudou desde então?)"
+  done
+  printf '%s' "$uid"
+}
+
+# ─── sub-rede ────────────────────────────────────────────────────────────────
+
+# a.b.c.d/n em "início fim" (inteiros). Falha com uma entrada que não é IPv4.
+faixa_cidr() { # <cidr>
+  local ip=${1%/*} n=${1#*/} a b c d ini tam
+  [[ $1 == */* ]] || n=32
+  [[ $n =~ ^[0-9]{1,2}$ ]] || return 1
+  [[ $ip =~ ^([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})\.([0-9]{1,3})$ ]] || return 1
+  a=${BASH_REMATCH[1]} b=${BASH_REMATCH[2]} c=${BASH_REMATCH[3]} d=${BASH_REMATCH[4]}
+  ((a < 256 && b < 256 && c < 256 && d < 256 && n <= 32)) || return 1
+  ini=$(((10#$a << 24) | (10#$b << 16) | (10#$c << 8) | 10#$d))
+  tam=$((1 << (32 - n)))
+  ini=$((ini & ~(tam - 1) & 0xFFFFFFFF))
+  printf '%s %s' "$ini" "$((ini + tam - 1))"
+}
+
+faixas_se_sobrepoem() { # <cidr> <cidr>
+  local a b
+  a=$(faixa_cidr "$1") || return 1
+  b=$(faixa_cidr "$2") || return 1
+  local ai=${a% *} af=${a#* } bi=${b% *} bf=${b#* }
+  ((ai <= bf && bi <= af))
+}
+
+# A sub-rede do cliente (10.64.<código>.0/24) não pode já ser de outra rede do Docker nem de uma
+# rota desta máquina (a rede privada do provedor, uma VPN): senão o Docker recusa criar a rede, ou
+# pior, o cliente fica inalcançável. Roda antes de criar a pasta. Com a rede doug-<código> já
+# existente, foi o Docker quem a aceitou: não há o que conferir.
+confere_subrede() { # <codigo>
+  local alvo linha nome sub ids rota
+  alvo="$(rede_do_cliente "$1").0/24"
+  tem_docker || return 0
+  if dk network inspect "doug-$1" >/dev/null 2>&1; then
+    return 0
+  fi
+  ids=$(dk network ls -q) || erro "não consegui listar as redes do Docker (docker network ls)"
+  if [[ -n $ids ]]; then
+    # shellcheck disable=SC2086
+    linha=$(dk network inspect -f '{{.Name}} {{range .IPAM.Config}}{{.Subnet}} {{end}}' $ids) \
+      || erro "não consegui ler as redes do Docker (docker network inspect)"
+    while read -r nome sub resto_; do
+      [[ -n ${nome:-} ]] || continue
+      for sub in $sub ${resto_:-}; do
+        [[ $sub == *:* ]] && continue
+        if faixas_se_sobrepoem "$alvo" "$sub"; then
+          erro "a sub-rede $alvo do cliente $1 colide com a da rede Docker \"$nome\" ($sub): apague ou troque essa rede, ou use outro código"
+        fi
+      done
+    done <<<"$linha"
+  fi
+  if command -v ip >/dev/null 2>&1; then
+    while read -r rota _; do
+      [[ $rota == default || -z $rota ]] && continue
+      if faixas_se_sobrepoem "$alvo" "$rota"; then
+        erro "a sub-rede $alvo do cliente $1 colide com a rota $rota desta máquina (ip route): a rede privada do provedor ou uma VPN usa essa faixa. Use outro código"
+      fi
+    done < <(ip -4 route 2>/dev/null || true)
+  else
+    aviso "o comando ip não existe: não conferi as rotas da máquina contra $alvo"
+  fi
+}
 
 valida_imagem() {
   [[ $1 =~ ^[A-Za-z0-9][A-Za-z0-9._:/@-]*$ ]] || erro "nome de imagem inválido: \"$1\" (letras, números e . _ : / @ -, sem começar com hífen)"
@@ -287,7 +418,9 @@ trava() {
 
 # O docker e tudo o que roda daqui (o recarregamento do proxy também) sai sem o descritor 9, o da
 # trava: um filho que ficasse vivo com ele segurava a trava depois de este script terminar.
-dk() { command docker "$@" 9>&-; }
+# Nenhum comando do docker daqui lê a entrada: ela fica fechada, para que um deles não consuma o
+# arquivo que um laço (o clientes.tsv) lê nem a resposta de quem digita.
+dk() { command docker "$@" 9>&- </dev/null; }
 
 tem_docker() { command -v docker >/dev/null 2>&1; }
 
@@ -319,11 +452,14 @@ compose_caddy() {
 caddy_arquivo() { printf '%s/%s.caddy' "$SITES_DIR" "$1"; }
 
 # O endereço do servidor do cliente para o proxy. No modo externo o proxy é um contêiner na rede do
-# cliente (a rede doug-<codigo>) e fala com o contêiner do servidor pelo nome; no modo próprio o
-# Caddy está na rede do host e usa a porta de loopback.
+# cliente (a rede doug-<codigo>) e fala com o servidor pelo alias doug-<codigo>-agentes, que o
+# compose.yml dá ao serviço nessa rede (não pelo nome do contêiner, que depende da versão do
+# Compose; o alias leva o código porque o proxy está em todas as redes e um alias repetido
+# escolheria um cliente qualquer); no modo próprio o Caddy está na rede do host e usa a porta de
+# loopback.
 upstream_de() { # codigo porta
   if [[ $PROXY_MODE == externo ]]; then
-    printf 'doug-%s-agentes-1:3000' "$1"
+    printf 'doug-%s-agentes:3000' "$1"
   else
     printf '127.0.0.1:%s' "$2"
   fi
@@ -357,6 +493,11 @@ valida_modo_proxy() {
   esac
 }
 
+# A rede do cliente existe? (O Compose a cria no primeiro `up` e a derruba no `down`.)
+rede_existe() { # <codigo>
+  dk network inspect "doug-$1" >/dev/null 2>&1
+}
+
 # O contêiner do proxy já está na rede deste cliente?
 proxy_na_rede() { # <codigo>
   local membros
@@ -364,21 +505,54 @@ proxy_na_rede() { # <codigo>
   [[ " $membros" == *" $PROXY_CONTAINER "* ]]
 }
 
-# Modo externo: liga o proxy à rede do cliente, com o endereço .2 dela (o servidor só confia nesse
-# endereço, na sub-rede do cliente: TRUSTED_PROXIES).
-proxy_liga() { # <codigo>
-  [[ $PROXY_MODE == externo ]] || return 0
-  proxy_na_rede "$1" && return 0
-  dk network connect --ip "$(rede_do_cliente "$1").2" "doug-$1" "$PROXY_CONTAINER" \
-    || erro "não consegui ligar o contêiner $PROXY_CONTAINER à rede doug-$1 (confira o nome em DOUG_PROXY_CONTAINER: docker ps)"
+# O contêiner do proxy está rodando? (Parado, não há o que ligar nem recarregar.)
+proxy_rodando() {
+  [[ $(dk inspect -f '{{.State.Running}}' "$PROXY_CONTAINER" 2>/dev/null) == true ]]
 }
 
-# O compose do cliente só derruba a rede sem ninguém ligado a ela.
+# Modo externo: liga o proxy à rede do cliente, com o endereço .2 dela (o servidor só confia nesse
+# endereço, na sub-rede do cliente: TRUSTED_PROXIES). Idempotente. Devolve 1, com a causa no
+# stderr, em vez de sair: quem chama decide.
+liga_proxy_rede() { # <codigo>
+  [[ $PROXY_MODE == externo ]] || return 0
+  proxy_na_rede "$1" && return 0
+  if ! dk network connect --ip "$(rede_do_cliente "$1").2" "doug-$1" "$PROXY_CONTAINER"; then
+    printf 'doug-cliente: não consegui ligar o contêiner %s à rede doug-%s (confira o nome em DOUG_PROXY_CONTAINER: docker ps)\n' "$PROXY_CONTAINER" "$1" >&2
+    return 1
+  fi
+}
+
+proxy_liga() { # <codigo>
+  liga_proxy_rede "$1" || exit 1
+}
+
+# O compose do cliente só derruba a rede sem ninguém ligado a ela, e só a recria (uma sub-rede que
+# mudou) sem ninguém ligado.
 proxy_desliga() { # <codigo>
   [[ $PROXY_MODE == externo ]] || return 0
   proxy_na_rede "$1" || return 0
   dk network disconnect "doug-$1" "$PROXY_CONTAINER" \
-    || erro "não consegui desligar o contêiner $PROXY_CONTAINER da rede doug-$1: nada foi derrubado"
+    || erro "não consegui desligar o contêiner $PROXY_CONTAINER da rede doug-$1: nada foi derrubado. Se o proxy ficou fora de alguma rede de cliente, rode doug-cliente religar-proxy"
+}
+
+# Sobe (ou atualiza) a stack do cliente. Se o `up` falha com o proxy ligado à rede, é o caso de uma
+# sub-rede ou um ipam que mudou no compose.yml (o Compose não recria uma rede com alguém ligado):
+# desliga o proxy, tenta de novo e liga o proxy outra vez, qualquer que seja o resultado.
+sobe_stack() { # <codigo> <pasta>
+  if compose "$1" "$2" up -d; then
+    liga_proxy_rede "$1" || return 1
+    return 0
+  fi
+  if [[ $PROXY_MODE == externo ]] && proxy_na_rede "$1"; then
+    aviso "o up falhou com $PROXY_CONTAINER ligado à rede doug-$1: desligo o proxy dela e tento de novo"
+    proxy_desliga "$1"
+    if compose "$1" "$2" up -d; then
+      liga_proxy_rede "$1" || return 1
+      return 0
+    fi
+    liga_proxy_rede "$1" || true
+  fi
+  return 1
 }
 
 # Faz o proxy ler os arquivos da pasta dos sites de novo.
@@ -399,22 +573,54 @@ caddy_recarrega() {
   bash -c "$PROXY_RELOAD" >/dev/null 9>&-
 }
 
+# Modo externo: o proxy enxerga o arquivo do site? `caddy adapt` roda no contêiner dele, sobre o
+# Caddyfile dele (DOUG_PROXY_CADDYFILE, o caminho de dentro do contêiner), e tem de listar o
+# endereço do cliente. Pega o que o reload não pega: a pasta dos sites montada no lugar errado, o
+# Caddyfile sem o `import`, um arquivo que o usuário do proxy não lê.
+proxy_enxerga() { # <slug>
+  local host=$1.$DOMINIO saida
+  [[ $PROXY_MODE == externo ]] || return 0
+  saida=$(dk exec "$PROXY_CONTAINER" caddy adapt --config "$PROXY_CADDYFILE" --adapter caddyfile 2>/dev/null) || return 1
+  grep -qF "\"$host\"" <<<"$saida"
+}
+
+# A pasta dos sites e o arquivo ficam do root. O contêiner do proxy os lê como root (padrão: 700 e
+# 600), ou pelo grupo DOUG_PROXY_SITES_GRUPO (750 e 640) se ele roda com outro usuário: a lista dos
+# sites é a lista dos clientes, e não é para qualquer login da máquina.
+protege_site() { # <arquivo>
+  local dir_modo=700 arq_modo=600
+  if [[ -n $SITES_GRUPO ]]; then
+    dir_modo=750
+    arq_modo=640
+  fi
+  chmod "$dir_modo" "$SITES_DIR"
+  chmod "$arq_modo" "$1"
+  if [[ -n $SITES_GRUPO ]]; then
+    chown "root:$SITES_GRUPO" "$SITES_DIR" "$1" 2>/dev/null || aviso "não consegui dar $SITES_DIR ao grupo $SITES_GRUPO (rode com sudo)"
+  else
+    chown root:root "$SITES_DIR" "$1" 2>/dev/null || true
+  fi
+}
+
 caddy_escreve() { # codigo slug porta
-  local arquivo existia=0 antigo=""
+  local arquivo existia=0 antigo="" motivo=""
   arquivo=$(caddy_arquivo "$2")
   if [[ -e $arquivo ]]; then
     grep -q "^# doug-cliente: $1 " "$arquivo" || erro "$arquivo já existe e não é do cliente $1"
     existia=1
     antigo=$(cat "$arquivo")
   fi
-  # O proxy (um contêiner) lê esta pasta: ela e os arquivos ficam legíveis, só o root escreve.
   mkdir -p "$SITES_DIR"
-  chmod 755 "$SITES_DIR"
   caddy_texto "$1" "$2" "$3" >"$arquivo"
-  chmod 644 "$arquivo"
+  protege_site "$arquivo"
   if ! caddy_recarrega; then
+    motivo="o proxy não aceitou o endereço de $2 (veja o log do proxy, $PROXY_MODE)"
+  elif ! proxy_enxerga "$2"; then
+    motivo="o proxy $PROXY_CONTAINER não enxerga $2.$DOMINIO depois do reload (caddy adapt de $PROXY_CADDYFILE): confira se ele monta $SITES_DIR, se o Caddyfile dele importa a pasta e se o usuário dele a lê (DOUG_PROXY_SITES_GRUPO; README: O proxy)"
+  fi
+  if [[ -n $motivo ]]; then
     if ((existia)); then printf '%s\n' "$antigo" >"$arquivo"; else rm -f "$arquivo"; fi
-    erro "o proxy não aceitou o endereço de $2 (voltei o arquivo ao que era; o cliente fica sem registro, rode o mesmo comando de novo). Veja o log do proxy ($PROXY_MODE)"
+    erro "$motivo. Voltei o arquivo ao que era; o cliente fica sem registro, rode o mesmo comando de novo"
   fi
 }
 
@@ -564,11 +770,14 @@ confere_disco() { # <pasta do cliente novo>
 
 # Só o root lê a pasta de um cliente por dentro: a pasta e dados/ deixam passar (711) para o
 # Postgres da imagem, que entra por dados/postgres (o PGDATA dele é 700 do usuário postgres), e
-# dados/files é só do uid do cliente (100000 + o código, DOUG_UID do .env; 700): nem o de um login
-# da máquina nem o de outro cliente. A pasta, o compose.yml e o .env são do root e sem escrita para
-# grupo nem outros: o doug-atualizar-clientes recusa o cliente que não estiver assim.
-ajusta_permissoes() { # <pasta>
-  local p=$1 f uid donos=()
+# dados/files é só do uid do cliente (DOUG_UID do .env, 700): nem o de um login da máquina nem o de
+# outro cliente. A pasta, o compose.yml e o .env são do root e sem escrita para grupo nem outros: o
+# doug-atualizar-clientes recusa o cliente que não estiver assim. Com `-hR` (o `compose`), dados/files
+# inteiro passa ao uid do .env: um cliente que veio com os arquivos de outro uid fica certo.
+# A decisão de "sou root" passa por `id -u`, que o teste troca.
+ajusta_permissoes() { # <pasta> [-hR]
+  local p=$1 recursivo=${2:-} f uid donos=() raiz=0
+  [[ $(id -u) == 0 ]] && raiz=1
   uid=$(env_valor "$p/.env" DOUG_UID)
   [[ $uid =~ ^[0-9]+$ ]] || erro "$p/.env não tem DOUG_UID (doug-cliente compose <codigo> acrescenta)"
   chmod 711 "$p" "$p/dados"
@@ -580,12 +789,12 @@ ajusta_permissoes() { # <pasta>
   donos=("$p" "$p/dados" "$p/compose.yml" "$p/.env")
   [[ ! -f $p/link-do-dono.txt ]] || donos+=("$p/link-do-dono.txt")
   # Sem root o chown não muda o dono: avisa em vez de parar (em produção este script roda como root).
-  if ((EUID == 0)); then
+  if ((raiz)); then
     chown root:root "${donos[@]}" || erro "não consegui dar $p ao root"
-    chown "$uid:$uid" "$p/dados/files" || erro "não consegui dar $p/dados/files ao uid $uid"
+    chown ${recursivo:+"$recursivo"} "$uid:$uid" "$p/dados/files" || erro "não consegui dar $p/dados/files ao uid $uid"
   else
     chown root:root "${donos[@]}" 2>/dev/null || true
-    chown "$uid:$uid" "$p/dados/files" 2>/dev/null \
+    chown ${recursivo:+"$recursivo"} "$uid:$uid" "$p/dados/files" 2>/dev/null \
       || aviso "sem root, não deu para ajustar o dono de dados/files; rode com sudo (README)"
   fi
 }
@@ -593,7 +802,7 @@ ajusta_permissoes() { # <pasta>
 # ─── novo ────────────────────────────────────────────────────────────────────
 
 # Preenche o modelo do .env: __NOME__ vira o valor.
-preenche_env() { # <porta> <imagem> <segredo> <senha do banco> <hash do link do dono>
+preenche_env() { # <porta> <imagem> <segredo> <senha do banco> <hash do link do dono> <uid>
   local texto
   texto=$(cat "$SWAS_DIR/cliente.env.example")
   texto=${texto//__CODIGO__/$CODIGO}
@@ -603,7 +812,7 @@ preenche_env() { # <porta> <imagem> <segredo> <senha do banco> <hash do link do 
   texto=${texto//__POSTGRES_PASSWORD__/$4}
   texto=${texto//__OWNER_CLAIM_SHA256__/$5}
   texto=${texto//__PORTA__/$1}
-  texto=${texto//__UID__/$(uid_do_cliente "$CODIGO")}
+  texto=${texto//__UID__/$6}
   texto=${texto//__REDE__/$(rede_do_cliente "$CODIGO")}
   [[ $texto != *__*__* ]] || erro "o modelo cliente.env.example tem um campo que o instalador não preenche"
   printf '%s\n' "$texto"
@@ -663,6 +872,13 @@ cmd_novo() {
   for outra in "$RAIZ"/[0-9][0-9][0-9]-"$SLUG"; do
     [[ -e $outra && $outra != "$pasta" ]] && erro "já existe $outra: o slug $SLUG é de um cliente começado e ainda não registrado (rode o novo dele de novo, ou confira a pasta)"
   done
+  # Os backups são do código, e o código de um cliente removido pode voltar a outro: o que está em
+  # backups/<codigo>/ com outro slug é de outro cliente e não se mistura com o deste.
+  if ((!REUSAR_CODIGO)); then
+    local donos
+    donos=$(slugs_de_backups "$CODIGO" | grep -vxF -- "$SLUG" | paste -sd, - || true)
+    [[ -z $donos ]] || erro "$RAIZ/backups/$CODIGO tem backups de outro cliente com o código $CODIGO ($donos), e o novo é o $SLUG. Apague-os (doug-cliente limpar-backups $CODIGO --antes <data> --slug <slug>) ou, se o código é mesmo reaproveitado, passe --reusar-codigo"
+  fi
   local existente=0
   [[ -f $pasta/.env ]] && existente=1
   if ((!existente)) && [[ -d $pasta/dados/postgres ]] && [[ -n $(ls -A "$pasta/dados/postgres" 2>/dev/null) ]]; then
@@ -690,6 +906,17 @@ cmd_novo() {
 
   confere_disco "$pasta"
 
+  # O uid: o do .env se o cliente já foi começado (nunca recalculado), senão o primeiro livre de
+  # DOUG_UID_BASE + o código, fora de /etc/passwd, subuid e subgid.
+  local uid
+  if ((existente)) && [[ -n $(env_valor "$pasta/.env" DOUG_UID) ]]; then
+    uid=$(env_valor "$pasta/.env" DOUG_UID)
+    [[ $uid =~ ^[0-9]+$ ]] || erro "o DOUG_UID de $pasta/.env não é um número: \"$uid\""
+  else
+    uid=$(confere_uid "$CODIGO" "$pasta") || exit 1
+  fi
+  confere_subrede "$CODIGO"
+
   # A porta: a do .env se o cliente já foi começado (desde que nenhum outro cliente a tenha),
   # senão a primeira que nem o registro nem um .env de outra pasta nem o host usam.
   local porta
@@ -705,16 +932,17 @@ cmd_novo() {
   diz "  endereço: https://$SLUG.$DOMINIO"
   diz "  pasta:    $pasta"
   diz "  porta:    127.0.0.1:$porta (só a saúde confere por ela)"
-  diz "  uid:      $(uid_do_cliente "$CODIGO"), rede $(rede_do_cliente "$CODIGO").0/24"
+  diz "  uid:      $uid, rede $(rede_do_cliente "$CODIGO").0/24"
   diz "  imagem:   $IMAGEM"
 
   if ((DRY)); then
     ((existente)) && simula "a pasta já foi começada: mantenho o .env e os segredos que ela tem"
-    simula "criar $pasta/dados/postgres e $pasta/dados/files (700, dono o uid $(uid_do_cliente "$CODIGO")); pasta e dados/ com 711"
+    simula "criar $pasta/dados/postgres e $pasta/dados/files (700, dono o uid $uid); pasta e dados/ com 711"
     simula "copiar compose.cliente.yml para $pasta/compose.yml (dono root, sem escrita para grupo nem outros)"
     ((existente)) || simula "gerar $pasta/.env (root, chmod 600) com segredos de openssl rand"
     simula "docker compose -p doug-$CODIGO up -d"
     [[ $PROXY_MODE != externo ]] || simula "ligar o contêiner $PROXY_CONTAINER à rede doug-$CODIGO (docker network connect --ip $(rede_do_cliente "$CODIGO").2)"
+    [[ $PROXY_MODE != externo ]] || simula "conferir com docker exec $PROXY_CONTAINER caddy adapt que o proxy enxerga $SLUG.$DOMINIO"
     simula "esperar http://127.0.0.1:$porta/api/health por até ${SAUDE_S}s"
     simula "escrever $(caddy_arquivo "$SLUG") (upstream $(upstream_de "$CODIGO" "$porta")) e recarregar o proxy (modo $PROXY_MODE)"
     simula "registrar o cliente em $REGISTRO"
@@ -728,6 +956,11 @@ cmd_novo() {
   local link=$pasta/link-do-dono.txt
   if ((existente)); then
     passo "o .env desta pasta já existe: mantenho os segredos dele"
+    if [[ -z $(env_valor "$pasta/.env" DOUG_UID) ]]; then
+      # Um .env de antes do uid por cliente: o uid conferido acima entra nele.
+      [[ -z $(tail -c1 "$pasta/.env") ]] || printf '\n' >>"$pasta/.env"
+      printf 'DOUG_UID=%s\n' "$uid" >>"$pasta/.env"
+    fi
   else
     local token seg_agentes seg_pg
     token=$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '=\n') || erro "o openssl não gerou o link do dono (confira: openssl rand -base64 32)"
@@ -738,7 +971,7 @@ cmd_novo() {
     claim_hash=$(printf '%s' "$token" | sha256sum | awk '{ print $1 }')
     rm -f "$pasta/.env.novo"
     umask 077
-    preenche_env "$porta" "$IMAGEM" "$seg_agentes" "$seg_pg" "$claim_hash" >"$pasta/.env.novo"
+    preenche_env "$porta" "$IMAGEM" "$seg_agentes" "$seg_pg" "$claim_hash" "$uid" >"$pasta/.env.novo"
     mv "$pasta/.env.novo" "$pasta/.env"
     printf 'https://%s.%s/owner#claim=%s\n' "$SLUG" "$DOMINIO" "$token" >"$link"
     umask 022
@@ -746,11 +979,7 @@ cmd_novo() {
   ajusta_permissoes "$pasta"
 
   passo "subindo a stack (docker compose -p doug-$CODIGO up -d)"
-  compose "$CODIGO" "$pasta" up -d
-  if [[ $PROXY_MODE == externo ]]; then
-    passo "ligando $PROXY_CONTAINER à rede doug-$CODIGO"
-    proxy_liga "$CODIGO"
-  fi
+  sobe_stack "$CODIGO" "$pasta" || erro "a stack de $CODIGO não subiu ou o proxy não ficou ligado à rede dela (doug-cliente religar-proxy refaz a ligação). Veja: docker compose -p doug-$CODIGO logs; rodar este mesmo comando de novo continua de onde parou"
 
   passo "esperando o /api/health (até ${SAUDE_S}s)"
   esperar_saude "$porta" || erro "o cliente não respondeu em ${SAUDE_S}s. Veja: docker compose -p doug-$CODIGO logs; rodar este mesmo comando de novo continua de onde parou"
@@ -779,17 +1008,25 @@ cmd_compose() {
   ((DRY)) || trava
   carrega_cliente "${POSICIONAIS[0]}"
   pasta_pronta
-  local env=$PASTA/.env agentes pg imagem chave valor linha
+  local env=$PASTA/.env agentes pg imagem chave valor linha uid
   agentes=$(env_valor "$env" AGENTES_SECRET)
   pg=$(env_valor "$env" POSTGRES_PASSWORD)
   imagem=$(env_valor "$env" DOUG_IMAGE)
   [[ -n $imagem ]] || imagem=$IMAGEM_REG
   [[ -n $agentes && -n $pg ]] || erro "o $env não tem AGENTES_SECRET e POSTGRES_PASSWORD: não invento segredos para um cliente que já tem dados. Confira o que houve com o arquivo"
 
+  # O uid vem do .env e não é calculado de novo. Um .env de antes do uid por cliente não o tem: o
+  # primeiro uid livre entra nele agora (e dados/files passa a ele, abaixo).
+  uid=$(env_valor "$env" DOUG_UID)
+  if [[ -z $uid ]]; then
+    uid=$(confere_uid "$CODIGO" "$PASTA") || exit 1
+  fi
+  [[ $uid =~ ^[0-9]+$ ]] || erro "o DOUG_UID de $env não é um número: \"$uid\""
+
   # O modelo é preenchido numa variável: o erro de um campo sem valor para o comando, em vez de
   # sumir dentro de uma substituição de processo e deixar o .env sem as variáveis novas.
   local modelo
-  modelo=$(preenche_env "$PORTA" "$imagem" "$agentes" "$pg" "") \
+  modelo=$(preenche_env "$PORTA" "$imagem" "$agentes" "$pg" "" "$uid") \
     || erro "não consegui preencher o modelo cliente.env.example: nada foi alterado"
 
   local novas="" linhas=""
@@ -804,6 +1041,7 @@ cmd_compose() {
     linhas+=$valor$'\n'
   done <<<"$modelo"
 
+  valida_modo_proxy
   diz "Cliente $CODIGO ($SLUG)"
   if [[ -n $novas ]]; then
     diz "  o .env ganha:$novas"
@@ -823,7 +1061,12 @@ cmd_compose() {
     } >>"$env"
   fi
   install -m 644 "$SWAS_DIR/compose.cliente.yml" "$PASTA/compose.yml"
-  ajusta_permissoes "$PASTA"
+  ajusta_permissoes "$PASTA" -hR
+  # O proxy que perdeu a ligação com a rede (o contêiner dele foi recriado) volta a ela. A rede do
+  # cliente parado, sem rede, fica para o `iniciar`.
+  if [[ $PROXY_MODE == externo ]] && rede_existe "$CODIGO"; then
+    proxy_liga "$CODIGO"
+  fi
   diz "O compose.yml foi reinstalado. Para o cliente usar: doug-cliente iniciar $CODIGO"
 }
 
@@ -886,6 +1129,7 @@ cmd_parar() {
 cmd_iniciar() {
   ((${#POSICIONAIS[@]} == 1)) || erro "uso: doug-cliente iniciar <codigo>"
   exige_docker
+  valida_modo_proxy
   ((DRY)) || trava
   carrega_cliente "${POSICIONAIS[0]}"
   pasta_pronta
@@ -895,27 +1139,57 @@ cmd_iniciar() {
   fi
   exige_comando curl
   passo "iniciando $CODIGO ($SLUG)"
-  compose "$CODIGO" "$PASTA" up -d
+  sobe_stack "$CODIGO" "$PASTA" || erro "a stack de $CODIGO não subiu ou o proxy não ficou ligado à rede dela (doug-cliente religar-proxy refaz a ligação). Veja: docker compose -p doug-$CODIGO logs"
   esperar_saude "$PORTA" || erro "o cliente não respondeu em ${SAUDE_S}s. Veja: docker compose -p doug-$CODIGO logs"
+  # Idempotente: o proxy ligado na subida não é ligado de novo; um proxy recriado entre uma coisa e
+  # outra volta à rede.
+  [[ $PROXY_MODE != externo ]] || proxy_liga "$CODIGO"
   diz "No ar: https://$SLUG.$DOMINIO"
 }
 
 # ─── backup, remover ─────────────────────────────────────────────────────────
 
 # Os backups ficam em <raiz>/backups/<codigo>/, do root e 700, fora de dados/ (o que é apagado
-# com o cliente e o que a cota mede). Os nomes começam com manual- ou remocao-, para a poda de
-# backups do doug-atualizar-clientes (arquivos <codigo>-*.dump) não chegar neles.
+# com o cliente e o que a cota mede). Os nomes deste script são manual-<slug>-<AAAAMMDD-HHMMSS> e
+# remocao-<slug>-<AAAAMMDD-HHMMSS> (mais .env e -files.tar ao lado): o slug diz de quem é, porque o
+# código de um cliente removido pode ser de outro depois. Os do doug-atualizar-clientes (pre-* e
+# falhou-*) têm outros nomes e a poda dele; este script não os toca.
 pasta_backups() { # <codigo>
   mkdir -p "$RAIZ/backups/$1"
   chmod 700 "$RAIZ/backups" "$RAIZ/backups/$1"
 }
 
-# Dump do banco do cliente. Escreve em DESTINO_BACKUP (<prefixo>-<data>.dump). Devolve 1 (com a
+# O nome de um arquivo de backup deste script em SLUG_DO_ARQUIVO e DIA (AAAAMMDD). O slug é
+# vazio nos de antes de o nome o ter. Devolve 1 para o que não é daqui.
+BACKUP_COM_SLUG='^(manual|remocao)-(.+)-([0-9]{8})-[0-9]{6}(\.dump|\.env|-files\.tar)$'
+BACKUP_SEM_SLUG='^(manual|remocao)-([0-9]{8})-[0-9]{6}(\.dump|\.env|-files\.tar)$'
+nome_de_backup() { # <nome do arquivo>
+  if [[ $1 =~ $BACKUP_COM_SLUG ]]; then
+    SLUG_DO_ARQUIVO=${BASH_REMATCH[2]} DIA=${BASH_REMATCH[3]}
+  elif [[ $1 =~ $BACKUP_SEM_SLUG ]]; then
+    SLUG_DO_ARQUIVO="" DIA=${BASH_REMATCH[2]}
+  else
+    return 1
+  fi
+}
+
+# Os slugs que têm backup em backups/<codigo>/ (um por linha). Os sem slug não entram: não dizem de
+# quem são.
+slugs_de_backups() { # <codigo>
+  local f
+  for f in "$RAIZ/backups/$1"/*; do
+    [[ -f $f ]] || continue
+    nome_de_backup "${f##*/}" || continue
+    [[ -z $SLUG_DO_ARQUIVO ]] || printf '%s\n' "$SLUG_DO_ARQUIVO"
+  done | sort -u
+}
+
+# Dump do banco do cliente. Escreve em DESTINO_BACKUP (<prefixo>-<slug>-<data>.dump). Devolve 1 (com a
 # causa no stderr) em vez de sair: quem chama decide o que desfazer.
-faz_backup() { # <codigo> <pasta> <prefixo>
+faz_backup() { # <codigo> <pasta> <prefixo: manual|remocao>
   local destino parcial
   pasta_backups "$1"
-  destino=$RAIZ/backups/$1/$3-$(date +%Y%m%d-%H%M%S).dump
+  destino=$RAIZ/backups/$1/$3-$SLUG-$(date +%Y%m%d-%H%M%S).dump
   parcial=$destino.parcial
   compose "$1" "$2" up -d postgres >/dev/null || {
     printf 'doug-cliente: não consegui subir o Postgres de %s para o backup\n' "$1" >&2
@@ -944,7 +1218,7 @@ cmd_backup() {
   carrega_cliente "${POSICIONAIS[0]}"
   pasta_pronta
   if ((DRY)); then
-    simula "pg_dump -Fc do banco de $CODIGO para $RAIZ/backups/$CODIGO/manual-<data>.dump"
+    simula "pg_dump -Fc do banco de $CODIGO para $RAIZ/backups/$CODIGO/manual-$SLUG-<data>.dump"
     return 0
   fi
   faz_backup "$CODIGO" "$PASTA" manual || erro "o backup do banco de $CODIGO falhou"
@@ -952,17 +1226,42 @@ cmd_backup() {
   diz "Os arquivos do cliente (dados/files) não entram: copie $PASTA/dados/files à parte. O AGENTES_SECRET está em $PASTA/.env."
 }
 
-# dados/files num tar ao lado do dump, antes de apagar a pasta. Com a stack parada, para o tar
-# pegar os arquivos como estão.
+# dados/files num tar ao lado do dump, antes de apagar a pasta. O servidor já está parado, então o
+# tar pega os arquivos como estão.
 arquiva_files() { # <pasta> <caminho do tar>
   local parcial=$2.parcial
   umask 077
   if ! tar --numeric-owner -C "$1/dados" -cf "$parcial" files || [[ ! -s $parcial ]]; then
     rm -f "$parcial"
-    erro "não consegui arquivar $1/dados/files: a stack ficou parada e nada foi apagado (doug-cliente iniciar $CODIGO volta)"
+    umask 022
+    return 1
   fi
   umask 022
   mv "$parcial" "$2"
+}
+
+# Do `stop agentes` até a stack ser derrubada, uma falha deixa o cliente fora do ar sem ninguém ter
+# pedido isso. Este gancho de saída religa o servidor (e o proxy à rede dele) e diz o que aconteceu.
+# Fica desarmado quando a stack é derrubada: dali em diante a remoção não volta atrás.
+REMOVER_PARADO=""
+religa_ao_sair() {
+  local rc=$?
+  trap - EXIT
+  [[ -n $REMOVER_PARADO && $rc != 0 ]] || exit "$rc"
+  set +e
+  local codigo=${REMOVER_PARADO%%|*} pasta=${REMOVER_PARADO#*|} religou=1 proxy=1
+  REMOVER_PARADO=""
+  printf 'doug-cliente: a remoção de %s parou depois de parar o servidor dele; religando-o\n' "$codigo" >&2
+  compose "$codigo" "$pasta" up -d agentes >/dev/null 2>&1 || religou=0
+  liga_proxy_rede "$codigo" 2>/dev/null || proxy=0
+  if ((religou && proxy)); then
+    printf 'doug-cliente: religuei o servidor de %s e o proxy à rede dele; nada foi removido\n' "$codigo" >&2
+  elif ((religou)); then
+    printf 'doug-cliente: religuei o servidor de %s, mas o proxy não voltou à rede dele (doug-cliente religar-proxy); nada foi removido\n' "$codigo" >&2
+  else
+    printf 'doug-cliente: NÃO consegui religar o servidor de %s: ele continua parado (doug-cliente iniciar %s, e depois doug-cliente religar-proxy); nada foi removido\n' "$codigo" "$codigo" >&2
+  fi
+  exit "$rc"
 }
 
 cmd_remover() {
@@ -975,12 +1274,16 @@ cmd_remover() {
 
   local destino_pasta=$RAIZ/removidos/$CODIGO-$SLUG-$(date +%Y%m%d-%H%M%S)
   diz "Remover o cliente $CODIGO ($SLUG) — $NOME"
-  diz "  1. parar o servidor dele (para nada ser gravado entre o backup e o fim) e fazer o backup do banco em $RAIZ/backups/$CODIGO/"
-  diz "  2. desligar o proxy da rede dele, parar e derrubar a stack doug-$CODIGO"
+  if ((APAGAR)); then
+    diz "  1. parar o servidor dele (para nada ser gravado entre o backup e o fim), fazer o backup do banco e arquivar dados/files num tar ao lado do dump, em $RAIZ/backups/$CODIGO/"
+  else
+    diz "  1. parar o servidor dele (para nada ser gravado entre o backup e o fim) e fazer o backup do banco em $RAIZ/backups/$CODIGO/"
+  fi
+  diz "  2. desligar o proxy da rede dele, parar e derrubar a stack doug-$CODIGO (se algo falhar até aqui, o servidor é religado)"
   diz "  3. tirar https://$SLUG.$DOMINIO do proxy"
   diz "  4. tirar o cliente de $REGISTRO"
   if ((APAGAR)); then
-    diz "  5. arquivar dados/files num tar ao lado do dump, em $RAIZ/backups/$CODIGO/, e depois APAGAR $PASTA, com todos os dados (o .env fica copiado ao lado do dump)"
+    diz "  5. APAGAR $PASTA, com todos os dados (o .env fica copiado ao lado do dump)"
   else
     diz "  5. guardar $PASTA, com dados/ e .env, em $destino_pasta (nada é apagado)"
   fi
@@ -1013,47 +1316,46 @@ cmd_remover() {
   fi
 
   # O servidor para antes do dump: o que ele gravasse entre o dump e o `down` se perderia. O
-  # Postgres fica no ar para o dump. Se o backup falhar, o servidor volta antes de sair.
+  # Postgres fica no ar para o dump. Daqui até o `down`, qualquer falha (o backup, o tar, o proxy, o
+  # próprio `down`) religa o servidor antes de sair: religa_ao_sair.
+  REMOVER_PARADO="$CODIGO|$PASTA"
+  trap religa_ao_sair EXIT
   passo "parando o servidor (nada é gravado durante o backup)"
-  compose "$CODIGO" "$PASTA" stop agentes || erro "não consegui parar o servidor de $CODIGO: nada foi feito"
+  compose "$CODIGO" "$PASTA" stop agentes || erro "não consegui parar o servidor de $CODIGO: nada foi removido"
   passo "backup do banco"
-  if ! faz_backup "$CODIGO" "$PASTA" remocao; then
-    compose "$CODIGO" "$PASTA" up -d agentes >/dev/null 2>&1 \
-      && erro "o backup falhou: religuei o servidor de $CODIGO e nada foi removido" \
-      || erro "o backup falhou e o servidor de $CODIGO continua parado (não consegui religar: doug-cliente iniciar $CODIGO); nada foi removido"
-  fi
+  faz_backup "$CODIGO" "$PASTA" "remocao" || erro "o backup falhou: nada foi removido"
   diz "  $DESTINO_BACKUP"
   local base=${DESTINO_BACKUP%.dump}
   if ((APAGAR)); then
-    install -m 600 "$PASTA/.env" "$base.env"
+    install -m 600 "$PASTA/.env" "$base.env" || erro "não consegui copiar o .env para $base.env: nada foi removido"
     diz "  $base.env (o AGENTES_SECRET, para ler as chaves do backup)"
+    passo "arquivando dados/files"
+    arquiva_files "$PASTA" "$base-files.tar" || erro "não consegui arquivar $PASTA/dados/files: nada foi removido"
+    diz "  $base-files.tar"
   fi
 
   # O compose só derruba a rede sem o proxy ligado a ela.
   proxy_desliga "$CODIGO"
   passo "derrubando a stack"
-  compose "$CODIGO" "$PASTA" down --remove-orphans
-
-  if ((APAGAR)); then
-    passo "arquivando dados/files"
-    arquiva_files "$PASTA" "$base-files.tar"
-    diz "  $base-files.tar"
-  fi
+  compose "$CODIGO" "$PASTA" down --remove-orphans || erro "o docker compose down de $CODIGO falhou: nada foi removido"
+  # A stack caiu: a remoção segue adiante, e cada falha daqui diz onde as coisas ficaram.
+  REMOVER_PARADO=""
+  trap - EXIT
 
   passo "tirando do proxy"
   caddy_tira "$SLUG"
 
-  registro_tira "$CODIGO"
+  registro_tira "$CODIGO" || erro "a stack de $CODIGO foi derrubada e o backup está em $DESTINO_BACKUP, mas não consegui tirar o cliente de $REGISTRO: confira o registro e a pasta $PASTA à mão"
   passo "tirado de $REGISTRO"
 
   if ((APAGAR)); then
-    rm -rf -- "$PASTA"
-    diz "Removido, com os dados. Ficaram em $RAIZ/backups/$CODIGO/: o backup do banco, os arquivos (dados/files, em $base-files.tar) e o .env. Eles têm os dados pessoais do cliente: guarde só pelo prazo combinado e depois limpe (doug-cliente limpar-backups $CODIGO --antes <data>; README: Backups e dados de quem saiu)."
+    rm -rf -- "$PASTA" || erro "a stack de $CODIGO foi derrubada, o cliente saiu do registro e o backup está em $DESTINO_BACKUP, mas não consegui apagar $PASTA: apague-a à mão"
+    diz "Removido, com os dados. Ficaram em $RAIZ/backups/$CODIGO/: o backup do banco, os arquivos (dados/files, em $base-files.tar) e o .env. Eles têm os dados pessoais do cliente: guarde só pelo prazo combinado e depois limpe (doug-cliente limpar-backups $CODIGO --antes <data> --slug $SLUG; README: Backups e dados de quem saiu)."
   else
     mkdir -p "$RAIZ/removidos"
     chmod 700 "$RAIZ/removidos"
-    mv "$PASTA" "$destino_pasta"
-    diz "Removido. Os dados ficaram em $destino_pasta (apague à mão quando não precisar mais); o backup, em $RAIZ/backups/$CODIGO/."
+    mv "$PASTA" "$destino_pasta" || erro "a stack de $CODIGO foi derrubada, o cliente saiu do registro e o backup está em $DESTINO_BACKUP, mas não consegui mover $PASTA para $destino_pasta: mova-a à mão"
+    diz "Removido. Os dados ficaram em $destino_pasta (apague com doug-cliente limpar-removidos --antes <data> quando não precisar mais); o backup, em $RAIZ/backups/$CODIGO/."
   fi
 }
 
@@ -1061,7 +1363,10 @@ cmd_remover() {
 
 # No modo externo o proxy é ligado à rede de cada cliente por fora do compose do cliente: se o
 # contêiner do proxy for recriado (a atualização da instância principal faz isso), ele perde as
-# ligações. Este comando as refaz e recarrega o proxy; pode rodar quantas vezes quiser.
+# ligações. Este comando as refaz e recarrega o proxy; pode rodar quantas vezes quiser. Tenta todos
+# os clientes: o que não tem rede (parado e derrubado, ou nunca subiu) é pulado com aviso, o que a
+# ligação recusa também é anotado, o proxy é recarregado de qualquer jeito, e o código de saída é
+# diferente de 0 se algum não foi ligado (com a lista deles no fim).
 cmd_religar_proxy() {
   ((${#POSICIONAIS[@]} == 0)) || erro "uso: doug-cliente religar-proxy"
   [[ $PROXY_MODE == externo ]] || erro "religar-proxy é do modo externo (DOUG_PROXY_MODE=externo): o Caddy próprio fica na rede do host"
@@ -1072,49 +1377,78 @@ cmd_religar_proxy() {
     return 0
   fi
   if ((DRY)); then
-    simula "ligar $PROXY_CONTAINER à rede de cada cliente de $REGISTRO e recarregar o proxy"
+    simula "ligar $PROXY_CONTAINER à rede de cada cliente de $REGISTRO (pulando os sem rede) e recarregar o proxy"
     return 0
   fi
   trava
-  local codigo slug resto n=0
+  proxy_rodando || erro "o contêiner do proxy $PROXY_CONTAINER não está rodando (ou não existe): inicie-o (docker start $PROXY_CONTAINER) e rode de novo; não liguei nem recarreguei nada"
+  local codigo slug resto ligados=0 falhas=() recarregou=1
   while IFS=$'\t' read -r codigo slug resto || [[ -n ${codigo:-} ]]; do
     [[ -z ${codigo:-} || $codigo == \#* ]] && continue
     valida_codigo "$codigo"
-    proxy_liga "$codigo"
-    n=$((n + 1))
+    if ! rede_existe "$codigo"; then
+      aviso "a rede doug-$codigo de $slug não existe (cliente parado e derrubado, ou que nunca subiu): pulei (doug-cliente iniciar $codigo)"
+      falhas+=("$codigo-$slug (sem rede)")
+      continue
+    fi
+    if liga_proxy_rede "$codigo"; then
+      ligados=$((ligados + 1))
+    else
+      falhas+=("$codigo-$slug (não liga)")
+    fi
   done <"$REGISTRO"
-  caddy_recarrega || erro "o proxy não recarregou (veja o log do proxy)"
-  diz "$PROXY_CONTAINER ligado à rede de $n clientes e recarregado."
+  caddy_recarrega || recarregou=0
+  diz "$PROXY_CONTAINER ligado à rede de $ligados clientes."
+  if ((!recarregou)); then
+    aviso "o proxy não recarregou (veja o log do proxy)"
+  else
+    diz "O proxy foi recarregado."
+  fi
+  if ((${#falhas[@]})); then
+    printf 'doug-cliente: %d clientes ficaram de fora: %s\n' "${#falhas[@]}" "${falhas[*]}" >&2
+    return 1
+  fi
+  ((recarregou)) || return 1
 }
 
-# ─── limpar-backups ──────────────────────────────────────────────────────────
+# ─── limpar-backups, limpar-removidos ────────────────────────────────────────
 
-# Apaga os backups feitos por este script (manual-* e remocao-*, com o .env e o tar que vão ao
-# lado) de um cliente, o que for de antes da data: o prazo de guarda do README. Vale também para o
-# código de um cliente já removido, que é o caso de quem pede para esquecer os dados dele. Não toca
-# nos pre-* e falhou-* do doug-atualizar-clientes, que ele mesmo poda.
-cmd_limpar_backups() {
-  ((${#POSICIONAIS[@]} == 1)) || erro "uso: doug-cliente limpar-backups <codigo> --antes <AAAA-MM-DD> [--sim]"
-  local codigo=${POSICIONAIS[0]} dir f nome dia corte lista=()
-  valida_codigo "$codigo"
+valida_data_antes() {
   [[ $ANTES =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] && date -d "$ANTES" +%F >/dev/null 2>&1 \
     || erro "--antes pede uma data válida, AAAA-MM-DD (ele não apaga nada sem ela)"
+}
+
+# Apaga os backups feitos por este script (manual-* e remocao-*, com o .env e o tar que vão ao
+# lado) de um código, o que for de antes da data: o prazo de guarda do README. Vale também para o
+# código de um cliente já removido, que é o caso de quem pede para esquecer os dados dele. Com
+# --slug, só os desse cliente; sem ele, se houver backups de mais de um cliente com o código, recusa
+# (apagar pelo código levaria os de outro cliente). Não toca nos pre-* e falhou-* do
+# doug-atualizar-clientes, que ele mesmo poda.
+cmd_limpar_backups() {
+  ((${#POSICIONAIS[@]} == 1)) || erro "uso: doug-cliente limpar-backups <codigo> --antes <AAAA-MM-DD> [--slug <slug>] [--sim]"
+  local codigo=${POSICIONAIS[0]} dir f nome corte lista=() slugs
+  valida_codigo "$codigo"
+  valida_data_antes
+  [[ -z $SLUG_FILTRO ]] || valida_slug "$SLUG_FILTRO"
   corte=${ANTES//-/}
   dir=$RAIZ/backups/$codigo
   [[ -d $dir ]] || erro "não há backups do cliente $codigo em $dir"
-  for f in "$dir"/manual-* "$dir"/remocao-*; do
+  if [[ -z $SLUG_FILTRO ]]; then
+    slugs=$(slugs_de_backups "$codigo" | paste -sd, -)
+    [[ $slugs != *,* ]] || erro "há backups de mais de um cliente com o código $codigo ($slugs): diga de qual com --slug <slug>"
+  fi
+  for f in "$dir"/*; do
     [[ -f $f ]] || continue
     nome=${f##*/}
-    dia=${nome#*-}
-    dia=${dia:0:8}
-    [[ $dia =~ ^[0-9]{8}$ ]] || continue
-    ((10#$dia < 10#$corte)) && lista+=("$f")
+    nome_de_backup "$nome" || continue
+    [[ -z $SLUG_FILTRO || $SLUG_DO_ARQUIVO == "$SLUG_FILTRO" ]] || continue
+    ((10#$DIA < 10#$corte)) && lista+=("$f")
   done
   if ((${#lista[@]} == 0)); then
-    diz "Nada de antes de $ANTES em $dir."
+    diz "Nada de antes de $ANTES em $dir${SLUG_FILTRO:+ (cliente $SLUG_FILTRO)}."
     return 0
   fi
-  diz "Apagar de $dir, o que é de antes de $ANTES:"
+  diz "Apagar de $dir, o que é de antes de $ANTES${SLUG_FILTRO:+ (cliente $SLUG_FILTRO)}:"
   printf '  %s\n' "${lista[@]##*/}"
   if ((DRY)); then
     simula "nada foi feito"
@@ -1129,6 +1463,46 @@ cmd_limpar_backups() {
   trava
   rm -f -- "${lista[@]}"
   diz "Apagados ${#lista[@]} arquivos."
+}
+
+# Apaga as pastas de clientes removidos sem --apagar-dados (removidos/<codigo>-<slug>-<data>, com
+# dados/, .env e o link do dono) que são de antes da data: o prazo de guarda do README. O nome da
+# pasta traz o dia em que o cliente saiu.
+cmd_limpar_removidos() {
+  ((${#POSICIONAIS[@]} <= 1)) || erro "uso: doug-cliente limpar-removidos [<codigo>] --antes <AAAA-MM-DD> [--sim]"
+  local so=${POSICIONAIS[0]:-} dir=$RAIZ/removidos d nome corte lista=()
+  [[ -z $so ]] || valida_codigo "$so"
+  valida_data_antes
+  corte=${ANTES//-/}
+  [[ -d $dir ]] || erro "não há clientes removidos em $dir"
+  for d in "$dir"/*; do
+    [[ -d $d && ! -L $d ]] || continue
+    nome=${d##*/}
+    [[ $nome =~ ^([0-9]{3})-(.+)-([0-9]{8})-[0-9]{6}$ ]] || continue
+    [[ -z $so || ${BASH_REMATCH[1]} == "$so" ]] || continue
+    ((10#${BASH_REMATCH[3]} < 10#$corte)) && lista+=("$d")
+  done
+  if ((${#lista[@]} == 0)); then
+    diz "Nada de antes de $ANTES em $dir."
+    return 0
+  fi
+  diz "Apagar de $dir, com todo o conteúdo, o que saiu antes de $ANTES:"
+  printf '  %s\n' "${lista[@]##*/}"
+  if ((DRY)); then
+    simula "nada foi feito"
+    return 0
+  fi
+  if ((!SIM)); then
+    local resposta=""
+    printf 'Para confirmar, digite "LIMPAR REMOVIDOS": ' >&2
+    read -r resposta || true
+    [[ $resposta == "LIMPAR REMOVIDOS" ]] || erro "não confirmado: nada foi apagado"
+  fi
+  trava
+  for d in "${lista[@]}"; do
+    rm -rf -- "$d" || erro "não consegui apagar $d (rode como root)"
+  done
+  diz "Apagadas ${#lista[@]} pastas."
 }
 
 # ─── cota ────────────────────────────────────────────────────────────────────
@@ -1176,6 +1550,7 @@ case $COMANDO in
   cota) cmd_cota ;;
   religar-proxy) cmd_religar_proxy ;;
   limpar-backups) cmd_limpar_backups ;;
+  limpar-removidos) cmd_limpar_removidos ;;
   ajuda) uso ;;
   *) erro "comando desconhecido: $COMANDO (veja doug-cliente ajuda)" ;;
 esac

@@ -8,7 +8,8 @@
 # cota de disco do cliente ser uma pasta só. A porta do servidor só abre no loopback (o doug-cliente
 # e o doug-atualizar-clientes conferem o /api/health por ela); quem publica o cliente é o proxy,
 # com TLS: o Caddy de deploy/swas/caddy (por essa porta) ou o proxy que já existe na máquina (pela
-# rede do cliente, pelo nome do contêiner: README, "O proxy").
+# rede do cliente, pelo alias do servidor: README, "O proxy"). A porta de loopback não é privada:
+# qualquer login da máquina fala com ela (README, "A porta de loopback").
 name: "doug-${DOUG_CLIENT_CODE:?defina DOUG_CLIENT_CODE no .env}"
 
 services:
@@ -44,7 +45,7 @@ services:
   agentes:
     image: "${DOUG_IMAGE:?defina DOUG_IMAGE no .env}"
     env_file: .env
-    # Um uid por cliente (100000 + o código, no .env): o dono de dados/files de um cliente não é
+    # Um uid por cliente (DOUG_UID_BASE + o código, gravado no .env): o dono de dados/files de um cliente não é
     # o de outro cliente nem o de um login da máquina. A imagem roda com um uid qualquer: o /app é
     # do root e legível por todos, e o servidor só escreve em /tmp e em FILES_DIR.
     user: "${DOUG_UID:?defina DOUG_UID no .env}:${DOUG_UID}"
@@ -62,7 +63,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    networks: [cliente]
+    networks:
+      cliente:
+        # O proxy que já existe na máquina fala com o servidor por este nome. Com o código, porque o
+        # proxy fica ligado à rede de todos os clientes, e um alias repetido cairia no cliente errado.
+        aliases: ["doug-${DOUG_CLIENT_CODE}-agentes"]
     restart: unless-stopped
     # Acima do limite, o kernel para só este contêiner e ele reinicia, em vez de a máquina
     # entrar em swap e derrubar os outros clientes.
