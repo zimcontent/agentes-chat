@@ -6,6 +6,8 @@ import {
   COMPANY_STATUSES,
   COMPANY_TEAM_SIZES,
   companyRequestById,
+  confirmCompanyRequest,
+  deleteCompanyRequest,
   EARLY_ACCESS_OUTCOMES,
   inviteCompanyRequest,
   isAgentesCloud,
@@ -15,7 +17,6 @@ import {
   setCompanyClientCode,
   setCompanyNotes,
   setCompanyStatus,
-  WAITLIST_LOCALES,
 } from "@agenteschat/engine";
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
 import { requestLimitIp } from "../../http/client-ip";
@@ -35,9 +36,11 @@ import {
 
 const tags = ["Companies"];
 
-/** A form per address per hour, and in total per hour (each one mails). */
+/** A form per address per hour, and in total per hour (each may mail). */
 const JOIN_PER_IP = { limit: 10, windowMs: 3600_000 };
 const JOIN_TOTAL = { limit: 200, windowMs: 3600_000 };
+/** Confirmation attempts per address per hour (tokens are 192 bits; this only stops noise). */
+const CONFIRM_PER_IP = { limit: 30, windowMs: 3600_000 };
 /** The team's own reads and writes through this route. */
 const ADMIN_WRITES = { limit: 60, windowMs: 60_000 };
 
@@ -47,8 +50,9 @@ const TeamSize = z.enum(COMPANY_TEAM_SIZES).openapi("CompanyTeamSize", {
 const Interest = z.enum(COMPANY_INTERESTS).openapi("CompanyInterest", {
   description: "What the company wants to automate: `design`, `video`, `ads`, `social`, `code`, `finance`.",
 });
-const Locale = z.enum(WAITLIST_LOCALES).openapi("CompanyLocale", {
-  description: "The page's language, for the confirmation email.",
+const Locale = z.string().max(35).openapi("CompanyLocale", {
+  description:
+    "The page's language, as its app resolved it (`pt-BR`, `es`…): any tag it falls back from is taken (`en-US` reads English, `es-MX` Spanish), and an unknown one reads English. Never refused.",
 });
 
 const CompanyRequest = z
@@ -65,6 +69,11 @@ const CompanyRequest = z
     status: z.enum(COMPANY_STATUSES),
     clientCode: z.string().nullable().openapi({ description: "Three digits once the company is a client." }),
     notes: z.string().openapi({ description: "The team's own notes about it." }),
+    confirmedAt: z.string().nullable().openapi({ description: "When the address confirmed itself (double opt-in)." }),
+    pendingResendAt: z
+      .string()
+      .nullable()
+      .openapi({ description: "A confirmed second form waiting for its link to be opened: when it was sent." }),
     invitedAt: z.string().nullable(),
     createdAt: z.string(),
     updatedAt: z.string(),
@@ -73,6 +82,8 @@ const CompanyRequest = z
 
 const requestJson = (r: Awaited<ReturnType<typeof companyRequestById>>) => ({
   ...r,
+  confirmedAt: iso(r.confirmedAt),
+  pendingResendAt: iso(r.pendingResendAt),
   invitedAt: iso(r.invitedAt),
   createdAt: r.createdAt.toISOString(),
   updatedAt: r.updatedAt.toISOString(),
@@ -86,7 +97,7 @@ const join = createRoute({
   tags: ["Public"],
   summary: "Ask for DougBot on a company's behalf",
   description:
-    "Public, from this server's own page (`/empresas`, JSON only). Writes a company's request, or updates it when the address is there already. A consent is required (LGPD): without `consent: true` nothing is kept. Answers 202 whether it was new or an update, so the list can't be probed. Guarded by the bot check when this server has one.",
+    "Public, from this server's own page (`/empresas`, JSON only). Writes a company's request, or asks the address to confirm what a second form changes. The request is `unconfirmed` until the link in its email is opened, so the installation's owner never hears of it before; a consent is required (LGPD), and without `consent: true` nothing is kept. Answers 202 whether it was new or an update, so the list can't be probed. Guarded by the bot check when this server has one. Not served on agentes.chat's own servers (404).",
   request: {
     body: {
       required: true,
@@ -118,17 +129,48 @@ const join = createRoute({
     403: errorResponse(
       "Not from our origin (`bad_origin`), or the bot check refused (`human_check`, `human_check_blocked`)",
     ),
+    404: errorResponse("agentes.chat's own servers (`not_found`): the form is self-hosting's."),
+    429: errorResponse("Too many attempts (`rate_limited`)"),
+  },
+});
+
+const confirm = createRoute({
+  method: "post",
+  path: "/companies/confirm",
+  tags: ["Public"],
+  summary: "Confirm a company's request",
+  description:
+    "Public, from the page the confirmation link opens (POST, so mail scanners that only fetch the URL don't confirm). Confirms the address, and only then is the installation's owner told; a confirmed request's second form is applied, and a `discarded` one comes back to `new`. Not served on agentes.chat's own servers (404).",
+  request: {
+    body: {
+      required: true,
+      content: { "application/json": { schema: z.object({ token: z.string().max(64) }) } },
+    },
+  },
+  responses: {
+    200: {
+      description: "Confirmed",
+      content: { "application/json": { schema: z.object({ ok: z.literal(true) }) } },
+    },
+    400: errorResponse("Unknown or expired link (`invalid_token`) or bad body (`invalid_request`)"),
+    403: errorResponse("Not from our origin (`bad_origin`)"),
+    404: errorResponse("agentes.chat's own servers (`not_found`): the form is self-hosting's."),
     429: errorResponse("Too many attempts (`rate_limited`)"),
   },
 });
 
 /**
- * `POST /api/companies` (the public page) and, from the apps, the installation's list of requests: `GET /api/app/companies`
- * and one by id, with the team's moves (its step, its notes, its client's code) and the Invite that sends it the
- * early-access link. Public part apart (`registerCompanyRequests`): JSON only, CORS for our own origin.
+ * `POST /api/companies` and `/api/companies/confirm` (the public page), and from the apps the installation's list of
+ * requests: `GET /api/app/companies` and one by id, with the team's moves (its step, its notes, its client's code),
+ * the Delete that erases it and the Invite that sends it the early-access link.
+ *
+ * The public part is self-hosting's alone: agentes.chat's own servers register no route and serve no page, so a
+ * company that asks there finds nothing (`registerCompanyRequests` answers nothing when `isAgentesCloud`).
  */
 export function registerCompanyRequests(api: OpenAPIHono, deps: AppDeps) {
   const { config } = deps;
+  // agentes.chat's own servers offer the form nowhere: no route, no page (`companiesPage`).
+  if (isAgentesCloud(config.PUBLIC_URL)) return;
   const { rateLimiter, humanCheck } = deps.adapters;
 
   api.openapi(join, async (c) => {
@@ -145,25 +187,42 @@ export function registerCompanyRequests(api: OpenAPIHono, deps: AppDeps) {
     if (!(await rateLimiter.consume("company-request:all", JOIN_TOTAL)).allowed)
       return apiError(c, 429, "rate_limited", "Too many requests. Try again later.");
     const ownerUserId = await pinnedOwner(deps.db);
-    await joinCompanyRequests(deps.db, input, {
-      pubsub: deps.adapters.pubsub,
-      ownerUserId,
-      emailTo: config.COMPANY_REQUESTS_NOTIFY_EMAIL ?? null,
-      publicUrl: config.PUBLIC_URL,
-    });
+    await joinCompanyRequests(deps.db, input, notifyOf(deps, ownerUserId));
     return c.json({ ok: true as const }, 202);
+  });
+
+  api.openapi(confirm, async (c) => {
+    const origin = c.req.header("origin");
+    if (!origin || !allowedOrigins(config).has(origin))
+      return apiError(c, 403, "bad_origin", "Cross-origin request refused");
+    const ip = requestLimitIp(c.req.raw.headers, config.TRUSTED_PROXIES);
+    if (!(await rateLimiter.consume(`company-request-confirm:${ip}`, CONFIRM_PER_IP)).allowed)
+      return apiError(c, 429, "rate_limited", "Too many requests. Try again later.");
+    const ownerUserId = await pinnedOwner(deps.db);
+    const result = await confirmCompanyRequest(deps.db, c.req.valid("json").token, notifyOf(deps, ownerUserId));
+    if (!result.confirmed)
+      return apiError(c, 400, "invalid_token", "This link is unknown or expired. Send the form again for a new one.");
+    return c.json({ ok: true as const }, 200);
   });
 
   return api;
 }
 
+/** Who hears a confirmed request: the installation's owner, in the app and (when told where) by email. */
+const notifyOf = (deps: AppDeps, ownerUserId: string | null) => ({
+  pubsub: deps.adapters.pubsub,
+  ownerUserId,
+  emailTo: deps.config.COMPANY_REQUESTS_NOTIFY_EMAIL ?? null,
+  publicUrl: deps.config.PUBLIC_URL,
+});
+
 const Count = z.number().int().min(0);
 
 /**
- * The team's list of company requests, in Settings ("Empresas"), for the installation's pinned owner (ADR for this
- * instance): the requests, filtered and searched, each moved through its step, given notes and its client's code, and
- * invited through early access. A server without email refuses the Invite. The routes answer 404 to everyone else, and
- * live under `/api/app/companies`; the public form alone is `/api/companies`.
+ * The team's list of company requests, in Settings ("Empresas"), for the installation's pinned owner (ADR doug-0021):
+ * the requests, filtered and searched, each moved through its step, given notes and its client's code, deleted, and
+ * invited through early access. A server without email refuses the Invite. The routes answer 404 to everyone else and
+ * on agentes.chat itself, and live under `/api/app/companies`; the public form alone is `/api/companies`.
  */
 export function companyRequestRoutes(deps: AppDeps) {
   const { db, config } = deps;
@@ -247,12 +306,39 @@ export function companyRequestRoutes(deps: AppDeps) {
 
   app.openapi(
     createRoute({
+      method: "delete",
+      path: "/companies/{requestId}",
+      tags,
+      summary: "Delete a company request",
+      description:
+        "Erases the request and everything it holds, the consent included (the LGPD's right to erasure). 404 for everyone but the installation's owner, and on agentes.chat itself.",
+      security,
+      request: { params: IdParams },
+      responses: {
+        204: { description: "Deleted" },
+        ...errors,
+        404: errors[404],
+        429: errorResponse("`rate_limited`"),
+      },
+    }),
+    async (c) => {
+      const user = c.get("user");
+      if (!(await guard(user.id))) return apiError(c, 404, "not_found", "Not found");
+      if (!(await limited(`company-request-write:${user.id}`)))
+        return apiError(c, 429, "rate_limited", "Too many requests. Try again later.");
+      await deleteCompanyRequest(db, c.req.valid("param").requestId);
+      return c.body(null, 204);
+    },
+  );
+
+  app.openapi(
+    createRoute({
       method: "put",
       path: "/companies/{requestId}/status",
       tags,
       summary: "Move a request to another step",
       description:
-        "The team's own step: `new`, `talking`, `invited`, `deployed` (the company is a client) or `discarded`. 404 for everyone but the installation's owner, and on agentes.chat itself.",
+        "The team's own step: `new`, `talking`, `invited`, `deployed` (the company is a client) or `discarded`. Moving it resolves its notice in the owner's inbox. 404 for everyone but the installation's owner, and on agentes.chat itself.",
       security,
       request: { params: IdParams, body: body(z.object({ status: z.enum(COMPANY_STATUSES) })) },
       responses: { 200: json(CompanyRequest), ...errors, 404: errors[404], 429: errorResponse("`rate_limited`") },
