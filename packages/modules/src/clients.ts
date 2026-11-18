@@ -36,8 +36,50 @@ function folderOf(root: string, code: string): string | null {
   return found[0] ? resolve(root, found[0]) : null;
 }
 
+/**
+ * Where a code's folder is, and why there is none when there isn't: `loadClient` reads it before a file is opened, and
+ * the server says it at boot. A code that isn't three digits and two folders for one code are refused here.
+ */
+export type ClientLocation =
+  | { kind: "found"; code: string; dir: string }
+  /** A build without `clients/` at all: a native package or a bundle made without one, which can't carry a client. */
+  | { kind: "no-root" }
+  /** A server whose `clients/` has no folder for its code: the deployments of the team that runs it, whose stacks set the
+   * code and carry no folder. It runs as the shared code does (ADR doug-0023 §1). */
+  | { kind: "no-folder"; code: string; root: string };
+
+export function locateClient(code: string | undefined, root?: string | null): ClientLocation | null {
+  const wanted = code?.trim();
+  if (!wanted) return null;
+  if (!CLIENT_CODE.test(wanted))
+    throw new ClientConfigError(`DOUG_CLIENT_CODE must be three digits, such as 064: "${wanted}"`);
+  const base = root === undefined ? clientsRoot() : root;
+  if (!base) return { kind: "no-root" };
+  const dir = folderOf(base, wanted);
+  return dir ? { kind: "found", code: wanted, dir } : { kind: "no-folder", code: wanted, root: base };
+}
+
 /** A color the apps may paint: `#rrggbb`. */
 const HEX = /^#[0-9a-fA-F]{6}$/;
+
+/** A control character: what a log, a title bar or a push notification can't show, by code point (C0 and DEL). */
+const isControl = (char: string): boolean => {
+  const code = char.codePointAt(0) ?? 0;
+  return code <= 0x1f || code === 0x7f;
+};
+
+/**
+ * What a client's name may not hold, and why: `{{` is an i18next variable a string would try to fill (`{{name}}`), `$t(`
+ * a translation call it would try to run, `<` markup drawn where the name is live text, and a control character
+ * something a log, a title bar or a push notification can't show. The name reaches a page, an accessible name and an
+ * email's subject, so it is text and only text.
+ */
+const NAME_REFUSALS: readonly [RegExp | ((name: string) => boolean), string][] = [
+  [/\{\{/, "must not hold `{{` (a string's variable)"],
+  [/\$t\(/, "must not hold `$t(` (a translation call)"],
+  [/[<>]/, "must not hold `<` or `>` (markup)"],
+  [(name) => [...name].some(isControl), "must not hold a control character"],
+];
 
 /**
  * The two stages the apps paint on: the identity's dark and light grounds (`dougbot-tokens.css`). The accent is read
@@ -88,8 +130,22 @@ export const clientConfigSchema = z
      */
     product: z
       .object({
-        /** Shown where the apps sign the product (the signature and the tab's title). A line, at most 40 characters. */
-        name: z.string().trim().min(1).max(40).optional(),
+        /**
+         * Shown where the apps sign the product (the signature and the tab's title). A line, at most 40 characters, and
+         * text only: no `{{`, `$t(`, `<`, or a control character (see `NAME_REFUSALS`).
+         */
+        name: z
+          .string()
+          .trim()
+          .min(1)
+          .max(40)
+          .superRefine((value, ctx) => {
+            const refused = NAME_REFUSALS.find(([pattern]) =>
+              typeof pattern === "function" ? pattern(value) : pattern.test(value),
+            );
+            if (refused) ctx.addIssue({ code: "custom", message: refused[1] });
+          })
+          .optional(),
         /**
          * The highlight's color: `#rrggbb`. It paints the highlighted words (`--accent-text`) and the focus ring
          * (`--focus-color`), and nothing else, on both of the identity's stages. A color that falls under 3:1 on
@@ -165,27 +221,17 @@ const readJson = async (path: string): Promise<unknown> => {
 };
 
 /**
- * The client `code` names, read from `root` (default: this build's `clients/`), or null without a code. A code with
- * no folder, a folder with neither file, a `config.json` off the schema or a `client.ts` that exports no module is a
- * `ClientConfigError`, never a server that boots as if nothing had been asked for it.
+ * The client `code` names, read from `root` (default: this build's `clients/`), or null without a code or without a
+ * folder for it. A folder with neither file, a `config.json` off the schema, a `client.ts` that exports no module and
+ * two folders for one code are a `ClientConfigError`: a client that was asked for is never half-applied. A code with
+ * no folder is not an error (ADR doug-0023 §1): the installs the team runs set the code and ship no folder, and they
+ * run as the shared code does. A build that carries no `clients/` at all (a native package, a bundle made without one)
+ * is not one either: it says so through `locateClient`.
  */
 export async function loadClient(code: string | undefined, root?: string | null): Promise<LoadedClient | null> {
-  const wanted = code?.trim();
-  if (!wanted) return null;
-  if (!CLIENT_CODE.test(wanted))
-    throw new ClientConfigError(`DOUG_CLIENT_CODE must be three digits, such as 064: "${wanted}"`);
-  const base = root === undefined ? clientsRoot() : root;
-  if (!base) {
-    throw new ClientConfigError(
-      `DOUG_CLIENT_CODE is ${wanted} but this build carries no clients/ folder: a native package or a bundle made without one can't load a client`,
-    );
-  }
-  const dir = folderOf(base, wanted);
-  if (!dir) {
-    throw new ClientConfigError(
-      `DOUG_CLIENT_CODE is ${wanted} but ${base} has no folder for it (clients/${wanted}/ or clients/${wanted}-<slug>/): add the client's folder, or unset the variable`,
-    );
-  }
+  const place = locateClient(code, root);
+  if (place?.kind !== "found") return null;
+  const { dir } = place;
   const configPath = resolve(dir, "config.json");
   const modulePath = resolve(dir, "client.ts");
   const hasConfig = existsSync(configPath);
@@ -221,7 +267,7 @@ export async function loadClient(code: string | undefined, root?: string | null)
       throw new ClientConfigError(`${modulePath} must export default an AgentesModule (a name, and functions)`);
     module = exported;
   }
-  return { code: wanted, dir, config, module };
+  return { code: place.code, dir, config, module };
 }
 
 /**

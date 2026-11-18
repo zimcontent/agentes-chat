@@ -185,11 +185,17 @@ export async function loadI18n(lng: LocaleCode): Promise<I18n> {
  * The tab's default title in the app's language (index.html's is English). A page with its own title puts back the
  * one it found when it goes, which may be an earlier language's default: that one is swapped for today's wherever it
  * shows, so a page's own title stays, and so does the unread count in front of the default.
+ *
+ * `title: false` leaves the tab's own title alone: a boot that hasn't learnt whether this server has a client (its
+ * `GET /api/instance` in time, ADR doug-0023) writes nothing rather than the build's name over a page's, which a
+ * client's server would have to correct anyway. A language change writes it from then on.
  */
-export function translateTabTitle(instance: I18n) {
+export function translateTabTitle(instance: I18n, { title = true }: { title?: boolean } = {}) {
   const earlier = new Set<string>();
   let shown = instance.t("app.tabTitle");
-  document.title = shown;
+  // A boot that wrote no title starts writing one from its first language change: the reader has the app's own by then.
+  let writing = title;
+  if (title) document.title = shown;
   const swap = () => {
     for (const was of earlier) if (document.title.includes(was)) document.title = document.title.replace(was, shown);
   };
@@ -197,9 +203,12 @@ export function translateTabTitle(instance: I18n) {
     earlier.add(shown);
     shown = instance.t("app.tabTitle");
     earlier.delete(shown);
+    writing = true;
     swap();
   });
-  new MutationObserver(swap).observe(document.head, { subtree: true, childList: true, characterData: true });
+  new MutationObserver(() => {
+    if (writing) swap();
+  }).observe(document.head, { subtree: true, childList: true, characterData: true });
 }
 
 /** An instance with every language loaded at once (tests). */

@@ -97,6 +97,7 @@ import {
   type ClientOverrides,
   type Edition,
   loadClient,
+  locateClient,
   type ModuleContext,
   overridesOf,
   resolveAdapters,
@@ -215,13 +216,27 @@ async function boot(
 ) {
   // This client's customizations (ADR doug-0023), read before anything serves: its config.json and, when it has one, its
   // client.ts as one more module. No DOUG_CLIENT_CODE: none of it, and the server behaves as the shared code does.
+  // Where the code's folder is first: a code with no folder is the team's own installs (their stacks set the code and
+  // ship no folder) and runs the shared code, so it is said and the boot goes on, never a server kept from starting.
   let client: ClientOverrides | null = null;
   try {
-    const loaded = await loadClient(config.DOUG_CLIENT_CODE);
-    if (loaded) {
-      client = overridesOf(loaded);
-      if (loaded.module) modules = [...modules, loaded.module];
-      log.info("client customizations", { code: loaded.code, dir: loaded.dir, module: loaded.module?.name ?? null });
+    const place = locateClient(config.DOUG_CLIENT_CODE);
+    if (place?.kind === "no-folder") {
+      log.info("client customizations: no folder for this code, running the shared code", {
+        code: place.code,
+        root: place.root,
+      });
+    } else if (place?.kind === "no-root") {
+      log.warn(
+        "client customizations: DOUG_CLIENT_CODE is set but this build carries no clients/ folder (a native package or a bundle made without one), so none loads",
+      );
+    } else {
+      const loaded = await loadClient(config.DOUG_CLIENT_CODE);
+      if (loaded) {
+        client = overridesOf(loaded);
+        if (loaded.module) modules = [...modules, loaded.module];
+        log.info("client customizations", { code: loaded.code, dir: loaded.dir, module: loaded.module?.name ?? null });
+      }
     }
   } catch (error) {
     if (error instanceof ClientConfigError) log.error("client customizations failed to load", { error: error.message });

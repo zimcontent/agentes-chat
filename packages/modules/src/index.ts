@@ -11,12 +11,14 @@ export {
   CLIENT_CODE,
   type ClientConfig,
   ClientConfigError,
+  type ClientLocation,
   type ClientOverrides,
   clientConfigSchema,
   clientsRoot,
   contrastRatio,
   type LoadedClient,
   loadClient,
+  locateClient,
   overridesOf,
 } from "./clients";
 

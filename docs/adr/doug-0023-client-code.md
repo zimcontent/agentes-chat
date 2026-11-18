@@ -22,8 +22,14 @@ already uses, and a path from it back into the shared code.
 
 `DOUG_CLIENT_CODE` (three digits, `064`) is the one new variable (`packages/config/src/schema.ts`, `.env.example`
 through `bun run docs:env`). At boot, before anything serves, `start.ts` reads `clients/<code>/` from the source it was
-built from and passes what it finds to the app; with no code, or with a code and no folder, nothing changes except that
-a code with no folder is a boot error (`ClientConfigError`), never a server that runs as if nobody had asked.
+built from and passes what it finds to the app.
+
+With no code, none of it loads. A code with **no folder** is not an error either: the installs the team runs set the
+code (for Support) and ship no folder, so the server says so in its log and runs the shared code, as a server with no
+code does. A build with **no `clients/` folder at all** — a native package or a bundle made without one — can't carry a
+client: it logs a warning and boots the same way. What still stops the boot is a folder that is there and unusable: a
+`config.json` off the schema, a `client.ts` that exports no module, or two folders for one code. A client that was asked
+for is never half-applied.
 
 The folder is named for the code alone (`064`) or the code and its slug (`064-padaria-aurora`, the deploy's own shape);
 two folders for one code are refused.
@@ -103,14 +109,18 @@ is refused with that key named, and an accent under 3:1 on either stage (black, 
 
 - One image serves every client; the client is configuration (`DOUG_CLIENT_CODE`) plus a folder in the source, and the
   folder is public code under the same review as the rest.
-- A code with no folder, a bad `config.json` or a `client.ts` that exports no module stops the boot with the file and
-  the key named: a client is never half-applied.
-- The clients workspace (`clients/package.json`, `clients/tsconfig.json`) exists so each folder resolves
-  `@agenteschat/modules` and typechecks with the rest (`bun run typecheck`); `bun install` keeps it in the lockfile.
-- A native package or bundle built without `clients/` says so at boot instead of running a client's build silently
-  without its customizations.
+- A code with no folder boots the shared code (the team's own installs); a bad `config.json`, a `client.ts` that
+  exports no module or two folders for one code stops the boot with the file and the key named: a client that is there
+  is never half-applied.
+- A native package or bundle built without `clients/` says so in its log and runs without a client's customizations.
 - What a `client.ts` may do is exactly what a module may do, so the Cloud's own behavior and a client's are governed
   by one rule (ADR 0002 §5), and nothing private runs in this process.
-- `bun run check:boundaries` is what keeps §4's inside: a `client.ts` under `clients/` may only import
-  `@agenteschat/modules` (and the other public packages §4 allows), so a folder can extend through the module API and
-  nothing else — never the engine's internals, a route it shouldn't reach, or a private package.
+- `bun run check:boundaries` is what keeps §4's inside. It reads every file a client folder may hold (`.ts`, `.tsx`,
+  `.mts`, `.cts`, `.js`, `.jsx`, `.mjs`, `.cjs`) with Bun's own parser (`Bun.Transpiler().scanImports`), not a pattern,
+  so an `import "x"` with no `from`, an `export … from`, a type-only import and a `from` on the next line are all read.
+  A specifier may be one of `CLIENT_PACKAGES` (`@agenteschat/modules`, `@agenteschat/adapters`, `@agenteschat/config`,
+  `@agenteschat/db`, `@agenteschat/providers`, `@hono/zod-openapi`, `zod`), a `node:` builtin, or a relative path that
+  **resolves inside the client's own folder** (`./a/b` does, `../x` and `./a/../../..` don't). A `import(` / `require(` /
+  `import.meta.resolve(` whose argument is not a string literal — a variable, a template with a hole — is refused by the
+  expression itself, since there is no path to check. A folder can thus extend through the module API and nothing else:
+  never the engine's internals, a route it shouldn't reach, another client's folder or a private package.

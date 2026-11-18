@@ -13,6 +13,7 @@
  *   projects, companies and repositories.
  */
 import { createHash } from "node:crypto";
+import * as pathPosix from "node:path/posix";
 import { Glob } from "bun";
 
 /**
@@ -55,25 +56,118 @@ function packageOf(specifier: string): string | null {
   return specifier.startsWith("@") ? parts.slice(0, 2).join("/") || null : (parts[0] ?? null);
 }
 
+/** The transpiler loaders this check reads: every extension a client's folder may hold, its list kept beside the glob. */
+const LOADERS: Record<string, "ts" | "tsx" | "js" | "jsx"> = {
+  ts: "ts",
+  tsx: "tsx",
+  mts: "ts",
+  cts: "ts",
+  js: "js",
+  jsx: "jsx",
+  mjs: "js",
+  cjs: "js",
+};
+
+/** One import a file spells: where and what the transpiler read, and the specifier when it is a literal string. */
+interface ReadImport {
+  line: number;
+  /** The expression as written when it isn't a string literal (`import(name)`, a template with `${}`): refused. */
+  dynamic: string | null;
+  specifier: string | null;
+}
+
+/**
+ * The imports `text` spells, read by Bun's own parser instead of a pattern: `import … from "x"`, `import "x"`,
+ * `export … from "x"`, `import("x")` and `require("x")`. A `import(` / `require(` / `import.meta.resolve(` whose
+ * argument isn't a string literal — a variable, a template with `${}` — has no specifier to check, so it is refused by
+ * the caller as `dynamic`.
+ */
+function importsOf(path: string, text: string): ReadImport[] {
+  const ext = path.split(".").pop() ?? "";
+  const loader = LOADERS[ext];
+  if (!loader) return [];
+  const found: ReadImport[] = [];
+  const lineOf = (index: number) => (index < 0 ? 1 : text.slice(0, index).split("\n").length);
+  // `import … from "x"`, `import "x"`, `export … from "x"`, `import("x")` and `require("x")`, read by Bun's parser:
+  // the line is where the specifier's text starts, so a `from` on the next line names the line the path is on.
+  // The parser drops a type-only import (`import type { … } from "x"`, `export type { … } from "x"`) as it erases the
+  // types, but the name is still a reach the folder may not take: four spaces stand where ` type` was, so the length
+  // and the lines hold and the import reads as a value's.
+  const read = new Bun.Transpiler({ loader }).scanImports(
+    text.replace(
+      /\b(import|export)(\s+)type(\s+)(?=[{*])/g,
+      (_m, kw: string, sp: string, sp2: string) => `${kw}${sp}    ${sp2}`,
+    ),
+  );
+  let at = 0;
+  for (const { path: specifier } of read) {
+    const index = text.indexOf(specifier, at);
+    if (index >= 0) at = index + specifier.length;
+    found.push({ line: lineOf(index), dynamic: null, specifier });
+  }
+  // A call the parser can't resolve to a literal leaves no entry above: `import(x)`, `require(x)`, `import.meta.resolve`
+  // with a variable, a template with a hole. Its argument is read here, so the line still names it and it is refused
+  // rather than silently passed. A literal `import.meta.resolve("x")` names a path the parser hands back nothing for, so
+  // it is checked like the rest: any specifier the folder writes goes through the allow-list.
+  const calls = /(?:import|require)\s*\(\s*([^)]*?)\s*\)|import\.meta\.resolve\s*\(\s*([^)]*?)\s*\)/g;
+  for (const [whole, first, second] of text.matchAll(calls)) {
+    const arg = (first ?? second ?? "").trim();
+    const index = text.indexOf(whole);
+    const literal = /^(["'])([^"'`\\]*)\1$/.exec(arg);
+    if (literal) {
+      // `import.meta.resolve("x")` is the one only this pattern reads: the parser answers nothing for it.
+      if (second !== undefined) found.push({ line: lineOf(index), dynamic: null, specifier: literal[2] ?? "" });
+      continue;
+    }
+    found.push({ line: lineOf(index), dynamic: arg.slice(0, 80), specifier: null });
+  }
+  return found.sort((a, b) => a.line - b.line);
+}
+
+/**
+ * Whether a specifier from `path` resolves inside the same client's folder: `./x` and `./a/b` do, `../x` and
+ * `./a/../../..` don't. The folder is `clients/<code>` — the first two segments of a path under `clients/` — so a file
+ * can only reach its own client's code, never another's or the repo's. `path.posix.resolve` does the climb as a string,
+ * with a virtual root so nothing touches the disk.
+ */
+function staysInFolder(path: string, specifier: string): boolean {
+  const parts = path.split("/");
+  if (parts[0] !== "clients" || parts.length < 3) return false;
+  const folder = `/${parts[0]}/${parts[1]}`;
+  const resolved = pathPosix.resolve(pathPosix.dirname(`/${path}`), specifier);
+  return resolved === folder || resolved.startsWith(`${folder}/`);
+}
+
 /** What a client folder's `{ path, text }` files import that they may not, as `path:line: specifier`. */
 export function clientImports(files: { path: string; text: string }[]): string[] {
   const refused: string[] = [];
-  const imported = /(?:from\s+|import\s*\(\s*|require\s*\(\s*)["']([^"']+)["']/g;
   for (const { path, text } of files) {
-    text.split("\n").forEach((line, i) => {
-      for (const [, specifier] of line.matchAll(imported)) {
-        // The folder's own code (`./x`, `./a/b`) is allowed; one that leaves it (`../x`) is not. So is a runtime's own
-        // builtin (`node:fs`), which reaches no part of this product.
-        if (/^\.\/?[^./]|^\.\/$/.test(specifier) || specifier === "." || specifier.startsWith("node:")) continue;
-        const name = packageOf(specifier);
-        if (name !== null && (CLIENT_PACKAGES as readonly string[]).includes(name)) continue;
-        refused.push(`${path}:${i + 1}: ${specifier}`);
+    for (const { line, dynamic, specifier } of importsOf(path, text)) {
+      // A specifier the parser couldn't read as a literal reaches anything: refused by name.
+      if (dynamic !== null) {
+        refused.push(`${path}:${line}: ${dynamic}`);
+        continue;
       }
-    });
+      if (specifier === null) continue;
+      // The folder's own code (`./x`, `./a/b`) is allowed; so is a runtime's own builtin (`node:fs`), which reaches no
+      // part of this product. A relative path stays in the folder only if it resolves inside it: `./a/../../..` leaves.
+      if (specifier.startsWith("node:")) continue;
+      if (specifier.startsWith(".") || specifier.startsWith("/")) {
+        if (staysInFolder(path, specifier)) continue;
+        refused.push(`${path}:${line}: ${specifier}`);
+        continue;
+      }
+      const name = packageOf(specifier);
+      if (name !== null && (CLIENT_PACKAGES as readonly string[]).includes(name)) continue;
+      refused.push(`${path}:${line}: ${specifier}`);
+    }
   }
   return refused;
 }
 
+/** Whether a relative specifier from `path` resolves inside the same client's folder: `./x` and `./a/b` do, `../x` and
+ * `./a/../../..` don't. The folder is `clients/<code>` — the first two segments of a path under `clients/` — so a file
+ * can only reach its own client's code, never another's or the repo's. */
 /** Public files that hold the patterns on purpose: this check, its samples and the ignore rule for local prototypes. */
 const NAMES_PRIVATE_PATHS = new Set(["scripts/check-boundaries.ts", "scripts/check-boundaries.test.ts", ".gitignore"]);
 
@@ -157,7 +251,7 @@ if (import.meta.main) {
   // A client's folder extends through the module API alone (ADR doug-0023 §4): what its `.ts` files import.
   {
     const files: { path: string; text: string }[] = [];
-    for await (const file of new Glob("clients/*/**/*.{ts,tsx,js,mjs}").scan({ dot: false })) {
+    for await (const file of new Glob("clients/*/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}").scan({ dot: false })) {
       if (file.includes("node_modules") || file.includes("/dist/")) continue;
       files.push({ path: file, text: await Bun.file(file).text() });
     }

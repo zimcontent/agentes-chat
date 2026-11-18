@@ -57,20 +57,28 @@ void authConfig.then(
   () => startErrorReports(null),
 );
 // A server deployed for one client names the product in its own words (ADR doug-0023): its name is set before the
-// strings are built, so the tab's title and every string that says the product's name read it. Public, one request,
-// and a server with no client or one that doesn't answer leaves the build's own name in place.
-const instance = await Promise.race([
-  api.system.instance().catch(() => null),
-  new Promise<null>((resolve) => setTimeout(() => resolve(null), 1500)),
+// strings are built, so the tab's title and every string that says the product's name read it. Public, one request;
+// the language's file downloads alongside it (the app needs both before the first screen, so neither waits on the
+// other). A server with no client, or one that doesn't answer in time, leaves the build's own name in place, and the
+// title is written as the build's, never a page's overwritten with it.
+const timedOut = Symbol("instance-timeout");
+const [answer, i18n] = await Promise.all([
+  Promise.race([
+    api.system.instance().catch(() => null),
+    new Promise<typeof timedOut>((resolve) => setTimeout(() => resolve(timedOut), 1500)),
+  ]),
+  // The language's file is the app's own too: index.html's boot fallback reloads or says so, and the error is reported.
+  loadI18n(savedLocale()).catch((error: unknown) => {
+    window.__agentesBootFailed?.();
+    throw error;
+  }),
 ]);
-setClientProductName(instance?.client?.name);
-// The language's file is the app's own too: index.html's boot fallback reloads or says so, and the error is reported.
-const i18n = await loadI18n(savedLocale()).catch((error: unknown) => {
-  window.__agentesBootFailed?.();
-  throw error;
-});
+const instance = answer === timedOut ? null : answer;
+// The name is applied only once the answer is here; on a timeout the build's own stays, and the tab's title is not
+// written with it over a page's own (the name arrives later, if it does, and `ClientBrand` follows it).
+if (instance) setClientProductName(instance.client?.name);
 document.documentElement.lang = i18n.language;
-translateTabTitle(i18n);
+translateTabTitle(i18n, { title: answer !== timedOut });
 // In the desktop app (ADR 0036): the site draws the window's title bar (desktop.css), with room for a Mac's
 // buttons only there; and "this Mac" is this computer's own name.
 const platform = desktopPlatform();

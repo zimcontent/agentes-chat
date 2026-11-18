@@ -10,6 +10,7 @@ import {
   clientConfigSchema,
   clientsRoot,
   loadClient,
+  locateClient,
   overridesOf,
 } from "../src/clients";
 
@@ -42,9 +43,26 @@ describe("a client's folder (ADR doug-0023)", () => {
     expect(overridesOf(loaded)).toEqual({ code: "000", name: "Padaria Aurora", accent: "#C2410C" });
   });
 
-  test("a code with no folder is an error, never a server that boots as if nothing was asked", async () => {
+  test("a code with no folder is no error: the team's own installs set the code and ship no folder", async () => {
     const root = clientsDir({});
-    await expect(loadClient("064", root)).rejects.toBeInstanceOf(ClientConfigError);
+    // Nothing loads, and nothing stops the boot: the server runs the shared code (ADR doug-0023 §1).
+    expect(await loadClient("064", root)).toBeNull();
+    expect(locateClient("064", root)).toEqual({ kind: "no-folder", code: "064", root });
+  });
+
+  test("a build with no clients/ at all says so through its place, and loads nothing", async () => {
+    expect(await loadClient("064", null)).toBeNull();
+    expect(locateClient("064", null)).toEqual({ kind: "no-root" });
+    expect(locateClient(undefined, null)).toBeNull();
+  });
+
+  test("a folder that is there but broken still stops the boot: only a missing one is forgiven", async () => {
+    await expect(loadClient("064", clientsDir({ "064": {} }))).rejects.toBeInstanceOf(ClientConfigError);
+    await expect(loadClient("064", clientsDir({ "064": { "config.json": "{ nope" } }))).rejects.toBeInstanceOf(
+      ClientConfigError,
+    );
+    const twice = clientsDir({ "064-padaria-aurora": { "config.json": "{}" }, "064-outra": { "config.json": "{}" } });
+    await expect(loadClient("064", twice)).rejects.toBeInstanceOf(ClientConfigError);
   });
 
   test("a code that isn't three digits is refused before a folder is looked for", async () => {
@@ -71,10 +89,6 @@ describe("a client's folder (ADR doug-0023)", () => {
   test("a folder with neither file can't be used", async () => {
     const root = clientsDir({ "064": {} });
     await expect(loadClient("064", root)).rejects.toThrow(/neither config.json nor client.ts/);
-  });
-
-  test("a build with no clients/ at all says so", async () => {
-    await expect(loadClient("064", null)).rejects.toThrow(/carries no clients/);
   });
 
   test("a config.json off the schema names every key it got wrong", async () => {
@@ -116,6 +130,17 @@ describe("a client's folder (ADR doug-0023)", () => {
       });
       await expect(loadClient("064", root)).rejects.toThrow(new RegExp(`${key} isn't supported yet`));
       rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  test("a name is text and only text: no template, no translation call, no markup, no control character", () => {
+    for (const name of ["{{name}}", "Padaria $t( x)", "<b>Padaria</b>", "Aurora\u0007", "Aurora\nB"]) {
+      const parsed = clientConfigSchema.safeParse({ product: { name } });
+      expect(parsed.success).toBe(false);
+    }
+    // What a person would type is taken: an ampersand, an accent, a trailing space trimmed, a hyphen.
+    for (const name of ["Padaria Aurora", "Café Sol & Cia", "Aurora-64"]) {
+      expect(clientConfigSchema.safeParse({ product: { name } }).success).toBe(true);
     }
   });
 

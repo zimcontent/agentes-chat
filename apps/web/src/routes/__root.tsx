@@ -101,10 +101,12 @@ function ClientBrand() {
       root.style.removeProperty("--client-accent");
       delete root.dataset.clientAccent;
     }
-    // The tab's title was built before the name arrived (index.html's, English): it is rebuilt in the language in use.
-    // `t` already gives it under the client's name (the language files are branded when they load), so it is written
-    // as it is: `brandText` here would be a second pass, and a name that holds the build's own would grow.
-    document.title = t("app.tabTitle");
+    // The tab's title was built before the name arrived (index.html's, English): a client's server rebuilds it in the
+    // language in use. A server with no client writes nothing: its title is the build's own, already the one
+    // `index.html` and `translateTabTitle` set, and writing it here would be a second pass that could put the name's
+    // own words over a page's. `t` already gives it under the client's name (the language files are branded when they
+    // load), so it is written as it is: `brandText` here would grow a name that holds the build's own.
+    if (client.name) document.title = t("app.tabTitle");
   }, [known, client.name, client.accent, t]);
   return null;
 }

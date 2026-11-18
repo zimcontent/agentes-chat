@@ -1,5 +1,5 @@
 import { type CSSProperties, type HTMLAttributes, useSyncExternalStore } from "react";
-import { brandName, subscribeBrand } from "../brand/doug";
+import { BRAND_NAME, brandName, subscribeBrand } from "../brand/doug";
 import type { DougBotEstado } from "../brand/dougbot-avatar.js";
 import { cx } from "../cx";
 import { BotFace } from "./BotFace";
@@ -56,11 +56,18 @@ export interface LogoProps {
 }
 
 /**
- * A name in the signature's two weights: the first word 800 and the rest 500 ("Doug" + "Bot"), the way the identity
- * draws it. A client's name (ADR doug-0023) keeps that split at its first space, so "Padaria Aurora" reads "Padaria"
- * 800 + "Aurora" 500.
+ * A name in the signature's two weights. The build's own is the identity's markup, word for word: `<b>Doug</b>Bot`,
+ * "Doug" 800 and "Bot" 500. A client's name (ADR doug-0023) only keeps that split at its first space, so "Padaria
+ * Aurora" reads "Padaria" 800 + "Aurora" 500, and a name of one word is all 800.
  */
 const SignatureName = ({ name }: { name: string }) => {
+  if (name === BRAND_NAME) {
+    return (
+      <>
+        <b>Doug</b>Bot
+      </>
+    );
+  }
   const at = name.indexOf(" ");
   return at < 0 ? (
     <b>{name}</b>

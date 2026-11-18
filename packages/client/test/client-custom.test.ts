@@ -26,4 +26,16 @@ describe("a server's client look (ADR doug-0023)", () => {
     expect(productName(NO_CLIENT, "DougBot")).toBe("DougBot");
     expect(productName({ ...NO_CLIENT, name: "   " }, "DougBot")).toBe("DougBot");
   });
+
+  test("a color is painted only in the shape the server's config allows: `#rrggbb`, else none", () => {
+    for (const accent of ["#C2410C", "#0f766e", "#FFFFFF"]) {
+      expect(clientLookOf(meWith({ name: "Padaria Aurora", accent }))).toEqual({ name: "Padaria Aurora", accent });
+    }
+    // An old or odd server: anything that isn't `#rrggbb` is read as no color, so the page keeps the identity's green.
+    for (const accent of ["red", "#C2410", "#C2410CFF", "rgb(1,2,3)", " #C2410C", ""]) {
+      expect(clientLookOf(meWith({ name: "Padaria Aurora", accent })).accent).toBeNull();
+    }
+    // A blank name is no name: the product's own stands.
+    expect(productName(clientLookOf(meWith({ name: "   ", accent: null })), "DougBot")).toBe("DougBot");
+  });
 });

@@ -77,6 +77,27 @@ const renamed = (text: string, pattern: RegExp, name: string): string =>
 const KEPT = "\u0000";
 
 /**
+ * Keys whose words are the vendor's, never the product's: `hosting.cloud.name` is the Cloud offering's own name and
+ * `onboarding.import.agenteschatName` the server this instance comes from. A client's name replaces neither — the plan
+ * it sells and the server it is built from stay named as they are whichever workspace reads them (ADR doug-0023 §3).
+ */
+export const KEPT_KEYS: ReadonlySet<string> = new Set(["hosting.cloud.name", "onboarding.import.agenteschatName"]);
+
+/** Whether a path names one of `KEPT_KEYS`, at any depth above it: a language's tree may sit under its code. */
+const keptKey = (path: readonly string[]): boolean => path.some((_, i) => KEPT_KEYS.has(path.slice(i).join(".")));
+
+/**
+ * The vendor's own phrases inside a sentence, held out of the rename: "DougBot Cloud", "DougBot plan". They name what
+ * the vendor sells, not the product the client runs, so a client's name never stands in them — "Padaria Aurora Cloud"
+ * would name another company's cloud. The languages put the noun first or the article between ("plano do DougBot"), so
+ * the phrase is matched up to the name's end and the article before it is read as part of the words that follow.
+ */
+const VENDOR_PHRASES = /\bDougBot\s+(?:Cloud|plan)\b|\bplan(?:o|os)?\s+d[oa]s?\s+DougBot\b/gi;
+
+/** A character no name or string carries: the vendor phrases stand as placeholders with it while the rename runs. */
+const HELD = "\u0001";
+
+/**
  * `text` with the product's name as this server's, addresses left alone.
  *
  * Applied twice, the text reads the same as once: the client's name already standing in it is held out, so a name
@@ -89,23 +110,47 @@ export function brandText(text: string): string {
   const name = brandName();
   const upstream = (text: string) => (text.includes(UPSTREAM_NAME) ? renamed(text, UPSTREAM_WORD, name) : text);
   if (name === BRAND_NAME) return upstream(text);
-  // A text that carries the marker itself (a name is free text) takes the plain passes: one application is still exact.
-  if (text.includes(KEPT) || name.includes(KEPT)) return upstream(renamed(text, BRAND_WORD, name));
-  const parts = text.split(name);
-  const branded = upstream(renamed(parts.join(KEPT), BRAND_WORD, name));
-  return parts.length > 1 ? branded.split(KEPT).join(name) : branded;
+  // The vendor's own phrases are held out first, whatever else the name does: the plan it sells and the cloud it runs
+  // keep their name whichever client reads them (ADR doug-0023 §3). A name of free text may carry a marker itself;
+  // then the text takes the plain passes, exact once, and no phrase survives as a placeholder either.
+  const vendor = heldOut(text);
+  const markers = vendor.held.includes(HELD) || text.includes(KEPT) || name.includes(KEPT);
+  const brand = markers
+    ? (text: string) => upstream(renamed(text, BRAND_WORD, name))
+    : (text: string) => {
+        const parts = text.split(name);
+        const branded = upstream(renamed(parts.join(KEPT), BRAND_WORD, name));
+        return parts.length > 1 ? branded.split(KEPT).join(name) : branded;
+      };
+  return vendor.restore(brand(vendor.held));
+}
+
+/** `text` with each vendor phrase swapped for `HELD` and its position, to put back after the rename. */
+function heldOut(text: string): { held: string; restore: (text: string) => string } {
+  const phrases: string[] = [];
+  const held = text.replace(VENDOR_PHRASES, (phrase) => {
+    phrases.push(phrase);
+    return `${HELD}${phrases.length - 1}${HELD}`;
+  });
+  if (phrases.length === 0) return { held, restore: (same) => same };
+  return {
+    held,
+    restore: (branded) =>
+      branded.replace(new RegExp(`${HELD}(\\d+)${HELD}`, "g"), (_m, at: string) => phrases[Number(at)] ?? ""),
+  };
 }
 
 /**
  * Every string of a tree of words (objects, arrays) through `brandText`. A branch with nothing to rename comes back
  * as the same object, so a tree that never names the product is returned untouched. Functions and other values stay.
+ * A key in `KEPT_KEYS` names the vendor, not the product, and its string stays as written.
  */
-export function brandTree<T>(tree: T): T {
-  if (typeof tree === "string") return brandText(tree) as T;
+export function brandTree<T>(tree: T, path: readonly string[] = []): T {
+  if (typeof tree === "string") return (keptKey(path) ? tree : brandText(tree)) as T;
   if (Array.isArray(tree)) {
     let changed = false;
-    const out = tree.map((item) => {
-      const next = brandTree(item);
+    const out = tree.map((item, i) => {
+      const next = brandTree(item, [...path, String(i)]);
       if (next !== item) changed = true;
       return next;
     });
@@ -115,7 +160,7 @@ export function brandTree<T>(tree: T): T {
     let changed = false;
     const out: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(tree)) {
-      const next = brandTree(value);
+      const next = brandTree(value, [...path, key]);
       if (next !== value) changed = true;
       out[key] = next;
     }

@@ -886,6 +886,8 @@ describe("Logo, Icon, Meter", () => {
     // The signature (IDENTIDADE.md §3): the Doug close up drawn by code beside the name in live text, no image.
     expect(logos[0]?.textContent).toBe("DougBot");
     expect(logos[0]?.querySelector("b")?.textContent).toBe("Doug");
+    // A server with no client (ADR doug-0023): the identity's markup, word for word, and not a name split at a space.
+    expect(logos[0]?.querySelector(".ac-logo__word")?.innerHTML).toBe("<b>Doug</b>Bot");
     expect(container.querySelector(".ac-logo__mark .ac-bot > svg")).not.toBeNull();
     expect(container.querySelector("img")).toBeNull();
   });

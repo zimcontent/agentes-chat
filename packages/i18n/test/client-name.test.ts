@@ -39,10 +39,49 @@ describe("a client's name over this build's", () => {
 
   test("the trees an app builds after it read the client come under its name too", () => {
     setClientProductName("Café Sol");
-    expect(brandTree({ a: "agentes.chat Cloud", b: ["DougBot's servers"] })).toEqual({
-      a: "Café Sol Cloud",
+    expect(brandTree({ a: "agentes.chat", b: ["DougBot's servers"] })).toEqual({
+      a: "Café Sol",
       b: ["Café Sol's servers"],
     });
+  });
+
+  test("the vendor's own phrases keep their name: the Cloud it runs and the plan it sells", () => {
+    setClientProductName("Padaria Aurora");
+    for (const [written, stays] of [
+      ["DougBot Cloud", "DougBot Cloud"],
+      ["Continue on DougBot Cloud", "Continue on DougBot Cloud"],
+      ["Your DougBot plan is active.", "Your DougBot plan is active."],
+      ["A DougBot plan", "A DougBot plan"],
+      ["DoughBot plan", "DoughBot plan"],
+    ] as const) {
+      expect(brandText(written)).toBe(stays);
+    }
+    // The Portuguese and Spanish put the noun first, and the article between them stays with the phrase.
+    expect(brandText("Seu plano do DougBot está ativo.")).toBe("Seu plano do DougBot está ativo.");
+    expect(brandText("Um plano do DougBot")).toBe("Um plano do DougBot");
+    expect(brandText("Respondo assim que o workspace tiver um plano do DougBot.")).toBe(
+      "Respondo assim que o workspace tiver um plano do DougBot.",
+    );
+    // The name that isn't the vendor's phrase, in the same sentence, still reads as the client's.
+    expect(brandText("DougBot plan · Welcome to agentes.chat")).toBe("DougBot plan · Welcome to Padaria Aurora");
+  });
+
+  test("the vendor's key names stay as written for a client's tree too", () => {
+    setClientProductName("Café Sol");
+    expect(
+      brandTree({
+        hosting: { cloud: { name: "DougBot" } },
+        onboarding: { import: { agenteschatName: "DougBot" } },
+        app: { name: "DougBot" },
+      }),
+    ).toEqual({
+      hosting: { cloud: { name: "DougBot" } },
+      onboarding: { import: { agenteschatName: "DougBot" } },
+      app: { name: "Café Sol" },
+    });
+    // Without a client the tree is the product's own everywhere, as written.
+    setClientProductName(null);
+    expect(brandTree({ hosting: { cloud: { name: "DougBot" } } })).toEqual({ hosting: { cloud: { name: "DougBot" } } });
   });
 
   test("a name with a `$` in it reaches the screen as typed: it is not read as a replacement pattern", () => {

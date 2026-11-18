@@ -54,6 +54,19 @@ describe("a client's name and color in the web app (ADR doug-0023)", () => {
   });
 });
 
+describe("the signature's markup (ADR doug-0023)", () => {
+  test("with no client it is the identity's own: <b>Doug</b>Bot, not a name split at a space", () => {
+    const { container } = render(<Logo />);
+    expect(container.querySelector(".ac-logo__word")?.innerHTML).toBe("<b>Doug</b>Bot");
+  });
+
+  test("a client's name splits at its first space, the first word 800", () => {
+    setClientProductName("Padaria Aurora");
+    const { container } = render(<Logo />);
+    expect(container.querySelector(".ac-logo__word")?.innerHTML).toBe("<b>Padaria</b> Aurora");
+  });
+});
+
 describe("the signature follows the name (subscribeBrand)", () => {
   test("a Logo on screen redraws when the client's name arrives after it", async () => {
     const { getByRole } = render(<Logo />);

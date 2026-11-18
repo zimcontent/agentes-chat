@@ -8,18 +8,31 @@ import { useTheme } from "./theme";
 /** This build's own name, what a server with no client signs (ADR doug-0023). */
 const BUILD_NAME = "DougBot";
 
+/** The first word's weight, 800: what the signature draws "Doug" in, and a client's name's first word too. */
+const BOLD = { fontFamily: DB_FONTES.titulo800, fontWeight: "800" } as const;
+/** The rest of the name, 500: the line's own weight, which "Bot" and a client's other words keep. */
+const LIGHT = { fontFamily: DB_FONTES.titulo500, fontWeight: "500" } as const;
+
 /**
- * A name in the signature's two weights: the first word 800, the rest 500 ("Doug" + "Bot"), the way the identity draws
- * it. A client's name keeps that split at its first space ("Padaria" + " Aurora").
+ * A name in the signature's two weights. The build's own is the identity's markup, word for word: "Doug" 800 and "Bot"
+ * 500 inside the line that is drawn in 500. A client's name (ADR doug-0023) only keeps that split at its first space
+ * ("Padaria" + " Aurora"), and a name of one word is all 800.
  */
-function SignatureName({ name, size, color }: { name: string; size: number; color?: string }) {
-  const face = { fontSize: size, lineHeight: Math.round(size * 1.2), letterSpacing: -0.035 * size, color };
+function SignatureName({ name }: { name: string }) {
+  if (name === BUILD_NAME) {
+    return (
+      <>
+        <RNText style={BOLD}>Doug</RNText>
+        Bot
+      </>
+    );
+  }
   const at = name.indexOf(" ");
-  if (at < 0) return <RNText style={[face, { fontFamily: DB_FONTES.titulo800, fontWeight: "800" }]}>{name}</RNText>;
+  if (at < 0) return <RNText style={BOLD}>{name}</RNText>;
   return (
     <>
-      <RNText style={[face, { fontFamily: DB_FONTES.titulo800, fontWeight: "800" }]}>{name.slice(0, at)}</RNText>
-      <RNText style={[face, { fontFamily: DB_FONTES.titulo500, fontWeight: "500" }]}>{name.slice(at)}</RNText>
+      <RNText style={BOLD}>{name.slice(0, at)}</RNText>
+      {name.slice(at)}
     </>
   );
 }
@@ -40,6 +53,7 @@ export function Assinatura({ size = 22, label, color }: { size?: number; label?:
   const name = label ?? productName(client, BUILD_NAME);
   const t = Math.max(size, 20 / 1.42);
   const mark = Math.round(t * 1.42);
+  const face = { fontSize: t, lineHeight: Math.round(t * 1.2), letterSpacing: -0.035 * t, color: color ?? colors.ink };
   return (
     <View
       accessible
@@ -48,8 +62,8 @@ export function Assinatura({ size = 22, label, color }: { size?: number; label?:
       style={{ flexDirection: "row", alignItems: "center", gap: Math.round(t * 0.36) }}
     >
       <LogoMark size={mark} />
-      <RNText allowFontScaling={false}>
-        <SignatureName name={name} size={t} color={color ?? colors.ink} />
+      <RNText allowFontScaling={false} style={[face, LIGHT]}>
+        <SignatureName name={name} />
       </RNText>
     </View>
   );

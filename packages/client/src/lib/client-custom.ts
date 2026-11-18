@@ -14,14 +14,23 @@ export interface ClientLook {
 
 export const NO_CLIENT: ClientLook = { name: null, accent: null };
 
+/** A color the apps may paint, `#rrggbb`: the shape the server's `config.json` refuses anything else for. */
+const HEX = /^#[0-9a-f]{6}$/i;
+
+/** The color to paint, or null: what a server answers is read once more here, so an old or odd one paints nothing. */
+const accentOf = (color: string | null | undefined): string | null =>
+  typeof color === "string" && HEX.test(color) ? color : null;
+
 /** The client's look as `me` and the instance say it; nothing from either: NO_CLIENT. `me` wins where both speak. */
 export function clientLookOf(me: Me | null | undefined, instance?: Instance | null): ClientLook {
   const fromMe = me?.client;
   const fromInstance = instance?.client;
   if (!fromMe && !fromInstance) return NO_CLIENT;
+  const name = fromMe?.name ?? fromInstance?.name ?? null;
+  const accent = fromMe?.accent ?? fromInstance?.accent ?? null;
   return {
-    name: fromMe?.name ?? fromInstance?.name ?? null,
-    accent: fromMe?.accent ?? fromInstance?.accent ?? null,
+    name: typeof name === "string" && name.trim() ? name : null,
+    accent: accentOf(accent),
   };
 }
 
