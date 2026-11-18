@@ -1,6 +1,6 @@
 import { MisconfiguredError } from "@agenteschat/engine";
 import { isHelpSlug } from "@agenteschat/i18n/help";
-import type { AgentesModule, Edition, ModuleContext } from "@agenteschat/modules";
+import type { AgentesModule, ClientOverrides, Edition, ModuleContext } from "@agenteschat/modules";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { Scalar } from "@scalar/hono-api-reference";
 import { serveStatic } from "hono/bun";
@@ -97,6 +97,12 @@ export interface AppOptions {
   /** The package's version; the config's `APP_VERSION` (the deploy's) takes its place when set. */
   version: string;
   modules: AgentesModule[];
+  /**
+   * This client's customizations (`clients/<code>/config.json`, ADR doug-0032), read at boot from `DOUG_CLIENT_CODE`;
+   * null or absent: a server that behaves as the shared code does. The apps read them in `GET /api/instance` and
+   * `GET /api/app/me`.
+   */
+  client?: ClientOverrides | null;
   pingDatabase: () => Promise<void>;
   /** True once the server is shutting down: `/api/health` answers 503. */
   draining?: () => boolean;
@@ -179,7 +185,7 @@ export function createApp(options: AppOptions) {
       }
       return res;
     });
-    const deps: AppDeps = { log, ...options.services };
+    const deps: AppDeps = { log, client: options.client ?? null, ...options.services };
     registerInstance(api, deps, version);
     registerFeedbackFiles(api, deps);
     registerFeedbackInbox(api, deps);

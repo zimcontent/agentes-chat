@@ -21,6 +21,7 @@ import { artifactRefs } from "../lib/artifacts";
 import { newerBlockState, stateChanges, stateForPage } from "../lib/blocks";
 import type { ChatPrefs } from "../lib/chat-look";
 import type { ChoiceAnswer } from "../lib/choices";
+import { type ClientLook, clientLookOf, productName } from "../lib/client-custom";
 import { newerSetup } from "../lib/computer";
 import { CONSULT_CONVERSATION_POLL_MS, CONSULT_GROUP_POLL_MS, exchangeIds } from "../lib/consult-group";
 import { forPeople } from "../lib/consultations";
@@ -264,6 +265,24 @@ export const instanceQuery = (api: ApiClient) =>
 /** The company details the legal pages fill in (`LEGAL_*`): they change only with the installation's settings. */
 export const legalFactsQuery = (api: ApiClient) =>
   queryOptions({ queryKey: keys.legal, queryFn: () => api.system.legal(), staleTime: 60_000 });
+
+/**
+ * This server's client customizations (ADR doug-0032): its name and color (from `me`, with `/api/instance` as the
+ * fallback) and, once signed in, the tools it turns off and the onboarding's words. NO_CLIENT for a server with none,
+ * so every screen that reads it paints the product's own. `me` may be dropped from the cache by a sign-out: the hook
+ * then reads `null` and the instance again, which is public.
+ */
+export function useClientLook(): ClientLook {
+  const api = useApi();
+  const me = useQuery(meQuery(api)).data;
+  const instance = useQuery(instanceQuery(api)).data;
+  return useMemo(() => clientLookOf(me, instance), [me, instance]);
+}
+
+/** The product's name here, from `useClientLook`'s answer: a server with no client says the build's own. */
+export function useProductName(fallback: string): string {
+  return productName(useClientLook(), fallback);
+}
 export const channelsQuery = (api: ApiClient, orgId: string) =>
   queryOptions({
     queryKey: keys.channels(orgId),

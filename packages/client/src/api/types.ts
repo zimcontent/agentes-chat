@@ -319,6 +319,20 @@ export interface Instance {
    * server serves DougBot's own, or sends them to its own `TERMS_URL` and `PRIVACY_URL` (absent: an older server).
    */
   cloud?: boolean;
+  /**
+   * This server's client customizations (ADR doug-0032), from `clients/<DOUG_CLIENT_CODE>/config.json`: the name and
+   * color to show. Absent: a server with no client (and so is it on an older one), which answers exactly as the build
+   * does.
+   */
+  client?: ClientBrand;
+}
+
+/** A client's name and color, as `GET /api/instance` sends them (ADR doug-0032). */
+export interface ClientBrand {
+  /** What its apps call the product; null: the product's own name. */
+  name: string | null;
+  /** The color its apps highlight, `#rrggbb`; null: the product's own. */
+  accent: string | null;
 }
 
 /**
@@ -539,6 +553,11 @@ export interface Me {
   /** This installation's client code (`DOUG_CLIENT_CODE`), shown in Support; null or absent: none. Sign-in doesn't
    * carry it: only a signed-in person reads it. */
   clientCode?: string | null;
+  /**
+   * This server's client customizations (ADR doug-0032), from `clients/<DOUG_CLIENT_CODE>/config.json`. Absent: a
+   * server with no client (and so is it on an older one), which answers exactly as the build does.
+   */
+  client?: ClientBrand;
 }
 
 /**

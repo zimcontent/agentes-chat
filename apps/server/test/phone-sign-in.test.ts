@@ -131,6 +131,7 @@ describe("GET /api/instance", () => {
       signup: "open",
       ownerClaim: false,
       cloud: false,
+      // No client customizations on this server (ADR doug-0032): the answer is the build's own, with no `client` key.
     });
     await signUp(browser(t), "owner@example.com");
     const after = (await (await t.app.request("/api/instance")).json()) as { signup: string };

@@ -4,6 +4,24 @@ import type { Database } from "@agenteschat/db";
 import type { ModelProvider } from "@agenteschat/providers";
 import type { OpenAPIHono } from "@hono/zod-openapi";
 
+export {
+  ACCENT_MIN_CONTRAST,
+  ACCENT_STAGES,
+  accentLegible,
+  CLIENT_CODE,
+  type ClientConfig,
+  ClientConfigError,
+  type ClientLocation,
+  type ClientOverrides,
+  clientConfigSchema,
+  clientsRoot,
+  contrastRatio,
+  type LoadedClient,
+  loadClient,
+  locateClient,
+  overridesOf,
+} from "./clients";
+
 /**
  * Which build of agentes.chat is running.
  * - `selfhost`: the open-source server, started by `apps/server/src/main.ts`.

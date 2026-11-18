@@ -3560,3 +3560,27 @@ html[data-theme]:not([data-pointer]) .sky-welcome__close:focus-visible {
 [data-theme] .sidebar:not([data-rail="true"]) .sidebar__working {
   padding: 2px var(--dg-s3) 0;
 }
+
+/* ── A client's highlight (ADR doug-0032) ──
+   A server deployed for one client paints its own color, set as `--client-accent` on <html> from its `config.json`
+   (`clients/<code>/config.json`, `product.accent`). It stands where the identity puts the green on the screen's own
+   accents (the highlighted words, `--accent-text`, and the focus ring, `--focus-color`), never on the bots: a bot's
+   color is its own. The color must stand at least 3:1 on both of the identity's stages (`#0a0a0a` and `#f4f6f2`),
+   whatever theme is on: that is what the config refuses a darker or lighter one for.
+
+   A server with no client never sets the variable, so every rule here falls back to the identity's green.
+
+   A part of the page that themes itself (`data-theme` further down, a landing's own) re-reads the kit's tokens, and
+   those name the green again from its own theme. `data-client-accent` on <html> says a client's color is set (the web
+   sets it with the variable and drops it with it), and only then does that color reach a nested part: whichever theme
+   it is in, it reads the client's accent from the root, which is why the config checks it on both stages. Without a
+   client the attribute is absent, every rule here is the green it was, and a nested part keeps its own theme's. */
+html:root {
+  --client-accent: var(--db-verde-acento);
+  --accent-text: var(--client-accent);
+  --focus-color: var(--client-accent);
+}
+html[data-client-accent] [data-theme] {
+  --accent-text: var(--client-accent);
+  --focus-color: var(--client-accent);
+}

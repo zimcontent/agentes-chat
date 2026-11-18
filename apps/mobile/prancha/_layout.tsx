@@ -1,5 +1,7 @@
+import { ApiProvider } from "@agenteschat/client";
 import { fillPluralGaps } from "@agenteschat/i18n/plurals";
 import { ptBR } from "@agenteschat/i18n/pt-BR";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Slot } from "expo-router";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
@@ -39,22 +41,34 @@ const narrow = (() => {
   return w >= 240 && w <= 1200 ? w : null;
 })();
 
+/**
+ * No server here: a part that reads the server (the signature asks whether it serves a client, ADR doug-0032) gets a
+ * client whose every call waits forever, so it draws as a server with no client would.
+ */
+const pending = (): unknown => new Promise(() => {});
+const offline = new Proxy({}, { get: () => new Proxy(pending, { get: () => pending, apply: pending }) });
+const boardQueries = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+
 export default function PranchaLayout() {
   const ready = useAppFonts();
   if (!ready) return <View />;
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <ThemeProvider>
-          {narrow ? (
-            <View style={{ flex: 1, width: narrow, overflow: "hidden" }}>
-              <Slot />
-            </View>
-          ) : (
-            <Slot />
-          )}
-        </ThemeProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <QueryClientProvider client={boardQueries}>
+      <ApiProvider client={offline as Parameters<typeof ApiProvider>[0]["client"]}>
+        <GestureHandlerRootView style={{ flex: 1 }}>
+          <SafeAreaProvider>
+            <ThemeProvider>
+              {narrow ? (
+                <View style={{ flex: 1, width: narrow, overflow: "hidden" }}>
+                  <Slot />
+                </View>
+              ) : (
+                <Slot />
+              )}
+            </ThemeProvider>
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </ApiProvider>
+    </QueryClientProvider>
   );
 }
