@@ -1,0 +1,32 @@
+# O Caddy próprio (DOUG_PROXY_MODE=proprio, deploy/swas/README.md), para uma máquina dedicada. Na
+# rede do host, para chegar nas portas de loopback dos servidores dos clientes e abrir 80 e 443:
+# numa máquina em que essas portas já têm dono (um proxy que já existe), não use este arquivo, use
+# o modo externo. Sobe sozinho na primeira vez que o doug-cliente cria um cliente; depois o
+# doug-cliente só pede o reload.
+name: doug-caddy
+
+services:
+  caddy:
+    image: caddy:2.11.7-alpine@sha256:d8542f48d34a9cf4e4c11a478865229840e87e4c96ea3f439101f31a5d35f75f
+    network_mode: host
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./clientes:/etc/caddy/clientes:ro
+      # Os certificados: perdê-los faz pedir todos de novo, e o Let's Encrypt limita a quantidade.
+      - caddy-data:/data
+      - caddy-config:/config
+      # O socket de administração: um volume do Docker, que só o root do host lê.
+      - caddy-admin:/run/caddy-admin
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    # O binário do caddy tem esta capability de arquivo; sem ela no conjunto, o exec falha.
+    cap_add:
+      - NET_BIND_SERVICE
+
+volumes:
+  caddy-data:
+  caddy-config:
+  caddy-admin:
