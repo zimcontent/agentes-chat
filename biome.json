@@ -52,7 +52,7 @@
       }
     },
     {
-      "includes": ["apps/web/public/brands/*.svg"],
+      "includes": ["apps/web/public/brands/**/*.svg"],
       "linter": {
         "rules": {
           "a11y": {
