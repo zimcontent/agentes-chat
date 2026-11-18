@@ -223,9 +223,74 @@ html:not([data-pointer]) .home-continue:focus-visible {
   font-size: 12.5px;
   color: var(--muted);
 }
-/* What each one is doing now leads their card, in the colour of work under way. */
-.team-agenda .home-tasks__group[data-group="now"] > .home-tasks__name {
-  color: var(--ok);
+/* Each one's queue (ADR doug-0022): a handle to move the task, its place, then the task. The handle 8 from the edge. */
+.team-queue {
+  padding-top: var(--space-1);
+}
+/* Handle and place on the title's first line (15/22), however many lines the task takes. */
+.team-queue__row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding-left: var(--action-clear);
+  background: var(--raised);
+}
+.team-queue__row:hover {
+  background: var(--surface);
+}
+/* The kit's small ghost button: a finger on it moves the task, never the page. */
+.team-queue__grip {
+  flex: none;
+  margin-top: calc(var(--row-py) + (22px - 32px) / 2);
+  cursor: grab;
+  touch-action: none;
+}
+.team-queue__place {
+  flex: none;
+  margin-top: var(--row-py);
+  min-width: 2ch;
+  font-size: 12.5px;
+  color: var(--muted);
+  text-align: right;
+}
+.team-queue__task {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: var(--space-2);
+}
+/* A task's chips wrap under its words on a narrow card, never past its edge. */
+.team-queue__task .home-tasks__chips {
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+/* A task held up follows the pointer above the others; the bar says where it lands. */
+.team-queue__row[data-lifted] {
+  z-index: 2;
+  background: var(--surface);
+  outline: 1px solid var(--line);
+}
+.team-queue__row[data-drop]::before {
+  content: "";
+  position: absolute;
+  left: var(--action-clear);
+  right: var(--action-clear);
+  height: 2px;
+  border-radius: 1px;
+  background: var(--ink);
+}
+.team-queue__row[data-drop="before"]::before {
+  top: -1px;
+}
+.team-queue__row[data-drop="after"]::before {
+  bottom: -1px;
+}
+body.queue-dragging,
+body.queue-dragging * {
+  cursor: grabbing;
+  -webkit-user-select: none;
+  user-select: none;
 }
 /* "Personalizar" and "Ao abrir o app", side by side at the header's end. */
 .home-head__acts {

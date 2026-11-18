@@ -336,6 +336,7 @@ export * from "./talker";
 export * from "./task-access";
 export * from "./task-conversation";
 export * from "./task-manager";
+export * from "./task-queue";
 export * from "./team";
 export * from "./team-actions";
 export * from "./team-agenda";

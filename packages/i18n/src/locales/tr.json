@@ -5028,6 +5028,11 @@
       "status": {
         "in_progress": "Devam ediyor",
         "in_review": "İncelemede"
+      },
+      "queue": {
+        "list": "{{name}} sırası",
+        "move": "#{{number}} görevini sırada taşı. Sürükleyin ya da yukarı ve aşağı ok tuşlarını kullanın.",
+        "moved": "#{{number}} görevi artık {{count}} görev içinde {{place}}. sırada."
       }
     },
     "mission": "<b>{{name}}</b> bir misyonda size ihtiyaç duyuyor",

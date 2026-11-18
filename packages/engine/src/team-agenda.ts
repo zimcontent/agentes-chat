@@ -1,6 +1,7 @@
-import { and, asc, type Database, eq, inArray, lte, or, schema, sql } from "@agenteschat/db";
+import { and, type Database, eq, inArray, isNull, lte, or, schema, sql } from "@agenteschat/db";
 import { ForbiddenError, ValidationError } from "./errors";
 import { can, requireActiveMembership } from "./organizations";
+import { queueOrder } from "./task-queue";
 
 const { issues, issueProjects } = schema;
 
@@ -17,7 +18,7 @@ export interface TeamAgendaTask {
   title: string;
   status: "todo" | "in_progress" | "in_review";
   priority: "low" | "normal" | "high";
-  /** `YYYY-MM-DD`; before `from` when it is late; null for one being done now that has no date. */
+  /** `YYYY-MM-DD`; before `from` when it is late; null when it has no date. */
   dueDate: string | null;
   assignee: { type: "person" | "agent"; id: string };
   project: { name: string; color: string } | null;
@@ -40,9 +41,10 @@ export function agendaEnd(from: string, days: number): string {
 /**
  * What each person and agent of the workspace is doing now and has to do from `from` (the asker's today) through the
  * next `days`, and what is already late: every open task with an assignee that is under way (in progress or in
- * review, with or without a date) or due by the last day. Owners and administrators
+ * review, with or without a date), due by the last day, or with no date at all. Owners and administrators
  * only, who see every task (ADR 0151), so the read needs no audience filter. The portal's cards are tasks too (their
- * production day is the due date), so they show here as well.
+ * production day is the due date), so they show here as well. In each assignee's queue order (ADR doug-0022), never
+ * by date: the order is the team's priority, the date stays on each task.
  */
 export async function teamAgenda(
   db: Database,
@@ -79,10 +81,10 @@ export async function teamAgenda(
         inArray(issues.status, ["todo", "in_progress", "in_review"]),
         inArray(issues.assigneeType, ["person", "agent"]),
         sql`${issues.assigneeId} is not null`,
-        or(lte(issues.dueDate, to), inArray(issues.status, ["in_progress", "in_review"])),
+        or(lte(issues.dueDate, to), isNull(issues.dueDate), inArray(issues.status, ["in_progress", "in_review"])),
       ),
     )
-    .orderBy(sql`${issues.dueDate} asc nulls last`, sql`${issues.priority} = 'high' desc`, asc(issues.number))
+    .orderBy(...queueOrder())
     .limit(TASKS_MAX);
   return {
     from: query.from,

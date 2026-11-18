@@ -25,6 +25,7 @@ import {
   portalOverview,
   portalPipeline,
   portalPlan,
+  portalQueueOf,
   portalTaskRefs,
   portalToSchedule,
   recordAudit,
@@ -816,7 +817,8 @@ export function portalRoutes(deps: AppDeps) {
       const { orgId } = c.req.valid("param");
       const user = c.get("user");
       await requirePermission(db, user.id, orgId, "read");
-      const out = await guarded(c, (portal) => myPortalWork(portal, user.id));
+      const queue = await portalQueueOf(db, orgId, user.id);
+      const out = await guarded(c, (portal) => myPortalWork(portal, user.id, new Date(), undefined, queue));
       if (!out.ok) return out.response;
       const work = out.value;
       return c.json(

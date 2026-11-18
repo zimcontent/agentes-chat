@@ -5366,6 +5366,11 @@
       "status": {
         "in_progress": "W toku",
         "in_review": "W przeglądzie"
+      },
+      "queue": {
+        "list": "Kolejka: {{name}}",
+        "move": "Przenieś zadanie #{{number}} w kolejce. Przeciągnij je albo użyj strzałek w górę i w dół.",
+        "moved": "Zadanie #{{number}} jest teraz {{place}} z {{count}}."
       }
     },
     "mission": "<b>{{name}}</b> potrzebuje cię w misji",

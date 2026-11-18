@@ -4884,6 +4884,11 @@
       "status": {
         "in_progress": "Sedang dikerjakan",
         "in_review": "Sedang ditinjau"
+      },
+      "queue": {
+        "list": "Antrean {{name}}",
+        "move": "Pindahkan tugas #{{number}} di antrean. Seret, atau gunakan tombol panah atas dan bawah.",
+        "moved": "Tugas #{{number}} sekarang di urutan {{place}} dari {{count}}."
       }
     },
     "mission": "<b>{{name}}</b> membutuhkanmu dalam misi",

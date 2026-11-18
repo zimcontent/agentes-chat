@@ -5192,6 +5192,11 @@
       "status": {
         "in_progress": "En cours",
         "in_review": "En revue"
+      },
+      "queue": {
+        "list": "File de {{name}}",
+        "move": "Déplacer la tâche #{{number}} dans la file. Faites-la glisser, ou utilisez les flèches haut et bas.",
+        "moved": "La tâche #{{number}} est maintenant {{place}} sur {{count}}."
       }
     },
     "mission": "<b>{{name}}</b> a besoin de vous dans une mission",

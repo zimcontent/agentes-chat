@@ -5043,6 +5043,11 @@
       "status": {
         "in_progress": "In Arbeit",
         "in_review": "In Prüfung"
+      },
+      "queue": {
+        "list": "Warteschlange von {{name}}",
+        "move": "Aufgabe #{{number}} in der Warteschlange verschieben. Ziehen oder die Pfeiltasten nach oben und unten verwenden.",
+        "moved": "Aufgabe #{{number}} ist jetzt {{place}} von {{count}}."
       }
     },
     "mission": "<b>{{name}}</b> braucht dich in einer Mission",

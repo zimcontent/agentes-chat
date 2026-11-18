@@ -50,6 +50,7 @@ import {
   taskConversationSummaries,
   taskOfThread,
 } from "./task-conversation";
+import { queueEndSql, queueOrder } from "./task-queue";
 import { promptAnswer, promptPoll, toolDetail } from "./tool-detail";
 import { syncWikiLinks, withWikiLinks } from "./wiki-links";
 import { type WorkRow, type WorkView, workViews } from "./works";
@@ -895,6 +896,8 @@ export async function createIssue(
         projectId: project?.id ?? null,
         assigneeType: input.assignee?.type ?? null,
         assigneeId: input.assignee?.id ?? null,
+        // The end of its assignee's queue (ADR doug-0022): who gets work does it in the order it came.
+        queuePosition: input.assignee ? queueEndSql(orgId, input.assignee) : null,
         labels: cleanLabels(input.labels) ?? [],
         dueDate: checkDate(input.dueDate) ?? null,
         githubUrl: checkGithubUrl(input.githubUrl),
@@ -1240,8 +1243,30 @@ export async function updateIssue(
         data: { artifactIds: removed, files },
       });
   }
+  // Its assignee's queue (ADR doug-0022): a new assignee, or a closed task opened again, goes to the end of the queue.
+  const assigneeNow =
+    set.assigneeId !== undefined
+      ? set.assigneeId && set.assigneeType
+        ? { type: set.assigneeType as "person" | "agent", id: set.assigneeId }
+        : null
+      : current.assigneeId && current.assigneeType
+        ? { type: current.assigneeType as "person" | "agent", id: current.assigneeId }
+        : null;
+  const newAssignee =
+    set.assigneeId !== undefined &&
+    (set.assigneeId !== current.assigneeId || set.assigneeType !== current.assigneeType);
+  const reopened = !!set.status && OPEN_FOR_WORK.has(set.status) && !OPEN_FOR_WORK.has(current.status);
+  const queue: { queuePosition?: SQL | null } = !assigneeNow
+    ? { queuePosition: null }
+    : newAssignee || reopened
+      ? { queuePosition: queueEndSql(orgId, assigneeNow) }
+      : {};
   const { row, ended } = await db.transaction(async (tx) => {
-    const [updated] = await tx.update(issues).set(set).where(eq(issues.id, current.id)).returning();
+    const [updated] = await tx
+      .update(issues)
+      .set({ ...set, ...queue })
+      .where(eq(issues.id, current.id))
+      .returning();
     if (!updated) throw new NotFoundError("Issue not found");
     for (const e of events) await addActivity(tx, updated, { kind: "event", author, ...e });
     await enqueueIndex(tx, { orgId, kind: "issue", sourceId: updated.id });
@@ -1893,12 +1918,13 @@ export async function openTasksBrief(
         ),
       ),
     )
-    .orderBy(desc(issues.updatedAt))
+    // Its queue's order (ADR doug-0022): the team's priority, which an administrator may have moved.
+    .orderBy(...queueOrder())
     .limit(OPEN_TASKS_SHOWN);
   if (rows.length === 0) return null;
   return [
     "# Your open tasks",
-    "Issues assigned to you, latest activity first:",
+    "Issues assigned to you, in the order the team wants them done (take the first one first, unless told otherwise):",
     ...rows.map((r) => {
       const done = r.criteria.filter((c) => c.done).length;
       const facts = [
