@@ -127,6 +127,7 @@ import type {
   DevicesList,
   DirectMessage,
   DmRead,
+  DougTeamTemplate,
   EmailChange,
   EndpointCheck,
   EndpointModel,
@@ -1057,12 +1058,20 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           method: "PATCH",
           json: patch,
         }),
-      teamTemplates: async (orgId, locale) =>
+      teamTemplates: async (orgId, locale, withDoug) =>
         (
-          await request<{ templates: TeamTemplate[] }>(`${org(orgId)}/team-templates`, {
-            ...(locale ? { query: { locale } } : {}),
+          await request<{ templates: TeamTemplate[]; doug?: DougTeamTemplate }>(`${org(orgId)}/team-templates`, {
+            ...(locale || withDoug
+              ? { query: { ...(locale ? { locale } : {}), ...(withDoug ? { with: "doug" } : {}) } }
+              : {}),
           })
         ).templates,
+      dougTemplate: async (orgId, locale) =>
+        (
+          await request<{ templates: TeamTemplate[]; doug?: DougTeamTemplate }>(`${org(orgId)}/team-templates`, {
+            query: { with: "doug", ...(locale ? { locale } : {}) },
+          })
+        ).doug,
       applyTeamTemplate: (orgId, templateId, locale, handles) =>
         request<{
           channelId: string;

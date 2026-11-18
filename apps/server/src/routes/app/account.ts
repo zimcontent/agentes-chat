@@ -1429,10 +1429,21 @@ export function accountRoutes(deps: AppDeps) {
       security,
       summary: "Save how far you got in setting up your workspace",
       description:
-        "Its owner only (403 for anyone else). `step`: the furthest step reached, saved as each one is passed (a skipped one counts); it only moves forward, so an earlier one changes nothing. `finished`: the onboarding is over, for good (409 `onboarding.brand_pending` while the Doug team's brand step waits, docs/adr/doug-0020-time-doug.md); the answer then says where the workspace opens (`rightHandId`) and carries `GET /me` as it is now. Until then the apps open the onboarding instead of the workspace (`onboarding` in `GET /me`).",
+        "Its owner only (403 for anyone else). `step`: the furthest step reached, saved as each one is passed (a skipped one counts); it only moves forward, so an earlier one changes nothing. `finished`: the onboarding is over, for good; the answer then says where the workspace opens (`rightHandId`) and carries `GET /me` as it is now. Until then the apps open the onboarding instead of the workspace (`onboarding` in `GET /me`). `holdBrand` (docs/adr/doug-0020-time-doug.md): the app draws the brand step itself and asks to be held by it, which answers 409 `onboarding.brand_pending` while the Doug team's brand still waits; without it the workspace finishes, and the brand is then asked for in the DM.",
       request: {
         params: OrgParams,
-        body: body(z.object({ step: z.enum(ONBOARDING_STEPS).optional(), finished: z.literal(true).optional() })),
+        body: body(
+          z.object({
+            step: z.enum(ONBOARDING_STEPS).optional(),
+            finished: z.literal(true).optional(),
+            holdBrand: z
+              .literal(true)
+              .optional()
+              .openapi({
+                description: "The app draws the brand step: 409 while it still waits, instead of finishing.",
+              }),
+          }),
+        ),
       },
       responses: {
         200: json(

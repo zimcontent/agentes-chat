@@ -7,7 +7,6 @@ import {
   createSetupToolSource,
   createTeam,
   createToolGateway,
-  DOUG_TEMPLATE,
   denyTeam,
   listTeamTemplates,
   NEW_AGENT_DEFAULTS,
@@ -490,8 +489,8 @@ describe("team templates", () => {
   test("six, in the person's language, each a team its card would propose", async () => {
     f = await setup({ rightHand: true });
     const list = await listTeamTemplates({ db: f.db }, f.owner.id, f.org.id, "pt-BR");
-    // The Doug team first (docs/adr/doug-0020-time-doug.md), then the six.
-    expect(list.map((t) => t.id)).toEqual([DOUG_TEMPLATE, ...BUSINESS_TEMPLATES]);
+    // The six, and no Doug team, which one app asks for apart (docs/adr/doug-0020-time-doug.md).
+    expect(list.map((t) => t.id)).toEqual([...BUSINESS_TEMPLATES]);
     expect(TEAM_TEMPLATES).toEqual([...BUSINESS_TEMPLATES, ...PERSONAL_TEMPLATES]);
     const software = list.find((t) => t.id === "software");
     expect(software?.name).toBe("Software e apps");
@@ -530,14 +529,14 @@ describe("team templates", () => {
     f = await setup({ rightHand: true });
     await updateOrgSettings(f.db, f.owner.id, f.org.id, { mode: "personal" });
     const list = await listTeamTemplates({ db: f.db }, f.owner.id, f.org.id, "pt-BR");
-    expect(list.map((t) => t.id)).toEqual([DOUG_TEMPLATE, ...PERSONAL_TEMPLATES]);
+    expect(list.map((t) => t.id)).toEqual([...PERSONAL_TEMPLATES]);
     const life = list.find((t) => t.id === "life");
     expect(life?.name).toBe("Vida em ordem");
     expect(life?.team.agents.map((a) => [a.name, a.channel])).toEqual([
       ["Clara", ""],
       ["Duda", ""],
     ]);
-    for (const t of list.filter((t) => t.id !== DOUG_TEMPLATE)) {
+    for (const t of list) {
       expect(t.team.newChannels).toEqual([]);
       expect(t.team.agents.every((a) => a.channel === "" && a.routines.length === 1)).toBe(true);
       // The weekly check reports on a team's work: not one person's agents.

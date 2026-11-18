@@ -37,6 +37,7 @@ import {
   deleteCredential,
   denyAgentProposal,
   denyTeam,
+  dougTemplateView,
   type EndpointNet,
   endpointOrgsOf,
   getAgent,
@@ -1391,6 +1392,11 @@ export function agentRoutes(deps: AppDeps) {
   );
 
   const TEMPLATE_IDS = [DOUG_TEMPLATE, ...TEAM_TEMPLATES] as const;
+  /**
+   * The team templates' ids as the gallery gives them: without the Doug team (docs/adr/doug-0020-time-doug.md), which
+   * one of the business ones at a time and is asked for apart (`?with=doug`). `TEMPLATE_IDS` stays the addressable ones.
+   */
+  const GALLERY_IDS = [...TEAM_TEMPLATES, DOUG_TEMPLATE] as const;
 
   const DougMember = z
     .object({
@@ -1412,20 +1418,30 @@ export function agentRoutes(deps: AppDeps) {
 
   const TemplateView = z
     .object({
-      id: z.enum(TEMPLATE_IDS),
+      id: z.enum(GALLERY_IDS),
       name: z.string(),
       sub: z.string(),
       description: z.string(),
       team: TeamProposalCard.shape.params,
-      members: z.array(DougMember).optional().openapi({
-        description:
-          "The Doug team only (docs/adr/doug-0020-time-doug.md): every agent to check or uncheck, all checked by default. `team` lists those that become agents with every one checked.",
-      }),
-      needsComputer: z.array(z.string()).optional().openapi({
-        description: "The Doug team only: handles of the agents that work on a computer, for the notice.",
-      }),
     })
     .openapi("TeamTemplate");
+
+  const DougView = z
+    .object({
+      id: z.literal(DOUG_TEMPLATE),
+      name: z.string(),
+      sub: z.string(),
+      description: z.string(),
+      team: TeamProposalCard.shape.params,
+      members: z.array(DougMember).openapi({
+        description:
+          "Every agent to check or uncheck, all checked by default. `team` lists those made with every one checked.",
+      }),
+      needsComputer: z.array(z.string()).openapi({
+        description: "Handles of the agents that work on a computer, for the notice.",
+      }),
+    })
+    .openapi("DougTeamTemplate");
 
   app.openapi(
     createRoute({
@@ -1435,15 +1451,32 @@ export function agentRoutes(deps: AppDeps) {
       security,
       summary: 'The team templates ("See team templates"), in your language',
       description:
-        "The Doug team first, in either mode (docs/adr/doug-0020-time-doug.md), then by business type; in a personal workspace, by area of the person's life instead, whose agents live in their DM with the person and make no channel (ADR 0159). Any template's id can be used in either mode.",
-      request: { params: OrgParams, query: z.object({ locale: z.string().max(20).optional() }) },
-      responses: { 200: json(z.object({ templates: z.array(TemplateView) })), ...errors },
+        "The business types, in a team's workspace; in a personal one, the areas of the person's life instead, whose agents live in their DM with the person and make no channel (ADR 0159). Any template's id can be used in either mode. The Doug team (docs/adr/doug-0020-time-doug.md) is not one of them: it needs a screen of its own, so `?with=doug` gives it apart, in `doug`, with each of its agents to check or uncheck.",
+      request: {
+        params: OrgParams,
+        query: z.object({
+          locale: z.string().max(20).optional(),
+          with: z.enum(["doug"]).optional().openapi({ description: "Ask for the Doug team apart, in `doug`." }),
+        }),
+      },
+      responses: {
+        200: json(
+          z.object({
+            templates: z.array(TemplateView),
+            doug: DougView.optional().openapi({ description: "With `?with=doug` only: the Doug team." }),
+          }),
+        ),
+        ...errors,
+      },
     }),
     async (c) => {
       const { orgId } = c.req.valid("param");
+      const { locale, with: ask } = c.req.valid("query");
+      const userId = c.get("user").id;
       const context = deps.extras?.context;
-      const templates = await listTeamTemplates({ db, context }, c.get("user").id, orgId, c.req.valid("query").locale);
-      return c.json({ templates }, 200);
+      const templates = await listTeamTemplates({ db, context }, userId, orgId, locale);
+      if (ask !== "doug") return c.json({ templates }, 200);
+      return c.json({ templates, doug: await dougTemplateView({ db, context }, userId, orgId, locale) }, 200);
     },
   );
 

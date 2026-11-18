@@ -172,6 +172,7 @@ import type {
   DirectMessage,
   DmRead,
   DmTarget,
+  DougTeamTemplate,
   EmailChange,
   EndpointCheck,
   EndpointModel,
@@ -640,7 +641,7 @@ export interface ApiClient {
      */
     saveOnboarding(
       orgId: string,
-      input: { step: OnboardingStepId } | { finished: true },
+      input: { step: OnboardingStepId } | { finished: true; holdBrand?: boolean },
     ): Promise<({ step: OnboardingStepId; finished: boolean } & OpenedWorkspace) | null>;
     get(orgId: string): Promise<Organization>;
     update(orgId: string, input: { name?: string; context?: string }): Promise<void>;
@@ -884,7 +885,9 @@ export interface ApiClient {
       },
     ): Promise<{ card: TeamProposalCard }>;
     /** "Ver modelos de time": the templates in `locale`. */
-    teamTemplates(orgId: string, locale?: string): Promise<TeamTemplate[]>;
+    teamTemplates(orgId: string, locale?: string, withDoug?: boolean): Promise<TeamTemplate[]>;
+    /** The Doug team apart (docs/adr/doug-0020-time-doug.md), or undefined from a server that doesn't have it. */
+    dougTemplate(orgId: string, locale?: string): Promise<DougTeamTemplate | undefined>;
     /**
      * "Criar o time": the template's team, made at once; its card in the person's DM with the right hand. The Doug
      * team takes `handles` (every agent when absent; `members[].handle`), and answers with the agents that work on a

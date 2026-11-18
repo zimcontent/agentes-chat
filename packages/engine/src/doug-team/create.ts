@@ -200,13 +200,14 @@ async function dougParams(
   return { params, handles, routines, channelOf };
 }
 
-/** The gallery's entry (`GET …/team-templates`), first in either mode. */
+/** The gallery's entry (`GET …/team-templates?with=doug`), in the person's language. */
 export async function dougTemplateView(
   deps: { db: Database; context?: ContextDeps },
   userId: string,
   orgId: string,
-  locale: AppLocale,
+  preferred?: string | null,
 ): Promise<DougTemplateView> {
+  const locale = await personLocale(deps.db, userId, preferred);
   const all = dougAgents();
   const { params, channelOf } = await dougParams(deps, { orgId, channelId: "", personId: userId }, all, locale);
   return {

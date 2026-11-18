@@ -1007,6 +1007,20 @@ export function useTeamTemplates(orgId: string, locale: string, enabled = true) 
 }
 
 /**
+ * The Doug team's card (docs/adr/doug-0020-time-doug.md): not a gallery template, so it is asked for apart. `enabled`
+ * false (an app that doesn't draw it) asks for nothing.
+ */
+export function useDougTemplate(orgId: string, locale: string, enabled = true) {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.dougTemplate(orgId, locale),
+    queryFn: () => api.agents.dougTemplate(orgId, locale),
+    enabled,
+    staleTime: 60_000,
+  });
+}
+
+/**
  * "Usar este modelo": its card and the right hand's first question land in the person's DM with it. Made, it stays
  * pending until the team is in the agents' list, its routines and channels read before it: a screen that shows the
  * team (the onboarding's last step, the sidebar) finds them there, and nothing on it changes while it arrives.

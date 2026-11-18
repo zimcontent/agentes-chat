@@ -1215,13 +1215,18 @@ export interface TeamTemplate {
   sub: string;
   description: string;
   team: TeamPlan;
-  /**
-   * The Doug team only (docs/adr/doug-0020-time-doug.md): every agent to check or uncheck, all checked by default.
-   * `team` lists those that become agents with every one checked.
-   */
-  members?: DougTemplateMember[];
-  /** The Doug team only: handles of the agents that work on a computer, for the notice. */
-  needsComputer?: string[];
+}
+
+/**
+ * The Doug team (docs/adr/doug-0020-time-doug.md): not a team template's card, which it outgrew, so the gallery gives
+ * it apart, only to an app that asks (`?with=doug`). Every agent is listed, checked by default; `team` lists those that
+ * become agents with every one checked.
+ */
+export interface DougTeamTemplate extends TeamTemplate {
+  id: "doug";
+  members: DougTemplateMember[];
+  /** Handles of the agents that work on a computer, for the notice and its "connect a computer" button. */
+  needsComputer: string[];
 }
 
 /** One agent of the Doug team's template, as the gallery lists it (docs/adr/doug-0020-time-doug.md). */

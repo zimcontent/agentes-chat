@@ -8,7 +8,7 @@ import type { AgentAppearance } from "./appearance";
 import { addChannelMember, CHANNEL_NAME_PATTERN } from "./channels";
 import type { ContextDeps } from "./context/summaries";
 import { DOUG_RIGHT_HAND, dougAgents, dougKey } from "./doug-team";
-import { type DougTemplateView, dougTeamOf, dougTemplateView } from "./doug-team/create";
+import { dougTeamOf } from "./doug-team/create";
 import { publishMessageCreated } from "./events";
 import { firstName } from "./format";
 import { getMessage, insertMessage, messageView } from "./messages";
@@ -263,15 +263,18 @@ async function orgName(db: Database, orgId: string) {
 
 /**
  * The gallery (`GET …/team-templates`), for who may create agents, read in the person's language and time zone: a
- * personal workspace's templates there (ADR 0159), the business ones anywhere else. The Doug team comes first in
- * either mode (docs/adr/doug-0020-time-doug.md), with each of its agents to check or uncheck.
+ * personal workspace's templates there (ADR 0159), the business ones anywhere else.
+ *
+ * The Doug team is not one of them (docs/adr/doug-0020-time-doug.md): it outgrew the team card's limits and needs a
+ * screen of its own, so a gallery that doesn't know it keeps working as before. `dougTemplateView` gives it apart,
+ * only to an app that asks (`?with=doug`).
  */
 export async function listTeamTemplates(
   deps: { db: Database; context?: ContextDeps },
   userId: string,
   orgId: string,
   preferred?: string | null,
-): Promise<(TeamTemplateView | DougTemplateView)[]> {
+): Promise<TeamTemplateView[]> {
   await requirePermission(deps.db, userId, orgId, "create_agents");
   const [locale, org, taken, personal] = await Promise.all([
     personLocale(deps.db, userId, preferred),
@@ -282,8 +285,7 @@ export async function listTeamTemplates(
   const blocked = personal ? new Set<string>() : await blockedChannels(deps.db, orgId, userId, locale);
   // Read only: no card goes anywhere yet.
   const place = { orgId, channelId: "", personId: userId };
-  const doug = await dougTemplateView(deps, userId, orgId, locale);
-  const rest = await Promise.all(
+  return Promise.all(
     (personal ? PERSONAL_TEMPLATES : BUSINESS_TEMPLATES).map(async (id) => ({
       id,
       name: serverText(locale, `teamTemplates.${id}.name`),
@@ -292,7 +294,6 @@ export async function listTeamTemplates(
       team: await checkTeam(deps, place, templateInput(id, locale, org, taken, blocked), locale),
     })),
   );
-  return [doug, ...rest];
 }
 
 /**

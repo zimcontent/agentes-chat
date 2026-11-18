@@ -41,6 +41,12 @@ describe("opening a workspace in round trips (#1)", () => {
     expect(await finishOnboarding(api, "o1")).toEqual({ orgId: "o1", agentId: "doug", me: null });
     expect(calls).toEqual(['orgs.saveOnboarding o1 {"finished":true}', "agents.list"]);
   });
+
+  test("the web draws the brand step: it asks to be held by it, and one that knows nothing of it finishes", async () => {
+    const { api, calls } = server();
+    await finishOnboarding(api, "o1", true);
+    expect(calls).toEqual(['orgs.saveOnboarding o1 {"finished":true,"holdBrand":true}']);
+  });
 });
 
 describe("a DM opened from its own answer, the list not read again for it (#1)", () => {

@@ -11,6 +11,7 @@ import {
   dougAgents,
   dougQgOf,
   dougSkills,
+  dougTemplateView,
   getBrand,
   installDougSkills,
   listTeamTemplates,
@@ -91,12 +92,15 @@ describe("the material", () => {
 });
 
 describe("the gallery", () => {
-  test("the Doug team comes first, every agent listed and checked, in a team's workspace and a personal one", async () => {
+  test("the gallery holds no Doug team, and asking for it apart gives every agent, checked, in either mode", async () => {
     f = await setup({ rightHand: true });
+    // An app that knows nothing of the Doug team is never handed one: the six business types only.
     const list = await listTeamTemplates({ db: f.db }, f.owner.id, f.org.id, "pt-BR");
-    const doug = list[0];
-    expect(doug?.id).toBe(DOUG_TEMPLATE);
-    if (!doug || !("members" in doug)) throw new Error("no Doug team");
+    expect(list.map((t) => t.id)).not.toContain(DOUG_TEMPLATE);
+    expect(list).toHaveLength(6);
+
+    const doug = await dougTemplateView({ db: f.db }, f.owner.id, f.org.id, "pt-BR");
+    expect(doug.id).toBe(DOUG_TEMPLATE);
     expect(doug.name).toBe("Time Doug");
     expect(doug.members).toHaveLength(17);
     expect(doug.members.filter((m) => m.rightHand).map((m) => m.handle)).toEqual(["doug"]);
@@ -107,10 +111,13 @@ describe("the gallery", () => {
     expect(doug.team.newChannels.sort()).toEqual(
       ["qg-codigo", "qg-design", "qg-estrategia", "qg-financeiro", "qg-social", "qg-trafego", "qg-video"].sort(),
     );
-    const en = await listTeamTemplates({ db: f.db }, f.owner.id, f.org.id, "en");
-    expect(en[0]?.name).toBe("Doug Team");
+    expect((await dougTemplateView({ db: f.db }, f.owner.id, f.org.id, "en")).name).toBe("Doug Team");
     await updateOrgSettings(f.db, f.owner.id, f.org.id, { mode: "personal" });
-    expect((await listTeamTemplates({ db: f.db }, f.owner.id, f.org.id, "pt-BR"))[0]?.id).toBe(DOUG_TEMPLATE);
+    expect((await dougTemplateView({ db: f.db }, f.owner.id, f.org.id, "pt-BR")).id).toBe(DOUG_TEMPLATE);
+    // In a personal workspace the gallery is the six areas, and no Doug team among them either.
+    const personal = await listTeamTemplates({ db: f.db }, f.owner.id, f.org.id, "pt-BR");
+    expect(personal.map((t) => t.id)).not.toContain(DOUG_TEMPLATE);
+    expect(personal).toHaveLength(6);
   });
 });
 
@@ -358,9 +365,13 @@ describe("the brand", () => {
     expect(await brandPending(f.db, f.org.id)).toBe(false);
     await useDougTeam(deps(), f.owner.id, f.org.id, { handles: ["rosa", "sony", "chess", "social-media", "kiara"] });
     expect(await brandPending(f.db, f.org.id)).toBe(true);
-    await expect(saveOnboarding(f.db, f.owner.id, f.org.id, { finished: true })).rejects.toMatchObject({
-      code: "onboarding.brand_pending",
-    });
+    // Only the app that draws the brand step asks to be held by it; an app that knows nothing of it finishes.
+    await expect(saveOnboarding(f.db, f.owner.id, f.org.id, { finished: true, holdBrand: true })).rejects.toMatchObject(
+      { code: "onboarding.brand_pending" },
+    );
+    expect(await saveOnboarding(f.db, f.owner.id, f.org.id, { finished: true })).toMatchObject({ finished: true });
+    // Opened, the workspace keeps its brand pending for the DM, which asks for it.
+    expect(await brandPending(f.db, f.org.id)).toBe(false);
     await expect(saveBrand(deps(), f.owner.id, f.org.id, { company: "Acme", tones: [] })).rejects.toMatchObject({
       code: "brand.tone_required",
     });

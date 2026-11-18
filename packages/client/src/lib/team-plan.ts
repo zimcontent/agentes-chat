@@ -14,14 +14,22 @@ export type BusinessType = (typeof BUSINESS_TYPES)[number];
 /** Every business type but `other` is a team template's id too (the server's `BUSINESS_TEMPLATES`). */
 export const isTemplateBusiness = (b: BusinessType): b is Exclude<BusinessType, "other"> => b !== "other";
 
-/** The template the onboarding's team step shows: the one picked, else the business's, else the first. */
+/** The Doug team's id, which the gallery only gives apart (`?with=doug`) and the team step never picks by itself. */
+export const DOUG_TEMPLATE_ID = "doug";
+
+/**
+ * The template the onboarding's team step shows: the one picked, else the business's, else the first. Never the Doug
+ * team (docs/adr/doug-0020-time-doug.md): it is a screen of its own, with the brand step after it, so an app that
+ * doesn't draw it stays out of it alike when it asked for it and when it is in the list.
+ */
 export const templateFor = <T extends { id: string }>(
   templates: readonly T[],
   picked: string | null,
   business: BusinessType | null,
 ): T | undefined => {
   const wanted = picked ?? (business && isTemplateBusiness(business) ? business : null);
-  return templates.find((x) => x.id === wanted) ?? templates[0];
+  const rest = templates.filter((x) => x.id !== DOUG_TEMPLATE_ID);
+  return (wanted !== null ? rest.find((x) => x.id === wanted) : undefined) ?? rest[0];
 };
 
 /**

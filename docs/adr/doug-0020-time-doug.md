@@ -33,11 +33,14 @@ leave: what a new workspace gets is the craft, never the data.
    an email address, a phone number, an address outside github.com and raw.githubusercontent.com, or a denied word: the
    house's clients, people, companies and projects, kept only as SHA-256 hashes of the word (lower case, no accents)
    and of two words in a row, so the test itself names none of them.
-4. **The template.** `doug` is the first card of the gallery in both modes, a team's workspace and a personal one, with
-   every agent listed (`members`) and checked by default; the person unchecks who they don't want. It doesn't fit the
-   team card's limits, so it has its own path (`doug-team/create.ts`, `useDougTeam`) that reuses the same calls
-   (`createAgent`, `createChannel`, `addChannelMember`, `createRoutine`, the skills' rows) in one transaction, and
-   posts the same card in the person's DM with the right hand, created, with Desfazer for a day (`undoTeam`).
+4. **The template, apart from the gallery.** `doug` is not one of the gallery's templates: it outgrew the team card's
+   limits and needs a screen of its own, with the brand step after it. `GET …/team-templates` keeps answering the
+   business types (or a personal workspace's areas), so an app that knows nothing of the Doug team (the web and the
+   phone as they were) is never handed one: `?with=doug` gives it apart, in `doug`, with every agent listed (`members`)
+   and checked by default, and the person unchecks who they don't want. It reuses the same calls (`createAgent`,
+   `createChannel`, `addChannelMember`, `createRoutine`, the skills' rows) in its own path (`doug-team/create.ts`,
+   `useDougTeam`), in one transaction, and posts the same card in the person's DM with the right hand, created, with
+   Desfazer for a day (`undoTeam`).
    - **The DOUG is the right hand.** No agent is made for it: the workspace records the team
      (`organization_settings.doug_team`) and `rightHandPrompt` adds the DOUG's instructions as "# Your role in this
      workspace", under the product's own block, which wins where they differ.
@@ -59,15 +62,21 @@ leave: what a new workspace gets is the craft, never the data.
      (`needs_computer`), for the app's notice and its "connect a computer" button.
    - **Only the hello after it**: the team's hello job (ADR 0162) with one line per agent in its words
      (`dougTeam.agents.*.hello`), the right hand first. Nothing else is posted.
-5. **The brand is a workspace skill, and its step is required.** When the Doug team was made during the onboarding,
-   "Sua marca" comes next (`brand`, after `agents` in the steps) and the onboarding can't finish until it is saved
-   (`saveOnboarding` refuses with `onboarding.brand_pending`; `GET /me` says `brandPending`). The company's name and a
-   tone of voice (tapped from a list, written, or both) are required; the site, Instagram, audience and the brand
-   manual's files (uploaded to the Drive first) and links are optional. `PUT …/brand` writes the workspace skill
+5. **The brand is a workspace skill, and its step is required where the app draws it.** When the Doug team was made
+   during the onboarding, "Sua marca" comes next (`brand`, after `agents` in the steps). The company's name and a tone
+   of voice (tapped from a list, written, or both) are required; the site, Instagram, audience and the brand manual's
+   files (uploaded to the Drive first) and links are optional. `PUT …/brand` writes the workspace skill
    "Marca <empresa>" (`marca`, a new version each time) in the sections the agents that read a brand look for (the
    company and what it isn't, audience, tone of voice, visual identity, networks and formats, pillars, compliance,
    the manual), with what wasn't said marked "A definir" for them to ask or propose instead of inventing, and gives it
    to the ROSA, the SONY, the SOCIAL MEDIA and the CHESS.
+   - **The step never traps anyone.** The brand is required only where the app that finishes the onboarding draws the
+     step: it sends `holdBrand` and `saveOnboarding` answers 409 `onboarding.brand_pending` while the brand still
+     waits; `GET /me` says `brandPending` to that app alone. An app that knows nothing of the step (the web and the
+     phone as they were) sends no `holdBrand`, finishes the onboarding and opens the workspace; the brand is then
+     asked for in the DOUG's DM (`rightHandPrompt`'s "not set up yet"), so a workspace that got its team never works
+     on a piece without it. Once the onboarding is over, `brandPending` reads false (it means "the onboarding still
+     waits"); the brand skill is still written by the same route, and the DOUG asks for it in the chat.
 6. **Words.** The template's name, description, each agent's role, line and hello, the channels and the tones are in
    `@agenteschat/i18n` (`dougTeam.*`), in every language through `bun run i18n:apply`. The instructions and skills stay
    in Brazilian Portuguese, the language the team works in.

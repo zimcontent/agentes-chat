@@ -396,18 +396,22 @@ export async function unfinishedWorkspaces(db: Executor, userId: string) {
 /**
  * Saves how far a workspace's owner got in its onboarding: `step`, the furthest one reached, only moves forward;
  * `finished` ends it, for good. Anyone else is refused. Returns where it stands.
+ *
+ * The Doug team's brand step (docs/adr/doug-0020-time-doug.md) never traps anyone: it holds only the app that knows
+ * the step, by asking (`holdBrand`), and an app that knows nothing of it finishes. The workspace's record is kept
+ * (`brandPending`), so the brand can still be asked for in the DM afterwards; the workspace opens either way.
  */
 export async function saveOnboarding(
   db: Database,
   userId: string,
   orgId: string,
-  input: { step?: schema.OnboardingStep; finished?: boolean },
+  input: { step?: schema.OnboardingStep; finished?: boolean; holdBrand?: boolean },
 ) {
   const membership = await requireActiveMembership(db, userId, orgId);
   if (membership.role !== "owner") throw new ForbiddenError("Only the workspace's owner sets it up");
   const open = and(eq(organizations.id, orgId), isNull(organizations.onboardedAt));
-  // The Doug team's brand step is required (docs/adr/doug-0020-time-doug.md): no finish while it waits.
-  if (input.finished) {
+  // A workspace whose brand still waits is held only where the caller says it draws that step itself.
+  if (input.finished && input.holdBrand) {
     const { brandPending } = await import("./doug-team/brand");
     if (await brandPending(db, orgId)) throw new ConflictError("Save the brand first", "onboarding.brand_pending");
   }

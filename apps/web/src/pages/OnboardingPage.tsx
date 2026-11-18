@@ -388,7 +388,8 @@ export function OnboardingPage() {
       leaving.current = true;
       // The invitations went: kept as "team" first, so a finish that fails resumes past the step, never asking again.
       if (how === "invited") await api.orgs.saveOnboarding(target.orgId, { step: "team" });
-      const done = await finishOnboarding(api, target.orgId);
+      // The web draws the brand step ("Sua marca"), so it asks to be held by it while it waits (docs/adr/doug-0020-time-doug.md).
+      const done = await finishOnboarding(api, target.orgId, true);
       sessionStore.remove(STORAGE_KEYS.confirmationSent);
       // The answer that finished it says who the person is now: it opens without asking the server again.
       if (done.me) qc.setQueryData(keys.me, done.me);

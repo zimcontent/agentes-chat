@@ -5,6 +5,7 @@ import { seesAgentDetails } from "./audience";
 import { listChannels } from "./channels";
 import type { WorkspaceComputer } from "./context";
 import { DOUG_RIGHT_HAND, dougAgent } from "./doug-team";
+import { brandPending } from "./doug-team/brand";
 import { can, getMembership } from "./organizations";
 import type { RolePermission } from "./permissions";
 import { type LodiLane, type LodiSwitch, liveLodiSwitches, lodiPromptBlocks } from "./right-hand-lane";
@@ -168,6 +169,9 @@ export async function rightHandPrompt(
     .from(schema.organizationSettings)
     .where(eq(schema.organizationSettings.orgId, orgId));
   const dougRole = settings?.dougTeam?.rightHand ? (dougAgent(DOUG_RIGHT_HAND)?.instructions ?? "") : "";
+  // The brand step the onboarding left (a screen that isn't drawn finishes it without the brand): the DOUG asks for it
+  // here, so a workspace that got its team never works on a piece without it.
+  const brandWaits = dougRole !== "" && (await brandPending(db, orgId));
   // What each of its own features adds while it talks to this person alone (`right-hand-lane.ts`).
   const laneBlocks = input.inDm ? await lodiPromptBlocks(db, { orgId, agentId: agent.id, personId }, input.lanes) : [];
   // Changes that are always a card someone reads first, named once the catalog has them. Loaded here: the catalog
@@ -280,6 +284,11 @@ export async function rightHandPrompt(
   ].filter(Boolean);
   // What the team's agents lack, which no row of the first-run checklist shows.
   const teamThings = [
+    // The Doug team's brand (docs/adr/doug-0020-time-doug.md): the agents read it before any piece, so it is asked for
+    // first, in the DOUG's words, before any work that needs it.
+    brandWaits
+      ? "The workspace has no brand yet (\"Sua marca\" was left for later): the team's agents read the brand skill before any piece. Offer to set it up before the first piece (the company's name and a tone of voice are all it needs)."
+      : "",
     // A personal workspace's agents may live in their DMs with the person (ADR 0159): no channel is nothing to fix.
     !personal && seen.some((a) => seatsOf(a.id).length === 0)
       ? "An agent is in no channel: offer to add it to one (propose_settings_change, its channels)."

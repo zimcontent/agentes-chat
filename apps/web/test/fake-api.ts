@@ -36,6 +36,7 @@ import type {
   ConsultationConversation,
   Credential,
   DeviceAccount,
+  DougTeamTemplate,
   Edition,
   EmailChange,
   EndpointCheck,
@@ -204,6 +205,8 @@ export interface FakeState {
   me: Me | null;
   /** "Ver modelos de time" (`agents.teamTemplates`; default none). */
   teamTemplates?: TeamTemplate[];
+  /** The Doug team's card apart (`agents.dougTemplate`, docs/adr/doug-0020-time-doug.md; default none). */
+  dougTemplate?: DougTeamTemplate;
   /** "Sua marca" (`agents.brand`/`agents.saveBrand`): what was saved, and whether the step waits (docs/adr/doug-0020-time-doug.md). */
   brandState?: { brand: BrandView | null; pending: boolean };
   /** What a one-click proposed agent thinks with (default: what its draft suggested). */
@@ -2521,9 +2524,14 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         if (m) m.meta = { ...m.meta, actionCard: next };
         return { card: next };
       },
-      teamTemplates: async (orgId, locale) => {
-        log("agents.teamTemplates", orgId, locale);
+      teamTemplates: async (orgId, locale, withDoug) => {
+        log("agents.teamTemplates", orgId, locale, ...(withDoug ? ["doug"] : []));
         return state.teamTemplates ?? [];
+      },
+      // As the server: the Doug team's card apart from the gallery (docs/adr/doug-0020-time-doug.md).
+      dougTemplate: async (orgId, locale) => {
+        log("agents.dougTemplate", orgId, locale);
+        return state.dougTemplate;
       },
       // As the server: the template's team is made at once (ADR 0155 §6).
       applyTeamTemplate: async (orgId, templateId, locale, handles) => {
