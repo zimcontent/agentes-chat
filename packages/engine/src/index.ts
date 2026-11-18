@@ -333,6 +333,8 @@ export * from "./storage";
 export * from "./streams";
 export * from "./stretch";
 export * from "./stuck";
+export * from "./support";
+export * from "./support-tools";
 export * from "./talker";
 export * from "./task-access";
 export * from "./task-conversation";

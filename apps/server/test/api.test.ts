@@ -29,6 +29,8 @@ describe("sign-up policy (self-host)", () => {
       termsUrl: null,
       privacyUrl: null,
       supportEmail: null,
+      support: null,
+      clientCode: null,
       passwordReset: true,
       workspaceComputer: false,
       cloud: false,
@@ -39,6 +41,8 @@ describe("sign-up policy (self-host)", () => {
         TERMS_URL: "https://example.com/terms",
         PRIVACY_URL: "https://example.com/privacy",
         SUPPORT_EMAIL: "help@example.com",
+        SUPPORT_WHATSAPP: "+55 11 99999-0000",
+        DOUG_CLIENT_CODE: "064",
         MACHINE_PROVISIONING: "external",
         OPERATOR_API_TOKEN: "o".repeat(40),
       },
@@ -47,8 +51,24 @@ describe("sign-up policy (self-host)", () => {
       termsUrl: "https://example.com/terms",
       privacyUrl: "https://example.com/privacy",
       supportEmail: "help@example.com",
+      support: { email: "help@example.com", whatsapp: "+55 11 99999-0000" },
+      // Not on the sign-in's screen: the installation's code goes to a signed-in person (`GET /me`).
+      clientCode: null,
       workspaceComputer: true,
     });
+  });
+
+  test("the installation's code goes to a signed-in person, never to the sign-in screen", async () => {
+    await t.close();
+    t = await createTestServer({ env: { DOUG_CLIENT_CODE: "064", SUPPORT_EMAIL: "help@example.com" } });
+    // The sign-in screen is public: it says who to reach, and nothing of the installation's own code.
+    const config = (await (await browser(t)("/api/app/auth-config")).json()) as Record<string, unknown>;
+    expect(config).toMatchObject({ support: { email: "help@example.com", whatsapp: null }, clientCode: null });
+    const owner = browser(t);
+    await signUp(owner, "owner@example.com");
+    expect(await (await owner("/api/app/me")).json()).toMatchObject({ clientCode: "064" });
+    // Nobody signed in reads no `/me` at all.
+    expect((await browser(t)("/api/app/me")).status).toBe(401);
   });
 
   test("ALLOW_SIGNUP=true keeps it open", async () => {
