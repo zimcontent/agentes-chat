@@ -470,6 +470,18 @@
     padding: 0 var(--space-2);
   }
 }
+/* While a card or a list moves, the tab that takes it says so (ADR 9001 §20: dropped there, it goes to that part), and
+   lights up like a column under the pointer when it would land there. */
+.issues-dragging .portal-tabs .ac-seg__item:has([data-drop-away]) {
+  outline: 1px dashed var(--line-strong);
+  outline-offset: -1px;
+}
+.portal-tabs .ac-seg__item[data-drop-over] {
+  outline: 0;
+  color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--ink) 22%, transparent);
+}
 .portal-views > .ac-btn[aria-pressed="true"] {
   background: var(--sunken);
   box-shadow: inset 0 0 0 1px var(--line);

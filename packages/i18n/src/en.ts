@@ -21918,6 +21918,9 @@ export const en = {
       toPlan: "Back to the schedule",
       movedToMaterials: "“{{name}}” went to Client materials.",
       movedToPlan: "“{{name}}” is back in the schedule.",
+      cardToMaterials: "“{{title}}” went to Client materials, in the list {{list}}.",
+      cardToPlan: "“{{title}}” is back in the schedule, in the list {{list}}.",
+      newListName: "General",
     },
     plan: {
       tab: "Strategic schedule",

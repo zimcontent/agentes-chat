@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { awayAt, awayGroup, awayOf, lightAway } from "@/lib/drop-away";
 
 /**
  * Moving tasks on Tarefas (the board's columns, the list's groups) with a mouse, a finger or the keyboard. The card
@@ -22,6 +23,9 @@ import {
  * - `[data-col]` around a drop zone: the box the pointer is measured against (a column, a group of the list);
  * - `[data-card]` inside a slot: what lifts and what gets the focus;
  * - `[data-count="<group>"]`: a group's count, which pops when a card arrives or leaves.
+ *
+ * With `away`, also the places outside the board marked `[data-drop-away]` (`lib/drop-away.ts`): a card dropped on
+ * one is handed to `onDrop` with `to` = `away:<where>`, and leaves the board.
  */
 
 export interface DragGroup<T> {
@@ -64,6 +68,8 @@ export interface IssueDragOptions<T extends { id: string }> {
   /** On the board Left and Right go across groups; in the list Up and Down go on into the next one. */
   layout: "board" | "list";
   onDrop: (move: CardMove) => DropResult;
+  /** Cards may also be dropped on the places outside the board marked `[data-drop-away]`. */
+  away?: boolean;
   /** What a screen reader hears. */
   words: DragWords<T>;
 }
@@ -136,6 +142,8 @@ interface Gesture {
   raf: number;
   to: string;
   index: number;
+  /** The place outside the board it is over (`to` is then `away:<where>`). */
+  awayBox: HTMLElement | null;
 }
 
 /** The card's copy that follows the pointer (a list row inside a list of its own, so it keeps its grid). */
@@ -169,8 +177,11 @@ function lift(card: HTMLElement, row: boolean) {
   return { ghost, rect };
 }
 
-/** The copy flies to `to` and then `done` runs (at once without motion or a place to go). */
-function fly(ghost: HTMLElement, to: DOMRect | undefined, ms: number, done: () => void) {
+/**
+ * The copy flies to `to` and then `done` runs (at once without motion or a place to go). `into`: the place is smaller
+ * than the card (a tab), so the copy shrinks into its middle and fades.
+ */
+function fly(ghost: HTMLElement, to: DOMRect | undefined, ms: number, done: () => void, into = false) {
   let finished = false;
   const finish = () => {
     if (finished) return;
@@ -182,8 +193,16 @@ function fly(ghost: HTMLElement, to: DOMRect | undefined, ms: number, done: () =
       ? animate(
           ghost,
           [
-            { transform: ghost.style.transform },
-            { transform: `translate(${to.left}px, ${to.top}px) rotate(0deg) scale(1)` },
+            { transform: ghost.style.transform, opacity: 1 },
+            into
+              ? {
+                  // The copy turns about 30% 20% of itself (issues.css): that point goes to the place's middle.
+                  transform: `translate(${to.left + to.width / 2 - ghost.offsetWidth * 0.3}px, ${
+                    to.top + to.height / 2 - ghost.offsetHeight * 0.2
+                  }px) rotate(0deg) scale(.2)`,
+                  opacity: 0,
+                }
+              : { transform: `translate(${to.left}px, ${to.top}px) rotate(0deg) scale(1)`, opacity: 1 },
           ],
           { duration: ms, easing: LAND_EASE, fill: "forwards" },
         )
@@ -317,6 +336,7 @@ function createEngine<T extends { id: string }>(ctx: EngineContext<T>) {
       raf: 0,
       to: p.group,
       index: fromIndex,
+      awayBox: null,
     };
     gesture = g;
     document.body.classList.add(DRAGGING);
@@ -353,6 +373,11 @@ function createEngine<T extends { id: string }>(ctx: EngineContext<T>) {
     const g = gesture;
     if (!g) return;
     lean();
+    // Over a place outside the board nothing scrolls: it stays under the pointer.
+    if (g.awayBox) {
+      g.raf = frame(tick);
+      return;
+    }
     // Near an edge the board (or the page) scrolls under the card.
     const el = ctx.root.current;
     let scrolled = false;
@@ -395,6 +420,20 @@ function createEngine<T extends { id: string }>(ctx: EngineContext<T>) {
     const g = gesture;
     const el = ctx.root.current;
     if (!g || !el) return;
+    if (ctx.options().away) {
+      const away = awayAt(g.x, g.y);
+      g.awayBox = away?.box ?? null;
+      lightAway(g.awayBox);
+      if (away) {
+        const to = awayGroup(away.where);
+        if (to === g.to) return;
+        g.to = to;
+        g.index = 0;
+        remember();
+        ctx.setMove((m) => (m?.kind === "drag" && m.id === g.id ? { ...m, to, index: 0 } : m));
+        return;
+      }
+    }
     let best: HTMLElement | null = null;
     let bestDistance = Number.POSITIVE_INFINITY;
     for (const zone of el.querySelectorAll<HTMLElement>("[data-drop]")) {
@@ -429,9 +468,14 @@ function createEngine<T extends { id: string }>(ctx: EngineContext<T>) {
     gesture = null;
     cancelFrame(g.raf);
     document.body.classList.remove(DRAGGING);
+    lightAway(null);
     if (cancel || (g.to === g.from && g.index === g.fromIndex)) return home(g);
-    const spot = ctx.root.current?.querySelector<HTMLElement>("[data-spot]")?.getBoundingClientRect();
-    fly(g.ghost, spot, 220, () => commit(g, spot));
+    // Dropped on a place outside the board, it flies into that place.
+    const away = awayOf(g.to) !== null;
+    const spot = (
+      away ? g.awayBox : ctx.root.current?.querySelector<HTMLElement>("[data-spot]")
+    )?.getBoundingClientRect();
+    fly(g.ghost, spot, 220, () => commit(g, away ? undefined : spot), away);
   }
 
   /** Back where it was: the others close the gap, the copy flies home, the card shows once it lands. */
@@ -679,6 +723,7 @@ function createEngine<T extends { id: string }>(ctx: EngineContext<T>) {
           cancelFrame(g.raf);
           g.ghost.remove();
           document.body.classList.remove(DRAGGING);
+          lightAway(null);
         }
       };
     },

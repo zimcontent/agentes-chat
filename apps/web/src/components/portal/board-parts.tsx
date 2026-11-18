@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
+import { awayAt, lightAway } from "@/lib/drop-away";
 import type { CardMove, DropResult, IssueDrag } from "@/pages/issue-drag";
 
 export type { CardMove, DropResult };
@@ -342,21 +343,25 @@ const SCROLL_STEP = 12;
  * Esc gives it up. A press that doesn't move is still a click (the name pressed to rename it). A press on a button
  * of the kit, a field or a link is never a drag. The list's menu (move left, move right) is the keyboard's way.
  *
- * Reads, under the board: `[data-list="<id>"]` on each column that can move, in order.
+ * Reads, under the board: `[data-list="<id>"]` on each column that can move, in order. With `onAway`, a list dropped
+ * on a place outside the board marked `[data-drop-away]` (`lib/drop-away.ts`: the other part's tab) goes there with
+ * its cards instead.
  */
 export function useListDrag({
   ids,
   enabled,
   onOrder,
+  onAway,
 }: {
   ids: readonly string[];
   enabled: boolean;
   onOrder: (next: string[]) => void;
+  onAway?: (id: string, where: string) => void;
 }) {
   const [drop, setDrop] = useState<{ id: string; where: "before" | "after" } | null>(null);
   const [lifted, setLifted] = useState<string | null>(null);
-  const latest = useRef({ ids, onOrder });
-  latest.current = { ids, onOrder };
+  const latest = useRef({ ids, onOrder, onAway });
+  latest.current = { ids, onOrder, onAway };
   const stop = useRef<(() => void) | null>(null);
   useEffect(() => () => stop.current?.(), []);
 
@@ -372,6 +377,8 @@ export function useListDrag({
     const y0 = e.clientY;
     const scroll0 = wrap.scrollLeft;
     let x = x0;
+    let y = y0;
+    let away: string | null = null;
     let started = false;
     let index = latest.current.ids.indexOf(id);
     let frame = 0;
@@ -379,6 +386,10 @@ export function useListDrag({
 
     const place = () => {
       column.style.transform = `translateX(${x - x0 + (wrap.scrollLeft - scroll0)}px)`;
+      const over = latest.current.onAway ? awayAt(x, y) : null;
+      away = over?.where ?? null;
+      lightAway(over?.box ?? null);
+      if (over) return setDrop(null);
       const others = [...wrap.querySelectorAll<HTMLElement>("[data-list]")].filter((c) => c !== column);
       let at = others.length;
       for (let i = 0; i < others.length; i++) {
@@ -394,6 +405,10 @@ export function useListDrag({
       setDrop(targetId ? { id: targetId, where: at < others.length ? "before" : "after" } : null);
     };
     const tick = () => {
+      if (away) {
+        frame = requestAnimationFrame(tick);
+        return;
+      }
       const r = wrap.getBoundingClientRect();
       const was = wrap.scrollLeft;
       if (x > r.right - EDGE) wrap.scrollLeft += SCROLL_STEP;
@@ -417,6 +432,7 @@ export function useListDrag({
       document.removeEventListener("keydown", onKey, true);
       document.removeEventListener("touchmove", onTouch);
       document.body.classList.remove("issues-dragging");
+      lightAway(null);
       column.style.transform = "";
       stop.current = null;
       setLifted(null);
@@ -430,12 +446,14 @@ export function useListDrag({
       document.addEventListener("click", swallow, { capture: true, once: true });
       window.setTimeout(() => document.removeEventListener("click", swallow, true), 0);
       if (!commit) return;
+      if (away) return latest.current.onAway?.(id, away);
       const next = orderAfterDrop(latest.current.ids, id, index);
       if (next.join() !== latest.current.ids.join()) latest.current.onOrder(next);
     };
     const onMove = (m: PointerEvent) => {
       if (m.pointerId !== pointerId) return;
       x = m.clientX;
+      y = m.clientY;
       if (!started) {
         const far = Math.hypot(m.clientX - x0, m.clientY - y0);
         // A finger that moves before the hold is scrolling, not picking the list up.

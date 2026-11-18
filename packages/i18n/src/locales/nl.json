@@ -17048,6 +17048,14 @@
     "change": {
       "mergedWithoutAsking": "Gemerged in {{repo}} zonder te vragen",
       "portalApprovedForClient": "“{{title}}” in het portaal goedgekeurd namens de klant",
+      "portalClient": {
+        "renamed": "Heeft de klant {{client}} in het portaal hernoemd",
+        "hidden": "Heeft de klant {{client}} uit de lijsten van het portaal gehaald",
+        "shown": "Toont de klant {{client}} weer in het portaal",
+        "color": "Heeft de kleur van de klant {{client}} in het portaal gewijzigd",
+        "logo": "Heeft het logo van de klant {{client}} in het portaal gewijzigd",
+        "logoRemoved": "Heeft het logo van de klant {{client}} in het portaal verwijderd"
+      },
       "pattern": "{{verb}}: {{area}}",
       "approval": {
         "approved": "Een verzoek goedgekeurd",
@@ -17152,14 +17160,6 @@
         "credential": "een AI-sleutel",
         "vault": "de Vault",
         "other": "de werkruimte"
-      },
-      "portalClient": {
-        "renamed": "Heeft de klant {{client}} in het portaal hernoemd",
-        "hidden": "Heeft de klant {{client}} uit de lijsten van het portaal gehaald",
-        "shown": "Toont de klant {{client}} weer in het portaal",
-        "color": "Heeft de kleur van de klant {{client}} in het portaal gewijzigd",
-        "logo": "Heeft het logo van de klant {{client}} in het portaal gewijzigd",
-        "logoRemoved": "Heeft het logo van de klant {{client}} in het portaal verwijderd"
       }
     },
     "panel": {
@@ -17235,13 +17235,13 @@
       "voice": "Spraak",
       "apps": "AI-apps",
       "approvals": "Goedkeuringen",
+      "portal": "Portaalcliënten",
       "companies": "Bedrijfsverzoeken",
       "support": "Support",
       "about": "Over DougBot",
       "generalPersonal": "Over jou",
       "keysPersonal": "AI en apps",
-      "membersPersonal": "Mensen",
-      "portal": "Portaalcliënten"
+      "membersPersonal": "Mensen"
     },
     "advanced": "Geavanceerd",
     "tab": {
@@ -17269,6 +17269,7 @@
       "voice": "Spraakberichten in gesprekken, en wie spraak omzet in tekst.",
       "apps": "Geef de agents taken vanuit Claude, Cursor en andere apps.",
       "approvals": "Wie voor je beslist als een agent om je goedkeuring vraagt.",
+      "portal": "De klanten die je berichten goedkeuren, en de link die elk opent.",
       "companies": "Bedrijven die DougBot via de pagina hebben aangevraagd.",
       "support": "Wie deze installatie beheert en hoe je hen bereikt.",
       "about": "Wie het maakt, de licentie en waar de broncode staat.",
@@ -17276,8 +17277,7 @@
       "usagePersonal": "Hoeveel AI je agents gebruiken, en je abonnement.",
       "connectorsPersonal": "Je apps en MCP-servers, één keer verbonden voor je agents.",
       "membersPersonal": "Wie hier met je is.",
-      "rolesPersonal": "Wat ieder hier kan doen. Eigenaren kunnen alles.",
-      "portal": "De klanten die je berichten goedkeuren, en de link die elk opent."
+      "rolesPersonal": "Wat ieder hier kan doen. Eigenaren kunnen alles."
     },
     "support": {
       "title": "Support bereiken",
@@ -21210,6 +21210,44 @@
       "spent": "{{spent}} van {{monthly}} credits gebruikt deze maand"
     }
   },
+  "portalClients": {
+    "title": "Portaalcliënten",
+    "lead": "Elke klant keurt je berichten goed via een eigen link, zonder account. De contacten van de klant krijgen bericht via e-mail en WhatsApp als er een bericht op hen wacht.",
+    "add": "Klant toevoegen",
+    "addTitle": "Nieuwe klant",
+    "edit": "Bewerken",
+    "editTitle": "Klant",
+    "remove": "Verwijderen",
+    "removeTitle": "Deze klant verwijderen?",
+    "removeText": "De link werkt niet meer en de berichten verdwijnen van de pagina. Het werk blijft op het bord.",
+    "loading": "Laden…",
+    "empty": "Nog geen klanten. Voeg er een toe voor een link om te sturen.",
+    "noContacts": "Nog geen contacten: niemand krijgt bericht als een bericht wacht.",
+    "id": "Klant-id (kleine letters, geen spaties)",
+    "name": "Naam",
+    "contactName": "Naam van het contact",
+    "email": "E-mail",
+    "whatsapp": "WhatsApp met de landcode",
+    "addContact": "Contact toevoegen",
+    "dropContact": "Contact verwijderen",
+    "link": "Klantlink",
+    "copy": "Link kopiëren",
+    "copied": "Link gekopieerd",
+    "copyFailed": "De link kon niet worden gekopieerd",
+    "revoked": "De link is ingetrokken",
+    "linkStale": "Deze link moet opnieuw gemaakt worden: maak een nieuwe om te sturen",
+    "noticesTitle": "WhatsApp-berichten",
+    "noticesLead": "De contacten van een klant worden altijd per e-mail op de hoogte gebracht. WhatsApp gaat alleen uit van het nummer dat je hier kiest: zonder een nummer wordt er niets via WhatsApp gestuurd, en niemands persoonlijke nummer wordt gebruikt.",
+    "noticesNumber": "Nummer dat bericht",
+    "noticesNone": "Geen: alleen e-mail",
+    "noticesNoNumbers": "Nog geen nummer verbonden. Verbind er een in Instellingen › WhatsApp om daar ook bericht te sturen.",
+    "locale": "Bericht in {{language}}",
+    "localeLabel": "Taal",
+    "localeHint": "De taal van de e-mails en berichten die de contacten van deze klant krijgen. Nooit geraden uit een naam; zonder keuze hier die van je team.",
+    "localeOwner": "De taal van het team",
+    "newLink": "Nieuwe link",
+    "revoke": "Link intrekken"
+  },
   "portal": {
     "title": "Portaal",
     "subtitle": "Wat je klanten goedkeuren, per klant",
@@ -21286,6 +21324,19 @@
       "remove": "Logo verwijderen",
       "saved": "Logo opgeslagen",
       "removed": "Logo verwijderd"
+    },
+    "clientEdit": {
+      "rename": "Klant hernoemen",
+      "renameTitle": "Klant hernoemen",
+      "renameHelp": "De naam die je team overal ziet. Laat hem leeg om terug te gaan naar ‘{{id}}’.",
+      "name": "Naam",
+      "renamed": "Naam opgeslagen",
+      "hide": "Klant verwijderen",
+      "hideTitle": "‘{{name}}’ verwijderen?",
+      "hideText": "Hij verdwijnt uit elke lijst en telling hier. Zijn berichten en kaarten blijven in het portaal, en je kunt hem terughalen via Verborgen klanten.",
+      "hidden": "‘{{name}}’ verwijderd",
+      "hiddenTitle": "Verborgen klanten",
+      "show": "Weer tonen"
     },
     "clientColor": {
       "label": "Kleur van de klant",
@@ -21379,7 +21430,10 @@
       "toMaterials": "Naar Klantmateriaal verplaatsen",
       "toPlan": "Terug naar de planning",
       "movedToMaterials": "“{{name}}” staat nu in Klantmateriaal.",
-      "movedToPlan": "“{{name}}” staat weer in de planning."
+      "movedToPlan": "“{{name}}” staat weer in de planning.",
+      "cardToMaterials": "“{{title}}” staat nu in Klantmateriaal, in de lijst {{list}}.",
+      "cardToPlan": "“{{title}}” staat weer in de planning, in de lijst {{list}}.",
+      "newListName": "Algemeen"
     },
     "plan": {
       "tab": "Strategische planning",
@@ -21546,19 +21600,6 @@
       "more": "Meer tonen",
       "add_one": "{{count}} bestand toevoegen",
       "add_other": "{{count}} bestanden toevoegen"
-    },
-    "clientEdit": {
-      "rename": "Klant hernoemen",
-      "renameTitle": "Klant hernoemen",
-      "renameHelp": "De naam die je team overal ziet. Laat hem leeg om terug te gaan naar ‘{{id}}’.",
-      "name": "Naam",
-      "renamed": "Naam opgeslagen",
-      "hide": "Klant verwijderen",
-      "hideTitle": "‘{{name}}’ verwijderen?",
-      "hideText": "Hij verdwijnt uit elke lijst en telling hier. Zijn berichten en kaarten blijven in het portaal, en je kunt hem terughalen via Verborgen klanten.",
-      "hidden": "‘{{name}}’ verwijderd",
-      "hiddenTitle": "Verborgen klanten",
-      "show": "Weer tonen"
     }
   },
   "dougTeam": {
@@ -21677,43 +21718,5 @@
         "educativo": "Leerzaam"
       }
     }
-  },
-  "portalClients": {
-    "title": "Portaalcliënten",
-    "lead": "Elke klant keurt je berichten goed via een eigen link, zonder account. De contacten van de klant krijgen bericht via e-mail en WhatsApp als er een bericht op hen wacht.",
-    "add": "Klant toevoegen",
-    "addTitle": "Nieuwe klant",
-    "edit": "Bewerken",
-    "editTitle": "Klant",
-    "remove": "Verwijderen",
-    "removeTitle": "Deze klant verwijderen?",
-    "removeText": "De link werkt niet meer en de berichten verdwijnen van de pagina. Het werk blijft op het bord.",
-    "loading": "Laden…",
-    "empty": "Nog geen klanten. Voeg er een toe voor een link om te sturen.",
-    "noContacts": "Nog geen contacten: niemand krijgt bericht als een bericht wacht.",
-    "id": "Klant-id (kleine letters, geen spaties)",
-    "name": "Naam",
-    "contactName": "Naam van het contact",
-    "email": "E-mail",
-    "whatsapp": "WhatsApp met de landcode",
-    "addContact": "Contact toevoegen",
-    "dropContact": "Contact verwijderen",
-    "link": "Klantlink",
-    "copy": "Link kopiëren",
-    "copied": "Link gekopieerd",
-    "copyFailed": "De link kon niet worden gekopieerd",
-    "revoked": "De link is ingetrokken",
-    "linkStale": "Deze link moet opnieuw gemaakt worden: maak een nieuwe om te sturen",
-    "noticesTitle": "WhatsApp-berichten",
-    "noticesLead": "De contacten van een klant worden altijd per e-mail op de hoogte gebracht. WhatsApp gaat alleen uit van het nummer dat je hier kiest: zonder een nummer wordt er niets via WhatsApp gestuurd, en niemands persoonlijke nummer wordt gebruikt.",
-    "noticesNumber": "Nummer dat bericht",
-    "noticesNone": "Geen: alleen e-mail",
-    "noticesNoNumbers": "Nog geen nummer verbonden. Verbind er een in Instellingen › WhatsApp om daar ook bericht te sturen.",
-    "locale": "Bericht in {{language}}",
-    "localeLabel": "Taal",
-    "localeHint": "De taal van de e-mails en berichten die de contacten van deze klant krijgen. Nooit geraden uit een naam; zonder keuze hier die van je team.",
-    "localeOwner": "De taal van het team",
-    "newLink": "Nieuwe link",
-    "revoke": "Link intrekken"
   }
 }

@@ -21838,6 +21838,9 @@ export const ptBR = {
       toPlan: "Voltar para o cronograma",
       movedToMaterials: "“{{name}}” foi para Materiais do cliente.",
       movedToPlan: "“{{name}}” voltou para o cronograma.",
+      cardToMaterials: "“{{title}}” foi para Materiais do cliente, na lista {{list}}.",
+      cardToPlan: "“{{title}}” voltou para o cronograma, na lista {{list}}.",
+      newListName: "Geral",
     },
     plan: {
       tab: "Cronograma estratégico",

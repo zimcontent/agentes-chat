@@ -24,6 +24,7 @@ import {
   portalDayOf,
   portalErrorText,
   portalLink,
+  portalListAcross,
   portalOrderAt,
   portalPostedByMonth,
   portalScheduling,
@@ -438,5 +439,26 @@ describe("a card is also a task (ADR 9001)", () => {
     expect(numbers.get("c-000003")).toBeUndefined();
     // Not read yet: no number to say.
     expect(portalTaskNumbers(undefined).size).toBe(0);
+  });
+});
+
+describe("portalListAcross: where a card dropped on the other part's tab lands (ADR 9001 §20)", () => {
+  const list = (id: string, name: string, kind: "plan" | "materials") => ({ id, name, kind, cards: [] });
+  const plan = {
+    lists: [
+      list("l1", "MATERIAL APOIO", "plan"),
+      list("l2", "Semana 1", "plan"),
+      list("m1", "Acessos", "materials"),
+      list("m2", " material apoio ", "materials"),
+    ],
+  };
+  test("the list there named as the one it left, case and spaces aside, else the first there", () => {
+    expect(portalListAcross(plan, "materials", "l1")?.id).toBe("m2");
+    expect(portalListAcross(plan, "materials", "l2")?.id).toBe("m1");
+    expect(portalListAcross(plan, "materials", null)?.id).toBe("m1");
+    expect(portalListAcross(plan, "plan", "m1")?.id).toBe("l1");
+  });
+  test("none when that part has no list yet", () => {
+    expect(portalListAcross({ lists: [list("l1", "A", "plan")] }, "materials", "l1")).toBeNull();
   });
 });

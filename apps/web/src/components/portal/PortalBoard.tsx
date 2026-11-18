@@ -1,11 +1,12 @@
 import type { PortalBoard as Board, PortalCard, PortalCardState, PortalItem } from "@agenteschat/client";
-import { useDeletePortalCard, useMovePortalCardState } from "@agenteschat/client";
+import { useDeletePortalCard, useMovePortalCardAcross, useMovePortalCardState } from "@agenteschat/client";
 import { can } from "@agenteschat/client/lib/permissions";
 import {
   PORTAL_BOARD_COLUMNS,
   PORTAL_STATUS_LOOK,
   portalErrorText,
   portalLink,
+  portalMovedAcross,
   portalScheduling,
   portalWhen,
 } from "@agenteschat/client/lib/portal";
@@ -24,6 +25,7 @@ import {
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
+import { awayOf } from "@/lib/drop-away";
 import { useToast } from "@/lib/toast";
 import { useIssueDrag } from "@/pages/issue-drag";
 import { ApproveForClientDialog } from "./ApproveForClientDialog";
@@ -71,6 +73,7 @@ export function PortalBoard({
   const toast = useToast();
   const helpId = useId();
   const move = useMovePortalCardState(org.id, board.client);
+  const across = useMovePortalCardAcross(org.id, board.client);
   const [deleting, setDeleting] = useState<PortalCard | null>(null);
   const [editingItem, setEditingItem] = useState<PortalItem | null>(null);
   const [scheduling, setScheduling] = useState<PortalItem | null>(null);
@@ -84,6 +87,17 @@ export function PortalBoard({
     );
   const onDrop = ({ id, from, to }: CardMove): DropResult => {
     const card = [...board.cards.todo, ...board.cards.doing].find((c) => c.id === id);
+    // Dropped on the "Materiais do cliente" tab: it leaves the board for the client's materials (ADR 9001 §20).
+    if (changes && card && awayOf(to) === "materials") {
+      across.mutate(
+        { cardId: card.id, kind: "materials", newList: t("portal.materials.newListName") },
+        {
+          onError: (error) => toast.show(portalErrorText(t, error, i18n.language), "error"),
+          onSuccess: (list) => toast.show(portalMovedAcross(t, "materials", card.title, list)),
+        },
+      );
+      return { changed: true };
+    }
     // Inside a column the order is the board's own: only a change of column is a move.
     if (!changes || !card || from === to || !isTeam(to)) return { changed: false };
     moveTo(card, to);
@@ -94,6 +108,7 @@ export function PortalBoard({
     groups: TEAM_COLUMNS.map((id) => ({ id, items: board.cards[id] })),
     layout: "board",
     onDrop,
+    away: changes,
     words: {
       picked: (c) => t("portal.plan.drag.picked", { title: c.title }),
       moved: (c, group, position, total) =>
