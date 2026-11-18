@@ -8,6 +8,8 @@ import {
   buildConversations,
   type ConversationRow,
   dougCardLine,
+  dougCrew,
+  dougGreetingFits,
   hiddenAgentIds,
   homeSections,
   isListedThread,
@@ -718,5 +720,23 @@ describe("Doug pinned on Início (docs/adr/doug-0016-doug-pinned.md)", () => {
   test("its line never counts below zero", () => {
     expect(dougCardLine({ waiting: 3, working: 5 })).toEqual({ waiting: 3, working: 5 });
     expect(dougCardLine({ waiting: -1, working: -2 })).toEqual({ waiting: 0, working: 0 });
+  });
+
+  test("the agents around him: without him, each once, up to four around his face, then +N", () => {
+    const w = (agentId: string) => ({ agentId });
+    expect(dougCrew([], "d")).toEqual({ left: [], right: [], more: 0 });
+    expect(dougCrew([w("d"), w("a")], "d")).toEqual({ left: [], right: ["a"], more: 0 });
+    expect(dougCrew([w("a"), w("b"), w("a"), w("c")], "d")).toEqual({ left: ["b"], right: ["a", "c"], more: 0 });
+    expect(dougCrew(["a", "b", "c", "e", "f", "g"].map(w), "d")).toEqual({
+      left: ["e", "b"],
+      right: ["a", "c"],
+      more: 2,
+    });
+  });
+
+  test("the greeting stays only while it shares the line", () => {
+    expect(dougGreetingFits("Boa noite, Gabriel.", "Nada esperando você")).toBe(true);
+    expect(dougGreetingFits("Boa noite, Gabriel.", "12 decisões esperando você")).toBe(false);
+    expect(dougGreetingFits("", "Nada esperando você")).toBe(false);
   });
 });
