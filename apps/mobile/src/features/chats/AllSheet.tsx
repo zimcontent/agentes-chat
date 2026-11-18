@@ -2,7 +2,7 @@ import { useIssues, useOverview, useVideoReviews, useWhatsApp, useWhatsAppChats 
 import { can } from "@agenteschat/client/lib/permissions";
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { readValueSync, STORED, writeValueSync } from "@/lib/storage";
 import { useOrg } from "@/providers/org";
 import { Button, Icon, type IconName, PressScale, Text, useTheme, useToast } from "@/ui";
@@ -20,7 +20,18 @@ import { MentionCount } from "../shared/parts";
 import { useSheet } from "../shared/SheetHost";
 import { accountsInOrder, unreadChats, useWhatsAppShown } from "../whatsapp/logic";
 import { WhatsAppMark } from "../whatsapp/look";
-import { frontOf, gridOf, pinsOf, type ToolDef, type ToolKey, togglePin, toolsHere, withPins } from "./all-tools";
+import {
+  frontOf,
+  gridOf,
+  NARROW_PHONE,
+  pillsInHalves,
+  pinsOf,
+  type ToolDef,
+  type ToolKey,
+  togglePin,
+  toolsHere,
+  withPins,
+} from "./all-tools";
 
 // ── The pins, on this phone ──────────────────────────────────────────────────
 
@@ -139,6 +150,8 @@ const GLYPH = 22;
 const PIN = 18;
 /** The pills' height: a finger's target, round ends (as the kit's own buttons on dougbot.app). */
 const PILL = 44;
+/** The room the sheet leaves on both sides of the pills' row, all together (26 a side, as laid out at 320). */
+const SHEET_SIDES = 52;
 
 export interface AllSheetProps {
   /**
@@ -323,7 +336,8 @@ function SearchEntry({ label, onPress }: { label: string; onPress: () => void })
         tone="muted"
         numberOfLines={1}
         adjustsFontSizeToFit
-        minimumFontScale={0.85}
+        // "Buscar conversas, arquivos, pessoas" needs 0.83 of its size to fit a 320 phone's sheet.
+        minimumFontScale={0.8}
         style={styles.grow}
       >
         {label}
@@ -346,6 +360,7 @@ function ToolCell({
   const { t } = useTranslation();
   const c = useColors();
   const { scheme } = useTheme();
+  const narrow = useWindowDimensions().width < NARROW_PHONE;
   const said = [tool.label, tool.count > 0 ? String(tool.count) : null, pinned ? t("mobile.homeTools.pinned") : null]
     .filter(Boolean)
     .join(", ");
@@ -388,7 +403,8 @@ function ToolCell({
         numberOfLines={1}
         adjustsFontSizeToFit
         minimumFontScale={0.8}
-        style={styles.label}
+        // A 320 phone's cell is a quarter of 268: "Computador" fits only a point smaller, whatever the platform.
+        style={[styles.label, narrow ? styles.labelNarrow : null]}
       >
         {tool.label}
       </Text>
@@ -399,12 +415,24 @@ function ToolCell({
 /** The round glass pills under the grid (the tiles' surface), sharing their row's width. */
 function Pills({ items }: { items: readonly Pill[] }) {
   const c = useColors();
+  const { width } = useWindowDimensions();
   const { scheme } = useTheme();
-  // Two or four: two to a row. Otherwise each as wide as its words, growing to fill its row, so a narrow phone wraps
-  // the last one under the others instead of cutting a word.
-  const halves = items.length === 2 || items.length === 4;
+  // The row's width as laid out; before that, the window's less the sheet's sides.
+  const [row, setRow] = useState<number | null>(null);
+  // Two or four: two to a row while every pill's words fit in half of it. Otherwise each as wide as its words,
+  // growing to fill its row, so a narrow phone wraps one under the other instead of cutting a word ("Nova con…").
+  const halves = pillsInHalves(
+    items.map((p) => p.label),
+    row ?? width - SHEET_SIDES,
+  );
   return (
-    <View style={styles.pills}>
+    <View
+      style={styles.pills}
+      onLayout={(e) => {
+        const now = Math.round(e.nativeEvent.layout.width);
+        setRow((was) => (was === now ? was : now));
+      }}
+    >
       {items.map((p) => (
         <PressScale
           key={p.key}
@@ -457,6 +485,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   label: { alignSelf: "stretch", textAlign: "center", fontWeight: "500" },
+  labelNarrow: { fontSize: 11, lineHeight: 15 },
   section: { gap: 8, paddingTop: 4 },
   pills: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   pill: { flexGrow: 1 },

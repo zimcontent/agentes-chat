@@ -109,8 +109,11 @@ export function HoldButton({ label, onConfirm, durationMs = 700, disabled = fals
           <LinearGradient colors={look.gradient} style={StyleSheet.absoluteFill} />
         </Animated.View>
         <View style={[styles.edge, { backgroundColor: look.highlight }]} />
+        {/* Beside Recusar on a 320 phone, "Segure para aprovar" shrinks a little rather than losing its end to "…". */}
         <RNText
           numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.85}
           maxFontSizeMultiplier={CHROME_MAX_SCALE}
           style={[systemText(s.text, weights.semibold), { color: look.text }]}
         >

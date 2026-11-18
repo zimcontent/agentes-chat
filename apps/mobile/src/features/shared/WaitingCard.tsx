@@ -164,7 +164,8 @@ export function WaitingSource({ mark, text }: { mark?: ReactNode; text: string }
   return (
     <View style={[styles.source, { backgroundColor: c.plateSoft }]}>
       {mark ? <View style={styles.sourceMark}>{mark}</View> : null}
-      <Text variant="footnote" tone="muted" numberOfLines={1} style={styles.grow}>
+      {/* An email's address and subject: the subject is the point, so it gets a second line before "…". */}
+      <Text variant="footnote" tone="muted" numberOfLines={2} style={styles.grow}>
         {text}
       </Text>
     </View>
@@ -185,7 +186,8 @@ const styles = StyleSheet.create({
   nameLine: { flexDirection: "row", alignItems: "center", gap: 8 },
   name: { fontWeight: weights.semibold },
   // The kind as a label nobody presses: a small amber tag, then where it was asked.
-  kindLine: { flexDirection: "row", alignItems: "center", gap: 8 },
+  // On a narrow phone where it was asked goes under the tag instead of both losing their ends to "…".
+  kindLine: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 8, rowGap: 4 },
   tag: {
     flexDirection: "row",
     alignItems: "center",
@@ -194,7 +196,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     borderRadius: 6,
     flexShrink: 0,
-    maxWidth: "70%",
+    maxWidth: "100%",
   },
   tagText: { fontWeight: weights.semibold, flexShrink: 1 },
   place: { flexShrink: 1, minWidth: 0 },

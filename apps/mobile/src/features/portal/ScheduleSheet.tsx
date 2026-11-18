@@ -78,7 +78,8 @@ function ScheduleList({ items, onPick }: { items: readonly PortalItem[]; onPick:
                 label={item.title}
                 labelLines={2}
                 sub={proposed ? `${w.tapToSchedule} · ${proposed}` : w.tapToSchedule}
-                subLines={2}
+                // The date comes last: a third line keeps it whole on a 320 phone.
+                subLines={3}
                 leading={<Icon name="calendar" size={20} color={c.amber} />}
                 chevron
                 onPress={() => onPick(item)}
