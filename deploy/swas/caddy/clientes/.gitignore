@@ -1,0 +1,2 @@
+# Os arquivos <slug>.caddy daqui são escritos pelo doug-cliente em cada máquina, não vão para o git.
+*.caddy
