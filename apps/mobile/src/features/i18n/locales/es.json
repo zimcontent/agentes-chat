@@ -24,7 +24,13 @@
     "itsChannels": "Grupos",
     "seeAll": "Ver todo"
   },
+  "sectorPills": {
+    "label": "Atajos",
+    "failed": "La tarjeta no llegó. Inténtalo de nuevo."
+  },
   "blocks": {
+    "done": "Hecho",
+    "actFailed": "No salió bien. Inténtalo de nuevo.",
     "send": "Enviar",
     "more": "Más",
     "thousand": "k",

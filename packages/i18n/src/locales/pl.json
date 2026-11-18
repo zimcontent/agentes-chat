@@ -13376,6 +13376,17 @@
     "htmlError": "Na stronie wystąpił błąd: {{message}}",
     "markdownSource": "Tekst w Markdown"
   },
+  "sectorPills": {
+    "label": "Skróty",
+    "failed": "Karta nie dotarła. Spróbuj ponownie.",
+    "whatsapp": "WhatsApp",
+    "calendar": "Kalendarz",
+    "approvals": "Zatwierdzenia",
+    "proposals": "Propozycje",
+    "tasks": "Zadania",
+    "review": "Przegląd",
+    "portal": "Portal"
+  },
   "blocks": {
     "send": "Wyślij",
     "more": "Więcej",
@@ -13406,7 +13417,9 @@
     "pollAnswered_few": "Odpowiedziało {{count}} z {{total}}",
     "pollAnswered_many": "Odpowiedziało {{count}} z {{total}}",
     "pollAnswered_other": "Odpowiedziało {{count}} z {{total}}",
-    "voteFailed": "Twój głos nie został zapisany."
+    "voteFailed": "Twój głos nie został zapisany.",
+    "done": "Gotowe",
+    "actFailed": "Nie udało się. Spróbuj ponownie."
   },
   "choices": {
     "step": "{{step}} z {{total}}",

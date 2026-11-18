@@ -11923,6 +11923,17 @@
     "htmlError": "페이지에 오류가 발생했어요: {{message}}",
     "markdownSource": "Markdown 텍스트"
   },
+  "sectorPills": {
+    "label": "바로가기",
+    "failed": "카드를 불러오지 못했어요. 다시 시도해 주세요.",
+    "whatsapp": "WhatsApp",
+    "calendar": "일정",
+    "approvals": "승인",
+    "proposals": "제안",
+    "tasks": "작업",
+    "review": "검토",
+    "portal": "포털"
+  },
   "blocks": {
     "send": "보내기",
     "more": "더 보기",
@@ -11950,7 +11961,9 @@
     "pollClosed": "투표 마감",
     "pollMultiple": "여러 개를 고를 수 있어요.",
     "pollAnswered_other": "{{total}}명 중 {{count}}명 응답",
-    "voteFailed": "투표가 반영되지 않았어요."
+    "voteFailed": "투표가 반영되지 않았어요.",
+    "done": "완료",
+    "actFailed": "처리하지 못했어요. 다시 시도해 주세요."
   },
   "choices": {
     "step": "{{step}}/{{total}}",

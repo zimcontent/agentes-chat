@@ -13326,6 +13326,17 @@
     "htmlError": "На странице произошла ошибка: {{message}}",
     "markdownSource": "Текст Markdown"
   },
+  "sectorPills": {
+    "label": "Ярлыки",
+    "failed": "Карточка не пришла. Попробуйте ещё раз.",
+    "whatsapp": "WhatsApp",
+    "calendar": "Календарь",
+    "approvals": "Одобрения",
+    "proposals": "Предложения",
+    "tasks": "Задачи",
+    "review": "Проверка",
+    "portal": "Портал"
+  },
   "blocks": {
     "send": "Отправить",
     "more": "Ещё",
@@ -13356,7 +13367,9 @@
     "pollAnswered_few": "Ответили {{count}} из {{total}}",
     "pollAnswered_many": "Ответили {{count}} из {{total}}",
     "pollAnswered_other": "Ответили {{count}} из {{total}}",
-    "voteFailed": "Ваш голос не засчитался."
+    "voteFailed": "Ваш голос не засчитался.",
+    "done": "Готово",
+    "actFailed": "Не получилось. Попробуйте ещё раз."
   },
   "choices": {
     "step": "{{step}} из {{total}}",

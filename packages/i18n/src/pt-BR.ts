@@ -12823,6 +12823,18 @@ export const ptBR = {
     htmlError: "A página teve um erro: {{message}}",
     markdownSource: "Texto em Markdown",
   },
+  /** The right hand's pills above the composer: each sector's card on a press (docs/adr/doug-0020-doug-sector-cards.md). */
+  sectorPills: {
+    label: "Atalhos",
+    failed: "O cartão não veio. Tente de novo.",
+    whatsapp: "WhatsApp",
+    calendar: "Agenda",
+    approvals: "Aprovações",
+    proposals: "Propostas",
+    tasks: "Tarefas",
+    review: "Revisão",
+    portal: "Portal",
+  },
   blocks: {
     send: "Mandar",
     more: "Mais",
@@ -12852,6 +12864,9 @@ export const ptBR = {
     pollAnswered_one: "{{count}} de {{total}} respondeu",
     pollAnswered_other: "{{count}} de {{total}} responderam",
     voteFailed: "Não deu para registrar seu voto.",
+    /** A card's button that ran on the server (docs/adr/doug-0020-doug-sector-cards.md). */
+    done: "Feito",
+    actFailed: "Não deu certo. Tente de novo.",
   },
   choices: {
     step: "{{step}} de {{total}}",

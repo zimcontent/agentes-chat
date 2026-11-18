@@ -192,6 +192,7 @@ import type {
   SandboxSettingsInput,
   SearchFilterInput,
   SearchKind,
+  SectorName,
   SeriesScope,
   SetupStep,
   SidebarItem,
@@ -3109,6 +3110,28 @@ export const useRonda = (orgId: string, agentId: string) => {
   });
 };
 
+/** The right hand's pills above the composer (doug-0020): the sectors with something for me, refreshed now and then. */
+export const useSectorPills = (orgId: string, agentId: string, enabled = true) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.sectorPills(orgId, agentId),
+    queryFn: () => api.agents.sectorPills(orgId, agentId),
+    enabled: enabled && orgId.length > 0 && agentId.length > 0,
+    staleTime: 60_000,
+    refetchInterval: 5 * 60_000,
+  });
+};
+
+/** A pill pressed: the right hand shows that sector's card now; the pills read again after. */
+export function useShowSectorCard(orgId: string, agentId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (sector: SectorName) => api.agents.showSectorCard(orgId, agentId, sector),
+    onSettled: () => qc.invalidateQueries({ queryKey: keys.sectorPills(orgId, agentId) }),
+  });
+}
+
 /** Turns an agent's ronda on or off, in the browser's time zone; the ronda and Rotinas follow. */
 export function useSetRonda(orgId: string, agentId: string) {
   const api = useApi();
@@ -4377,6 +4400,15 @@ export const useBlockReply = (orgId: string, id: string) => {
     mutationFn: ({ text, clientId }: { text: string; clientId: string }) =>
       api.artifacts.reply(orgId, id, text, clientId),
   });
+};
+
+/**
+ * A card's button that runs on the server (`act`, docs/adr/doug-0020-doug-sector-cards.md): pressed once; the button
+ * shows it done when `block.state` comes back with `_acted`.
+ */
+export const useBlockAct = (orgId: string, id: string) => {
+  const api = useApi();
+  return useMutation({ mutationFn: (act: string) => api.artifacts.blockAct(orgId, id, act) });
 };
 
 /** How long a block's changes gather before they go: a dragged slider sends a few values, not one per step. */

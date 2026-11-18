@@ -1592,7 +1592,13 @@ async function routineContext(
         ? [
             rondaEventText(event),
             // The right hand runs the operation with its person (ADR 9005 §5), outside the data envelope.
-            isRightHand(agent) ? rightHandRondaBrief({ who, opening: event.opening === true }) : "",
+            isRightHand(agent)
+              ? rightHandRondaBrief({
+                  who,
+                  opening: event.opening === true,
+                  cards: Array.isArray(event.cards) ? event.cards.filter((c) => typeof c === "string") : [],
+                })
+              : "",
           ]
             .filter(Boolean)
             .join("\n\n")

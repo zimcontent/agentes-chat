@@ -22,7 +22,13 @@
     "itsChannels": "群组",
     "seeAll": "查看全部"
   },
+  "sectorPills": {
+    "label": "快捷入口",
+    "failed": "卡片没有显示出来，请重试。"
+  },
   "blocks": {
+    "done": "已完成",
+    "actFailed": "没有成功，请重试。",
     "send": "发送",
     "more": "更多",
     "thousand": "k",

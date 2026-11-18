@@ -11983,6 +11983,17 @@
     "htmlError": "Halaman mengalami error: {{message}}",
     "markdownSource": "Teks Markdown"
   },
+  "sectorPills": {
+    "label": "Pintasan",
+    "failed": "Kartunya tidak muncul. Coba lagi.",
+    "whatsapp": "WhatsApp",
+    "calendar": "Agenda",
+    "approvals": "Persetujuan",
+    "proposals": "Usulan",
+    "tasks": "Tugas",
+    "review": "Tinjauan",
+    "portal": "Portal"
+  },
   "blocks": {
     "send": "Kirim",
     "more": "Lainnya",
@@ -12010,7 +12021,9 @@
     "pollClosed": "Pemungutan suara ditutup",
     "pollMultiple": "Kamu bisa memilih lebih dari satu.",
     "pollAnswered_other": "{{count}} dari {{total}} sudah menjawab",
-    "voteFailed": "Suaramu tidak masuk."
+    "voteFailed": "Suaramu tidak masuk.",
+    "done": "Selesai",
+    "actFailed": "Tidak berhasil. Coba lagi."
   },
   "choices": {
     "step": "{{step}} dari {{total}}",

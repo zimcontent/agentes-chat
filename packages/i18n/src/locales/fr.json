@@ -12899,6 +12899,17 @@
     "htmlError": "La page a rencontré une erreur : {{message}}",
     "markdownSource": "Texte Markdown"
   },
+  "sectorPills": {
+    "label": "Raccourcis",
+    "failed": "La carte n'est pas arrivée. Réessayez.",
+    "whatsapp": "WhatsApp",
+    "calendar": "Agenda",
+    "approvals": "Approbations",
+    "proposals": "Propositions",
+    "tasks": "Tâches",
+    "review": "Relecture",
+    "portal": "Portail"
+  },
   "blocks": {
     "send": "Envoyer",
     "more": "Plus",
@@ -12928,7 +12939,9 @@
     "pollAnswered_one": "{{count}} sur {{total}} a répondu",
     "pollAnswered_many": "{{count}} sur {{total}} ont répondu",
     "pollAnswered_other": "{{count}} sur {{total}} ont répondu",
-    "voteFailed": "Votre vote n'est pas passé."
+    "voteFailed": "Votre vote n'est pas passé.",
+    "done": "Fait",
+    "actFailed": "Ça n'a pas marché. Réessayez."
   },
   "choices": {
     "step": "{{step}} sur {{total}}",

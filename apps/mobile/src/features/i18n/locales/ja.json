@@ -22,7 +22,13 @@
     "itsChannels": "グループ",
     "seeAll": "すべて表示"
   },
+  "sectorPills": {
+    "label": "ショートカット",
+    "failed": "カードを表示できませんでした。もう一度お試しください。"
+  },
   "blocks": {
+    "done": "完了",
+    "actFailed": "うまくいきませんでした。もう一度お試しください。",
     "send": "送信",
     "more": "その他",
     "thousand": "千",

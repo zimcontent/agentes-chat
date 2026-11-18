@@ -352,6 +352,8 @@ import type {
   SearchKind,
   SecretBox,
   SecretRequest,
+  SectorName,
+  SectorPill,
   SeriesScope,
   ServerTelemetry,
   SetupStep,
@@ -969,6 +971,10 @@ export interface ApiClient {
     cancelUsageQueue(orgId: string, agentId: string): Promise<{ canceled: number; skipped: number }>;
     /** The agent's ronda (ADR 9004). */
     ronda(orgId: string, agentId: string): Promise<Ronda>;
+    /** The right hand's pills above the composer: the sectors with something for me (doug-0020). */
+    sectorPills(orgId: string, agentId: string): Promise<SectorPill[]>;
+    /** A pill pressed: the right hand shows that sector's card in my conversation with it, now. */
+    showSectorCard(orgId: string, agentId: string, sector: SectorName): Promise<{ id: string }>;
     /** Turns the agent's ronda on, changes when it passes, or switches it off (who manages agents, or its owner). */
     setRonda(
       orgId: string,
@@ -2018,6 +2024,8 @@ export interface ApiClient {
     keep(orgId: string, id: string): Promise<Artifact>;
     /** Sends what a person picked in a block to the agent that made it, as their own message. */
     reply(orgId: string, id: string, text: string, clientId: string): Promise<{ id: string }>;
+    /** A card's button that runs on the server (`act`), once (doug-0020). */
+    blockAct(orgId: string, id: string, act: string): Promise<{ act: string; done: true; messageId: string | null }>;
     /** A block's state, the same for everyone (ADR 0113). */
     blockState(orgId: string, id: string, version: number): Promise<BlockState>;
     /** Sets values in a block for everyone. */

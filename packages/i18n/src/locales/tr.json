@@ -12372,6 +12372,17 @@
     "htmlError": "Sayfada bir hata oluştu: {{message}}",
     "markdownSource": "Markdown metni"
   },
+  "sectorPills": {
+    "label": "Kısayollar",
+    "failed": "Kart gelmedi. Tekrar dene.",
+    "whatsapp": "WhatsApp",
+    "calendar": "Ajanda",
+    "approvals": "Onaylar",
+    "proposals": "Öneriler",
+    "tasks": "Görevler",
+    "review": "İnceleme",
+    "portal": "Portal"
+  },
   "blocks": {
     "send": "Gönder",
     "more": "Daha fazla",
@@ -12400,7 +12411,9 @@
     "pollMultiple": "Birden fazla seçebilirsiniz.",
     "pollAnswered_one": "{{total}} kişiden {{count}} kişi yanıtladı",
     "pollAnswered_other": "{{total}} kişiden {{count}} kişi yanıtladı",
-    "voteFailed": "Oyunuz iletilemedi."
+    "voteFailed": "Oyunuz iletilemedi.",
+    "done": "Tamam",
+    "actFailed": "Olmadı. Tekrar dene."
   },
   "choices": {
     "step": "{{step}} / {{total}}",

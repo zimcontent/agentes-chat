@@ -96,6 +96,7 @@ import {
 } from "./rrule";
 import { providerFailure } from "./runs";
 import { describeWhen, parseSchedule, readSchedule, type ScheduleParse } from "./schedule";
+import { deliverSectorCards, type SectorCardDeps } from "./sector-cards/cards";
 import { assertCanWork, closedRefusal, deletionPending, orgStanding, standingRefusal } from "./standing";
 import { alwaysAsks } from "./tools/gateway";
 import {
@@ -417,6 +418,8 @@ export interface RoutineDeps {
   connectors?: ConnectorTriggerDeps;
   /** Whether a widget's agent can think before its refresh starts (`widgetFiring`); absent: the run's own check. */
   ai?: Omit<AiStatusDeps, "db">;
+  /** The right hand's sector cards at its ronda's slots (docs/adr/doug-0020-doug-sector-cards.md); absent: none. */
+  sectorCards?: SectorCardDeps;
 }
 
 type RoutineRow = typeof routines.$inferSelect;
@@ -2354,8 +2357,27 @@ async function fireClaimedRun(deps: RoutineDeps, run: RunRow) {
       },
       { routine, run, agent, personId: creator },
     );
+    // The right hand's cards (docs/adr/doug-0020-doug-sector-cards.md): the day's brief at the opening, else what
+    // arrived and needs the person. In code, before the gate's verdict: a quiet slot still brings a lead that came in.
+    const shown =
+      deps.sectorCards && isRightHand(agent)
+        ? await deliverSectorCards(deps.sectorCards, {
+            orgId: routine.orgId,
+            agentId: agent.id,
+            personId: creator,
+            channelId: deliverTo.channelId,
+            opening: !("skip" in ronda) && ronda.opening,
+            since: ronda.since,
+          })
+        : [];
     if ("skip" in ronda) return skip(ronda.skip);
     opening = ronda.opening;
+    if (shown.length > 0) {
+      await db
+        .update(routineRuns)
+        .set({ event: { ...ronda.event, cards: shown } })
+        .where(eq(routineRuns.id, run.id));
+    }
   }
   const brief: RoutineBrief = {
     routineId: routine.id,

@@ -1,6 +1,8 @@
 {
   "app": {
     "pt-BR": [
+      "sectorPills.whatsapp",
+      "sectorPills.portal",
       "mediaGen.secondsValue",
       "usageViews.logins",
       "chat.wait.said",
@@ -338,6 +340,8 @@
       "onboarding.import.agenteschatName"
     ],
     "es": [
+      "sectorPills.whatsapp",
+      "sectorPills.portal",
       "mediaGen.audioKind",
       "mediaGen.nVideos",
       "mediaGen.nAudios",
@@ -633,6 +637,7 @@
       "contextMenu.lookOurs"
     ],
     "fr": [
+      "sectorPills.whatsapp",
       "mediaGen.audioKind",
       "mediaGen.nImages",
       "mediaGen.nAudios",
@@ -1110,6 +1115,8 @@
       "contextMenu.lookOurs"
     ],
     "de": [
+      "sectorPills.whatsapp",
+      "sectorPills.portal",
       "mediaGen.audioKind",
       "mediaGen.video",
       "devices.iphone.steps.account",
@@ -1614,6 +1621,7 @@
       "contextMenu.lookOurs"
     ],
     "it": [
+      "sectorPills.whatsapp",
       "mediaGen.audioKind",
       "mediaGen.input",
       "mediaGen.nVideos",
@@ -2031,6 +2039,7 @@
       "contextMenu.lookOurs"
     ],
     "nl": [
+      "sectorPills.whatsapp",
       "mediaGen.audioKind",
       "mediaGen.nVideos",
       "mediaGen.nAudios",
@@ -2684,6 +2693,7 @@
       "agentFront.ai"
     ],
     "ja": [
+      "sectorPills.whatsapp",
       "channel.tooLong.fileName",
       "devices.system.android",
       "devices.system.ios",
@@ -2890,6 +2900,7 @@
       "agentFront.ai"
     ],
     "ko": [
+      "sectorPills.whatsapp",
       "channel.tooLong.fileName",
       "devices.system.android",
       "devices.system.ios",
@@ -3090,6 +3101,7 @@
       "agentFront.ai"
     ],
     "zh-Hans": [
+      "sectorPills.whatsapp",
       "channel.tooLong.fileName",
       "devices.system.android",
       "devices.system.ios",
@@ -3281,6 +3293,8 @@
       "agentFront.ai"
     ],
     "id": [
+      "sectorPills.whatsapp",
+      "sectorPills.portal",
       "agentFront.ai",
       "mediaGen.audioKind",
       "mediaGen.input",
@@ -3633,6 +3647,8 @@
       "contextMenu.lookOurs"
     ],
     "tr": [
+      "sectorPills.whatsapp",
+      "sectorPills.portal",
       "mediaGen.nVideos",
       "mediaGen.video",
       "mediaGen.model",
@@ -3861,6 +3877,8 @@
       "contextMenu.lookOurs"
     ],
     "pl": [
+      "sectorPills.whatsapp",
+      "sectorPills.portal",
       "mediaGen.audioKind",
       "mediaGen.title",
       "mediaGen.model",
@@ -4201,6 +4219,7 @@
       "agentFront.ai"
     ],
     "ru": [
+      "sectorPills.whatsapp",
       "channel.tooLong.fileName",
       "devices.system.android",
       "devices.system.ios",

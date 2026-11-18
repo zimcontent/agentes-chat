@@ -3,7 +3,7 @@
  * the person instead of watching it. Written by the server and read live on every run, so a stored routine never
  * holds an older wording; any agent's ronda keeps `RONDA_PROMPT` alone.
  */
-export function rightHandRondaBrief(input: { who: string; opening: boolean }): string {
+export function rightHandRondaBrief(input: { who: string; opening: boolean; cards?: readonly string[] }): string {
   const { who } = input;
   const every = [
     `# You are ${who}'s right hand on this ronda`,
@@ -17,5 +17,9 @@ export function rightHandRondaBrief(input: { who: string; opening: boolean }): s
   const when = input.opening
     ? `This is the day's opening ronda, the first one today: it always speaks. Go through all of the above with more care than the hourly ones: the night's email, today's deadlines and meetings (the calendar, when you have one), every client. Open with the one thing that matters most today. Close with one idea that would make the operation better, grounded in what you actually saw (where work piles up, what keeps failing, what is done by hand), with the change and the first step: something ${who} didn't know and will be glad to read.`
     : `Speak only when you resolved something, found a problem, a deadline within 48 hours, something that needs ${who}, or an improvement worth their time. Otherwise finish quietly: they will hear from you when there is something.`;
-  return [...every, when].join("\n\n");
+  // The server already showed these sectors as cards in the conversation (docs/adr/doug-0020-doug-sector-cards.md).
+  const cards = input.cards?.length
+    ? `Just before this run the server showed ${who} cards in your conversation for: ${input.cards.join(", ")}, with their numbers and buttons. Don't repeat those numbers or ask what a card's buttons already ask: add only what you did about them or what else needs ${who}.`
+    : "";
+  return [...every, when, ...(cards ? [cards] : [])].join("\n\n");
 }

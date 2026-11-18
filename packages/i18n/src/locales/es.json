@@ -12828,6 +12828,17 @@
     "htmlError": "La página tuvo un error: {{message}}",
     "markdownSource": "Texto Markdown"
   },
+  "sectorPills": {
+    "label": "Atajos",
+    "failed": "La tarjeta no llegó. Inténtalo de nuevo.",
+    "whatsapp": "WhatsApp",
+    "calendar": "Agenda",
+    "approvals": "Aprobaciones",
+    "proposals": "Propuestas",
+    "tasks": "Tareas",
+    "review": "Revisión",
+    "portal": "Portal"
+  },
   "blocks": {
     "send": "Enviar",
     "more": "Más",
@@ -12857,7 +12868,9 @@
     "pollAnswered_one": "{{count}} de {{total}} respondió",
     "pollAnswered_many": "{{count}} de {{total}} respondieron",
     "pollAnswered_other": "{{count}} de {{total}} respondieron",
-    "voteFailed": "Tu voto no se registró."
+    "voteFailed": "Tu voto no se registró.",
+    "done": "Hecho",
+    "actFailed": "No salió bien. Inténtalo de nuevo."
   },
   "choices": {
     "step": "{{step}} de {{total}}",

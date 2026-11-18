@@ -80,6 +80,20 @@ export interface ComposerWorking {
   };
 }
 
+/**
+ * A pill above the field: its icon (or a mark of its own, a service's logo), its words, and what a tap does: put
+ * `text` (default: the label) in the field, or `onPress` (the right hand's sector cards, docs/adr/doug-0020). `count`:
+ * what waits there, drawn after the words.
+ */
+export interface ComposerSuggestion {
+  icon: IconName;
+  mark?: ReactNode;
+  label: string;
+  text?: string;
+  count?: number;
+  onPress?: () => void;
+}
+
 export interface ComposerProps {
   placeholder: string;
   onSend: (text: string, how: SendHow) => void;
@@ -91,7 +105,7 @@ export interface ComposerProps {
    * Pills above the field while it is empty; tapping one puts its `text` (default: the `label`) in the field
    * ("Pedir revisão do Caio" fills "Pede para o Caio revisar antes").
    */
-  suggestions?: { icon: IconName; label: string; text?: string }[];
+  suggestions?: ComposerSuggestion[];
   /**
    * Where the "@"/"#" picker and the suggestion pills are drawn when the screen puts them outside the box it measures
    * (`createComposerFloat`, drawn by `ComposerFloat`): they come and go with each key typed, and inside a box whose
@@ -425,7 +439,7 @@ export function Composer({
         {suggestions.map((s) => (
           <PressScale
             key={s.label}
-            onPress={() => put(s.text ?? s.label)}
+            onPress={() => (s.onPress ? s.onPress() : put(s.text ?? s.label))}
             accessibilityRole="button"
             // 32 tall: the slop reaches 44 without pushing the field down.
             hitSlop={{ top: 6, bottom: 6 }}
@@ -437,13 +451,23 @@ export function Composer({
           >
             <Glass liquid style={styles.pillGlass} />
             <View style={styles.pillIn}>
-              <Icon name={s.icon} size={17} color={colors.muted} />
+              {s.mark ?? <Icon name={s.icon} size={17} color={colors.muted} />}
               <RNText
                 maxFontSizeMultiplier={CHROME_MAX_SCALE}
                 style={[systemText("subhead", weights.medium), { color: colors.ink }]}
               >
                 {s.label}
               </RNText>
+              {s.count ? (
+                <View style={[styles.pillCount, { backgroundColor: colors.line2 }]}>
+                  <RNText
+                    maxFontSizeMultiplier={CHROME_MAX_SCALE}
+                    style={[systemText("caption", weights.semibold), { color: colors.ink }]}
+                  >
+                    {s.count > 99 ? "99+" : s.count}
+                  </RNText>
+                </View>
+              ) : null}
             </View>
           </PressScale>
         ))}
@@ -871,6 +895,14 @@ const styles = StyleSheet.create({
   pills: { gap: 8, paddingHorizontal: 12, paddingBottom: PILLS_GAP },
   pill: { height: PILL, borderRadius: PILL / 2 },
   pillGlass: { ...StyleSheet.absoluteFill, borderRadius: PILL / 2 },
+  pillCount: {
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: 6,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   // As the pills: to the screen edges, so on a narrow phone the last buttons scroll in instead of being cut.
   formatBleed: { marginHorizontal: -12 },
   formatRow: { paddingHorizontal: 10, paddingBottom: 8 },

@@ -23,7 +23,13 @@
     "itsChannels": "Gruplar",
     "seeAll": "Tümünü gör"
   },
+  "sectorPills": {
+    "label": "Kısayollar",
+    "failed": "Kart gelmedi. Tekrar dene."
+  },
   "blocks": {
+    "done": "Tamam",
+    "actFailed": "Olmadı. Tekrar dene.",
     "send": "Gönder",
     "more": "Daha fazla",
     "thousand": "B",

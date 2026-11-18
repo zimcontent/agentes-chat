@@ -22,7 +22,13 @@
     "itsChannels": "Grup",
     "seeAll": "Lihat semua"
   },
+  "sectorPills": {
+    "label": "Pintasan",
+    "failed": "Kartunya tidak muncul. Coba lagi."
+  },
   "blocks": {
+    "done": "Selesai",
+    "actFailed": "Tidak berhasil. Coba lagi.",
     "send": "Kirim",
     "more": "Lainnya",
     "thousand": "rb",

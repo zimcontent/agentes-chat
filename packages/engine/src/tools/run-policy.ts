@@ -279,6 +279,7 @@ const LOOKS_ONLY = new Set([
   "desktop_screenshot",
   "git_clone",
   "team_status",
+  "show_sector_card",
   "offer_approvals",
   "offer_open_page",
   // Their card is the question: what the person may change applies from it, anything else waits on it.

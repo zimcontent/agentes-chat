@@ -62,6 +62,7 @@ import { roleRoutes } from "./routes/app/roles";
 import { routineRoutes } from "./routes/app/routines";
 import { sandboxRoutes } from "./routes/app/sandboxes";
 import { secretRoutes } from "./routes/app/secrets";
+import { sectorCardRoutes } from "./routes/app/sector-cards";
 import { skillRoutes } from "./routes/app/skills";
 import { storageRoutes } from "./routes/app/storage";
 import { teamWeekRoutes } from "./routes/app/team-week";
@@ -234,6 +235,7 @@ export function createApp(options: AppOptions) {
     api.route("/app", planUsageRoutes(deps));
     api.route("/app", personUsageRoutes(deps));
     api.route("/app", teamWeekRoutes(deps));
+    api.route("/app", sectorCardRoutes(deps));
     api.route("/app", dashboardRoutes(deps));
     api.route("/app", telemetryRoutes(deps));
     api.route("/app", jevRoutes(deps));

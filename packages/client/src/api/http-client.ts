@@ -254,6 +254,7 @@ import type {
   SearchFilterInput,
   SearchHit,
   SecretRequest,
+  SectorPill,
   ServerTelemetry,
   SidebarItem,
   SidebarItems,
@@ -1126,6 +1127,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           method: "POST",
         }),
       ronda: (orgId, agentId) => request<Ronda>(`${org(orgId)}/agents/${enc(agentId)}/ronda`),
+      sectorPills: async (orgId, agentId) =>
+        (await request<{ pills: SectorPill[] }>(`${org(orgId)}/agents/${enc(agentId)}/sector-pills`)).pills,
+      showSectorCard: (orgId, agentId, sector) =>
+        request<{ id: string }>(`${org(orgId)}/agents/${enc(agentId)}/sector-cards/${enc(sector)}`, { method: "POST" }),
       setRonda: (orgId, agentId, schedule, timezone, model) =>
         request<Ronda>(`${org(orgId)}/agents/${enc(agentId)}/ronda`, {
           method: "PUT",
@@ -1767,6 +1772,11 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         }),
       blockState: (orgId, id, version) =>
         request<BlockState>(`${org(orgId)}/blocks/${enc(id)}/state`, { query: { version } }),
+      blockAct: (orgId, id, act) =>
+        request<{ act: string; done: true; messageId: string | null }>(
+          `${org(orgId)}/blocks/${enc(id)}/acts/${enc(act)}`,
+          { method: "POST" },
+        ),
       setBlockState: (orgId, id, version, values) =>
         request<BlockState>(`${org(orgId)}/blocks/${enc(id)}/state`, { method: "PUT", json: { version, values } }),
       drawBlock: (orgId, id, version, name, options) =>

@@ -44,6 +44,7 @@ export const BLOCK_LIMITS = {
   slides: 20,
   scenes: 40,
   fields: 20,
+  events: 20,
 } as const;
 
 /** A value's name: what a formula can read (the server's rule for a block's state, without the hyphen). */
@@ -130,7 +131,71 @@ export type BlockPart = PartBase &
     | { type: "fields"; items: { label: string; value: string }[] }
     | { type: "copy"; label?: string; text: string }
     | { type: "timeline"; label?: string; items: SceneItem[] }
+    // A sector card's pieces (docs/adr/doug-0020-doug-sector-cards.md): where it comes from, and a day's events.
+    | { type: "source"; service: SourceService; title: string; count?: string }
+    | { type: "agenda"; items: AgendaItem[]; note?: string; link?: { label: string; open: BlockOpen } }
   );
+
+/**
+ * The services a card's header can name, each drawn with its own mark by the apps. `other` draws a neutral one.
+ */
+export const SOURCE_SERVICES = [
+  "whatsapp",
+  "calendar",
+  "proposals",
+  "approvals",
+  "tasks",
+  "review",
+  "portal",
+  "mail",
+  "other",
+] as const;
+export type SourceService = (typeof SOURCE_SERVICES)[number];
+
+/** An event's color, as a name: the apps pick the shade for the theme. */
+export const AGENDA_TONES = ["blue", "green", "orange", "red", "purple", "yellow", "teal", "gray"] as const;
+export type AgendaTone = (typeof AGENDA_TONES)[number];
+
+/** One event of a day: when it starts (as written, "10:00"), its title, a line under it, and its color. */
+export interface AgendaItem {
+  time: string;
+  title: string;
+  /** "10:00 – 10:30 · Google Meet". */
+  sub?: string;
+  tone?: AgendaTone;
+}
+
+/**
+ * A place in the app a button opens (docs/adr/doug-0020-doug-sector-cards.md): the apps map each to their own screen,
+ * so the same card opens the same thing on the web and the phone. `link` is an outside address (https only).
+ */
+export const BLOCK_OPEN_PLACES = [
+  "whatsapp",
+  "proposals",
+  "approvals",
+  "tasks",
+  "task",
+  "review",
+  "portal",
+  "calendar",
+  "link",
+] as const;
+export type BlockOpenPlace = (typeof BLOCK_OPEN_PLACES)[number];
+export interface BlockOpen {
+  place: BlockOpenPlace;
+  /** The thing in that place: a number's id (whatsapp), a task's number, a review's id. */
+  id?: string;
+  /** Inside it: a WhatsApp conversation's id. */
+  sub?: string;
+  /** `link` only: the address. */
+  href?: string;
+}
+
+/**
+ * Where a block keeps which of its server actions ran (`act` buttons): `{ [act]: "done" }`, written by the server
+ * only. Its name starts with an underscore, which no input of an agent's block uses.
+ */
+export const ACTED_STATE = "_acted";
 
 /** One slide of a carousel: a short tag ("Capa", "CTA") marks the ones that matter. */
 export interface SlidePart {
@@ -163,6 +228,15 @@ export interface StatPart extends PartBase {
 
 export interface BlockButton {
   label: string;
+  /**
+   * An action the server holds for this block under this name (docs/adr/doug-0020-doug-sector-cards.md): the press
+   * asks the server to run it, once. Only cards the server makes carry one; `show_block` refuses it.
+   */
+  act?: string;
+  /** A place in the app it opens. */
+  open?: BlockOpen;
+  /** The main action of its row, drawn as such. */
+  primary?: boolean;
   /** A message the person sends to the agent with one press ("Aprovar", "Outra versão"), `{name}` filled in. */
   say?: string;
   /** Values it sets, each a formula read when it is pressed. */
@@ -194,6 +268,8 @@ export interface BlockSpec {
 }
 
 const PART_TYPES = new Set([
+  "source",
+  "agenda",
   "heading",
   "text",
   "note",
@@ -247,6 +323,8 @@ export function parseBlockSpec(raw: unknown): BlockSpec {
 /** Collects names and formulas while it cleans a spec, then checks every formula reads only known names. */
 class Checker {
   private parts = 0;
+  /** Whether a button holds a server action: its block keeps `ACTED_STATE`. */
+  acts = false;
   private inputs = new Map<string, string>();
   private implicit = new Set<string>();
   private formulas: { at: string; expr: Expr; extra?: ReadonlySet<string> }[] = [];
@@ -270,6 +348,10 @@ class Checker {
     for (const [name, at] of this.inputs) {
       if (declared.has(name)) throw new BlockSpecError(`${at}: the name "${name}" is used twice`);
       declared.add(name);
+    }
+    if (this.acts) {
+      if (declared.has(ACTED_STATE)) throw new BlockSpecError(`"${ACTED_STATE}" is the server's name`);
+      declared.add(ACTED_STATE);
     }
     for (const name of this.implicit) {
       // A button or a card sets state; fixed data never changes.
@@ -652,6 +734,50 @@ class Checker {
         const label = this.text(raw.label, `${at}.label`, L.label, false);
         return { ...base, type, ...(label ? { label } : {}), text: this.filled(raw.text, `${at}.text`, 2200) };
       }
+      case "source": {
+        if (!SOURCE_SERVICES.includes(raw.service as SourceService))
+          throw new BlockSpecError(`${at}.service is one of ${SOURCE_SERVICES.join(", ")}`);
+        const count = this.text(raw.count, `${at}.count`, 24, false);
+        return {
+          ...base,
+          type,
+          service: raw.service as SourceService,
+          title: this.text(raw.title, `${at}.title`),
+          ...(count ? { count } : {}),
+        };
+      }
+      case "agenda": {
+        if (!Array.isArray(raw.items) || raw.items.length === 0 || raw.items.length > L.events)
+          throw new BlockSpecError(`${at}.items must list 1 to ${L.events} events`);
+        const note = this.text(raw.note, `${at}.note`, 200, false);
+        let link: { label: string; open: BlockOpen } | undefined;
+        if (raw.link !== undefined) {
+          if (!isObject(raw.link)) throw new BlockSpecError(`${at}.link must be {label, open}`);
+          link = {
+            label: this.text(raw.link.label, `${at}.link.label`, 40),
+            open: this.open(raw.link.open, `${at}.link.open`),
+          };
+        }
+        return {
+          ...base,
+          type,
+          items: raw.items.map((x, i) => {
+            const where = `${at}.items[${i}]`;
+            if (!isObject(x)) throw new BlockSpecError(`${where} must be {time, title, sub, tone}`);
+            const sub = this.text(x.sub, `${where}.sub`, L.label, false);
+            if (x.tone !== undefined && !AGENDA_TONES.includes(x.tone as AgendaTone))
+              throw new BlockSpecError(`${where}.tone is one of ${AGENDA_TONES.join(", ")}`);
+            return {
+              time: this.text(x.time, `${where}.time`, 16),
+              title: this.text(x.title, `${where}.title`, 200),
+              ...(sub ? { sub } : {}),
+              ...(x.tone ? { tone: x.tone as AgendaTone } : {}),
+            };
+          }),
+          ...(note ? { note } : {}),
+          ...(link ? { link } : {}),
+        };
+      }
       case "timeline": {
         if (!Array.isArray(raw.items) || raw.items.length === 0 || raw.items.length > L.scenes)
           throw new BlockSpecError(`${at}.items must list 1 to ${L.scenes} beats`);
@@ -758,12 +884,42 @@ class Checker {
       if (!say.trim()) throw new BlockSpecError(`${at}.say is empty`);
       out.say = say;
     }
-    if (!out.set && !out.draw && !out.say)
-      throw new BlockSpecError(`${at} needs set, draw or say: what it does when pressed`);
+    if (raw.act !== undefined) {
+      if (typeof raw.act !== "string" || !BLOCK_NAME.test(raw.act))
+        throw new BlockSpecError(`${at}.act: needs a name (letters, digits, _)`);
+      out.act = raw.act;
+      this.acts = true;
+    }
+    if (raw.open !== undefined) out.open = this.open(raw.open, `${at}.open`);
+    if (raw.primary === true) out.primary = true;
+    if (!out.set && !out.draw && !out.say && !out.act && !out.open)
+      throw new BlockSpecError(`${at} needs set, draw, say, act or open: what it does when pressed`);
     if (raw.when !== undefined) {
       if (typeof raw.when !== "string") throw new BlockSpecError(`${at}.when must be a formula`);
       this.formula(raw.when, `${at}.when`);
       out.when = raw.when;
+    }
+    return out;
+  }
+
+  /** A place in the app (`BlockOpen`): a listed place, plain ids, and an https address for `link`. */
+  private open(raw: unknown, at: string): BlockOpen {
+    if (!isObject(raw) || !BLOCK_OPEN_PLACES.includes(raw.place as BlockOpenPlace))
+      throw new BlockSpecError(`${at}.place is one of ${BLOCK_OPEN_PLACES.join(", ")}`);
+    const out: BlockOpen = { place: raw.place as BlockOpenPlace };
+    const plain = (v: unknown, where: string) => {
+      const s = this.text(v, where, 64, false);
+      if (s && !/^[\w.:-]+$/.test(s)) throw new BlockSpecError(`${where} must be an id`);
+      return s;
+    };
+    const id = plain(raw.id, `${at}.id`);
+    const sub = plain(raw.sub, `${at}.sub`);
+    if (id) out.id = id;
+    if (sub) out.sub = sub;
+    if (out.place === "link") {
+      const href = this.text(raw.href, `${at}.href`, 2000);
+      if (!/^https:\/\/[^\s]+$/.test(href)) throw new BlockSpecError(`${at}.href must be an https address`);
+      out.href = href;
     }
     return out;
   }
@@ -875,7 +1031,13 @@ export type BlockViewPart = { key: string } & (
       selected: boolean;
       parts: BlockViewPart[];
     }
-  | { kind: "actions"; align: "end" | "center" | "start"; buttons: BlockViewButton[] }
+  | {
+      kind: "actions";
+      align: "end" | "center" | "start";
+      buttons: BlockViewButton[];
+      /** A button of the row is marked `primary`: only it leads (no other rule picks one). */
+      chosen: boolean;
+    }
   | { kind: "tags"; items: string[] }
   | { kind: "hook"; label: string; text: MarkedText }
   | { kind: "slides"; label: string; items: { tag: string; title: string; text: string }[] }
@@ -883,6 +1045,13 @@ export type BlockViewPart = { key: string } & (
   | { kind: "fields"; items: { label: string; value: string }[] }
   | { kind: "copy"; label: string; text: string }
   | { kind: "timeline"; label: string; items: { time: string; text: string; note: string; screen: string }[] }
+  | { kind: "source"; service: SourceService; title: string; count: string }
+  | {
+      kind: "agenda";
+      items: { time: string; title: string; sub: string; tone: AgendaTone }[];
+      note: string;
+      link: { label: string; open: BlockOpen } | null;
+    }
 );
 
 /** A text with the words to mark split out: drawn before, marked, after. */
@@ -915,8 +1084,12 @@ export interface BlockViewButton {
   draw: { name: string; options: string[] } | null;
   /** The message it sends to the agent, filled in now. */
   say: string | null;
-  /** The block's only button: drawn as the main action. */
+  /** The block's only button, or the one marked `primary`: drawn as the main action. */
   lead: boolean;
+  /** Its server action's name (`act`), and whether it already ran: then the button shows it is done. */
+  act: string | null;
+  done: boolean;
+  open: BlockOpen | null;
 }
 
 export interface BlockView {
@@ -961,6 +1134,7 @@ export function compileBlock(spec: BlockSpec): CompiledBlock {
         for (const b of p.buttons) {
           for (const n of Object.keys(b.set ?? {})) if (!(n in defaults)) defaults[n] = null;
           if (b.draw && !(b.draw.name in defaults)) defaults[b.draw.name] = null;
+          if (b.act && !(ACTED_STATE in defaults)) defaults[ACTED_STATE] = {};
         }
       }
       if ("parts" in p && p.parts) walk(p.parts);
@@ -1183,9 +1357,23 @@ export function viewBlock(compiled: CompiledBlock, state: Record<string, unknown
             if (list.length >= 2) draw = { name: b.draw.name, options: list };
           }
           const say = b.say ? fill(b.say).replace(/\s+/g, " ").trim().slice(0, BLOCK_LIMITS.sendChars) : "";
-          buttons.push({ key: k, label: b.label, set, draw, say: say || null, lead: false });
+          const acted = values[ACTED_STATE];
+          const done =
+            !!b.act && typeof acted === "object" && acted !== null && !Array.isArray(acted) && !!acted[b.act];
+          buttons.push({
+            key: k,
+            label: b.label,
+            set,
+            draw,
+            say: say || null,
+            lead: b.primary === true,
+            act: b.act ?? null,
+            done,
+            open: b.open ?? null,
+          });
         });
-        return buttons.length ? { key, kind: "actions", align: p.align ?? "end", buttons } : null;
+        const chosen = p.buttons.some((b) => b.primary);
+        return buttons.length ? { key, kind: "actions", align: p.align ?? "end", buttons, chosen } : null;
       }
       case "tags":
         return { key, kind: "tags", items: p.items };
@@ -1222,6 +1410,16 @@ export function viewBlock(compiled: CompiledBlock, state: Record<string, unknown
             note: x.note ? fill(x.note) : "",
             screen: x.screen ? fill(x.screen) : "",
           })),
+        };
+      case "source":
+        return { key, kind: "source", service: p.service, title: p.title, count: p.count ?? "" };
+      case "agenda":
+        return {
+          key,
+          kind: "agenda",
+          items: p.items.map((x) => ({ time: x.time, title: x.title, sub: x.sub ?? "", tone: x.tone ?? "blue" })),
+          note: p.note ?? "",
+          link: p.link ?? null,
         };
     }
     return null;
@@ -1280,6 +1478,19 @@ export function inputValue(part: BlockViewPart, raw: unknown): Value | undefined
   }
 }
 
+/** The server actions a spec's buttons name (`act`), in order: the actions its card must hold. */
+export function specActs(spec: BlockSpec): string[] {
+  const out: string[] = [];
+  const walk = (parts: BlockPart[]) => {
+    for (const p of parts) {
+      if (p.type === "actions") for (const b of p.buttons) if (b.act && !out.includes(b.act)) out.push(b.act);
+      if ("parts" in p && p.parts) walk(p.parts);
+    }
+  };
+  walk(spec.parts);
+  return out;
+}
+
 /** Which kind a block's content is: our parts, or the agent's own page (which runs only when a person asks). */
 export const isSpecBlock = (content: { spec?: unknown; html?: unknown }) => content.spec !== undefined;
 
@@ -1302,6 +1513,11 @@ export function blockSpecText(spec: BlockSpec): string {
       if (p.type === "fields") for (const x of p.items) out.push(x.label, x.value);
       if (p.type === "timeline")
         for (const x of p.items) out.push(x.text, ...[x.note, x.screen].filter((y): y is string => !!y));
+      if (p.type === "source") out.push(p.title);
+      if (p.type === "agenda") {
+        for (const x of p.items) out.push(x.title, ...(x.sub ? [x.sub] : []));
+        if (p.note) out.push(p.note);
+      }
       if ("parts" in p && p.parts) walk(p.parts);
     }
   };

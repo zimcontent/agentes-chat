@@ -2838,6 +2838,8 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         if (q) q.rows = q.rows.filter((r) => r.state !== "queued");
         return { canceled, skipped: 0 };
       },
+      sectorPills: async () => [],
+      showSectorCard: async () => ({ id: "card-message" }),
       ronda: async (orgId, agentId) => {
         log("agents.ronda", orgId, agentId);
         return (

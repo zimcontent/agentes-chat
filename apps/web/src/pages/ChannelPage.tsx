@@ -387,6 +387,7 @@ import {
   WaitMark,
 } from "@/components/RequestCard";
 import { ReturnLine } from "@/components/ReturnLine";
+import { SectorPills } from "@/components/SectorPills";
 import { SidePanel } from "@/components/SidePanel";
 import { ActivitySky, ChannelWelcome, chartColorOf, colorOf } from "@/components/Sky";
 import { isStoppable, StopButton, useContinueRun, useStopRun, useWasContinued } from "@/components/StopRun";
@@ -2884,6 +2885,7 @@ function ChannelView({
                             </p>
                           ) : (
                             <>
+                              {dmAgent && isRightHand(dmAgent) && <SectorPills agentId={dmAgent.id} />}
                               <Composer
                                 header={
                                   quote ? (

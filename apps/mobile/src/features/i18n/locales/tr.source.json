@@ -59,6 +59,18 @@
   "categories.seeAll": {
     "value": "See all"
   },
+  "sectorPills.label": {
+    "value": "Shortcuts"
+  },
+  "sectorPills.failed": {
+    "value": "That card didn't come. Try again."
+  },
+  "blocks.done": {
+    "value": "Done"
+  },
+  "blocks.actFailed": {
+    "value": "That didn't go through. Try again."
+  },
   "blocks.send": {
     "value": "Send"
   },

@@ -1,6 +1,6 @@
 import type { PubSub } from "@agenteschat/adapters";
 import { and, count, type Database, eq, inArray, isNotNull, isNull, lt, schema } from "@agenteschat/db";
-import type { BlockSpec } from "@agenteschat/ui/blocks/spec";
+import { type BlockSpec, parseBlockSpec, specActs } from "@agenteschat/ui/blocks/spec";
 import {
   type ArtifactContent,
   type ArtifactDeps,
@@ -74,7 +74,7 @@ Showing:
 - {"type":"chart","chart":"bar|line|pie","label","items":[{"label","value"}],"unit"}, or "data": a formula giving [{label, value}]
 - {"type":"table","columns":[{"label","key","format"}],"rows"}: the records, or a formula giving them
 Layout: {"type":"row","parts"} side by side; {"type":"card","label","sub","parts"}, and with "name" and "value" a card is a choice (a click sets name to value); {"type":"more","label","parts"} details that open; {"type":"actions","buttons":[{"label","set":{"name":"formula"}} or {"label","draw":{"name","options":[...]}}]}.
-A button with "say" sends that message to you as the person's, at once: {"label":"Aprovar","say":"Aprovado: a copy do carrossel."}.
+A button with "say" sends that message to you as the person's, at once: {"label":"Aprovar","say":"Aprovado: a copy do carrossel."}. A button with "open" opens a place in the app: {"label":"Ver tarefas","open":{"place":"tasks"}} (places: tasks, task with "id" its number, proposals, approvals, review, portal, whatsapp, calendar, link with an https "href").
 Copy (a post, a carousel, an ad, a script): words to read and reuse, drawn the way the piece looks. Whenever you hand over copy for a carousel, a static post or a reel, show it in a block made of these, in this order: tags, hook, the piece, the caption, actions with say.
 - {"type":"tags","items":["Carrossel","Topo de funil"]} the format first, then funnel, client, version
 - {"type":"hook","label":"Gancho","text","mark"} the hook, large; mark is words of the text to highlight
@@ -483,6 +483,10 @@ export function createBlockToolSource(deps: ArtifactDeps): ToolSource {
         const title = str(input.title);
         const subtitle = str(input.subtitle).trim() || undefined;
         const blockId = str(input.block_id);
+        // A server action is the server's to make (docs/adr/doug-0020-doug-sector-cards.md §4): an agent's block can't.
+        if (hasSpec && specActs(parseBlockSpec(spec)).length > 0) {
+          return failed(new Error('a button can\'t have "act" in your blocks: use "say" to answer you, or "open"'));
+        }
         // A spec when there is one: a page runs only on a click, so the parts win when the agent sent both.
         const content: Extract<ArtifactContent, { kind: "block" }> = hasSpec
           ? { kind: "block", spec: spec as BlockSpec, subtitle }
