@@ -36,7 +36,6 @@ import type {
   ConsultationConversation,
   Credential,
   DeviceAccount,
-  DougTeamTemplate,
   Edition,
   EmailChange,
   EndpointCheck,
@@ -62,7 +61,6 @@ import type {
   JoinApproval,
   JoinClaim,
   JoinRequest,
-  LegalFacts,
   Me,
   Member,
   MemberPresence,
@@ -145,6 +143,32 @@ import { createFakeThreads } from "./fakes/threads";
 import { createFakeWiki } from "./fakes/wiki";
 
 export const NOW = new Date("2026-10-14T13:44:00.000Z");
+/** The brand's tones as the server sends them: ids fixed, words in pt-BR (the tests run in Portuguese). */
+const BRAND_TONES = [
+  "proximo",
+  "profissional",
+  "divertido",
+  "inspirador",
+  "direto",
+  "acolhedor",
+  "tecnico",
+  "sofisticado",
+  "ousado",
+  "educativo",
+] as const;
+const BRAND_TONE_LABEL: Record<(typeof BRAND_TONES)[number], string> = {
+  proximo: "Próximo",
+  profissional: "Profissional",
+  divertido: "Divertido",
+  inspirador: "Inspirador",
+  direto: "Direto",
+  acolhedor: "Acolhedor",
+  tecnico: "Técnico",
+  sofisticado: "Sofisticado",
+  ousado: "Ousado",
+  educativo: "Educativo",
+};
+
 export const ORG_ID = "00000000-0000-4000-8000-000000000001";
 export const GENERAL_ID = "00000000-0000-4000-8000-0000000000c1";
 export const ENG_ID = "00000000-0000-4000-8000-0000000000c2";
@@ -202,34 +226,19 @@ function fakePlanAccount(money: boolean): PlanAccountUsage {
   };
 }
 
-/** `GET /api/app/legal`'s services on a fresh installation: every optional service off. */
-const NO_LEGAL_SERVICES: LegalFacts["services"] = {
-  platformKey: false,
-  jev: false,
-  giphy: false,
-  email: false,
-  media: false,
-  speech: false,
-  push: false,
-  pushDirect: false,
-  pushRelay: false,
-  composio: false,
-  embeddings: false,
-  whatsapp: false,
-  errors: false,
-  billing: false,
-  support: false,
-  telemetry: false,
-  driveBackup: false,
-};
-
 export interface FakeState {
   me: Me | null;
-  /** "Ver modelos de time" (`agents.teamTemplates`; default none). */
+  /** "Ver modelos de time" (`agents.teamTemplates`; default none): the gallery alone, never the Doug team. */
   teamTemplates?: TeamTemplate[];
   /** The Doug team's card apart (`agents.dougTemplate`, docs/adr/doug-0030-time-doug.md; default none). */
   dougTemplate?: DougTeamTemplate;
-  /** "Sua marca" (`agents.brand`/`agents.saveBrand`): what was saved, and whether the step waits (docs/adr/doug-0030-time-doug.md). */
+  /** `agents.applyTeamTemplate` refuses the Doug team with 409 `doug_team.made` (made meanwhile, another tab). */
+  dougMade?: boolean;
+  /** `artifacts.upload` refuses a file whose name contains this (the brand manual's failure). */
+  uploadFails?: string;
+  /** `orgs.brand` fails with this error (the brand step's own failed read). */
+  brandError?: Error;
+  /** "Sua marca" (`agents.brand`/`agents.saveBrand`): what was saved, and whether the step waits (docs/adr/doug-0020-time-doug.md). */
   brandState?: { brand: BrandView | null; pending: boolean };
   /** What a one-click proposed agent thinks with (default: what its draft suggested). */
   proposalAi?: "account" | "model" | "none";
@@ -417,8 +426,6 @@ export interface FakeState {
   edition?: Edition;
   /** Overrides `system.instance` (default: agentes.chat Cloud). */
   instance?: Partial<Instance>;
-  /** Overrides `system.legal` (default: every field unset, as a fresh installation has them). */
-  legal?: Partial<LegalFacts>;
   /** `agents.brainMachines`: the computers a new agent could think on ("Criar agente"); unset = none. */
   brainMachines?: BrainMachine[];
   /** `agents.newAgentSetup`: what a new agent starts thinking with; unset = none ("Automático"). */
@@ -1477,24 +1484,6 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         cloud: true,
         ...state.instance,
       }),
-      legal: async () => ({
-        companyName: null,
-        taxId: null,
-        address: null,
-        dpoName: null,
-        dpoEmail: null,
-        serverLocation: null,
-        logRetention: null,
-        backupRetentionDays: 14,
-        voiceRetentionDays: 90,
-        draft: true,
-        backup: false,
-        storage: "database" as const,
-        telemetryForced: false,
-        companyRequestsRetentionDays: null,
-        ...state.legal,
-        services: { ...NO_LEGAL_SERVICES, ...state.legal?.services },
-      }),
       telemetry: async () => state.telemetry ?? null,
       setTelemetry: async (enabled) => {
         log("system.setTelemetry", enabled);
@@ -1848,6 +1837,43 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         };
       },
       get: async (orgId) => ({ id: orgId, name: "Acme", role: "owner", context: "" }),
+      // As the server: the workspace's brand ("Sua marca"), the tones to tap, and whether the step waits.
+      brand: async (orgId, locale) => {
+        log("orgs.brand", orgId, locale);
+        if (state.brandError) throw state.brandError;
+        return {
+          pending: state.brandState?.pending ?? false,
+          brand: state.brandState?.brand ?? null,
+          skillId: state.brandState?.brand ? id("skill") : null,
+          tones: BRAND_TONES.map((tone) => ({ id: tone, label: BRAND_TONE_LABEL[tone] })),
+        };
+      },
+      // As the server: what was said becomes the brand, and the step no longer waits; `company` and a tone are required.
+      saveBrand: async (orgId, input) => {
+        log("orgs.saveBrand", orgId, input);
+        if (!input.company.trim()) throw new ApiError(400, "brand.company_required", "Say the company's name");
+        if ((input.tones ?? []).length === 0 && !input.tone?.trim())
+          throw new ApiError(400, "brand.tone_required", "Pick or write the tone of voice");
+        const brand: BrandView = {
+          company: input.company,
+          tones: input.tones ?? [],
+          tone: input.tone ?? null,
+          site: input.site ?? null,
+          instagram: input.instagram ?? null,
+          audience: input.audience ?? null,
+          // As the server: the manual's files, each id given back with a title (the fake has the uploads' ids, not
+          // their names here, so the id stands as the title).
+          files: (input.files ?? []).map((fileId) => ({ id: fileId, title: fileId })),
+          links: input.links ?? [],
+        };
+        state.brandState = { brand, pending: false };
+        // As the server: the workspace no longer waits, so `GET /me`'s `brandPending` goes too.
+        if (state.me)
+          state.me.organizations = state.me.organizations.map((o) =>
+            o.id === orgId && o.onboarding ? { ...o, onboarding: { ...o.onboarding, brandPending: false } } : o,
+          );
+        return { skillId: id("skill"), brand, pending: false };
+      },
       deletionCode: async (orgId) => {
         log("orgs.deletionCode", orgId);
         if (state.codeError) throw state.codeError;
@@ -2566,20 +2592,40 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         if (m) m.meta = { ...m.meta, actionCard: next };
         return { card: next };
       },
-      teamTemplates: async (orgId, locale, withDoug) => {
-        log("agents.teamTemplates", orgId, locale, ...(withDoug ? ["doug"] : []));
+      teamTemplates: async (orgId, locale) => {
+        log("agents.teamTemplates", orgId, locale);
         return state.teamTemplates ?? [];
-      },
-      // As the server: the Doug team's card apart from the gallery (docs/adr/doug-0030-time-doug.md).
-      dougTemplate: async (orgId, locale) => {
-        log("agents.dougTemplate", orgId, locale);
-        return state.dougTemplate;
       },
       // As the server: the template's team is made at once (ADR 0155 §6).
       applyTeamTemplate: async (orgId, templateId, locale, handles) => {
         log("agents.applyTeamTemplate", orgId, templateId, locale, ...(handles ? [handles] : []));
+        // Already made in this workspace (another tab, a reload): the server refuses with 409 `doug_team.made`. It is
+        // made all the same, so its brand step waits, as `GET /me` reads once this page asks again.
+        if (templateId === "doug" && state.dougMade) {
+          state.brandState = { brand: state.brandState?.brand ?? null, pending: true };
+          if (state.me)
+            state.me.organizations = state.me.organizations.map((o) =>
+              o.id === orgId && o.onboarding ? { ...o, onboarding: { ...o.onboarding, brandPending: true } } : o,
+            );
+          throw new ApiError(409, "doug_team.made", "Already made");
+        }
         const template = state.teamTemplates?.find((x) => x.id === templateId);
-        const team = template?.team.agents ?? [];
+        // The Doug team lists who it makes in `members` (the right hand makes none): the rest in `team.agents`.
+        const team =
+          templateId === "doug" && template?.members?.length
+            ? template.members
+                .filter((m) => !m.rightHand && (!handles || handles.includes(m.handle)))
+                .map((m) => ({
+                  name: m.name,
+                  handle: m.handle,
+                  role: m.role,
+                  instructions: m.line,
+                  appearance: null,
+                  channel: m.channel,
+                  routines: [],
+                  firstTask: null,
+                }))
+            : (template?.team.agents ?? []);
         const agentIds: string[] = [];
         for (const a of team) {
           agentIds.push(id("agent"));
@@ -2624,47 +2670,30 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
           },
           createdAt: new Date().toISOString(),
         });
-        return { channelId, messageId, state: "created", error: null };
-      },
-      // As the server: the workspace's brand ("Sua marca"), the tones to tap, and whether the step waits.
-      brand: async (orgId, locale) => {
-        log("agents.brand", orgId, locale);
+        // The Doug team made here: the brand step waits for it (as the server answers and `GET /me` says).
+        if (templateId === "doug") {
+          state.brandState = { brand: state.brandState?.brand ?? null, pending: true };
+          if (state.me)
+            state.me.organizations = state.me.organizations.map((o) =>
+              o.id === orgId && o.onboarding ? { ...o, onboarding: { ...o.onboarding, brandPending: true } } : o,
+            );
+        }
         return {
-          pending: state.brandState?.pending ?? false,
-          brand: state.brandState?.brand ?? null,
-          skillId: state.brandState?.brand ? id("skill") : null,
-          tones: [
-            "proximo",
-            "profissional",
-            "divertido",
-            "inspirador",
-            "direto",
-            "acolhedor",
-            "tecnico",
-            "sofisticado",
-            "ousado",
-            "educativo",
-          ].map((tone) => ({ id: tone, label: tone })),
+          channelId,
+          messageId,
+          state: "created",
+          error: null,
+          ...(templateId === "doug"
+            ? {
+                needsComputer: (template?.needsComputer ?? []).flatMap((handle) => {
+                  const m = template?.members?.find((x) => x.handle === handle);
+                  const agentId = agentIds[template?.members?.findIndex((x) => x.handle === handle) ?? -1];
+                  return m && agentId ? [{ agentId, handle, name: m.name }] : [];
+                }),
+                brandPending: true,
+              }
+            : {}),
         };
-      },
-      // As the server: what was said becomes the brand, and the step no longer waits; `company` and a tone are required.
-      saveBrand: async (orgId, input) => {
-        log("agents.saveBrand", orgId, input);
-        if (!input.company.trim()) throw new ApiError(400, "brand.company_required", "Say the company's name");
-        if ((input.tones ?? []).length === 0 && !input.tone?.trim())
-          throw new ApiError(400, "brand.tone_required", "Pick or write the tone of voice");
-        const brand: BrandView = {
-          company: input.company,
-          tones: input.tones ?? [],
-          tone: input.tone ?? null,
-          site: input.site ?? null,
-          instagram: input.instagram ?? null,
-          audience: input.audience ?? null,
-          files: [],
-          links: input.links ?? [],
-        };
-        state.brandState = { brand, pending: false };
-        return { skillId: id("skill"), brand, pending: false };
       },
       decideCostly: async (orgId, signalId, decision) => {
         log("agents.decideCostly", orgId, signalId, decision);
@@ -4347,7 +4376,11 @@ export function createFakeApi(state: FakeState = seedState(), options: { seed?: 
     () => state.me?.user.id ?? null,
   );
   const apps = createFakeApps((method, ...args) => state.calls.push({ method, args }), ctx.now);
-  const artifacts = createMockArtifacts(ctx, (method, ...args) => state.calls.push({ method, args }));
+  const artifacts = createMockArtifacts(
+    ctx,
+    (method, ...args) => state.calls.push({ method, args }),
+    () => state.uploadFails,
+  );
   state.drive = artifacts;
   const client: ApiClient = {
     ...http,

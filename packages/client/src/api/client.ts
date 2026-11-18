@@ -740,6 +740,18 @@ export interface ApiClient {
     /** `mail`: the proof on its own email's link (ADR 0090); accepted with it, the address counts as confirmed. */
     acceptInvitation(token: string, mail?: string): Promise<{ orgId: string }>;
     settings(orgId: string): Promise<OrgSettings>;
+    /** The workspace's brand ("Sua marca"), the tones to tap and whether the onboarding waits for it. */
+    brand(
+      orgId: string,
+      locale?: string,
+    ): Promise<{
+      pending: boolean;
+      brand: BrandView | null;
+      skillId: string | null;
+      tones: BrandToneWord[];
+    }>;
+    /** Saves the brand as the workspace skill "Marca <empresa>", in one go (who manages agents). */
+    saveBrand(orgId: string, input: BrandInput): Promise<{ skillId: string; brand: BrandView; pending: boolean }>;
     updateSettings(
       orgId: string,
       input: Partial<Omit<OrgSettings, "name" | "autoModels" | ReadOnlyOrgSettings>> & {
@@ -909,18 +921,6 @@ export interface ApiClient {
       needsComputer?: { agentId: string; handle: string; name: string }[];
       brandPending?: boolean;
     }>;
-    /** The workspace's brand ("Sua marca"), the tones to tap and whether the onboarding waits for it. */
-    brand(
-      orgId: string,
-      locale?: string,
-    ): Promise<{
-      pending: boolean;
-      brand: BrandView | null;
-      skillId: string | null;
-      tones: BrandToneWord[];
-    }>;
-    /** Saves the brand as the workspace skill "Marca <empresa>", in one go (who manages agents). */
-    saveBrand(orgId: string, input: BrandInput): Promise<{ skillId: string; brand: BrandView; pending: boolean }>;
     /** Decides an agent's proposal of costly work nobody asked for (ADR 0131): its card's `signalId`. */
     decideCostly(orgId: string, signalId: string, decision: CostlyDecision): Promise<{ state: CostlyDecision }>;
     update(orgId: string, agentId: string, input: Partial<AgentInput>): Promise<Agent>;

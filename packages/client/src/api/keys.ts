@@ -42,6 +42,8 @@ export const keys = {
   teamTemplates: (orgId: string, locale: string) => ["org", orgId, "team-templates", locale] as const,
   /** The Doug team's card, apart from the gallery (docs/adr/doug-0030-time-doug.md); under `teamTemplates`. */
   dougTemplate: (orgId: string, locale: string) => ["org", orgId, "team-templates", locale, "doug"] as const,
+  /** The workspace's brand ("Sua marca", docs/adr/doug-0020-time-doug.md), with the tones in each language. */
+  brand: (orgId: string, locale: string) => ["org", orgId, "brand", locale] as const,
   team: (orgId: string) => ["org", orgId, "team"] as const,
   credentials: (orgId: string) => ["org", orgId, "credentials"] as const,
   /** Under `credentials`: a key added, rotated or removed refreshes it too. */

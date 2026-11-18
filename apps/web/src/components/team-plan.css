@@ -22,10 +22,12 @@
   gap: 12px;
 }
 .tp-chip {
+  /* The chip's height, one number: the plate, and the target it grows to on touch. */
+  --tp-chip-h: 36px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  min-height: 36px;
+  min-height: var(--tp-chip-h);
   padding: 0 14px;
   border: 0;
   border-radius: 12px 12px 12px 4px;
@@ -54,6 +56,20 @@
 html:not([data-pointer]) .tp-chip:focus-visible {
   outline: none;
   box-shadow: var(--focus-ring);
+}
+/*
+ * A chip on touch: its 36 plate stays as on a desktop (the row's look never changes), and its target grows to the
+ * kit's 44 past it, up and down only, as a small button's does, so two chips 8 apart never share a target.
+ */
+@media (pointer: coarse) {
+  .tp-chip {
+    position: relative;
+  }
+  .tp-chip::after {
+    content: "";
+    position: absolute;
+    inset: calc((var(--tp-chip-h) - var(--touch-target)) / 2) 0;
+  }
 }
 /* The start card's other ways in, under a hairline like the request card's footer. */
 .tp-start__write {

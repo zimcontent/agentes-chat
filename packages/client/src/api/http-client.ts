@@ -839,6 +839,16 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           }),
         ),
       get: (orgId) => request<Organization>(org(orgId)),
+      brand: (orgId, locale) =>
+        request<{ pending: boolean; brand: BrandView | null; skillId: string | null; tones: BrandToneWord[] }>(
+          `${org(orgId)}/brand`,
+          { ...(locale ? { query: { locale } } : {}) },
+        ),
+      saveBrand: (orgId, input: BrandInput) =>
+        request<{ skillId: string; brand: BrandView; pending: boolean }>(`${org(orgId)}/brand`, {
+          method: "PUT",
+          json: input,
+        }),
       deletionCode: (orgId) => request<CodeSent>(`${org(orgId)}/deletion/code`, { json: {} }),
       deleteWorkspace: async (orgId, input = {}) =>
         (await request<{ deletion: { dueAt: string } }>(`${org(orgId)}/deletion`, { json: input })).deletion,
@@ -1084,16 +1094,6 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           brandPending?: boolean;
         }>(`${org(orgId)}/team-templates/${enc(templateId)}/use`, {
           json: { ...(locale ? { locale } : {}), ...(handles ? { handles } : {}) },
-        }),
-      brand: (orgId, locale) =>
-        request<{ pending: boolean; brand: BrandView | null; skillId: string | null; tones: BrandToneWord[] }>(
-          `${org(orgId)}/brand`,
-          { ...(locale ? { query: { locale } } : {}) },
-        ),
-      saveBrand: (orgId, input: BrandInput) =>
-        request<{ skillId: string; brand: BrandView; pending: boolean }>(`${org(orgId)}/brand`, {
-          method: "PUT",
-          json: input,
         }),
       decideCostly: (orgId, signalId, decision) =>
         request<{ state: CostlyDecision }>(`${org(orgId)}/autonomy-proposals/${enc(signalId)}`, {

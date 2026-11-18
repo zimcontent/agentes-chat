@@ -281,17 +281,63 @@ describe("the onboarding's rail (ADR 0162)", () => {
     ]);
   });
 
+  test("the Doug team's two steps (docs/adr/doug-0020-time-doug.md): recording who joins, then its brand", () => {
+    const base = {
+      orgId: "o1",
+      standing: undefined,
+      billingUrl: null,
+      context: "Loja online",
+      team: 0,
+      picked: null,
+      funnel: { thinks: false, passed: "import" as const },
+    };
+    // The card picked and no team yet: "Quem entra" next, the team step answered.
+    expect(railState({ ...base, dougPicked: true })).toMatchObject({
+      steps: ["name", "business", "you", "team", "who", "ai", "people"],
+      at: "who",
+      step: "who",
+    });
+    // The brand waiting moves next: the server refuses to finish until it is saved, so it comes before anything the
+    // team's data would say, a team read late included.
+    expect(railState({ ...base, dougPicked: true, brandWaits: true })).toMatchObject({
+      steps: ["name", "business", "you", "team", "brand", "ai", "people"],
+      at: "brand",
+      step: "brand",
+    });
+    // A team with no agents still read (a slow read of the agents made, or one made in another tab): the brand waits,
+    // so "Sua marca" is next, never "Quem entra" again.
+    expect(railState({ ...base, brandWaits: true })).toMatchObject({ at: "brand", step: "brand" });
+    expect(railState({ ...base, dougPicked: true, brandWaits: true }).steps).not.toContain("who");
+    // Saved, the team is there and the AI step follows.
+    expect(railState({ ...base, team: 5 })).toMatchObject({ at: "ai", step: "ai" });
+    // `railStepAt` reads it the same way, with a team or without one.
+    const at = (f: Partial<Parameters<typeof railStepAt>[0]>) =>
+      railStepAt({
+        created: true,
+        context: true,
+        team: true,
+        waitsForPlan: false,
+        personal: false,
+        ai: false,
+        thinks: false,
+        ...f,
+      });
+    expect(at({ team: false, brandWaits: true })).toBe("brand");
+    expect(at({ team: false, dougPicked: true, brandWaits: true })).toBe("brand");
+    expect(at({ team: false, dougPicked: true })).toBe("who");
+  });
+
   test("the AI step's answer: every agent thinks, read only from a status that lists them all", () => {
     const status = (states: Record<string, AiStatus["agents"][number]["state"]>): AiStatus => ({
       any: Object.values(states).some((s) => s !== "no_ai"),
       agents: Object.entries(states).map(([agentId, state]) => ({ agentId, state })),
     });
     // Waiting for its computer still thinks.
-    expect(teamThinks(["doug", "nina"], status({ lodi: "ready", nina: "waiting" }))).toBe(true);
-    expect(teamThinks(["doug", "nina"], status({ lodi: "ready", nina: "no_ai" }))).toBe(false);
+    expect(teamThinks(["doug", "nina"], status({ doug: "ready", nina: "waiting" }))).toBe(true);
+    expect(teamThinks(["doug", "nina"], status({ doug: "ready", nina: "no_ai" }))).toBe(false);
     // Not read yet, or read before an agent was made: no answer, so the page waits for a fresh read.
     expect(teamThinks(["doug"], undefined)).toBeUndefined();
-    expect(teamThinks(["doug", "nina"], status({ lodi: "ready" }))).toBeUndefined();
+    expect(teamThinks(["doug", "nina"], status({ doug: "ready" }))).toBeUndefined();
     expect(teamThinks([], status({}))).toBe(false);
   });
 

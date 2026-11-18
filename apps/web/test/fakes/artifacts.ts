@@ -117,6 +117,8 @@ const tooLarge = () => new ApiError(413, "artifact.file_too_large", "The file is
 export function createMockArtifacts(
   ctx: MockContext,
   record: (method: string, ...args: unknown[]) => void = () => {},
+  /** Files whose name contains this fail to upload (the server's own refusal, said in `brand.failed`). */
+  uploadFails?: () => string | undefined,
 ): ApiClient["artifacts"] {
   const store = perOrg(async (orgId) => {
     const list: Stored[] = [];
@@ -319,6 +321,10 @@ export function createMockArtifacts(
     upload: async (orgId, file, options = {}) => {
       record("artifacts.upload", orgId, file.name, options);
       if (file.size > MAX_FILE_BYTES) throw tooLarge();
+      // A file that fails at the server (a name a test asked to fail, or the storage's own refusal).
+      const failName = uploadFails?.();
+      if (failName && file.name.includes(failName))
+        throw new ApiError(413, "artifact.too_large", "The file is too large");
       const author = await me();
       const at = ctx.now().toISOString();
       const content = await fileContent(file);

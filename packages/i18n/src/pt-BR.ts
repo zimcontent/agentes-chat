@@ -25,6 +25,7 @@ export const ptBR = {
     nextMonth: "Próximo mês",
     chooseDate: "Escolher data",
     cancel: "Cancelar",
+    remove: "Remover",
     save: "Salvar",
     back: "Voltar",
     continue: "Continuar",
@@ -965,11 +966,15 @@ export const ptBR = {
         business: "O que vocês fazem",
         you: "Sobre você",
         team: "Seu time",
+        who: "Quem entra",
+        brand: "Sua marca",
         plan: "Ligar o time",
         ai: "Conectar uma IA",
         people: "Convidar pessoas",
         namePersonal: "Para que vai usar",
         teamPersonal: "Seus agentes",
+        whoPersonal: "Quem entra",
+        brandPersonal: "Sua marca",
         planPersonal: "Ligar os agentes",
         aiPersonal: "Conectar uma IA",
       },
@@ -981,6 +986,9 @@ export const ptBR = {
         team: "Esse é o time que eu montaria. Você muda tudo depois.",
         teamMade: "O time já está montado. Quando quiser, a gente segue.",
         teamMadePersonal: "Os seus agentes já estão aqui. Quando quiser, a gente segue.",
+        /** Em "Quem entra" e "Sua marca", as do Time Doug (docs/adr/doug-0020-time-doug.md). */
+        who: "O Time Doug já sabe o ofício. Escolha quem entra agora, o resto vem quando você quiser.",
+        brand: "Antes de botar o time pra trabalhar, ensine a sua marca. A ROSA e a SONY leem ela antes de cada peça.",
         plan: "Depois do plano, falta só conectar uma IA. Eu mostro onde.",
         planThen: "Com o plano ligado, a próxima tela já é a de conectar a sua IA.",
         you: "Antes do time, um pouco sobre você.",
@@ -1048,6 +1056,17 @@ export const ptBR = {
           see: "Ver o time pronto",
           scratchGo: "Seguir só com o {{name}}",
           scratchGo_female: "Seguir só com a {{name}}",
+          /** The Doug team's card (docs/adr/doug-0020-time-doug.md): first, already picked. */
+          doug: "Começar com o Time Doug",
+          /** Beside its title: the card that comes picked. */
+          dougBadge: "Recomendado",
+          dougText:
+            "O time que roda a operação do Doug: design, vídeo, tráfego, estratégia, social media, código e financeiro. Chegam sem nenhuma memória, prontos para aprender a sua empresa.",
+          /** Under its faces: who the card brings. */
+          dougWho_one: "{{count}} agente",
+          dougWho_other: "{{count}} agentes",
+          /** The button, with the Doug team picked. */
+          dougGo: "Escolher quem entra",
         },
         ask: {
           title: "Você já tem agentes em outro app?",
@@ -1083,6 +1102,81 @@ export const ptBR = {
           bring: "Trazer o time",
           bringPersonal: "Trazer os agentes",
         },
+      },
+      /**
+       * "Quem entra no seu time?" (docs/adr/doug-0020-time-doug.md): os agentes do Time Doug, todos marcados, o braço
+       * direito fixo, e o time do QG de Tráfego sob o MARK.
+       */
+      who: {
+        title: "Quem entra no seu time?",
+        lead: "Desmarque quem você não precisa agora. Dá para chamar qualquer um depois, em Equipe › Novo agente.",
+        /** A linha do braço direito: ele nunca sai (já está aqui). */
+        fixed: "Fica",
+        /** Sob as linhas do MARK: o QG de Tráfego que ele abre. `{{count}}`: quantos ele tem. */
+        teamOf_one: "{{count}} no time dele",
+        teamOf_other: "{{count}} no time dele",
+        /** O que os marcados trazem, acima da lista: um nome sob o número (um `dt` antes do `dd`). */
+        countAgents_one: "agente no time",
+        countAgents_other: "agentes no time",
+        countSkills_one: "skill de ofício",
+        countSkills_other: "skills de ofício",
+        countRoutines_one: "rotina pronta, pausada até você ligar",
+        countRoutines_other: "rotinas prontas, pausadas até você ligar",
+        /** O chip no fim da linha: o que aquele agente traz, com o número. */
+        skillsCount_one: "{{count}} skill de ofício",
+        skillsCount_other: "{{count}} skills de ofício",
+        note: "Nenhum chega com memória, cliente ou arquivo de outra empresa.",
+        /** O canal em que o agente da linha trabalha: o QG dele. */
+        qg: "no {{channel}}",
+        /** O aviso no agente que só trabalha num computador, e o botão ao lado. */
+        needsComputer: "precisa de um computador conectado",
+        connectComputer: "Conectar computador",
+        /** O que ainda falta depois do time criado: os agentes que precisam de um computador, nomeados. */
+        computerPending: "Falta um computador conectado: {{names}}.",
+        create: "Criar o time",
+        /** As caixas que precisam de resposta, ao lado dos nomes. */
+        required: "Obrigatório",
+      },
+      /**
+       * "Ensine a sua marca ao time" (docs/adr/doug-0020-time-doug.md): o nome da empresa e o tom, obrigatórios, e o
+       * site, o perfil, o público e o manual de marca, opcionais. Vira a skill "Marca" do workspace.
+       */
+      brand: {
+        title: "Ensine a sua marca ao time",
+        lead: "É daqui que a ROSA tira a identidade, a SONY o estilo dos vídeos e o Social Media o tom. Tudo fica só no seu workspace.",
+        company: "Nome da empresa",
+        companyPlaceholder: "Padaria Aurora",
+        site: "Site",
+        instagram: "Instagram",
+        instagramPlaceholder: "@aempresa",
+        audience: "Público",
+        audiencePlaceholder: "Quem compra de você?",
+        tone: "Tom de voz",
+        /** O chip que abre o campo para um tom escrito pela pessoa. */
+        toneOwn: "Escrever o seu",
+        tonePlaceholder: "Nas suas palavras: como a marca fala",
+        /** O manual de marca: um arquivo ou um link, opcionais. */
+        manual: "Manual de marca, logo, fontes e cores",
+        manualText: "Um PDF, Figma, imagens ou um link. Vira a skill “Marca {{company}}” do time inteiro.",
+        manualPick: "Escolher arquivos",
+        manualLink: "Colar um link",
+        manualLinkPlaceholder: "https://drive.google.com/…",
+        /** O botão que guarda o link colado, ao lado do campo. */
+        manualAdd: "Adicionar",
+        /** Ao lado do nome da empresa e do tom: o que a etapa não dispensa. */
+        required: "Obrigatório",
+        /** Sob o título do arquivo, depois que ele está no Drive. */
+        saved: "Enviado",
+        /** Um arquivo que não foi para o Drive, sob o nome dele. */
+        failed: "Não foi enviado: {{reason}}",
+        /** O que a etapa ainda espera, sob o botão que ainda não dá. */
+        missingCompany: "Diga o nome da empresa.",
+        missingTone: "Escolha um tom de voz ou escreva com as suas palavras.",
+        /** O × ao lado de um arquivo ou link, depois de a marca salva: ele sai da skill também. */
+        removeSaved: "Sai da marca salva também. Tirar?",
+        /** A skill em que vira, depois de salva. */
+        madeTitle: "O time aprendeu a sua marca",
+        made: "“Marca {{company}}” agora é a skill que a ROSA, a SONY, o Social Media e o CHESS leem.",
       },
       plan: {
         title: "Ligue o time",
