@@ -10,6 +10,7 @@ import { DesktopDragStrip } from "@/components/DesktopTitleBar";
 import { ErrorScreen } from "@/components/ErrorScreen";
 import { AccountDeletingScreen } from "@/components/Standing";
 import { useBackCloses } from "@/hooks/useBackCloses";
+import { rebrandLoaded } from "@/i18n";
 import { switchAccount } from "@/lib/accounts";
 import { askForPhone, asksForPhone, inDesktopApp, pageReadyAfterPaint, routeNewWindowLinks } from "@/lib/desktop";
 import { dispatchPushOpen } from "@/lib/push-open";
@@ -79,7 +80,7 @@ function Root() {
  * nothing. Draws nothing at all: a side effect, kept in a component so it re-runs when `me` or the instance change.
  */
 function ClientBrand() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const api = useApi();
   const client = useClientLook();
   // Both answers decide the look, and both start out empty: until they are here, a null name or color means "not
@@ -91,6 +92,9 @@ function ClientBrand() {
   useEffect(() => {
     if (!known) return;
     setClientProductName(client.name);
+    // The name that arrives after the strings were built (a boot whose `/api/instance` timed out, or a sign-in that
+    // answered late): every bundle already in the instance is branded again, as the boot does (ADR doug-0023).
+    rebrandLoaded(i18n);
     const root = document.documentElement;
     // The variable paints the highlight; the attribute lets it reach a part of the page that themes itself
     // (doug.css), and is absent on a server with no client, which keeps the identity's green everywhere.
@@ -101,13 +105,14 @@ function ClientBrand() {
       root.style.removeProperty("--client-accent");
       delete root.dataset.clientAccent;
     }
-    // The tab's title was built before the name arrived (index.html's, English): a client's server rebuilds it in the
-    // language in use. A server with no client writes nothing: its title is the build's own, already the one
-    // `index.html` and `translateTabTitle` set, and writing it here would be a second pass that could put the name's
-    // own words over a page's. `t` already gives it under the client's name (the language files are branded when they
-    // load), so it is written as it is: `brandText` here would grow a name that holds the build's own.
+    // The tab's title was written before the name arrived, as the build's (main.tsx's answer came late, or not at
+    // all before the timeout): a client's server writes it again in the language in use. A server with no client
+    // writes nothing: its title is already the build's own, and writing it here would be a second pass that could put
+    // the default over a page's title. `t` gives it under the client's name (the bundles in the instance were branded
+    // again once the name arrived, `rebrandLoaded`), so it is written as it is: `brandText` here would grow a name
+    // that holds the build's own.
     if (client.name) document.title = t("app.tabTitle");
-  }, [known, client.name, client.accent, t]);
+  }, [known, client.name, client.accent, t, i18n]);
   return null;
 }
 

@@ -165,9 +165,6 @@ export function clientImports(files: { path: string; text: string }[]): string[]
   return refused;
 }
 
-/** Whether a relative specifier from `path` resolves inside the same client's folder: `./x` and `./a/b` do, `../x` and
- * `./a/../../..` don't. The folder is `clients/<code>` — the first two segments of a path under `clients/` — so a file
- * can only reach its own client's code, never another's or the repo's. */
 /** Public files that hold the patterns on purpose: this check, its samples and the ignore rule for local prototypes. */
 const NAMES_PRIVATE_PATHS = new Set(["scripts/check-boundaries.ts", "scripts/check-boundaries.test.ts", ".gitignore"]);
 

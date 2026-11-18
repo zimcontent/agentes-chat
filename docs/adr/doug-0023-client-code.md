@@ -57,14 +57,21 @@ two folders for one code are refused.
 
 ### 3. The apps read the name and the color
 
-`GET /api/instance` (public) and `GET /api/app/me` carry `client` with the name and color, nothing else. The apps hold
-them in `packages/client/src/lib/client-custom.ts` (`ClientLook`, `clientLookOf`, `NO_CLIENT`) and use them where they
-show the product:
+`GET /api/instance` (public) and `GET /api/app/me` carry `client` with the name and color, nothing else — and **only
+when there is a client**: on a server with none the key is absent, so its answers are byte for byte the build's own,
+and the apps read them as they do those of a server that predates the field. The apps hold them in
+`packages/client/src/lib/client-custom.ts` (`ClientLook`, `clientLookOf`, `NO_CLIENT`) and use them where they show the
+product:
 
 - the signature (`Logo` on the web, `Assinatura` and the launch splash's label on the phone) and the tab's title,
   through `setClientProductName`, `brandName` and `subscribeBrand` in `@agenteschat/i18n/brand`: every string that
   names the product reads the client's from then on, and a signature on screen follows the name as it arrives
-  (`useSyncExternalStore`, so no prop carries it down and no logo is left behind saying the build's);
+  (`useSyncExternalStore`, so no prop carries it down and no logo is left behind saying the build's). The strings
+  already loaded are branded again (`rebrandLoaded` in `apps/web/src/i18n`: a copy of every language's bundle in the
+  instance, `brandTree`'d, announced as a language change so the screens redraw), because the language's file is built
+  before the boot knows whether the server has a client. The web boot does **not** wait on `/api/instance`: the
+  strings load as they do on any server, and the name, the rebrand and the title arrive with the answer — a server
+  with no client, or one that never answers, changes nothing (ADR doug-0023, §3);
 - the highlight through `--client-accent` on `<html>`, which the app's own accent tokens fall back to
   (`packages/ui/src/styles/doug.css`), so a server with no client is byte-for-byte the green it was. It stands where
   the identity puts the green on the screen's own accents — the highlighted words (`--accent-text`) and the focus ring
@@ -123,4 +130,8 @@ is refused with that key named, and an accent under 3:1 on either stage (black, 
   **resolves inside the client's own folder** (`./a/b` does, `../x` and `./a/../../..` don't). A `import(` / `require(` /
   `import.meta.resolve(` whose argument is not a string literal — a variable, a template with a hole — is refused by the
   expression itself, since there is no path to check. A folder can thus extend through the module API and nothing else:
-  never the engine's internals, a route it shouldn't reach, another client's folder or a private package.
+  never the engine's internals, a route it shouldn't reach, another client's folder or a private package. What the
+  scanner does not read is a `createRequire` a folder builds from `node:module`: the loader it returns is called like
+  a function, and no import is spelt where it could be read. That one is not a hole the check can close — it is code
+  the review of every public file has to refuse, and §4 says the same thing another way: a folder may only extend,
+  and a client that reaches inside through a loader is a bug in the folder, refused at review before it merges.

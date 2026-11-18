@@ -14,7 +14,7 @@ import { createBetterAuthClient } from "./auth/better-auth";
 import { copyPillAddresses } from "./chat/link-pill-copy";
 import { ErrorScreen } from "./components/ErrorScreen";
 import { withComposerDraftsSignOut } from "./hooks/useComposerDraft";
-import { loadI18n, savedLocale, translateTabTitle } from "./i18n";
+import { loadI18n, rebrandLoaded, savedLocale, translateTabTitle } from "./i18n";
 import { accountInLink, followAccountChanges, takeAccountMove, watchAccount, withoutAccount } from "./lib/accounts";
 import { startAppIcon } from "./lib/app-icon";
 import {
@@ -56,29 +56,19 @@ void authConfig.then(
   (config) => startErrorReports(config.errorReports ?? null),
   () => startErrorReports(null),
 );
-// A server deployed for one client names the product in its own words (ADR doug-0023): its name is set before the
-// strings are built, so the tab's title and every string that says the product's name read it. Public, one request;
-// the language's file downloads alongside it (the app needs both before the first screen, so neither waits on the
-// other). A server with no client, or one that doesn't answer in time, leaves the build's own name in place, and the
-// title is written as the build's, never a page's overwritten with it.
-const timedOut = Symbol("instance-timeout");
-const [answer, i18n] = await Promise.all([
-  Promise.race([
-    api.system.instance().catch(() => null),
-    new Promise<typeof timedOut>((resolve) => setTimeout(() => resolve(timedOut), 1500)),
-  ]),
-  // The language's file is the app's own too: index.html's boot fallback reloads or says so, and the error is reported.
-  loadI18n(savedLocale()).catch((error: unknown) => {
-    window.__agentesBootFailed?.();
-    throw error;
-  }),
-]);
-const instance = answer === timedOut ? null : answer;
-// The name is applied only once the answer is here; on a timeout the build's own stays, and the tab's title is not
-// written with it over a page's own (the name arrives later, if it does, and `ClientBrand` follows it).
-if (instance) setClientProductName(instance.client?.name);
+// The language's file is the app's own too: index.html's boot fallback reloads or says so, and the error is reported.
+// The first screen waits for it, and for nothing else: a server deployed for one client (ADR doug-0023) is named
+// beside it, the strings load as they do on any server, and the name reaches them when its answer does.
+const i18n = await loadI18n(savedLocale()).catch((error: unknown) => {
+  window.__agentesBootFailed?.();
+  throw error;
+});
+// Public, one request, asked here so it goes out with the language's: a server with a client sets the name, rebrands
+// the bundles already loaded (`rebrandLoaded`, which rewrites the tab's title too) and leaves its answer in the
+// cache. A server with no client, or one that doesn't answer, changes nothing at all.
+const instanceAnswer = api.system.instance();
 document.documentElement.lang = i18n.language;
-translateTabTitle(i18n, { title: answer !== timedOut });
+translateTabTitle(i18n);
 // In the desktop app (ADR 0036): the site draws the window's title bar (desktop.css), with room for a Mac's
 // buttons only there; and "this Mac" is this computer's own name.
 const platform = desktopPlatform();
@@ -113,9 +103,21 @@ const queryClient = createQueryClient({
 });
 
 // The answers above are the cache's: the sign-in guards don't ask again, and the first render's `useClientLook` reads
-// the client's name without a second request (no answer: nothing cached, and the query asks when it can).
+// the client's name without a second request.
 void queryClient.prefetchQuery({ ...authConfigQuery(api), queryFn: () => authConfig });
-if (instance) queryClient.setQueryData(keys.instance, instance);
+void instanceAnswer.then(
+  (instance) => {
+    queryClient.setQueryData(keys.instance, instance);
+    // The language's bundle was branded when it downloaded, before the answer was here (ADR doug-0023): the bundles
+    // already in the instance are branded again, so every string drawn from now on reads the client's name — and the
+    // tab's title, already written as the build's, follows. A second call (the render's `ClientBrand`) is a no-op.
+    if (instance.client?.name) {
+      setClientProductName(instance.client.name);
+      rebrandLoaded(i18n);
+    }
+  },
+  () => {},
+);
 
 // The last lists and chats saved on this device show at once; everything revalidates as usual.
 const snapshot = createSnapshot(queryClient, snapshotStore);

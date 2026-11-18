@@ -2,15 +2,19 @@ import { describe, expect, test } from "bun:test";
 import type { ClientBrand, Instance, Me } from "../src/api/types";
 import { clientLookOf, NO_CLIENT, productName } from "../src/lib/client-custom";
 
-const meWith = (client: ClientBrand | null) => ({ user: {}, organizations: [], client }) as unknown as Me;
+const meWith = (client: ClientBrand | undefined) => ({ user: {}, organizations: [], client }) as unknown as Me;
 const instanceWith = (client: Instance["client"]) => ({ name: "agentes.chat", client }) as unknown as Instance;
 
 const EXAMPLE: ClientBrand = { name: "Padaria Aurora", accent: "#C2410C" };
 
 describe("a server's client look (ADR doug-0023)", () => {
   test("no client anywhere reads as NO_CLIENT", () => {
-    expect(clientLookOf(meWith(null), instanceWith(null))).toEqual(NO_CLIENT);
+    // A server with no client sends neither (`client` absent, ADR doug-0023): it reads as one that predates the field.
+    expect(clientLookOf(meWith(undefined), instanceWith(undefined))).toEqual(NO_CLIENT);
     expect(clientLookOf(undefined, undefined)).toEqual(NO_CLIENT);
+    expect(clientLookOf(meWith(undefined), instanceWith(undefined))).toEqual(
+      clientLookOf({ user: {}, organizations: [] } as unknown as Me, { name: "agentes.chat" } as unknown as Instance),
+    );
   });
 
   test("`me` wins; the instance fills in for a reader that only has it", () => {

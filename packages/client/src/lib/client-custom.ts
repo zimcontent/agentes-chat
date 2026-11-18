@@ -21,7 +21,11 @@ const HEX = /^#[0-9a-f]{6}$/i;
 const accentOf = (color: string | null | undefined): string | null =>
   typeof color === "string" && HEX.test(color) ? color : null;
 
-/** The client's look as `me` and the instance say it; nothing from either: NO_CLIENT. `me` wins where both speak. */
+/**
+ * The client's look as `me` and the instance say it; nothing from either: NO_CLIENT. `me` wins where both speak. A
+ * server with no client sends neither (`client` absent, ADR doug-0023), so the apps read exactly as they do on one
+ * that predates the field.
+ */
 export function clientLookOf(me: Me | null | undefined, instance?: Instance | null): ClientLook {
   const fromMe = me?.client;
   const fromInstance = instance?.client;

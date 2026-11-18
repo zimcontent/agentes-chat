@@ -27,11 +27,13 @@ const instance = async () => (await (await t.app.request("/api/instance")).json(
 describe("DOUG_CLIENT_CODE (ADR doug-0023)", () => {
   test("without a code the server behaves as the shared code does", async () => {
     t = await createTestServer();
-    expect(await instance()).toMatchObject({ name: "agentes.chat", client: null });
+    // The key is absent, not null: a server with no client answers exactly as the build before it did.
+    expect(await instance()).toMatchObject({ name: "agentes.chat" });
+    expect(await instance()).not.toHaveProperty("client");
     const web = browser(t);
     await signUp(web, "ana@example.com");
-    const me = (await (await web("/api/app/me")).json()) as { client: unknown };
-    expect(me.client).toBeNull();
+    const me = (await (await web("/api/app/me")).json()) as Record<string, unknown>;
+    expect(me).not.toHaveProperty("client");
   });
 
   test("the example client's overrides reach the apps, in /api/instance and in /me", async () => {

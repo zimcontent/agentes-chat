@@ -1,5 +1,6 @@
 import { type LocaleState, useLocaleSync } from "@agenteschat/client/lib/locale-sync";
 import { resources } from "@agenteschat/i18n";
+import { brandName, brandTree } from "@agenteschat/i18n/brand";
 import { loadStrings } from "@agenteschat/i18n/load";
 import {
   type AppLocale,
@@ -179,6 +180,43 @@ export async function loadI18n(lng: LocaleCode): Promise<I18n> {
     resources: Object.fromEntries(codes.map((code, i) => [code, { translation: strings[i] ?? {} }])),
   });
   return instance;
+}
+
+/** The name each instance's bundles were branded to, so a second call with the same one does nothing. */
+const brandedTo = new WeakMap<I18n, string>();
+
+/**
+ * Every language already in the instance, renamed under the product's name as it is now (ADR doug-0023). The strings
+ * are branded when they load (`loadStrings`), which is before the boot knows whether this server has a client: a
+ * client's name has to reach the bundles that are already there too, or every string drawn before the next language
+ * change would still say the build's. `brandTree` reads the same text twice the same, so a language loaded after the
+ * name already carries it and this pass leaves it as it is.
+ *
+ * The bundle is replaced by a copy, never branded in place: the trees `loadStrings` builds share their unchanged
+ * branches with the language files, which every instance of the app in this process reads (`resources`, another
+ * instance in a test), and a name written into them would outlive this one. The store's own top level is replaced too,
+ * since `createI18n` initializes an instance over `resources` itself.
+ */
+export function rebrandLoaded(instance: I18n) {
+  const name = brandName();
+  if (brandedTo.get(instance) === name) return;
+  brandedTo.set(instance, name);
+  let changed = false;
+  const data = { ...instance.store.data };
+  for (const code of Object.keys(data)) {
+    const bundle = data[code]?.translation;
+    if (!bundle) continue;
+    const branded = brandTree(structuredClone(bundle));
+    if (JSON.stringify(branded) === JSON.stringify(bundle)) continue;
+    data[code] = { ...data[code], translation: branded };
+    changed = true;
+  }
+  if (!changed) return;
+  instance.store.data = data;
+  // The screens on glass read their strings when they drew and listen for the language, not for the bundle (the hooks
+  // bind `languageChanged`): the name's arrival is announced as one, so they draw again under it — and the tab's title
+  // already written follows, since `translateTabTitle` listens to the same.
+  instance.emit("languageChanged", instance.language);
 }
 
 /**
