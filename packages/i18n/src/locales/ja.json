@@ -12143,6 +12143,42 @@
     "tooLongFix": "回答を短くしてください。"
   },
   "drive": {
+    "draft": "下書き",
+    "draftUntil": "{{date}}に自動でゴミ箱に移動します。変更されるか、誰かが保存すれば残ります。",
+    "keepDraft": "保存する",
+    "kept": "{{title}}を保存しました。",
+    "folders": {
+      "title": "フォルダ",
+      "path": "フォルダのパス",
+      "new": "新しいフォルダ",
+      "newTitle": "新しいフォルダ",
+      "newInside": "中に新しいフォルダ",
+      "create": "作成",
+      "created": "フォルダ「{{name}}」を作成しました。",
+      "name": "名前",
+      "namePlaceholder": "クライアントまたはプロジェクト",
+      "menu": "フォルダ「{{name}}」: その他",
+      "menuShort": "その他",
+      "rename": "名前を変更",
+      "renameTitle": "フォルダの名前を変更",
+      "renameConfirm": "名前を変更",
+      "move": "移動",
+      "moveTo": "移動先…",
+      "moveHere": "ここに移動",
+      "here": "現在の場所",
+      "moveFolderTitle": "{{name}}を移動",
+      "moveFilesTitle_other": "{{count}}件のファイルを移動",
+      "moved": "{{name}}を{{folder}}に移動しました。",
+      "filed_other": "{{count}}件のファイルを{{folder}}に移動しました。",
+      "files_other": "{{count}}件のファイル",
+      "remove": "フォルダを削除",
+      "removeTitle": "{{name}}を削除しますか？",
+      "removeBody": "ファイルは削除されません。中身は1つ上の階層に移ります。",
+      "removeConfirm": "フォルダを削除",
+      "removed": "フォルダ「{{name}}」を削除しました。",
+      "emptyTitle": "このフォルダは空です",
+      "emptyText": "ファイルをここにドラッグするかアップロードしてください。エージェントに作業内容をこのフォルダへ整理してもらうこともできます。"
+    },
     "title": "Drive",
     "subtitle": "人とエージェントが作成・アップロードしたすべてのもの。",
     "search": "ファイルを検索",
@@ -13942,6 +13978,10 @@
       "request_folder_access": "フォルダへのアクセスを依頼",
       "create_artifact": "Driveにファイルを作成",
       "update_artifact": "Driveのファイルを更新",
+      "drive_folders": "Driveのフォルダを見る",
+      "file_artifacts": "Driveのフォルダに保存",
+      "drive_folder": "Driveのフォルダを整理",
+      "trash_artifacts": "ファイルを片付ける",
       "read_artifact": "Driveのファイルを読み取り",
       "list_artifacts": "Driveのファイルを一覧表示",
       "share_artifact": "ファイルを共有",
@@ -15053,6 +15093,14 @@
       "sharingEmpty": "閲覧できる人を選んでください。",
       "sharingTooMany": "選べるのは最大{{max}}人と{{max}}個のロールです。",
       "notInDrive": "これは会話の中だけにあるため、共有できません。"
+    },
+    "drive": {
+      "folderExists": "同じ名前のフォルダがすでにあります。",
+      "folderNotFound": "このフォルダはもう存在しません。",
+      "folderCycle": "フォルダを自分自身の中に入れることはできません。",
+      "folderTooDeep": "フォルダは最大{{max}}階層までです。",
+      "foldersFull": "このワークスペースにはすでに{{max}}個のフォルダがあります。",
+      "folderName": "フォルダの名前を入力してください。"
     },
     "device": {
       "notLinkMaker": "このコンピューターを参加させられるのは、リンクを作った人だけです。",
@@ -17934,6 +17982,22 @@
     "update_artifact": {
       "label": "ファイルを更新",
       "description": "ファイルの新しいバージョンを保存します。"
+    },
+    "drive_folders": {
+      "label": "フォルダを見る",
+      "description": "Driveのフォルダを確認します。"
+    },
+    "file_artifacts": {
+      "label": "フォルダに保存",
+      "description": "Driveのファイルをプロジェクトのフォルダに入れます。"
+    },
+    "drive_folder": {
+      "label": "フォルダを整理",
+      "description": "Driveのフォルダの名前変更、移動、削除をします（ファイルは対象外）。"
+    },
+    "trash_artifacts": {
+      "label": "自分のファイルを片付ける",
+      "description": "自分が作成して誰も使わないファイルをゴミ箱に移動します（30日間は復元できます）。"
     },
     "list_issues": {
       "label": "タスクを見る",

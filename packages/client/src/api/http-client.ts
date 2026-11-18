@@ -131,6 +131,8 @@ import type {
   DirectMessage,
   DmRead,
   DougTeamTemplate,
+  DriveFolder,
+  DriveFolders,
   EmailChange,
   EndpointCheck,
   EndpointModel,
@@ -357,6 +359,9 @@ const artifactQuery = (f: ArtifactFilters) => ({
   changed: f.changed && f.author ? "1" : undefined,
   authors: csv(f.authors?.map((a) => `${a.type}:${a.id}`)),
   who: f.who,
+  folderId: f.folder === undefined ? undefined : (f.folder.id ?? "root"),
+  deep: f.folder?.deep ? "1" : undefined,
+  drafts: f.drafts ? "1" : undefined,
   sort: f.sort && f.sort !== "recent" ? f.sort : undefined,
 });
 
@@ -1880,6 +1885,15 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       restore: (orgId, id) =>
         request<ArtifactDetail | undefined>(`${org(orgId)}/artifacts/${enc(id)}/restore`, { json: {} }),
       purge: (orgId, id) => request<void>(`${org(orgId)}/artifacts-trash/${enc(id)}`, { method: "DELETE" }),
+      folders: (orgId) => request<DriveFolders>(`${org(orgId)}/drive-folders`),
+      createFolder: (orgId, input) => request<DriveFolder>(`${org(orgId)}/drive-folders`, { json: input }),
+      updateFolder: (orgId, id, patch) =>
+        request<DriveFolder>(`${org(orgId)}/drive-folders/${enc(id)}`, { method: "PATCH", json: patch }),
+      removeFolder: (orgId, id) =>
+        request<{ files: number; folders: number }>(`${org(orgId)}/drive-folders/${enc(id)}`, { method: "DELETE" }),
+      file: async (orgId, ids, folderId) =>
+        (await request<{ artifacts: Artifact[] }>(`${org(orgId)}/drive/file`, { json: { ids, folderId } })).artifacts,
+      keepDraft: (orgId, id) => request<Artifact>(`${org(orgId)}/artifacts/${enc(id)}/draft`, { method: "DELETE" }),
     },
     issues: {
       agenda: (orgId, query) =>

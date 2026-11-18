@@ -67,6 +67,7 @@ import {
   sweepFeedbackFiles,
   sweepWidgetDrafts,
   syncAllTwins,
+  trashExpiredDrafts,
   type VoiceDeps,
   wakeSnoozedNotifications,
 } from "@agenteschat/engine";
@@ -195,6 +196,8 @@ export const WORKER_INTERVALS_MS = {
   inboxes: 30_000,
   /** Deleted files past 30 days lose their contents. */
   artifactPurge: 6 * 3600_000,
+  /** Drafts past their time go to the trash (docs/adr/doug-0036-drive-folders.md). */
+  drafts: 3600_000,
   /** Feedback files their purge job missed (it failed for good, or its row went first). */
   feedbackFiles: 6 * 3600_000,
   /** Wiki pages in the trash past 30 days are removed with their history. */
@@ -454,6 +457,10 @@ export function startWorkers(deps: WorkerDeps) {
     every("artifactPurge", WORKER_INTERVALS_MS.artifactPurge, async () => {
       const purged = await purgeDeletedArtifacts(files);
       if (purged > 0) log.info("deleted files purged", { versions: purged });
+    });
+    every("drafts", WORKER_INTERVALS_MS.drafts, async () => {
+      const trashed = await trashExpiredDrafts(files);
+      if (trashed > 0) log.info("drafts past their time trashed", { files: trashed });
     });
   }
 

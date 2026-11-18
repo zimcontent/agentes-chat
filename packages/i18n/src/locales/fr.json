@@ -13127,6 +13127,48 @@
     "tooLongFix": "Raccourcissez la réponse."
   },
   "drive": {
+    "draft": "Brouillon",
+    "draftUntil": "Ira à la corbeille tout seul le {{date}}, sauf s’il change ou si quelqu’un le conserve.",
+    "keepDraft": "Conserver",
+    "kept": "{{title}} est conservé.",
+    "folders": {
+      "title": "Dossiers",
+      "path": "Chemin du dossier",
+      "new": "Nouveau dossier",
+      "newTitle": "Nouveau dossier",
+      "newInside": "Nouveau dossier à l’intérieur",
+      "create": "Créer",
+      "created": "Dossier {{name}} créé.",
+      "name": "Nom",
+      "namePlaceholder": "Client ou projet",
+      "menu": "Dossier {{name}} : plus",
+      "menuShort": "Plus",
+      "rename": "Renommer",
+      "renameTitle": "Renommer le dossier",
+      "renameConfirm": "Renommer",
+      "move": "Déplacer",
+      "moveTo": "Déplacer vers…",
+      "moveHere": "Déplacer ici",
+      "here": "Se trouve ici",
+      "moveFolderTitle": "Déplacer {{name}}",
+      "moveFilesTitle_one": "Déplacer {{count}} fichier",
+      "moveFilesTitle_many": "Déplacer {{count}} de fichiers",
+      "moveFilesTitle_other": "Déplacer {{count}} fichiers",
+      "moved": "{{name}} a été déplacé vers {{folder}}.",
+      "filed_one": "{{count}} fichier a été déplacé vers {{folder}}.",
+      "filed_many": "{{count}} de fichiers ont été déplacés vers {{folder}}.",
+      "filed_other": "{{count}} fichiers ont été déplacés vers {{folder}}.",
+      "files_one": "{{count}} fichier",
+      "files_many": "{{count}} de fichiers",
+      "files_other": "{{count}} fichiers",
+      "remove": "Supprimer le dossier",
+      "removeTitle": "Supprimer {{name}} ?",
+      "removeBody": "Aucun fichier n’est supprimé. Le contenu remonte d’un niveau.",
+      "removeConfirm": "Supprimer le dossier",
+      "removed": "Dossier {{name}} supprimé.",
+      "emptyTitle": "Ce dossier est vide",
+      "emptyText": "Faites glisser des fichiers ici, importez-les ou demandez à un agent de classer son travail dans ce dossier."
+    },
     "title": "Drive",
     "subtitle": "Tout ce que les personnes et les agents ont créé ou importé.",
     "search": "Rechercher des fichiers",
@@ -14964,6 +15006,10 @@
       "request_folder_access": "Demander l'accès à un dossier",
       "create_artifact": "Créer un fichier dans Drive",
       "update_artifact": "Modifier un fichier dans Drive",
+      "drive_folders": "Voir les dossiers du Drive",
+      "file_artifacts": "Classer dans un dossier du Drive",
+      "drive_folder": "Organiser un dossier du Drive",
+      "trash_artifacts": "Nettoyer des fichiers",
       "read_artifact": "Lire un fichier dans Drive",
       "list_artifacts": "Lister les fichiers Drive",
       "share_artifact": "Partager un fichier",
@@ -16141,6 +16187,14 @@
       "sharingEmpty": "Choisissez qui le voit.",
       "sharingTooMany": "Choisissez au plus {{max}} personnes et {{max}} rôles.",
       "notInDrive": "Ceci ne vit que dans sa conversation, il ne peut donc pas être partagé."
+    },
+    "drive": {
+      "folderExists": "Un dossier portant ce nom existe déjà ici.",
+      "folderNotFound": "Ce dossier n’existe plus.",
+      "folderCycle": "Un dossier ne peut pas se trouver dans lui-même.",
+      "folderTooDeep": "Les dossiers ne peuvent pas dépasser {{max}} niveaux de profondeur.",
+      "foldersFull": "Cet espace de travail compte déjà {{max}} dossiers.",
+      "folderName": "Donnez un nom au dossier."
     },
     "device": {
       "notLinkMaker": "Seule la personne qui a créé le lien peut laisser cet ordinateur rejoindre.",
@@ -19120,6 +19174,22 @@
     "update_artifact": {
       "label": "Mettre à jour un fichier",
       "description": "Enregistre une nouvelle version d'un fichier."
+    },
+    "drive_folders": {
+      "label": "Voir les dossiers",
+      "description": "Voit les dossiers du Drive."
+    },
+    "file_artifacts": {
+      "label": "Classer dans des dossiers",
+      "description": "Range les fichiers du Drive dans les dossiers de projet."
+    },
+    "drive_folder": {
+      "label": "Organiser les dossiers",
+      "description": "Renomme, déplace ou supprime des dossiers du Drive (jamais des fichiers)."
+    },
+    "trash_artifacts": {
+      "label": "Nettoyer ses fichiers",
+      "description": "Met à la corbeille les fichiers qu’il a créés et dont personne n’a besoin (30 jours pour les restaurer)."
     },
     "list_issues": {
       "label": "Voir les tâches",

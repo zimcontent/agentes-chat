@@ -30940,6 +30940,117 @@
   "choices.tooLongFix": {
     "value": "Shorten the answer."
   },
+  "drive.draft": {
+    "value": "Draft"
+  },
+  "drive.draftUntil": {
+    "value": "Goes to the trash on its own on {{date}}, unless it changes or someone keeps it."
+  },
+  "drive.keepDraft": {
+    "value": "Keep it"
+  },
+  "drive.kept": {
+    "value": "{{title}} is kept."
+  },
+  "drive.folders.title": {
+    "value": "Folders"
+  },
+  "drive.folders.path": {
+    "value": "Folder path"
+  },
+  "drive.folders.new": {
+    "value": "New folder"
+  },
+  "drive.folders.newTitle": {
+    "value": "New folder"
+  },
+  "drive.folders.newInside": {
+    "value": "New folder inside"
+  },
+  "drive.folders.create": {
+    "value": "Create"
+  },
+  "drive.folders.created": {
+    "value": "Folder {{name}} created."
+  },
+  "drive.folders.name": {
+    "value": "Name"
+  },
+  "drive.folders.namePlaceholder": {
+    "value": "Client or project"
+  },
+  "drive.folders.menu": {
+    "value": "Folder {{name}}: more"
+  },
+  "drive.folders.menuShort": {
+    "value": "More"
+  },
+  "drive.folders.rename": {
+    "value": "Rename"
+  },
+  "drive.folders.renameTitle": {
+    "value": "Rename folder"
+  },
+  "drive.folders.renameConfirm": {
+    "value": "Rename"
+  },
+  "drive.folders.move": {
+    "value": "Move"
+  },
+  "drive.folders.moveTo": {
+    "value": "Move to…"
+  },
+  "drive.folders.moveHere": {
+    "value": "Move here"
+  },
+  "drive.folders.here": {
+    "value": "Here now"
+  },
+  "drive.folders.moveFolderTitle": {
+    "value": "Move {{name}}"
+  },
+  "drive.folders.moveFilesTitle": {
+    "value": {
+      "one": "Move {{count}} file",
+      "other": "Move {{count}} files"
+    }
+  },
+  "drive.folders.moved": {
+    "value": "{{name}} moved to {{folder}}."
+  },
+  "drive.folders.filed": {
+    "value": {
+      "one": "{{count}} file moved to {{folder}}.",
+      "other": "{{count}} files moved to {{folder}}."
+    }
+  },
+  "drive.folders.files": {
+    "value": {
+      "one": "{{count}} file",
+      "other": "{{count}} files"
+    }
+  },
+  "drive.folders.remove": {
+    "value": "Remove folder"
+  },
+  "drive.folders.removeTitle": {
+    "value": "Remove {{name}}?"
+  },
+  "drive.folders.removeBody": {
+    "value": "No file is deleted. What is inside goes up one level."
+  },
+  "drive.folders.removeConfirm": {
+    "value": "Remove folder"
+  },
+  "drive.folders.removed": {
+    "value": "Folder {{name}} removed."
+  },
+  "drive.folders.emptyTitle": {
+    "value": "This folder is empty"
+  },
+  "drive.folders.emptyText": {
+    "value": "Drag files here, upload them, or ask an agent to file its work in this folder."
+  },
   "drive.title": {
     "value": "Drive"
   },
@@ -35591,6 +35702,18 @@
   "toolNames.label.update_artifact": {
     "value": "Change file in Drive"
   },
+  "toolNames.label.drive_folders": {
+    "value": "See the Drive's folders"
+  },
+  "toolNames.label.file_artifacts": {
+    "value": "File in a Drive folder"
+  },
+  "toolNames.label.drive_folder": {
+    "value": "Arrange a Drive folder"
+  },
+  "toolNames.label.trash_artifacts": {
+    "value": "Clear out files"
+  },
   "toolNames.label.read_artifact": {
     "value": "Read file in Drive"
   },
@@ -38378,6 +38501,24 @@
   },
   "errors.artifact.notInDrive": {
     "value": "This lives only in its conversation, so it can't be shared."
+  },
+  "errors.drive.folderExists": {
+    "value": "There's a folder with that name here already."
+  },
+  "errors.drive.folderNotFound": {
+    "value": "This folder no longer exists."
+  },
+  "errors.drive.folderCycle": {
+    "value": "A folder can't go inside itself."
+  },
+  "errors.drive.folderTooDeep": {
+    "value": "Folders go at most {{max}} levels deep."
+  },
+  "errors.drive.foldersFull": {
+    "value": "This workspace has {{max}} folders already."
+  },
+  "errors.drive.folderName": {
+    "value": "Give the folder a name."
   },
   "errors.device.notLinkMaker": {
     "value": "Only the person who made the link can let this computer join."
@@ -45774,6 +45915,30 @@
   },
   "builtinTools.update_artifact.description": {
     "value": "Saves a new version of a file."
+  },
+  "builtinTools.drive_folders.label": {
+    "value": "See folders"
+  },
+  "builtinTools.drive_folders.description": {
+    "value": "Sees the Drive's folders."
+  },
+  "builtinTools.file_artifacts.label": {
+    "value": "File in folders"
+  },
+  "builtinTools.file_artifacts.description": {
+    "value": "Puts Drive files in project folders."
+  },
+  "builtinTools.drive_folder.label": {
+    "value": "Arrange folders"
+  },
+  "builtinTools.drive_folder.description": {
+    "value": "Renames, moves or removes Drive folders (never files)."
+  },
+  "builtinTools.trash_artifacts.label": {
+    "value": "Clear out its files"
+  },
+  "builtinTools.trash_artifacts.description": {
+    "value": "Moves files it made and nobody needs to the trash (30 days to restore)."
   },
   "builtinTools.list_issues.label": {
     "value": "View tasks"

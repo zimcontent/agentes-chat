@@ -12211,6 +12211,42 @@
     "tooLongFix": "请缩短回答。"
   },
   "drive": {
+    "draft": "草稿",
+    "draftUntil": "将于 {{date}} 自动移入回收站，除非有改动或有人保留。",
+    "keepDraft": "保留",
+    "kept": "已保留 {{title}}。",
+    "folders": {
+      "title": "文件夹",
+      "path": "文件夹路径",
+      "new": "新建文件夹",
+      "newTitle": "新建文件夹",
+      "newInside": "在其中新建文件夹",
+      "create": "创建",
+      "created": "已创建文件夹 {{name}}。",
+      "name": "名称",
+      "namePlaceholder": "客户或项目",
+      "menu": "文件夹 {{name}}：更多",
+      "menuShort": "更多",
+      "rename": "重命名",
+      "renameTitle": "重命名文件夹",
+      "renameConfirm": "重命名",
+      "move": "移动",
+      "moveTo": "移动到…",
+      "moveHere": "移动到此处",
+      "here": "当前位置",
+      "moveFolderTitle": "移动 {{name}}",
+      "moveFilesTitle_other": "移动 {{count}} 个文件",
+      "moved": "{{name}} 已移动到 {{folder}}。",
+      "filed_other": "{{count}} 个文件已移动到 {{folder}}。",
+      "files_other": "{{count}} 个文件",
+      "remove": "移除文件夹",
+      "removeTitle": "要移除 {{name}} 吗？",
+      "removeBody": "不会删除任何文件。其中的内容会上移一级。",
+      "removeConfirm": "移除文件夹",
+      "removed": "已移除文件夹 {{name}}。",
+      "emptyTitle": "此文件夹为空",
+      "emptyText": "将文件拖到这里、上传文件，或让智能体把它的工作归档到此文件夹。"
+    },
     "title": "Drive",
     "subtitle": "成员和智能体创建或上传的所有内容。",
     "search": "搜索文件",
@@ -14006,6 +14042,10 @@
       "request_folder_access": "请求文件夹权限",
       "create_artifact": "在 Drive 中创建文件",
       "update_artifact": "更新 Drive 中的文件",
+      "drive_folders": "查看 Drive 的文件夹",
+      "file_artifacts": "归档到 Drive 文件夹",
+      "drive_folder": "整理 Drive 文件夹",
+      "trash_artifacts": "清理文件",
       "read_artifact": "读取 Drive 中的文件",
       "list_artifacts": "列出 Drive 文件",
       "share_artifact": "分享文件",
@@ -15117,6 +15157,14 @@
       "sharingEmpty": "请选择谁能看到。",
       "sharingTooMany": "最多选择 {{max}} 个人和 {{max}} 个角色。",
       "notInDrive": "它只存在于自己的对话中，所以无法共享。"
+    },
+    "drive": {
+      "folderExists": "这里已有同名文件夹。",
+      "folderNotFound": "此文件夹已不存在。",
+      "folderCycle": "文件夹不能放进它自己里面。",
+      "folderTooDeep": "文件夹最多嵌套 {{max}} 层。",
+      "foldersFull": "此工作区已有 {{max}} 个文件夹。",
+      "folderName": "请为文件夹命名。"
     },
     "device": {
       "notLinkMaker": "只有创建链接的人才能让这台电脑加入。",
@@ -18004,6 +18052,22 @@
     "update_artifact": {
       "label": "更新文件",
       "description": "保存文件的新版本。"
+    },
+    "drive_folders": {
+      "label": "查看文件夹",
+      "description": "查看 Drive 的文件夹。"
+    },
+    "file_artifacts": {
+      "label": "归档到文件夹",
+      "description": "把 Drive 文件放进项目文件夹。"
+    },
+    "drive_folder": {
+      "label": "整理文件夹",
+      "description": "重命名、移动或移除 Drive 文件夹（从不动文件）。"
+    },
+    "trash_artifacts": {
+      "label": "清理自己的文件",
+      "description": "把它创建且没人需要的文件移入回收站（30 天内可恢复）。"
     },
     "list_issues": {
       "label": "查看任务",

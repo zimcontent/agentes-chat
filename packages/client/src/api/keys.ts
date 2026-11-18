@@ -219,6 +219,8 @@ export const keys = {
   calendar: (orgId: string) => ["org", orgId, "calendar"] as const,
   calendarRange: (orgId: string, from: string) => ["org", orgId, "calendar", from] as const,
   artifactList: (orgId: string, filters: object) => ["org", orgId, "artifacts", "list", filters] as const,
+  /** Under the lists: `artifacts.changed` reads it again (docs/adr/doug-0036-drive-folders.md). */
+  driveFolders: (orgId: string) => ["org", orgId, "artifacts", "list", "folders"] as const,
   artifact: (orgId: string, id: string, version?: number) =>
     ["org", orgId, "artifacts", "one", id, version ?? "latest"] as const,
   artifactVersions: (orgId: string, id: string) => ["org", orgId, "artifacts", "versions", id] as const,

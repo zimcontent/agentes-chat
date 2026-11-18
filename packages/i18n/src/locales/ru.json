@@ -13561,6 +13561,51 @@
     "tooLongFix": "Сократите ответ."
   },
   "drive": {
+    "draft": "Черновик",
+    "draftUntil": "{{date}} он сам попадёт в корзину, если не изменится и никто его не сохранит.",
+    "keepDraft": "Сохранить",
+    "kept": "{{title}} сохранён.",
+    "folders": {
+      "title": "Папки",
+      "path": "Путь к папке",
+      "new": "Новая папка",
+      "newTitle": "Новая папка",
+      "newInside": "Новая папка внутри",
+      "create": "Создать",
+      "created": "Папка {{name}} создана.",
+      "name": "Название",
+      "namePlaceholder": "Клиент или проект",
+      "menu": "Папка {{name}}: ещё",
+      "menuShort": "Ещё",
+      "rename": "Переименовать",
+      "renameTitle": "Переименовать папку",
+      "renameConfirm": "Переименовать",
+      "move": "Переместить",
+      "moveTo": "Переместить в…",
+      "moveHere": "Переместить сюда",
+      "here": "Находится здесь",
+      "moveFolderTitle": "Переместить {{name}}",
+      "moveFilesTitle_one": "Переместить {{count}} файл",
+      "moveFilesTitle_few": "Переместить {{count}} файла",
+      "moveFilesTitle_many": "Переместить {{count}} файлов",
+      "moveFilesTitle_other": "Переместить {{count}} файла",
+      "moved": "{{name}} перемещён в {{folder}}.",
+      "filed_one": "{{count}} файл перемещён в {{folder}}.",
+      "filed_few": "{{count}} файла перемещено в {{folder}}.",
+      "filed_many": "{{count}} файлов перемещено в {{folder}}.",
+      "filed_other": "{{count}} файла перемещено в {{folder}}.",
+      "files_one": "{{count}} файл",
+      "files_few": "{{count}} файла",
+      "files_many": "{{count}} файлов",
+      "files_other": "{{count}} файла",
+      "remove": "Удалить папку",
+      "removeTitle": "Удалить {{name}}?",
+      "removeBody": "Ни один файл не удаляется. Содержимое поднимется на уровень выше.",
+      "removeConfirm": "Удалить папку",
+      "removed": "Папка {{name}} удалена.",
+      "emptyTitle": "Эта папка пуста",
+      "emptyText": "Перетащите файлы сюда, загрузите их или попросите агента сложить свою работу в эту папку."
+    },
     "title": "Drive",
     "subtitle": "Всё, что создали или загрузили люди и агенты.",
     "search": "Поиск файлов",
@@ -15413,6 +15458,10 @@
       "request_folder_access": "Запросить доступ к папке",
       "create_artifact": "Создать файл в Drive",
       "update_artifact": "Изменить файл в Drive",
+      "drive_folders": "Посмотреть папки Drive",
+      "file_artifacts": "Сохранить в папке Drive",
+      "drive_folder": "Упорядочить папку Drive",
+      "trash_artifacts": "Очистить файлы",
       "read_artifact": "Прочитать файл в Drive",
       "list_artifacts": "Показать файлы в Drive",
       "share_artifact": "Поделиться файлом",
@@ -16626,6 +16675,14 @@
       "sharingEmpty": "Выберите, кто видит.",
       "sharingTooMany": "Выберите не больше {{max}} людей и {{max}} ролей.",
       "notInDrive": "Это есть только в своём разговоре, поэтому этим нельзя поделиться."
+    },
+    "drive": {
+      "folderExists": "Папка с таким названием здесь уже есть.",
+      "folderNotFound": "Этой папки больше нет.",
+      "folderCycle": "Папку нельзя поместить внутрь неё самой.",
+      "folderTooDeep": "Папки могут быть вложены не глубже чем на {{max}} уровней.",
+      "foldersFull": "В этом рабочем пространстве уже {{max}} папок.",
+      "folderName": "Назовите папку."
     },
     "device": {
       "notLinkMaker": "Пустить этот компьютер может только тот, кто создал ссылку.",
@@ -19630,6 +19687,22 @@
     "update_artifact": {
       "label": "Обновить файл",
       "description": "Сохраняет новую версию файла."
+    },
+    "drive_folders": {
+      "label": "Просмотр папок",
+      "description": "Видит папки Drive."
+    },
+    "file_artifacts": {
+      "label": "Сохранение в папках",
+      "description": "Раскладывает файлы Drive по папкам проектов."
+    },
+    "drive_folder": {
+      "label": "Упорядочивание папок",
+      "description": "Переименовывает, перемещает и удаляет папки Drive (но не файлы)."
+    },
+    "trash_artifacts": {
+      "label": "Очистка своих файлов",
+      "description": "Отправляет в корзину созданные им файлы, которые больше никому не нужны (30 дней на восстановление)."
     },
     "list_issues": {
       "label": "Смотреть задачи",

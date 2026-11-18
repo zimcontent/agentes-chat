@@ -4093,6 +4093,29 @@ export interface Artifact {
   sharing?: ArtifactSharing;
   /** I may change `sharing`: it lives in a conversation not everyone reads, and I read it there. */
   canShare?: boolean;
+  /** Its Drive folder; null: the top of the Drive. Absent from an older server (docs/adr/doug-0036-drive-folders.md). */
+  folderId?: string | null;
+  /** A draft: it goes to the trash on its own at this time unless a new version comes first. */
+  expiresAt?: string | null;
+}
+
+/** A folder of the Drive (docs/adr/doug-0036-drive-folders.md): every member sees them all. */
+export interface DriveFolder {
+  id: string;
+  parentId: string | null;
+  name: string;
+  createdBy: ArtifactAuthor;
+  createdAt: string;
+  updatedAt: string;
+  /** Files the viewer sees in it, not counting its folders'; absent on a folder just made or changed. */
+  files?: number;
+}
+
+/** `GET …/drive-folders`. */
+export interface DriveFolders {
+  folders: DriveFolder[];
+  /** Files the viewer sees in no folder. */
+  loose: number;
 }
 
 /**
@@ -4172,6 +4195,10 @@ export interface ArtifactFilters {
   who?: "agents" | "people";
   /** Newest update first (default), by name, or by kind. */
   sort?: "recent" | "name" | "kind";
+  /** In this folder (null: in none); `deep`: also in the folders under it (with null: anywhere). */
+  folder?: { id: string | null; deep?: boolean };
+  /** Only drafts. */
+  drafts?: boolean;
 }
 
 /** A page of the Drive: the next one starts at `nextCursor`; the first also counts the files per kind. */

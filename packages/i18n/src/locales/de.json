@@ -12652,6 +12652,45 @@
     "tooLongFix": "Kürze die Antwort."
   },
   "drive": {
+    "draft": "Entwurf",
+    "draftUntil": "Wird am {{date}} automatisch in den Papierkorb verschoben, außer er wird geändert oder jemand behält ihn.",
+    "keepDraft": "Behalten",
+    "kept": "{{title}} wird behalten.",
+    "folders": {
+      "title": "Ordner",
+      "path": "Ordnerpfad",
+      "new": "Neuer Ordner",
+      "newTitle": "Neuer Ordner",
+      "newInside": "Neuer Ordner darin",
+      "create": "Erstellen",
+      "created": "Ordner {{name}} erstellt.",
+      "name": "Ordnername",
+      "namePlaceholder": "Kunde oder Projekt",
+      "menu": "Ordner {{name}}: mehr",
+      "menuShort": "Mehr",
+      "rename": "Umbenennen",
+      "renameTitle": "Ordner umbenennen",
+      "renameConfirm": "Umbenennen",
+      "move": "Verschieben",
+      "moveTo": "Verschieben nach…",
+      "moveHere": "Hierher verschieben",
+      "here": "Liegt hier",
+      "moveFolderTitle": "{{name}} verschieben",
+      "moveFilesTitle_one": "{{count}} Datei verschieben",
+      "moveFilesTitle_other": "{{count}} Dateien verschieben",
+      "moved": "{{name}} wurde nach {{folder}} verschoben.",
+      "filed_one": "{{count}} Datei wurde nach {{folder}} verschoben.",
+      "filed_other": "{{count}} Dateien wurden nach {{folder}} verschoben.",
+      "files_one": "{{count}} Datei",
+      "files_other": "{{count}} Dateien",
+      "remove": "Ordner entfernen",
+      "removeTitle": "{{name}} entfernen?",
+      "removeBody": "Es wird keine Datei gelöscht. Der Inhalt rückt eine Ebene nach oben.",
+      "removeConfirm": "Ordner entfernen",
+      "removed": "Ordner {{name}} entfernt.",
+      "emptyTitle": "Dieser Ordner ist leer",
+      "emptyText": "Zieh Dateien hierher, lade sie hoch oder bitte einen Agenten, seine Arbeit in diesem Ordner abzulegen."
+    },
     "title": "Drive",
     "subtitle": "Alles, was Personen und Agenten erstellt oder hochgeladen haben.",
     "search": "Dateien durchsuchen",
@@ -14470,6 +14509,10 @@
       "request_folder_access": "Ordner anfragen",
       "create_artifact": "Datei in Drive erstellen",
       "update_artifact": "Datei in Drive ändern",
+      "drive_folders": "Ordner im Drive ansehen",
+      "file_artifacts": "In einem Drive-Ordner ablegen",
+      "drive_folder": "Einen Drive-Ordner ordnen",
+      "trash_artifacts": "Dateien aufräumen",
       "read_artifact": "Datei in Drive lesen",
       "list_artifacts": "Dateien in Drive auflisten",
       "share_artifact": "Datei teilen",
@@ -15615,6 +15658,14 @@
       "sharingEmpty": "Wähle, wer es sieht.",
       "sharingTooMany": "Wähle höchstens {{max}} Personen und {{max}} Rollen.",
       "notInDrive": "Das gibt es nur in seiner Unterhaltung, deshalb kann es nicht geteilt werden."
+    },
+    "drive": {
+      "folderExists": "Hier gibt es schon einen Ordner mit diesem Namen.",
+      "folderNotFound": "Dieser Ordner existiert nicht mehr.",
+      "folderCycle": "Ein Ordner kann nicht in sich selbst liegen.",
+      "folderTooDeep": "Ordner gehen höchstens {{max}} Ebenen tief.",
+      "foldersFull": "Dieser Workspace hat bereits {{max}} Ordner.",
+      "folderName": "Gib dem Ordner einen Namen."
     },
     "device": {
       "notLinkMaker": "Nur die Person, die den Link erstellt hat, kann diesen Computer beitreten lassen.",
@@ -18539,6 +18590,22 @@
     "update_artifact": {
       "label": "Datei aktualisieren",
       "description": "Speichert eine neue Version einer Datei."
+    },
+    "drive_folders": {
+      "label": "Ordner ansehen",
+      "description": "Sieht die Ordner im Drive."
+    },
+    "file_artifacts": {
+      "label": "In Ordnern ablegen",
+      "description": "Legt Drive-Dateien in Projektordnern ab."
+    },
+    "drive_folder": {
+      "label": "Ordner ordnen",
+      "description": "Benennt Drive-Ordner um, verschiebt oder entfernt sie (nie Dateien)."
+    },
+    "trash_artifacts": {
+      "label": "Eigene Dateien aufräumen",
+      "description": "Verschiebt Dateien, die er erstellt hat und die niemand braucht, in den Papierkorb (30 Tage zum Wiederherstellen)."
     },
     "list_issues": {
       "label": "Aufgaben ansehen",

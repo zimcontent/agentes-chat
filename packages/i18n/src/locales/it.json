@@ -13143,6 +13143,48 @@
     "tooLongFix": "Accorcia la risposta."
   },
   "drive": {
+    "draft": "Bozza",
+    "draftUntil": "Andrà nel cestino da sola il {{date}}, a meno che non cambi o qualcuno la tenga.",
+    "keepDraft": "Mantieni",
+    "kept": "{{title}} viene mantenuto.",
+    "folders": {
+      "title": "Cartelle",
+      "path": "Percorso della cartella",
+      "new": "Nuova cartella",
+      "newTitle": "Nuova cartella",
+      "newInside": "Nuova cartella all’interno",
+      "create": "Crea",
+      "created": "Cartella {{name}} creata.",
+      "name": "Nome",
+      "namePlaceholder": "Cliente o progetto",
+      "menu": "Cartella {{name}}: altro",
+      "menuShort": "Altro",
+      "rename": "Rinomina",
+      "renameTitle": "Rinomina cartella",
+      "renameConfirm": "Rinomina",
+      "move": "Sposta",
+      "moveTo": "Sposta in…",
+      "moveHere": "Sposta qui",
+      "here": "È qui",
+      "moveFolderTitle": "Sposta {{name}}",
+      "moveFilesTitle_one": "Sposta {{count}} file",
+      "moveFilesTitle_many": "Sposta {{count}} di file",
+      "moveFilesTitle_other": "Sposta {{count}} file",
+      "moved": "{{name}} è stato spostato in {{folder}}.",
+      "filed_one": "{{count}} file è stato spostato in {{folder}}.",
+      "filed_many": "{{count}} di file sono stati spostati in {{folder}}.",
+      "filed_other": "{{count}} file sono stati spostati in {{folder}}.",
+      "files_one": "{{count}} elemento",
+      "files_many": "{{count}} di elementi",
+      "files_other": "{{count}} elementi",
+      "remove": "Rimuovi cartella",
+      "removeTitle": "Rimuovere {{name}}?",
+      "removeBody": "Nessun file viene eliminato. Il contenuto sale di un livello.",
+      "removeConfirm": "Rimuovi cartella",
+      "removed": "Cartella {{name}} rimossa.",
+      "emptyTitle": "Questa cartella è vuota",
+      "emptyText": "Trascina i file qui, caricali oppure chiedi a un agente di archiviare il suo lavoro in questa cartella."
+    },
     "title": "Drive",
     "subtitle": "Tutto ciò che persone e agenti hanno creato o caricato.",
     "search": "Cerca file",
@@ -14976,6 +15018,10 @@
       "request_folder_access": "Chiedi una cartella",
       "create_artifact": "Crea file in Drive",
       "update_artifact": "Modifica file in Drive",
+      "drive_folders": "Vedi le cartelle del Drive",
+      "file_artifacts": "Archivia in una cartella del Drive",
+      "drive_folder": "Riordina una cartella del Drive",
+      "trash_artifacts": "Pulisci i file",
       "read_artifact": "Leggi file in Drive",
       "list_artifacts": "Elenca file di Drive",
       "share_artifact": "Condividi file",
@@ -16153,6 +16199,14 @@
       "sharingEmpty": "Scegli chi lo vede.",
       "sharingTooMany": "Scegli al massimo {{max}} persone e {{max}} ruoli.",
       "notInDrive": "Questo vive solo nella sua conversazione, quindi non si può condividere."
+    },
+    "drive": {
+      "folderExists": "Qui esiste già una cartella con questo nome.",
+      "folderNotFound": "Questa cartella non esiste più.",
+      "folderCycle": "Una cartella non può stare dentro se stessa.",
+      "folderTooDeep": "Le cartelle possono arrivare al massimo a {{max}} livelli di profondità.",
+      "foldersFull": "Questo spazio di lavoro ha già {{max}} cartelle.",
+      "folderName": "Dai un nome alla cartella."
     },
     "device": {
       "notLinkMaker": "Solo chi ha creato il link può far entrare questo computer.",
@@ -19126,6 +19180,22 @@
     "update_artifact": {
       "label": "Aggiorna file",
       "description": "Salva una nuova versione di un file."
+    },
+    "drive_folders": {
+      "label": "Vedi cartelle",
+      "description": "Vede le cartelle del Drive."
+    },
+    "file_artifacts": {
+      "label": "Archivia in cartelle",
+      "description": "Mette i file del Drive nelle cartelle dei progetti."
+    },
+    "drive_folder": {
+      "label": "Riordina cartelle",
+      "description": "Rinomina, sposta o rimuove le cartelle del Drive (mai i file)."
+    },
+    "trash_artifacts": {
+      "label": "Pulisci i propri file",
+      "description": "Sposta nel cestino i file che ha creato e che non servono a nessuno (30 giorni per ripristinarli)."
     },
     "list_issues": {
       "label": "Vedi attività",

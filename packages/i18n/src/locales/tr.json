@@ -12593,6 +12593,45 @@
     "tooLongFix": "Cevabı kısalt."
   },
   "drive": {
+    "draft": "Taslak",
+    "draftUntil": "Değiştirilmezse veya biri saklamazsa {{date}} tarihinde kendiliğinden çöp kutusuna gider.",
+    "keepDraft": "Sakla",
+    "kept": "{{title}} saklandı.",
+    "folders": {
+      "title": "Klasörler",
+      "path": "Klasör yolu",
+      "new": "Yeni klasör",
+      "newTitle": "Yeni klasör",
+      "newInside": "İçine yeni klasör",
+      "create": "Oluştur",
+      "created": "{{name}} klasörü oluşturuldu.",
+      "name": "Ad",
+      "namePlaceholder": "Müşteri veya proje",
+      "menu": "{{name}} klasörü: daha fazla",
+      "menuShort": "Daha fazla",
+      "rename": "Yeniden adlandır",
+      "renameTitle": "Klasörü yeniden adlandır",
+      "renameConfirm": "Yeniden adlandır",
+      "move": "Taşı",
+      "moveTo": "Şuraya taşı…",
+      "moveHere": "Buraya taşı",
+      "here": "Burada",
+      "moveFolderTitle": "{{name}} öğesini taşı",
+      "moveFilesTitle_one": "{{count}} dosyayı taşı",
+      "moveFilesTitle_other": "{{count}} dosyayı taşı",
+      "moved": "{{name}}, {{folder}} klasörüne taşındı.",
+      "filed_one": "{{count}} dosya {{folder}} klasörüne taşındı.",
+      "filed_other": "{{count}} dosya {{folder}} klasörüne taşındı.",
+      "files_one": "{{count}} dosya",
+      "files_other": "{{count}} dosya",
+      "remove": "Klasörü kaldır",
+      "removeTitle": "{{name}} kaldırılsın mı?",
+      "removeBody": "Hiçbir dosya silinmez. İçindekiler bir üst düzeye çıkar.",
+      "removeConfirm": "Klasörü kaldır",
+      "removed": "{{name}} klasörü kaldırıldı.",
+      "emptyTitle": "Bu klasör boş",
+      "emptyText": "Dosyaları buraya sürükle, yükle ya da bir ajandan işini bu klasöre kaydetmesini iste."
+    },
     "title": "Drive",
     "subtitle": "Kişilerin ve ajanların oluşturduğu veya yüklediği her şey.",
     "search": "Dosyalarda ara",
@@ -14407,6 +14446,10 @@
       "request_folder_access": "Klasör erişimi iste",
       "create_artifact": "Drive'da dosya oluştur",
       "update_artifact": "Drive'daki dosyayı güncelle",
+      "drive_folders": "Drive klasörlerini gör",
+      "file_artifacts": "Bir Drive klasörüne kaydet",
+      "drive_folder": "Bir Drive klasörünü düzenle",
+      "trash_artifacts": "Dosyaları temizle",
       "read_artifact": "Drive'daki dosyayı oku",
       "list_artifacts": "Drive dosyalarını listele",
       "share_artifact": "Dosyayı paylaş",
@@ -15552,6 +15595,14 @@
       "sharingEmpty": "Kimin göreceğini seçin.",
       "sharingTooMany": "En fazla {{max}} kişi ve {{max}} rol seçin.",
       "notInDrive": "Bu yalnızca kendi sohbetinde yaşıyor, bu yüzden paylaşılamaz."
+    },
+    "drive": {
+      "folderExists": "Burada bu adda bir klasör zaten var.",
+      "folderNotFound": "Bu klasör artık yok.",
+      "folderCycle": "Bir klasör kendi içine konamaz.",
+      "folderTooDeep": "Klasörler en fazla {{max}} düzey derinliğe gidebilir.",
+      "foldersFull": "Bu çalışma alanında zaten {{max}} klasör var.",
+      "folderName": "Klasöre bir ad ver."
     },
     "device": {
       "notLinkMaker": "Bu bilgisayarı yalnızca bağlantıyı oluşturan kişi katılmaya izin verebilir.",
@@ -18470,6 +18521,22 @@
     "update_artifact": {
       "label": "Dosyayı güncelle",
       "description": "Bir dosyanın yeni sürümünü kaydeder."
+    },
+    "drive_folders": {
+      "label": "Klasörleri gör",
+      "description": "Drive klasörlerini görür."
+    },
+    "file_artifacts": {
+      "label": "Klasörlere kaydet",
+      "description": "Drive dosyalarını proje klasörlerine koyar."
+    },
+    "drive_folder": {
+      "label": "Klasörleri düzenle",
+      "description": "Drive klasörlerini yeniden adlandırır, taşır veya kaldırır (dosyalara asla dokunmaz)."
+    },
+    "trash_artifacts": {
+      "label": "Kendi dosyalarını temizle",
+      "description": "Oluşturduğu ve kimsenin ihtiyaç duymadığı dosyaları çöp kutusuna taşır (geri yüklemek için 30 gün)."
     },
     "list_issues": {
       "label": "Görevleri gör",

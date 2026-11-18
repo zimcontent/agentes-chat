@@ -158,6 +158,7 @@ const OTHERS_WORDS = new Set([
   "team_status",
   "list_issues",
   "list_artifacts",
+  "drive_folders",
   "list_routines",
   "get_summary",
   "expand",

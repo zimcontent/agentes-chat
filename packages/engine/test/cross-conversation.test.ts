@@ -410,6 +410,6 @@ describe("list_artifacts for agents", () => {
       },
     );
     expect(out?.content).toContain(`${report.id} "Relatório de visitas" (document, v1,`);
-    expect(out?.content).toContain("from: here; created by @dev");
+    expect(out?.content).toContain("from: here; in no folder; created by @dev");
   });
 });

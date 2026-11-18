@@ -136,6 +136,7 @@ export * from "./doug-team";
 export * from "./doug-team/brand";
 export * from "./doug-team/create";
 export * from "./doug-team/skills-job";
+export * from "./drive-folders";
 export * from "./early-access";
 export * from "./editor-delivery";
 export * from "./email";
