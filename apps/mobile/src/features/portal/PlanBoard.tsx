@@ -1,6 +1,12 @@
 import type { PlanCard, PortalLabel, PortalList, PortalListKind, PortalPlan } from "@agenteschat/client";
 import { keys, useMovePortalCard, usePortalLists, useSavePortalCard } from "@agenteschat/client";
-import { portalClientName, portalDayOf, portalOrderAt, portalWhen } from "@agenteschat/client/lib/portal";
+import {
+  portalClientName,
+  portalDayOf,
+  portalOrderAt,
+  portalPlaceAt,
+  portalWhen,
+} from "@agenteschat/client/lib/portal";
 import { useQueryClient } from "@tanstack/react-query";
 import { type ComponentRef, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -170,7 +176,7 @@ export function PlanBoard({
       const col = columns[toL];
       if (col?.kind !== "list") return false;
       const others = col.group.cards.filter((x) => x.id !== id);
-      moveCard.mutate({ cardId: id, list: col.group.id, order: portalOrderAt(others, toI) }, { onError: failed });
+      moveCard.mutate({ cardId: id, list: col.group.id, ...portalPlaceAt(others, toI) }, { onError: failed });
       return true;
     },
     onCardHold: (id) => {

@@ -48,7 +48,7 @@ import {
 } from "../lib/notifications";
 import { workspaceUsesApi } from "../lib/plan-usage";
 import { learnPlanModels } from "../lib/plans";
-import { movedInPlan, rememberPortalClientNames } from "../lib/portal";
+import { movedInPlan, type PortalMove, rememberPortalClientNames, renumberedInPlan } from "../lib/portal";
 import { setMyReaction } from "../lib/reactions";
 import { recentConversations } from "../lib/recent";
 import { replyOf } from "../lib/reply";
@@ -7728,13 +7728,25 @@ export function useMovePortalCard(orgId: string, client: string) {
   const qc = useQueryClient();
   const key = keys.portalPlan(orgId, client);
   return useMutation({
-    mutationFn: (input: { cardId: string; list: string | null; order: number }) =>
-      portalOf(api).updateCard(orgId, input.cardId, { list: input.list, order: input.order }),
+    mutationFn: async (input: PortalMove) => {
+      // The list's other cards first, a few at a time (`portalPlaceAt` numbers a list again only when a drop has no
+      // room between two orders), then the card itself.
+      const rest = input.renumber ?? [];
+      for (let i = 0; i < rest.length; i += 4) {
+        await Promise.all(
+          rest.slice(i, i + 4).map((r) => portalOf(api).updateCard(orgId, r.cardId, { order: r.order })),
+        );
+      }
+      return portalOf(api).updateCard(orgId, input.cardId, { list: input.list, order: input.order });
+    },
     meta: { silent: true },
     onMutate: async (input) => {
       await qc.cancelQueries({ queryKey: key });
       const before = qc.getQueryData<PortalPlan>(key);
-      if (before) qc.setQueryData<PortalPlan>(key, movedInPlan(before, input.cardId, input.list, input.order));
+      if (before) {
+        const renumbered = renumberedInPlan(before, input.renumber ?? []);
+        qc.setQueryData<PortalPlan>(key, movedInPlan(renumbered, input.cardId, input.list, input.order));
+      }
       return { before };
     },
     onError: (_error, _input, context) => {
