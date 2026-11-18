@@ -277,7 +277,7 @@ describe("the native look", () => {
     // The site's own bubble: 14% of the lime over the glass's step (docs/adr/doug-0016-doug-pinned.md).
     expect(c.bubble).toBe("#2C3917");
     // Theirs a step lighter than the glass, so it stands off the textured backdrop.
-    expect(c.bubbleTheirs).toBe("#222222");
+    expect(c.bubbleTheirs).toBe("#2A2A2A");
     expect(c.greenText).toBe("#9CFA05");
     expect(appShadows("dark").e1.length).toBeGreaterThan(0);
   });

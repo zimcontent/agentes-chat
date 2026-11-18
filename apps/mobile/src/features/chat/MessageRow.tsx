@@ -556,17 +556,19 @@ function RowBody({
       >
         {quote ? <QuotePlate reply={quote} onJump={onQuote} {...(solidInk ? { ink: solidInk } : {})} /> : null}
         <View style={bubbled ? styles.bubbleLine : undefined}>
-          <ClippedMessage id={m.id} behind={[look.fill ?? c.bubble]} ink={solidInk}>
-            <MessageText
-              body={body}
-              muted={m.local === "pending"}
-              selectable={false}
-              accent={accent}
-              channelRefs={channelRefsOf(m.meta)}
-              everyone={m.meta?.mentionsEveryone === true}
-              {...(solidInk ? { ink: solidInk } : {})}
-            />
-          </ClippedMessage>
+          <View style={bubbled ? styles.bubbleWords : undefined}>
+            <ClippedMessage id={m.id} behind={[look.fill ?? c.bubble]} ink={solidInk}>
+              <MessageText
+                body={body}
+                muted={m.local === "pending"}
+                selectable={false}
+                accent={accent}
+                channelRefs={channelRefsOf(m.meta)}
+                everyone={m.meta?.mentionsEveryone === true}
+                {...(solidInk ? { ink: solidInk } : {})}
+              />
+            </ClippedMessage>
+          </View>
           {myBubble && !m.local ? stamp : null}
         </View>
       </View>
@@ -696,7 +698,8 @@ function RowBody({
       {talker ? (
         <Text
           variant="caption"
-          tone="faint"
+          // In a bubble the quiet words take `muted`: `faint` is under 4.5:1 on the dark bubble's fill.
+          tone={inBubble ? "muted" : "faint"}
           numberOfLines={1}
           style={styles.shrink}
           accessibilityHint={t(talkerWaited(meta) ? "chat.notice.talkerWaitingTip" : "chat.notice.talkerTip")}
@@ -704,7 +707,7 @@ function RowBody({
           {t(talkerWaited(meta) ? "chat.notice.talkerWaiting" : "chat.notice.talker")}
         </Text>
       ) : null}
-      {helping ? <HelpingTag consultation={helping} channelId={m.channelId} /> : null}
+      {helping ? <HelpingTag consultation={helping} channelId={m.channelId} inBubble={inBubble} /> : null}
       {!reminder && !routine && !talker && !helping && agent?.role && !bubbled && !compact ? (
         <Text variant="caption" tone="faint" numberOfLines={1} style={styles.shrink}>
           {agent.role}
@@ -864,7 +867,7 @@ function RowBody({
                       {quote ? <QuotePlate reply={quote} onJump={onQuote} /> : null}
                       {opener}
                       <View style={styles.bubbleLine}>
-                        {words}
+                        <View style={styles.bubbleWords}>{words}</View>
                         <View style={styles.stamp}>
                           <Text variant="caption" tone="muted">
                             {when.time(m.createdAt)}
@@ -1237,13 +1240,21 @@ function Tag({
 }
 
 /** On a card this agent posted while answering another agent's question: "ajudando o Theo · Ver conversa". */
-function HelpingTag({ consultation: c, channelId }: { consultation: RunConsultation; channelId: string }) {
+function HelpingTag({
+  consultation: c,
+  channelId,
+  inBubble,
+}: {
+  consultation: RunConsultation;
+  channelId: string;
+  inBubble: boolean;
+}) {
   const { t } = useTranslation();
   const dir = useDirectory();
   const from = agentGrammar(dir.agentById.get(c.agentId)?.name ?? t("mobile.chat.someone"));
   return (
     <>
-      <Text variant="caption" tone="faint" numberOfLines={1} style={styles.shrink}>
+      <Text variant="caption" tone={inBubble ? "muted" : "faint"} numberOfLines={1} style={styles.shrink}>
         {withAgentFaces(
           t("chat.consultPanel.helping", { name: from.name, context: from.context }),
           [{ name: from.name, agentId: c.agentId }],
@@ -1415,13 +1426,18 @@ const styles = StyleSheet.create({
   slotMark: { marginTop: -1, justifyContent: "center" },
   whoTight: { marginBottom: 0 },
   // The time ends the words' line when it fits; a longer text pushes it to a line of its own, at the bubble's end.
+  // The words, then the time at the line's end (its `marginLeft: "auto"`), or on a line of its own under them. The
+  // words start on the bubble's left edge, under the name: with `flex-end` a line the time didn't fit beside slid to the
+  // right, out of line with the name.
   bubbleLine: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "flex-end",
+    justifyContent: "flex-start",
     alignItems: "flex-end",
     columnGap: 8,
   },
+  // Never wider than the bubble's inside: the words wrap there (Yoga measures them so; the board's browser needs it).
+  bubbleWords: { flexShrink: 1, minWidth: 0, maxWidth: "100%" },
   bubbleEnd: { alignSelf: "flex-end" },
   retry: { fontWeight: "600", textDecorationLine: "underline" },
   stamp: { flexDirection: "row", alignItems: "center", gap: 4, height: 16, marginLeft: "auto" },

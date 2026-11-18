@@ -630,7 +630,7 @@ const styles = StyleSheet.create({
   bubbleLine: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "flex-end",
+    justifyContent: "flex-start",
     alignItems: "flex-end",
     columnGap: 8,
   },

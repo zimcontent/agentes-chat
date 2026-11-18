@@ -60,13 +60,30 @@ describe("someone else's bubble", () => {
     expect(appColors("light").bubbleTheirs).toBe(appColors("light").raised2);
   });
 
-  test("its words and time stay AA in both themes, the quiet words too on the lighter dark fill", () => {
+  test("its words, time and quiet words stay AA in both themes", () => {
     for (const scheme of ["light", "dark"] as const) {
       const c = appColors(scheme);
       for (const ink of [c.ink, c.ink2, c.muted]) expect(contrastOf(ink, c.bubbleTheirs)).toBeGreaterThanOrEqual(4.5);
     }
+  });
+
+  test("the quiet words inside a bubble take muted, not faint (under 4.5:1 on the dark fill)", async () => {
     const dark = appColors("dark");
-    expect(contrastOf(dark.faint, dark.bubbleTheirs)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastOf(dark.faint, dark.bubbleTheirs)).toBeLessThan(4.5);
+    const row = await read("chat/MessageRow.tsx");
+    expect(row).toContain('tone={inBubble ? "muted" : "faint"}');
+    expect(row).toContain("<HelpingTag consultation={helping} channelId={m.channelId} inBubble={inBubble} />");
+    expect(await read("chat/MessageText.tsx")).toContain(
+      '<Text variant={variant} tone="muted" style={[line, styles.mark, inked]}',
+    );
+  });
+
+  test("the words start under the name and never pass the bubble's edge", async () => {
+    const row = await read("chat/MessageRow.tsx");
+    expect(row).toContain('justifyContent: "flex-start",');
+    expect(row).not.toContain('justifyContent: "flex-end",\n    alignItems: "flex-end",\n    columnGap: 8');
+    expect(row).toContain('bubbleWords: { flexShrink: 1, minWidth: 0, maxWidth: "100%" },');
+    expect(row).toContain("<View style={styles.bubbleWords}>{words}</View>");
   });
 });
 
