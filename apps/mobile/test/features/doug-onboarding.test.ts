@@ -174,7 +174,7 @@ test("a lost answer after the team is made reads `me` and the agents again, so a
   // No failure screen either: the brand's step comes, and the flow may open again once it is saved.
   const at = parent.indexOf("if (!brandStillWaits(e)) throw e;");
   expect(at).toBeGreaterThan(0);
-  const branch = parent.slice(at, at + 260);
+  const branch = parent.slice(at, at + 420);
   expect(branch).toContain("invalidateQueries({ queryKey: keys.me })");
   expect(branch).toContain("opening.current = false;");
   expect(branch).toContain("return;");

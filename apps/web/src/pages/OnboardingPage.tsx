@@ -456,6 +456,13 @@ export function OnboardingPage() {
     // Opening by itself, a failure is the page's own (below); from a button, the step stays and a toast says it.
     onError: (e, how) => {
       leaving.current = false;
+      // The brand still waits (a team made on another device): `me` is read again, so the brand's step comes.
+      if (e instanceof ApiError && e.code === "onboarding.brand_pending") {
+        void qc.invalidateQueries({ queryKey: keys.me });
+        opening.current = false;
+        open.reset();
+        return;
+      }
       if (how !== "done") toast.show(errorText(t, e), "error");
     },
   });

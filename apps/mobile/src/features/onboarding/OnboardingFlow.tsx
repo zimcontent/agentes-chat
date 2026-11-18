@@ -30,6 +30,7 @@ import { AuthField } from "@/ui/auth/AuthField";
 import { AuthLink } from "@/ui/auth/AuthLink";
 import { AuthScaffold, CENTER } from "@/ui/auth/AuthScaffold";
 import { router } from "@/ui/navigation";
+import { SkeletonList } from "@/ui/Skeleton";
 import { confirmationSentTo, forgetConfirmationSent } from "../auth/confirmation";
 import { InviteCrew } from "../auth/invite-parts";
 import { chatHref } from "../links/logic";
@@ -252,6 +253,8 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
         // No failure to show: the brand's step comes, and once it is saved the flow may open again.
         await qc.invalidateQueries({ queryKey: keys.me });
         opening.current = false;
+        // A tap from a step the person went back to: the flow leaves it for the brand's.
+        setPicked(null);
         return;
       }
       const landing = how === "import" ? null : landingOf(how, personal);
@@ -679,6 +682,10 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
             );
           }}
         />
+      ) : view === "team" && orgId && team.length === 0 && withDoug.isLoading ? (
+        // The Doug team's card is asked for apart and is drawn first: until its answer comes, the gallery's step would
+        // show alone and a quick tap could make a business team instead of it.
+        <SkeletonList rows={3} />
       ) : view === "team" && orgId ? (
         <>
           <TeamStep

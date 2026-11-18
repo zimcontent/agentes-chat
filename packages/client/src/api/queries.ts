@@ -1123,7 +1123,8 @@ export function useDougTemplate(orgId: string, locale: string, enabled = true) {
   const api = useApi();
   return useQuery({
     queryKey: keys.dougTemplate(orgId, locale),
-    queryFn: () => api.agents.dougTemplate(orgId, locale),
+    // A server from before the Doug team sends none: `null`, never `undefined` (which the query reads as an error).
+    queryFn: async () => (await api.agents.dougTemplate(orgId, locale)) ?? null,
     enabled,
     staleTime: 60_000,
   });
