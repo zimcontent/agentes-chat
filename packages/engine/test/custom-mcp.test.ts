@@ -99,6 +99,8 @@ function oauthServer(
     tokenHost?: string;
     registration?: boolean;
     register?: (body: { client_name: string; token_endpoint_auth_method: string }) => Response;
+    /** Registrations from a server at another address than `depsOf`'s (each one's redirect URIs in `redirects`). */
+    anyAddress?: boolean;
     /** The protected resource's `scopes_supported` (default `tickets`; empty leaves it out). */
     scopes?: string[];
     /** The authorization server's `scopes_supported` and `token_endpoint_auth_methods_supported`. */
@@ -115,6 +117,7 @@ function oauthServer(
     names: [] as string[],
     authMethods: [] as string[],
     registeredScopes: [] as (string | undefined)[],
+    redirects: [] as string[][],
     tokenForms: [] as URLSearchParams[],
     tokenAuth: [] as (string | null)[],
     challenge: "",
@@ -166,7 +169,10 @@ function oauthServer(
       seen.names.push(body.client_name);
       seen.authMethods.push(body.token_endpoint_auth_method);
       seen.registeredScopes.push(body.scope);
-      expect(body.redirect_uris).toEqual(["https://chat.example.com/api/app/connectors/oauth/callback"]);
+      seen.redirects.push(body.redirect_uris);
+      if (!options.anyAddress) {
+        expect(body.redirect_uris).toEqual(["https://chat.example.com/api/app/connectors/oauth/callback"]);
+      }
       return options.register?.(body) ?? Response.json({ client_id: "dcr-client-1" }, { status: 201 });
     }
     if (url.pathname === "/token") {
@@ -1045,7 +1051,7 @@ describe("custom MCP servers", () => {
     // The registered client is reused for the next server of the same issuer.
     await connectCustomServer(deps, f.owner.id, f.org.id, { serverUrl: SERVER });
     expect(auth.seen.registrations).toBe(1);
-    expect(auth.seen.names).toEqual(["agentes.chat"]);
+    expect(auth.seen.names).toEqual(["DougBot"]);
     expect(auth.seen.authMethods).toEqual(["none"]);
     // The token is about to expire: refreshed at the issuer's token endpoint.
     const headers = await connectionHeaders(deps, connection);
@@ -1060,6 +1066,50 @@ describe("custom MCP servers", () => {
     await connectCustomServer(deps, f.owner.id, f.org.id, { serverUrl: SERVER });
     expect(auth.seen.registrations).toBe(2);
     expect(await f.db.select().from(schema.oauthClients)).toHaveLength(1);
+  });
+
+  test("a client registered for another address or under another name: a new one, the old kept for its connections", async () => {
+    f = await setup();
+    const mcp = ticketsMcp();
+    let n = 0;
+    const auth = oauthServer({
+      anyAddress: true,
+      register: () => Response.json({ client_id: `dcr-client-${++n}` }, { status: 201 }),
+    });
+    const before = depsOf(f, { connect: mcp.connect, http: auth.http, publicUrl: "https://old.example.com" });
+    const started = await connectCustomServer(before, f.owner.id, f.org.id, { serverUrl: SERVER });
+    if (started.status !== "oauth") throw new Error(`expected oauth, got ${started.status}`);
+    const url = new URL(started.authorizeUrl);
+    auth.seen.challenge = url.searchParams.get("code_challenge") ?? "";
+    const { connection } = await completeOAuth(
+      before,
+      { id: f.owner.id },
+      { state: url.searchParams.get("state") ?? "", code: "code-1" },
+    );
+    // The server's address changed: the client still in use was registered for the old redirect URI, which the
+    // authorization server would refuse.
+    const after = depsOf(f, { connect: mcp.connect, http: auth.http, publicUrl: "https://new.example.com" });
+    const again = await connectCustomServer(after, f.owner.id, f.org.id, { serverUrl: SERVER });
+    if (again.status !== "oauth") throw new Error(`expected oauth, got ${again.status}`);
+    expect(Object.fromEntries(new URL(again.authorizeUrl).searchParams)).toMatchObject({
+      client_id: "dcr-client-2",
+      redirect_uri: "https://new.example.com/api/app/connectors/oauth/callback",
+    });
+    expect(auth.seen.names).toEqual(["DougBot", "DougBot"]);
+    expect(auth.seen.redirects).toEqual([
+      ["https://old.example.com/api/app/connectors/oauth/callback"],
+      ["https://new.example.com/api/app/connectors/oauth/callback"],
+    ]);
+    // The connection made before keeps renewing as the client its refresh token belongs to.
+    await connectionHeaders(after, connection);
+    expect(auth.seen.tokenForms.at(-1)?.get("grant_type")).toBe("refresh_token");
+    expect(auth.seen.tokenForms.at(-1)?.get("client_id")).toBe("dcr-client-1");
+    // A row registered before the name and address were kept (the upstream name), in use: also left alone.
+    await f.db.update(schema.oauthClients).set({ redirectUri: null, clientName: null });
+    await connectCustomServer(after, f.owner.id, f.org.id, { serverUrl: SERVER });
+    expect(auth.seen.registrations).toBe(3);
+    const rows = await f.db.select().from(schema.oauthClients);
+    expect(rows.map((r) => r.clientId).sort()).toEqual(["dcr-client-1", "dcr-client-3"]);
   });
 
   test("MCP_CIMD_ISSUERS (HeyGen): a listed issuer that takes a metadata document gets ours as client_id, no registration", async () => {
@@ -1278,7 +1328,7 @@ describe("custom MCP servers", () => {
     expect(auth.seen.tokenForms).toHaveLength(2);
   });
 
-  test("a name it won't take (Calendly: letters, digits, hyphens and spaces) is sent once more without the dot", async () => {
+  test("a name Calendly takes (letters, digits, hyphens and spaces) goes once, as it is", async () => {
     f = await setup();
     const auth = oauthServer({
       register: (body) =>
@@ -1296,7 +1346,7 @@ describe("custom MCP servers", () => {
     const started = await connectCustomServer(deps, f.owner.id, f.org.id, { serverUrl: SERVER });
     if (started.status !== "oauth") throw new Error(`expected oauth, got ${started.status}`);
     expect(new URL(started.authorizeUrl).searchParams.get("client_id")).toBe("calendly-client");
-    expect(auth.seen.names).toEqual(["agentes.chat", "agentes chat"]);
+    expect(auth.seen.names).toEqual(["DougBot"]);
   });
 
   test("OAuth that only lets in apps it approved says so in its own words, not 'no OAuth' (an outage doesn't); a key still connects", async () => {
@@ -1364,7 +1414,7 @@ describe("custom MCP servers", () => {
       const started = await connectCustomServer(deps, f.owner.id, f.org.id, { serverUrl: SERVER });
       expect(started).toEqual({ status: "needs_key", reason: "not_approved", ...(detail ? { detail } : {}) });
       // Nothing about the name: asked once.
-      expect(auth.seen.names).toEqual(["agentes.chat"]);
+      expect(auth.seen.names).toEqual(["DougBot"]);
     }
     // An outage at registration isn't a refusal: just a key, never "only apps it approved".
     const outages = [
@@ -1379,7 +1429,7 @@ describe("custom MCP servers", () => {
       expect(await connectCustomServer(deps, f.owner.id, f.org.id, { serverUrl: SERVER })).toEqual({
         status: "needs_key",
       });
-      expect(auth.seen.names).toEqual(["agentes.chat"]);
+      expect(auth.seen.names).toEqual(["DougBot"]);
     }
     // No registration offered (an app registered with it, as HubSpot asks): not approved either.
     const closed = depsOf(f, { connect: mcp.connect, http: oauthServer({ registration: false }).http });
