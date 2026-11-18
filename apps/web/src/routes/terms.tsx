@@ -1,11 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { legalPage } from "@/app/guards";
-import { LegalPage, NoLegalPage } from "@/pages/LegalPage";
+import { LegalPage } from "@/pages/LegalPage";
 
-/** Terms of Use, public: agentes.chat Cloud's on the Cloud, else this server's own (`legalPage`). */
+/** The Terms of Use in English, at the address the project has always used for them. */
 export const Route = createFileRoute("/terms")({
-  loader: ({ context }) => legalPage(context, "terms"),
-  component: function Terms() {
-    return Route.useLoaderData() ? <LegalPage kind="terms" /> : <NoLegalPage kind="terms" />;
-  },
+  component: () => <LegalPage kind="terms" lang="en" />,
 });

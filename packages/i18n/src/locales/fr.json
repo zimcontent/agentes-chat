@@ -1878,6 +1878,7 @@
     "updated": "Dernière mise à jour le {{date}}",
     "contents": "Sur cette page",
     "home": "Aller à l'accueil",
+    "draft": "Brouillon, sous réserve d'une revue juridique. Les champs entre crochets appartiennent à l'entreprise qui exploite ce serveur et sont remplis par celui qui l'installe.",
     "none": {
       "terms": "Ce serveur n'a pas de page de conditions",
       "privacy": "Ce serveur n'a pas de page de confidentialité"
@@ -17555,6 +17556,8 @@
     "title": "Paramètres",
     "account": {
       "plans": "Limites de vos abonnements",
+      "legal": "Conditions et confidentialité",
+      "open": "Ouvrir",
       "device": "Sur cet appareil",
       "activity": "Montrer ce que les agents ont fait sous chaque réponse",
       "activityHelp": "Les outils utilisés et le temps que cela a pris. Pendant qu'ils travaillent, vous voyez toujours ce qu'ils font.",

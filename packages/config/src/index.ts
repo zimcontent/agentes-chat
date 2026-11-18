@@ -145,6 +145,11 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     config.PRIVACY_URL ??= `${site.origin}/privacy`;
     config.EMAIL_FROM ??= `${BRAND_NAME} <ping@agentes.chat>`;
   }
+  // DougBot ships its own Terms and Privacy Policy (`docs/legal/`, `/termos` and `/privacidade`), so every server has
+  // a page to link on the sign-in screen: the pages fill in the company's fields from `LEGAL_*`, and show
+  // `[a preencher]` where there is none.
+  config.TERMS_URL ??= `${site.origin}/termos`;
+  config.PRIVACY_URL ??= `${site.origin}/privacidade`;
   return config;
 }
 

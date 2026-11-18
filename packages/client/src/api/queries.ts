@@ -258,6 +258,9 @@ export const authConfigQuery = (api: ApiClient) =>
   queryOptions({ queryKey: keys.authConfig, queryFn: () => api.account.authConfig(), staleTime: 60_000 });
 export const instanceQuery = (api: ApiClient) =>
   queryOptions({ queryKey: keys.instance, queryFn: () => api.system.instance(), staleTime: 60_000 });
+/** The company details the legal pages fill in (`LEGAL_*`): they change only with the installation's settings. */
+export const legalFactsQuery = (api: ApiClient) =>
+  queryOptions({ queryKey: keys.legal, queryFn: () => api.system.legal(), staleTime: 60_000 });
 export const channelsQuery = (api: ApiClient, orgId: string) =>
   queryOptions({
     queryKey: keys.channels(orgId),
@@ -336,6 +339,7 @@ function onQueryEvent(cache: QueryCache, hash: string, types: readonly QueryEven
   };
 }
 export const useAuthConfig = () => useQuery(authConfigQuery(useApi()));
+export const useLegalFacts = () => useQuery(legalFactsQuery(useApi()));
 export const useHealth = () => {
   const api = useApi();
   return useQuery({ queryKey: keys.health, queryFn: () => api.system.health(), staleTime: 5 * 60_000 });

@@ -38,6 +38,7 @@ import type {
   Edition,
   EmailChange,
   EndpointCheck,
+  LegalFacts,
   FeedbackOffer,
   ForeignMailbox,
   FormerAgent,
@@ -389,6 +390,8 @@ export interface FakeState {
   edition?: Edition;
   /** Overrides `system.instance` (default: agentes.chat Cloud). */
   instance?: Partial<Instance>;
+  /** Overrides `system.legal` (default: every field unset, as a fresh installation has them). */
+  legal?: Partial<LegalFacts>;
   /** `agents.brainMachines`: the computers a new agent could think on ("Criar agente"); unset = none. */
   brainMachines?: BrainMachine[];
   /** `agents.newAgentSetup`: what a new agent starts thinking with; unset = none ("Automático"). */
@@ -1446,6 +1449,18 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         signup: "open",
         cloud: true,
         ...state.instance,
+      }),
+      legal: async () => ({
+        companyName: null,
+        taxId: null,
+        address: null,
+        dpoName: null,
+        dpoEmail: null,
+        serverLocation: null,
+        logRetention: null,
+        backupRetentionDays: 14,
+        voiceRetentionDays: 90,
+        ...state.legal,
       }),
       telemetry: async () => state.telemetry ?? null,
       setTelemetry: async (enabled) => {

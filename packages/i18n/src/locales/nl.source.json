@@ -51701,5 +51701,14 @@
       "one": "Add {{count}} file",
       "other": "Add {{count}} files"
     }
+  },
+  "legal.draft": {
+    "value": "Draft, subject to legal review. Fields in [brackets] are the company's own and are filled in by whoever runs this server."
+  },
+  "settings.account.legal": {
+    "value": "Terms and privacy"
+  },
+  "settings.account.open": {
+    "value": "Open"
   }
 }

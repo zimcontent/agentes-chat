@@ -254,6 +254,25 @@ export interface Instance {
   cloud?: boolean;
 }
 
+/**
+ * `GET /api/app/legal`: the company details the Terms of Use and the Privacy Policy fill in (`LEGAL_*`). A field the
+ * server has no setting for is null, and the page shows `[a preencher]` in its place. The documents' text is not here:
+ * it ships with the app, from `docs/legal/`.
+ */
+export interface LegalFacts {
+  companyName: string | null;
+  taxId: string | null;
+  address: string | null;
+  dpoName: string | null;
+  dpoEmail: string | null;
+  serverLocation: string | null;
+  logRetention: string | null;
+  /** Days the installation's database backups are kept, as the Privacy Policy says. */
+  backupRetentionDays: number;
+  /** Days a voice message's recording is kept, as the Privacy Policy says. */
+  voiceRetentionDays: number;
+}
+
 /** "Abrir no celular": a sign-in for the phone, single use, a few minutes long. */
 export interface PhoneSignIn {
   token: string;

@@ -30,6 +30,10 @@
   color: var(--muted);
   font-size: 13px;
 }
+/* The line over the document saying it is a draft: the kit's neutral notice, kept close under the title. */
+.legal__draft {
+  margin: 0;
+}
 .legal__toc ol {
   margin: 0;
   padding: 0;

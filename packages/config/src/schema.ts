@@ -33,7 +33,8 @@ export interface EnvVarDefinition {
     | "Push"
     | "Operator"
     | "Usage report"
-    | "Observability";
+    | "Observability"
+    | "Legal";
   /** Example value for docs. Never a real secret. */
   example?: string;
   /** Secret values are never logged and are masked in diagnostics. */
@@ -229,16 +230,16 @@ export const envVars = {
     section: "Sign-in",
   },
   TERMS_URL: {
-    schema: z.url().optional(),
+    schema: z.string().min(1).optional(),
     description:
-      "Your terms of service, linked on the sign-in and sign-up screens when `PRIVACY_URL` is set too, and where this server's /terms leads. Default on agentes.chat Cloud (https://app.agentes.chat): its /terms page.",
+      "Your terms of service, linked on the sign-in and sign-up screens when `PRIVACY_URL` is set too. Default: this server's own page, `/termos` (`docs/legal/`, in Portuguese, with the English at `/terms`). A full address sends the reader (and the sign-in screen's link) to a page elsewhere.",
     section: "Sign-in",
     example: "https://example.com/terms",
   },
   PRIVACY_URL: {
-    schema: z.url().optional(),
+    schema: z.string().min(1).optional(),
     description:
-      "Your privacy policy, linked on the sign-in and sign-up screens together with `TERMS_URL`, and where this server's /privacy leads. Default on agentes.chat Cloud (https://app.agentes.chat): its /privacy page.",
+      "Your privacy policy, linked on the sign-in and sign-up screens together with `TERMS_URL`. Default: this server's own page, `/privacidade` (`docs/legal/`, in Portuguese, with the English at `/privacy`, and the Data Processing Addendum as an annex). A full address sends the reader elsewhere.",
     section: "Sign-in",
     example: "https://example.com/privacy",
   },
@@ -1380,6 +1381,62 @@ export const envVars = {
     schema: z.string().min(1).max(64).default("production"),
     description: "The environment error reports are filed under (`production`, `staging`).",
     section: "Observability",
+  },
+  LEGAL_COMPANY_NAME: {
+    schema: z.string().trim().min(1).max(200).optional(),
+    description:
+      "Legal name of the company that runs this installation, shown in the published Terms of Use and Privacy Policy (`/termos`, `/privacidade`) and in the Data Processing Addendum. Unset (default): the pages show `[a preencher]` where it belongs, which is how they read as a draft.",
+    section: "Legal",
+    example: "Padaria Aurora Serviços Ltda.",
+  },
+  LEGAL_COMPANY_TAX_ID: {
+    schema: z.string().trim().min(1).max(40).optional(),
+    description:
+      "The company's CNPJ, shown with its legal name in the Terms of Use. Unset (default): `[a preencher]`.",
+    section: "Legal",
+    example: "00.000.000/0001-00",
+  },
+  LEGAL_COMPANY_ADDRESS: {
+    schema: z.string().trim().min(1).max(300).optional(),
+    description:
+      "The company's registered address, shown with its legal name in the Terms of Use. Unset (default): `[a preencher]`.",
+    section: "Legal",
+    example: "Rua das Flores, 100, São Paulo, SP",
+  },
+  LEGAL_DPO_NAME: {
+    schema: z.string().trim().min(1).max(200).optional(),
+    description:
+      "Name of the company's data protection officer (encarregado, LGPD), shown in the Privacy Policy and in the rights it lists. Unset (default): `[a preencher]`.",
+    section: "Legal",
+    example: "Ana Lima",
+  },
+  LEGAL_DPO_EMAIL: {
+    schema: z.email().optional(),
+    description:
+      "The data protection officer's e-mail address, where people ask to exercise their LGPD rights. Shown in the Privacy Policy and as a link there. Unset (default): `[a preencher]`.",
+    section: "Legal",
+    example: "dpo@example.com",
+  },
+  LEGAL_SERVER_LOCATION: {
+    schema: z.string().trim().min(1).max(200).optional(),
+    description:
+      "Where the Customer's installation and its data sit, as the Privacy Policy says it (a country and region, or the data center). Unset (default): `[a preencher]`.",
+    section: "Legal",
+    example: "Brasil (São Paulo)",
+  },
+  LEGAL_BACKUP_RETENTION_DAYS: {
+    schema: z.coerce.number().int().min(0).default(14),
+    description:
+      "Days the Privacy Policy says the installation's database backups are kept. Keep it equal to the `backup` service's `BACKUP_RETENTION_DAYS`. 0 = the pages say backups are kept only while the service keeps them, which a legal review should confirm.",
+    section: "Legal",
+    example: "14",
+  },
+  LEGAL_LOG_RETENTION: {
+    schema: z.string().trim().min(1).max(120).optional(),
+    description:
+      "How long the Privacy Policy says this installation keeps its technical logs, in words (for example, `90 dias`). Unset (default): `[a preencher]`, since how long logs live depends on the server and the log collector.",
+    section: "Legal",
+    example: "90 dias",
   },
 } satisfies Record<string, EnvVarDefinition>;
 
