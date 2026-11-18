@@ -79,7 +79,7 @@ export const railSteps = (f: {
   people?: boolean;
   you?: boolean;
   /**
-   * The Doug team's two steps (docs/adr/doug-0020-time-doug.md): "Quem entra" after its card and "Sua marca" once it
+   * The Doug team's two steps (docs/adr/doug-0030-time-doug.md): "Quem entra" after its card and "Sua marca" once it
    * was made. A workspace that didn't pick it, or picked it and already saved a brand, has neither.
    */
   who?: boolean;
@@ -114,7 +114,7 @@ export function railStepAt(f: {
   people?: boolean;
   invited?: boolean;
   /**
-   * The Doug team's card picked on the team step, in this visit (docs/adr/doug-0020-time-doug.md): "Quem entra" is
+   * The Doug team's card picked on the team step, in this visit (docs/adr/doug-0030-time-doug.md): "Quem entra" is
    * next, before the team is made. A reload before it is made opens the team step again, its card still picked.
    */
   dougPicked?: boolean;
@@ -175,7 +175,7 @@ export function railState(f: {
   personal?: boolean;
   funnel: RailFunnel | null;
   /**
-   * The steps the Doug team adds (docs/adr/doug-0020-time-doug.md): "Quem entra" while its card is picked and the
+   * The steps the Doug team adds (docs/adr/doug-0030-time-doug.md): "Quem entra" while its card is picked and the
    * team isn't made (`dougPicked`), "Sua marca" while its brand still waits (`brandWaits`, `GET /me`'s
    * `onboarding.brandPending`). Both are the workspace's own state, never this visit's.
    */

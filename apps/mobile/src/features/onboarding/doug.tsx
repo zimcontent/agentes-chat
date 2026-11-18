@@ -43,7 +43,7 @@ import {
 } from "./logic";
 
 /*
- * The onboarding's Doug team screens (docs/adr/doug-0020-time-doug.md), the phone's own drawing of the web's steps:
+ * The onboarding's Doug team screens (docs/adr/doug-0030-time-doug.md), the phone's own drawing of the web's steps:
  * how to start the team (the Doug team first, already picked), who joins it (every agent checked, the Doug fixed) and,
  * once it is made, the brand the whole team reads. Plain borders and fills only: no shadows on a repeated row.
  */

@@ -1,7 +1,7 @@
 import type { BrandInput, BrandView, DougTemplateMember, TeamTemplate } from "../api/types";
 
 /**
- * The Doug team's template on the web and the phone (docs/adr/doug-0020-time-doug.md), platform-neutral: the id its
+ * The Doug team's template on the web and the phone (docs/adr/doug-0030-time-doug.md), platform-neutral: the id its
  * card answers to, the agents the person may uncheck, and the QG de Tráfego's team, which opens under its MARK.
  */
 
@@ -67,7 +67,7 @@ export const dougOf = (templates: readonly TeamTemplate[]): TeamTemplate | null 
 /** The QG an agent belongs to, for its row's channel ("no QG de Design"), or null for the right hand. */
 export const qgOf = (m: Pick<DougTemplateMember, "qg" | "channel">): string | null => (m.channel ? m.qg : null);
 
-/** "Sua marca" (docs/adr/doug-0020-time-doug.md): the shape the step saves and shows back, and its own helpers. */
+/** "Sua marca" (docs/adr/doug-0030-time-doug.md): the shape the step saves and shows back, and its own helpers. */
 export type { BrandInput, BrandView };
 
 /**

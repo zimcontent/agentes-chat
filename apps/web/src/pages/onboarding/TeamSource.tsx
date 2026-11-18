@@ -29,7 +29,7 @@ import "./team-source.css";
 export type TeamSourceView = "ask" | "start" | "who" | "template" | "bring" | "found" | "report";
 
 /**
- * How a team with no agents yet starts: the Doug team (docs/adr/doug-0020-time-doug.md, first and already picked), a
+ * How a team with no agents yet starts: the Doug team (docs/adr/doug-0030-time-doug.md, first and already picked), a
  * ready-made template's team, or from scratch with the right hand alone.
  */
 export type TeamStartPick = "doug" | "template" | "scratch";
@@ -95,7 +95,7 @@ export function useTeamSource(
   const qc = useQueryClient();
   const [stage, setStage] = useState<Stage | null>(null);
   const [chosen, choose] = useState<TeamSourceChoice | null>(null);
-  // How a team with no agents yet starts: the Doug team until the person picks another (docs/adr/doug-0020-time-doug.md),
+  // How a team with no agents yet starts: the Doug team until the person picks another (docs/adr/doug-0030-time-doug.md),
   // a server older than it from scratch.
   const [start, pickStart] = useState<TeamStartPick>("doug");
   const [holding, setHolding] = useState(false);

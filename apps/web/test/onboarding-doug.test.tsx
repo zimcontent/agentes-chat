@@ -11,7 +11,7 @@ import { createFakeApi, type FakeState, fakeDevicesOf, GENERAL_ID, ORG_ID, seedS
 import { renderApp, renderPage, screen, settle } from "./render";
 
 /*
- * The Doug team in the onboarding (docs/adr/doug-0020-time-doug.md), on the web: its card first on how a team starts,
+ * The Doug team in the onboarding (docs/adr/doug-0030-time-doug.md), on the web: its card first on how a team starts,
  * "Quem entra no seu time?" (every box checked, the right hand fixed, the QG de Tráfego's team under its MARK), and
  * "Ensine a sua marca ao time" (a company's name and tone, required, saved as the workspace skill "Marca").
  */

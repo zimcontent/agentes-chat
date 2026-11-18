@@ -25,7 +25,7 @@ import "./team-start.css";
 const HOP_GAP_MS = 80;
 
 /**
- * How a team with no agents yet starts (ADR 0162, amended 2026-11-11, and docs/adr/doug-0020-time-doug.md): the Doug
+ * How a team with no agents yet starts (ADR 0162, amended 2026-11-11, and docs/adr/doug-0030-time-doug.md): the Doug
  * team first, already picked, with its faces and the sentence saying what it does; then "Start with a ready-made team"
  * (the template for the workspace's business, named, with its agents) and "Start from scratch" (picked on a server
  * older than the Doug team, the step left with the right hand alone, `skip`). The picked row's agents are awake and hop

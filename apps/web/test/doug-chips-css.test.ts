@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { atRule, builtCss, declarations, topLevel } from "./built-css";
 
 /**
- * The chips of "Sua marca" (docs/adr/doug-0020-time-doug.md) and the team cards' own `.tp-chip`: one height on the
+ * The chips of "Sua marca" (docs/adr/doug-0030-time-doug.md) and the team cards' own `.tp-chip`: one height on the
  * row, the kit's 8 between them, and a target of the kit's 44 on touch without moving the desktop's picture.
  */
 test("the brand step's chips hold one height on the kit's grid, and a phone's target grows past them", async () => {

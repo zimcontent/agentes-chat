@@ -2442,7 +2442,7 @@ export const featureKeysPtBR = {
     shareMessage: "Entre na {{org}} no DougBot: {{url}}",
     failed: "Não deu para salvar. Tente de novo.",
   },
-  /** As telas do Time Doug no primeiro uso do celular (docs/adr/doug-0020-time-doug.md): como começar, quem entra, a marca. */
+  /** As telas do Time Doug no primeiro uso do celular (docs/adr/doug-0030-time-doug.md): como começar, quem entra, a marca. */
   dougOnb: {
     /** O nome do passo da marca na linha de progresso ("Passo 4 de 5 · Sua marca"). */
     step: "Sua marca",

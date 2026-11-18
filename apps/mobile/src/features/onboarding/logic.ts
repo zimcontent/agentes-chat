@@ -185,7 +185,7 @@ export const computerMembers = (members: readonly DougTemplateMember[], kept: re
   members.filter((m) => m.needsComputer && kept.includes(m.handle));
 
 /**
- * Whether the computer's own flow opens once the workspace does (docs/adr/doug-0020-time-doug.md): only when the person
+ * Whether the computer's own flow opens once the workspace does (docs/adr/doug-0030-time-doug.md): only when the person
  * asked for it while picking who joins *and* an agent the team actually made works on a computer. A team that was not
  * created, or one whose computer agents were unchecked, opens nothing.
  */

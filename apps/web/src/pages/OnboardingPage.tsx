@@ -196,7 +196,7 @@ export function OnboardingPage() {
   // for an AI again.
   const aiLaterSaved = passed !== undefined && stepIndex(passed) >= stepIndex("ai");
   const held = billingHoldOf(mine?.standing) === "payment";
-  // The Doug team's brand step waits (`GET /me`'s `onboarding.brandPending`, docs/adr/doug-0020-time-doug.md): the
+  // The Doug team's brand step waits (`GET /me`'s `onboarding.brandPending`, docs/adr/doug-0030-time-doug.md): the
   // server refuses to finish until it is saved, so the rail is on it while its team's data may still be arriving.
   const brandWaits = mine?.onboarding?.brandPending === true;
   // Back from paying, until the billing service lifts the hold: `/me` again meanwhile, as the hold's banner does.
@@ -247,7 +247,7 @@ export function OnboardingPage() {
       personal: personalNow,
       // The person's own step is answered once per account: their area said, or skipped (amended 2026-11-12).
       funnel: { thinks, passed, about: (me.data?.user.workArea ?? null) !== null },
-      // The Doug team's two steps (docs/adr/doug-0020-time-doug.md): "Quem entra" once its card is picked, which is the
+      // The Doug team's two steps (docs/adr/doug-0030-time-doug.md): "Quem entra" once its card is picked, which is the
       // step's own `who` stage (the team made from it has a team, so the step isn't there), and "Sua marca" while the
       // server says the brand still waits (`onboarding.brandPending`, `GET /me`).
       dougPicked: source.stage === "who",
@@ -334,7 +334,7 @@ export function OnboardingPage() {
   const aiNamed = aiPick && (aiPick.choice === "key" ? keyNow : !keyNow || aiPick.key) ? aiPick.choice : null;
   const holding = source.holding;
   const view = source.view;
-  // "Sua marca" (docs/adr/doug-0020-time-doug.md): read once the Doug team was made and its step is next, and again
+  // "Sua marca" (docs/adr/doug-0030-time-doug.md): read once the Doug team was made and its step is next, and again
   // whenever the workspace says it still waits (`onboarding.brandPending`), as a step gone back to starts from it.
   const brand = useBrand(orgId ?? "", i18n.language, orgId !== null && step === "brand");
   // The Doug team made on "Quem entra": its card's answer, the agents that need a computer and the card's failure.
@@ -1285,7 +1285,7 @@ function StepHost({
 }
 
 /**
- * "Conectar computador" on "Quem entra" (docs/adr/doug-0020-time-doug.md): the app's own device flow, the same
+ * "Conectar computador" on "Quem entra" (docs/adr/doug-0030-time-doug.md): the app's own device flow, the same
  * Settings › Devices opens, over the step. It needs the workspace's context, which the step is hosted in.
  */
 function ConnectComputerDialog({ onClose }: { onClose: () => void }) {

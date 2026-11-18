@@ -281,7 +281,7 @@ describe("the onboarding's rail (ADR 0162)", () => {
     ]);
   });
 
-  test("the Doug team's two steps (docs/adr/doug-0020-time-doug.md): recording who joins, then its brand", () => {
+  test("the Doug team's two steps (docs/adr/doug-0030-time-doug.md): recording who joins, then its brand", () => {
     const base = {
       orgId: "o1",
       standing: undefined,

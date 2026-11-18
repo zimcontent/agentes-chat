@@ -2522,7 +2522,7 @@ export const featureKeysEn = {
     shareMessage: "Join {{org}} on DougBot: {{url}}",
     failed: "Couldn't save. Try again.",
   },
-  /** The onboarding's Doug team screens on the phone (docs/adr/doug-0020-time-doug.md): how to start, who joins, the brand. */
+  /** The onboarding's Doug team screens on the phone (docs/adr/doug-0030-time-doug.md): how to start, who joins, the brand. */
   dougOnb: {
     /** The brand step's name on the progress line ("Step 4 of 5 · Your brand"). */
     step: "Your brand",

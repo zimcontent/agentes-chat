@@ -1105,7 +1105,7 @@ export function useTeamTemplates(orgId: string, locale: string, enabled = true) 
   });
 }
 
-/** "Sua marca" (docs/adr/doug-0020-time-doug.md): the brand, the tones to tap in this language, and whether it waits. */
+/** "Sua marca" (docs/adr/doug-0030-time-doug.md): the brand, the tones to tap in this language, and whether it waits. */
 export function useBrand(orgId: string, locale: string, enabled = true) {
   const api = useApi();
   return useQuery({
@@ -1133,7 +1133,7 @@ export function useDougTemplate(orgId: string, locale: string, enabled = true) {
  * "Usar este modelo": its card and the right hand's first question land in the person's DM with it. Made, it stays
  * pending until the team is in the agents' list, its routines and channels read before it: a screen that shows the
  * team (the onboarding's last step, the sidebar) finds them there, and nothing on it changes while it arrives.
- * `handles`: the Doug team's agents chosen (docs/adr/doug-0020-time-doug.md), every one when absent.
+ * `handles`: the Doug team's agents chosen (docs/adr/doug-0030-time-doug.md), every one when absent.
  */
 export function useApplyTeamTemplate(orgId: string) {
   const api = useApi();

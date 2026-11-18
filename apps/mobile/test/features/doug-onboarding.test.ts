@@ -29,7 +29,7 @@ import {
 } from "../../src/features/onboarding/logic";
 import { translator } from "./fixtures";
 
-/** The Doug team's onboarding screens on the phone (docs/adr/doug-0020-time-doug.md): their pure rules. */
+/** The Doug team's onboarding screens on the phone (docs/adr/doug-0030-time-doug.md): their pure rules. */
 
 const member = (handle: string, over: Partial<DougTemplateMember> = {}): DougTemplateMember => ({
   handle,

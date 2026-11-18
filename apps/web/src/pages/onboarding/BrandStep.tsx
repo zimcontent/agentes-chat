@@ -26,7 +26,7 @@ export interface BrandData {
 }
 
 /**
- * "Ensine a sua marca ao time" (docs/adr/doug-0020-time-doug.md), required once the Doug team was made: the company's
+ * "Ensine a sua marca ao time" (docs/adr/doug-0030-time-doug.md), required once the Doug team was made: the company's
  * name and tone of voice are required, the site, the profile, the audience and the brand manual (a file, in the Drive,
  * or a link) optional. It saves the workspace skill "Marca <empresa>" (`orgs.saveBrand`), which ROSA, SONY, the Social
  * Media and CHESS read; the server refuses to finish the onboarding while it waits (`onboarding.brand_pending`).

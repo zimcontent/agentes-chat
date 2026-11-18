@@ -102,7 +102,7 @@ export function OnboardingFlow({ onLeave, another }: { onLeave?: () => void; ano
   const [business, setBusiness] = useState<BusinessType | null>(null);
   const [template, setTemplate] = useState<string | null>(null);
   const [name, setName] = useState("");
-  // The team step's own screens (docs/adr/doug-0020-time-doug.md): how to start, who joins the Doug team.
+  // The team step's own screens (docs/adr/doug-0030-time-doug.md): how to start, who joins the Doug team.
   const [teamPhase, setTeamPhase] = useState<TeamPhase>("how");
   const [start, setStart] = useState<TeamStart>("doug");
   const [unchecked, setUnchecked] = useState<ReadonlySet<string>>(new Set());

@@ -1101,7 +1101,7 @@ export const en = {
         /** The person's own step: their photo, their name and their area. */
         you: "About you",
         team: "Your team",
-        /** The Doug team's, between its card and its brand (docs/adr/doug-0020-time-doug.md). */
+        /** The Doug team's, between its card and its brand (docs/adr/doug-0030-time-doug.md). */
         who: "Who joins",
         brand: "Your brand",
         plan: "Turn the team on",
@@ -1125,7 +1125,7 @@ export const en = {
         /** Back on the team step once the team is made: the list of who is in it. */
         teamMade: "The team is already put together. We move on whenever you're ready.",
         teamMadePersonal: "Your agents are already here. We move on whenever you're ready.",
-        /** On "Quem entra" and "Sua marca", the Doug team's (docs/adr/doug-0020-time-doug.md). */
+        /** On "Quem entra" and "Sua marca", the Doug team's (docs/adr/doug-0030-time-doug.md). */
         who: "The Doug team already knows the craft. Pick who joins now, the rest can come later.",
         brand: "Last thing before I put them to work: teach them your brand. ROSA and SONY read it before every piece.",
         plan: "After the plan, all that's left is connecting an AI. I'll show you where.",
@@ -1221,7 +1221,7 @@ export const en = {
           see: "See the ready-made team",
           /** The button, with "Start from scratch" picked. */
           scratchGo: "Go on with just {{name}}",
-          /** The Doug team's card (docs/adr/doug-0020-time-doug.md): first, already picked. */
+          /** The Doug team's card (docs/adr/doug-0030-time-doug.md): first, already picked. */
           doug: "Start with the Doug team",
           /** Beside its title: the card that comes picked. */
           dougBadge: "Recommended",
@@ -1278,7 +1278,7 @@ export const en = {
         },
       },
       /**
-       * "Quem entra no seu time?" (docs/adr/doug-0020-time-doug.md): the Doug team's agents, all checked, the right
+       * "Quem entra no seu time?" (docs/adr/doug-0030-time-doug.md): the Doug team's agents, all checked, the right
        * hand fixed, and the QG de Tráfego's team under its MARK. "Who enters it" before the team is made.
        */
       who: {
@@ -1312,7 +1312,7 @@ export const en = {
         required: "Required",
       },
       /**
-       * "Ensine a sua marca ao time" (docs/adr/doug-0020-time-doug.md): the company's name and tone, required, and the
+       * "Ensine a sua marca ao time" (docs/adr/doug-0030-time-doug.md): the company's name and tone, required, and the
        * site, the profile, the audience and the brand manual, optional. It becomes the workspace skill "Marca".
        */
       brand: {

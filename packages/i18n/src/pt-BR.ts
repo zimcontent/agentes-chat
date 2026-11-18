@@ -1103,7 +1103,7 @@ export const ptBR = {
         team: "Esse é o time que eu montaria. Você muda tudo depois.",
         teamMade: "O time já está montado. Quando quiser, a gente segue.",
         teamMadePersonal: "Os seus agentes já estão aqui. Quando quiser, a gente segue.",
-        /** Em "Quem entra" e "Sua marca", as do Time Doug (docs/adr/doug-0020-time-doug.md). */
+        /** Em "Quem entra" e "Sua marca", as do Time Doug (docs/adr/doug-0030-time-doug.md). */
         who: "O Time Doug já sabe o ofício. Escolha quem entra agora, o resto vem quando você quiser.",
         brand: "Antes de botar o time pra trabalhar, ensine a sua marca. A ROSA e a SONY leem ela antes de cada peça.",
         plan: "Depois do plano, falta só conectar uma IA. Eu mostro onde.",
@@ -1173,7 +1173,7 @@ export const ptBR = {
           see: "Ver o time pronto",
           scratchGo: "Seguir só com o {{name}}",
           scratchGo_female: "Seguir só com a {{name}}",
-          /** The Doug team's card (docs/adr/doug-0020-time-doug.md): first, already picked. */
+          /** The Doug team's card (docs/adr/doug-0030-time-doug.md): first, already picked. */
           doug: "Começar com o Time Doug",
           /** Beside its title: the card that comes picked. */
           dougBadge: "Recomendado",
@@ -1221,7 +1221,7 @@ export const ptBR = {
         },
       },
       /**
-       * "Quem entra no seu time?" (docs/adr/doug-0020-time-doug.md): os agentes do Time Doug, todos marcados, o braço
+       * "Quem entra no seu time?" (docs/adr/doug-0030-time-doug.md): os agentes do Time Doug, todos marcados, o braço
        * direito fixo, e o time do QG de Tráfego sob o MARK.
        */
       who: {
@@ -1255,7 +1255,7 @@ export const ptBR = {
         required: "Obrigatório",
       },
       /**
-       * "Ensine a sua marca ao time" (docs/adr/doug-0020-time-doug.md): o nome da empresa e o tom, obrigatórios, e o
+       * "Ensine a sua marca ao time" (docs/adr/doug-0030-time-doug.md): o nome da empresa e o tom, obrigatórios, e o
        * site, o perfil, o público e o manual de marca, opcionais. Vira a skill "Marca" do workspace.
        */
       brand: {

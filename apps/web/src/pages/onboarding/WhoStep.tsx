@@ -8,7 +8,7 @@ import { useDevices } from "@/components/devices/queries";
 import "./who-step.css";
 
 /**
- * "Quem entra no seu time?" (docs/adr/doug-0020-time-doug.md): the Doug team's agents, every one checked, the right
+ * "Quem entra no seu time?" (docs/adr/doug-0030-time-doug.md): the Doug team's agents, every one checked, the right
  * hand's fixed (it is already here, it only takes its role) and the QG de Tráfego's team opening under its MARK, each
  * one uncheckable. Above the list, what the checked ones bring and "Criar o time"; a row whose agent only works on a
  * computer says so and offers to connect one, until the workspace has a computer.
