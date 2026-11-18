@@ -17,7 +17,8 @@
       "!**/src-tauri/gen",
       "!packages/engine/eval/out",
       "!apps/mobile/src/brand/dougbot-avatar.js",
-      "!packages/ui/src/brand/dougbot-avatar.js"
+      "!packages/ui/src/brand/dougbot-avatar.js",
+      "!apps/server/scripts/doug-demo-seed.ts"
     ]
   },
   "formatter": {
