@@ -14,7 +14,9 @@ test("chat and Drive uploads go as parts Expo's fetch sends (`filePart`), never 
   // Expo's fetch refuses `{ uri, name, type }` ("Unsupported FormDataPart implementation"): no upload ever left.
   expect(src("features/chat/ChatScreen.tsx")).toContain("filePart(file.uri, file.name, file.type)");
   expect(src("features/drive/useDriveUpload.ts")).toContain("filePart(a.uri, a.name,");
-  expect(src("features/review/media.ts")).toContain("bytes: () => file.bytes()");
+  // The part reads its bytes, once it knows they fit what the phone can hold in memory (`fitsFilePart`).
+  expect(src("features/review/media.ts")).toContain("if (!fitsFilePart(file.size))");
+  expect(src("features/review/media.ts")).toContain("return file.bytes();");
 });
 
 test("no `{ uri, name, type }` part sent through fetch anywhere: only `streamedPart`, for XMLHttpRequest with progress", () => {

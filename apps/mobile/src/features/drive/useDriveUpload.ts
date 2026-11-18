@@ -4,7 +4,7 @@ import * as DocumentPicker from "expo-document-picker";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/ui";
-import { filePart } from "../review/media";
+import { FILE_PART_MAX_BYTES, filePart } from "../review/media";
 import { useOrgId } from "../shared/hooks";
 
 /** "Enviar arquivo" on the Drive: the system's file picker, then the file into the Drive, with no conversation. */
@@ -26,7 +26,7 @@ export function useDriveUpload(onSaved: () => unknown) {
       toast({ title: t("files.uploaded", { name: saved.title }), icon: "check" });
       await onSaved();
     } catch (e) {
-      toast({ title: errorText(t, e), icon: "x" });
+      toast({ title: errorText(t, e, undefined, { maxMb: FILE_PART_MAX_BYTES / 1024 / 1024 }), icon: "x" });
     } finally {
       setBusy(false);
     }

@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { type LayoutChangeEvent, StyleSheet, type ViewStyle } from "react-native";
+import { AppState, type LayoutChangeEvent, StyleSheet, type ViewStyle } from "react-native";
 import { GestureDetector, type NativeGesture, usePanGesture } from "react-native-gesture-handler";
 import Animated, {
   type AnimatedRef,
@@ -22,7 +22,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { scheduleOnRN } from "react-native-worklets";
+import { scheduleOnRN, scheduleOnUI } from "react-native-worklets";
 import { haptics } from "@/ui";
 import {
   cardShift,
@@ -239,17 +239,28 @@ export function useBoardDrag(o: BoardDragOptions) {
   // ---- Edges: the board pages while the finger rests at its side; a list scrolls while it is near its top or foot.
   const pageTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const listTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  /** The side the board pages toward now (0: neither), and the list scrolling under the finger and which way. */
+  const paging = useRef(0);
+  const scrolling = useRef({ y: 0, L: -1 });
   const stopEdges = useCallback(() => {
     if (pageTimer.current) clearTimeout(pageTimer.current);
     if (listTimer.current) clearInterval(listTimer.current);
     pageTimer.current = null;
     listTimer.current = null;
+    paging.current = 0;
+    scrolling.current = { y: 0, L: -1 };
   }, []);
   const onEdge = useCallback(
     (x: number, y: number, L: number) => {
-      if (pageTimer.current) clearTimeout(pageTimer.current);
-      pageTimer.current = null;
-      if (x !== 0) {
+      // Each timer starts again only when its own side changes. The page under the finger changes the list under it
+      // (and its foot), which used to start the dwell again: the board paged every 300 ms past the scroll instead of
+      // every second, two lists for one rest at the edge.
+      if (x !== paging.current) {
+        paging.current = x;
+        if (pageTimer.current) clearTimeout(pageTimer.current);
+        pageTimer.current = null;
+      }
+      if (x !== 0 && !pageTimer.current) {
         const page = (wait: number) => {
           pageTimer.current = setTimeout(() => {
             const { step, droppable } = opts.current;
@@ -263,6 +274,8 @@ export function useBoardDrag(o: BoardDragOptions) {
         };
         page(PAGE_DWELL_MS);
       }
+      if (y === scrolling.current.y && L === scrolling.current.L) return;
+      scrolling.current = { y, L };
       if (listTimer.current) clearInterval(listTimer.current);
       listTimer.current = null;
       const entry = lists.current.get(L);
@@ -488,6 +501,27 @@ export function useBoardDrag(o: BoardDragOptions) {
     [state, dims, moved, ox, oy, geo, boardX, scrolls, grab, lift, onDrop],
   );
 
+  /**
+   * Lets go of what is held as a cancel when its gesture can no longer end it: the card or list (`id`, null for any)
+   * left the tree while held (a list paged out of the board's window, a refresh), or the app left the screen. It flies
+   * home and every shared value goes back to rest, so the board never stays with a card in the air and no drag can
+   * start again. A no-op when nothing is held, so a gesture's own cancel arriving after it changes nothing.
+   */
+  const cancelHeld = useCallback(
+    (id: string | null) => {
+      "worklet";
+      const s = state.value;
+      if (s.phase === HELD && (id === null || s.id === id)) endDrag(s.id, true);
+    },
+    [state, endDrag],
+  );
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (now) => {
+      if (now !== "active") scheduleOnUI(cancelHeld, null);
+    });
+    return () => sub.remove();
+  }, [cancelHeld]);
+
   /** The board's own scroll, from its `onScroll`. */
   const boardScrolled = useCallback(
     (x: number) => {
@@ -558,6 +592,7 @@ export function useBoardDrag(o: BoardDragOptions) {
       startDrag,
       followDrag,
       endDrag,
+      cancelHeld,
     }),
     [
       boardRef,
@@ -576,8 +611,19 @@ export function useBoardDrag(o: BoardDragOptions) {
       startDrag,
       followDrag,
       endDrag,
+      cancelHeld,
     ],
   );
+}
+
+/**
+ * Held by its own gesture: when the card or list leaves the tree, its gesture goes with it and never ends the drag,
+ * so the drag is let go here (`cancelHeld`). Keyed on the id alone: a card that only changes place keeps its drag.
+ */
+function useLetGoOnUnmount(id: string, cancelHeld: (id: string | null) => void) {
+  const cancel = useRef(cancelHeld);
+  cancel.current = cancelHeld;
+  useEffect(() => () => scheduleOnUI(cancel.current, id), [id]);
 }
 
 /**
@@ -675,8 +721,9 @@ export function DragCard({
   children: ReactNode;
 }) {
   const engine = useEngine();
-  const { state, ready, dims, startDrag, followDrag, endDrag, placeCard } = engine;
+  const { state, ready, dims, startDrag, followDrag, endDrag, placeCard, cancelHeld } = engine;
   const ref = useAnimatedRef<Animated.View>();
+  useLetGoOnUnmount(id, cancelHeld);
   const meta = useSharedValue({ L, k });
   useEffect(() => {
     meta.value = { L, k };
@@ -791,7 +838,8 @@ export function DragListHead({
   scrollGestures: (NativeGesture | null | undefined)[];
   children: ReactNode;
 }) {
-  const { startDrag, followDrag, endDrag } = useEngine();
+  const { startDrag, followDrag, endDrag, cancelHeld } = useEngine();
+  useLetGoOnUnmount(id, cancelHeld);
   const meta = useSharedValue({ column, index });
   useEffect(() => {
     meta.value = { column, index };

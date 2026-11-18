@@ -3,6 +3,7 @@ import {
   FRONT_MAX,
   frontOf,
   gridOf,
+  pillsInHalves,
   pinsOf,
   readPins,
   type ToolsOn,
@@ -121,5 +122,18 @@ describe("the pins on the phone", () => {
     ]);
     expect(readPins("wiki")).toBeNull();
     expect(FRONT_MAX).toBe(4);
+  });
+});
+
+describe("the sheet's pills, two to a row only while their words fit", () => {
+  test("Criar's two on a 390 phone sit side by side; on a 320 one they stack instead of cutting a word", () => {
+    expect(pillsInHalves(["Nova conversa", "Novo agente"], 338)).toBe(true);
+    expect(pillsInHalves(["Nova conversa", "Novo agente"], 268)).toBe(false);
+  });
+  test("a conversation's four short ones stay in halves at 320", () => {
+    expect(pillsInHalves(["GIFs", "Missão", "Resumo", "Lembrete"], 268)).toBe(true);
+  });
+  test("three (Fotos, Câmera, Arquivo) are never halves: they lie as wide as their words", () => {
+    expect(pillsInHalves(["Fotos", "Câmera", "Arquivo"], 338)).toBe(false);
   });
 });

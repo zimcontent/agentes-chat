@@ -361,8 +361,8 @@ function GroupRow({
   );
 }
 
+// The app's glance (`HomeGlance`): the editor and the clients' changes. Threads have no card there (ADR doug-0018).
 const WIDGETS = [
-  { key: "t", icon: "reply", title: "Threads", big: "3 novas", line: "Capa do reels da LEXEER", hot: true },
   { key: "e", icon: "play", title: "Ronny", big: "Ajustando", line: "Built_to_Endure_Ep12_Corte1", hot: false },
   { key: "c", icon: "flag", title: "Alterações", big: "4", line: "ELMX Capital, LEXEER", hot: true },
 ] as const;

@@ -228,21 +228,22 @@ export function createFakePortal(
           .sort()
           .filter((client) => !fake.hidden.has(client))
           .map((client): PortalClientSummary => {
-          const counts = columnsOf(client);
-          const dates = fake.items
-            .filter((i) => i.client === client && i.status === "scheduled" && i.scheduledFor)
-            .map((i) => i.scheduledFor as string)
-            .sort();
-          return {
-            client,
-            counts,
-            open: counts.todo + counts.doing + counts.approval + counts.adjusting + counts.approved + counts.scheduled,
-            next: dates[0] ?? null,
-            color: fake.colors[client] ?? null,
-            logo: fake.logos[client] ?? null,
-            name: fake.names[client] ?? null,
-          };
-        });
+            const counts = columnsOf(client);
+            const dates = fake.items
+              .filter((i) => i.client === client && i.status === "scheduled" && i.scheduledFor)
+              .map((i) => i.scheduledFor as string)
+              .sort();
+            return {
+              client,
+              counts,
+              open:
+                counts.todo + counts.doing + counts.approval + counts.adjusting + counts.approved + counts.scheduled,
+              next: dates[0] ?? null,
+              color: fake.colors[client] ?? null,
+              logo: fake.logos[client] ?? null,
+              name: fake.names[client] ?? null,
+            };
+          });
         const hidden = [...fake.hidden].sort().map((client) => ({ client, name: fake.names[client] ?? null }));
         return clone({ clients, hidden, state: fake.state });
       },
@@ -531,7 +532,7 @@ export function createFakePortal(
         log("portal.schedule", orgId, client, itemId, scheduledFor);
         guard();
         const item = fake.items.find((i) => i.client === client && i.id === itemId);
-        if (!item || item.status !== "approved") {
+        if (item?.status !== "approved") {
           throw new ApiError(400, "portal.refused", "Only an approved post can be scheduled");
         }
         if (item.released) throw new ApiError(400, "portal.refused", "This post was already released");

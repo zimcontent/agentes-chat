@@ -155,6 +155,8 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
         tint="laranja"
         icon="flag"
         label={t("shell.proposals")}
+        // With its count beside it, a 320 phone wraps the name rather than cutting it.
+        labelLines={2}
         {...(proposals > 0 ? { valueLeading: <WaitingCount count={proposals} /> } : {})}
         chevron
         onPress={() => open("/proposals")}

@@ -162,3 +162,22 @@ export function withPins(stored: string | null, orgId: string, pins: readonly To
   }
   return JSON.stringify({ ...all, [orgId]: pins });
 }
+
+/** Under this width (a 320 or 340 phone), the sheet's labels and pills take the narrow phone's measures. */
+export const NARROW_PHONE = 360;
+
+/** A pill's words, a little wide on purpose (Source Sans 3 semibold 15), so a close call stacks instead of cutting. */
+const PILL_CHAR = 8.4;
+/** A pill's own room beside its words: its icon (18), the gap (8) and its sides (12 + 12). */
+const PILL_CHROME = 50;
+
+/**
+ * Whether the sheet's pills (Criar, Nesta conversa, Anexar) go two to a row in a row this wide: only two or four of
+ * them, and only while each one's words fit in half the row (8 between the two). Else they lie as wide as their
+ * words, so a narrow phone puts one under the other rather than cutting "Nova conversa" to "Nova con…".
+ */
+export function pillsInHalves(labels: readonly string[], rowWidth: number): boolean {
+  if (labels.length !== 2 && labels.length !== 4) return false;
+  const half = (rowWidth - 8) / 2;
+  return labels.every((label) => label.length * PILL_CHAR + PILL_CHROME <= half);
+}
