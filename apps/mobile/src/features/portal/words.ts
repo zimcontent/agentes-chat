@@ -165,6 +165,7 @@ const en = {
     removeText:
       "It leaves every list and count here. Its posts and cards stay at the portal, and it can be brought back from Hidden clients on the web.",
     removed: (name: string) => `“${name}” removed.`,
+    notOnServer: "This server can't do that yet. Update it and try again.",
   },
   post: "Post",
   lastNote: "Last note",
@@ -404,6 +405,7 @@ const ptBR: PortalWords = {
     removeText:
       "Ele sai de todas as listas e contagens daqui. Os posts e cartões continuam no portal, e dá para trazê-lo de volta em Clientes ocultos, na web.",
     removed: (name: string) => `“${name}” excluído.`,
+    notOnServer: "Este servidor ainda não faz isso. Atualize o servidor e tente de novo.",
   },
   post: "Post",
   lastNote: "Última observação",

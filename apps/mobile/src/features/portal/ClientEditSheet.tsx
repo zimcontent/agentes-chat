@@ -1,5 +1,6 @@
 import type { PortalClientColor } from "@agenteschat/client";
 import {
+  ApiError,
   usePortalOverview,
   useSetPortalClientColor,
   useSetPortalClientHidden,
@@ -51,6 +52,14 @@ export function ClientEditSheet({ client }: { client: string }) {
   const hide = useSetPortalClientHidden(orgId);
   const name = portalClientName(client);
   const slugName = portalClientSlugName(client);
+  // The name and the removal are new routes: a server from before them answers 404 with no portal code, which reads
+  // as "this server can't do that yet" instead of "it's gone".
+  const fail = (error: unknown) => {
+    errorHaptic();
+    if (error instanceof ApiError && error.status === 404 && error.code === "not_found")
+      toast({ title: e.notOnServer, icon: "x" });
+    else failed(error);
+  };
 
   const askName = () =>
     sheet.open(
@@ -72,8 +81,7 @@ export function ClientEditSheet({ client }: { client: string }) {
             successHaptic();
             toast({ title: e.renamed, icon: "check" });
           } catch (error) {
-            errorHaptic();
-            failed(error);
+            fail(error);
           }
         }}
       />,
@@ -82,20 +90,20 @@ export function ClientEditSheet({ client }: { client: string }) {
   // The library opens once the sheet is gone: iOS presents one thing at a time.
   const pickPicture = () =>
     sheet.close(async () => {
-      const picked = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.7,
-        base64: true,
-      });
-      const asset = picked.canceled ? null : picked.assets[0];
-      if (!asset?.base64) return;
-      if (asset.base64.length > PHOTO_MAX_BASE64) {
-        toast({ title: e.pictureTooBig, icon: "x" });
-        return;
-      }
       try {
+        const picked = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ["images"],
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.7,
+          base64: true,
+        });
+        const asset = picked.canceled ? null : picked.assets[0];
+        if (!asset?.base64) return;
+        if (asset.base64.length > PHOTO_MAX_BASE64) {
+          toast({ title: e.pictureTooBig, icon: "x" });
+          return;
+        }
         await setLogo.mutateAsync({
           imageBase64: asset.base64,
           contentType: photoContentType(asset.mimeType, asset.fileName, asset.base64),
@@ -103,20 +111,20 @@ export function ClientEditSheet({ client }: { client: string }) {
         successHaptic();
         toast({ title: e.pictureSaved, icon: "check" });
       } catch (error) {
-        errorHaptic();
-        failed(error);
+        // The library refused to open, or the server refused the picture: said, never an unhandled rejection.
+        fail(error);
       }
     });
 
   const removePicture = () =>
     setLogo.mutate(null, {
       onSuccess: () => toast({ title: e.pictureRemoved, icon: "check" }),
-      onError: failed,
+      onError: fail,
     });
 
   const pickColor = (next: PortalClientColor | null) => {
     if (next === (color ?? null)) return;
-    setColor.mutate({ client, color: next }, { onError: failed });
+    setColor.mutate({ client, color: next }, { onError: fail });
   };
 
   const askRemove = () =>
@@ -134,7 +142,7 @@ export function ClientEditSheet({ client }: { client: string }) {
                 successHaptic();
                 toast({ title: e.removed(name), icon: "check" });
               },
-              onError: failed,
+              onError: fail,
             },
           ),
       },
