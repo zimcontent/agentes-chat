@@ -152,7 +152,7 @@ describe("dictation", () => {
 
   test("one tap records, the same button stops, the × throws it away; nothing is held or dragged", () => {
     const d = src("features/voice/useDictation.tsx");
-    expect(d).toContain("onPress={() => void (recording ? stop() : start())}");
+    expect(d).toContain('onPress={caught("dictation.press", () => void (recording ? stop() : start()))}');
     expect(d).toContain("onPress={() => void cancel()}");
     expect(d).not.toMatch(/Gesture|onLongPress|activateAfterLongPress/);
     // A tap while the recorder starts ends it as soon as it records, never leaving it on.
@@ -179,4 +179,11 @@ describe("dictation", () => {
     expect(screen).toContain("const onWords = useCallback((text: string) => setInsert({ text, at: Date.now() }), []);");
     expect(screen).toContain("<Composer {...composer} dictation={dictation} insert={insert} />");
   });
+});
+
+test("a tap that throws never closes the app: send and the microphone stop it (expo/expo#51880)", () => {
+  const read = (path: string) => readFileSync(join(import.meta.dir, "../../src", path), "utf8");
+  expect(read("ui/Composer.tsx")).toMatch(/try \{\s*onSend\(value[^]*?showCaught\("composer\.send", error\);\s*return;/);
+  const d = read("features/voice/useDictation.tsx");
+  expect(d).toMatch(/try \{\s*tickNow\(\);\s*\} catch \(error\) \{\s*stopTimer\(\);\s*showCaught\("dictation\.tick"/);
 });

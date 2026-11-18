@@ -36,6 +36,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import { PixelStop } from "@/agent/PixelMarks";
+import { showCaught } from "@/lib/caught";
 import { readValueSync, STORED, writeValueSync } from "@/lib/storage";
 import { Glass } from "./Glass";
 import { haptics } from "./haptics";
@@ -368,7 +369,13 @@ export function Composer({
   const send = (how: SendHow) => {
     const value = text.trim();
     if ((!value && !sendEmpty) || tooLong) return;
-    onSend(value, working ? how : "join");
+    // What sending throws stops here, the words kept in the field: a tap never closes the app (`showCaught`).
+    try {
+      onSend(value, working ? how : "join");
+    } catch (error) {
+      showCaught("composer.send", error);
+      return;
+    }
     put("", 0);
   };
 

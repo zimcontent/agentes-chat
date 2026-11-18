@@ -17,7 +17,11 @@ export function ScreenError({ error, retry }: ErrorBoundaryProps) {
   const { t } = useTranslation();
   const c = useColors();
   const insets = useSafeAreaInsets();
-  const words = error instanceof Error ? error.message : String(error);
+  // Diagnostic build: the whole error, with where it came from, selectable to copy and send.
+  const words =
+    error instanceof Error
+      ? `${error.name}: ${error.message}\n${(error.stack ?? "").split("\n").slice(0, 25).join("\n")}`
+      : String(error);
   useEffect(() => reportError(error), [error]);
   return (
     <ScrollView
