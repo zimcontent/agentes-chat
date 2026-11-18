@@ -81,6 +81,7 @@ import {
 } from "./revisao";
 import { TarefasEquipe, TarefasEquipeAberta, TarefasEquipeVazia, TarefasMinhas } from "./tarefas";
 import { ConversaOpcoes, Tudo } from "./tudo";
+import { TimeDougComo, TimeDougMarca, TimeDougQuem } from "./time-doug";
 import { WhatsAppConversa, WhatsAppLista } from "./whatsapp";
 
 /** Sample photos served beside the board (`doug-mobile/fotos`): a person's and the groups' (JPG, as people send). */
@@ -1248,6 +1249,9 @@ export const TELAS: Record<string, () => ReactNode> = {
   "tarefas-equipe-aberta": TarefasEquipeAberta,
   "tarefas-equipe-vazia": TarefasEquipeVazia,
   "tarefas-minhas": TarefasMinhas,
+  "time-doug-como": TimeDougComo,
+  "time-doug-quem": TimeDougQuem,
+  "time-doug-marca": TimeDougMarca,
   whatsapp: WhatsAppLista,
   "whatsapp-conversa": WhatsAppConversa,
   arquivos: Arquivos,
