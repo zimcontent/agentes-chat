@@ -412,6 +412,8 @@ export const EXTRA_COLUMNS = [
   // The approval portal kept in this server (docs/adr/doug-0022-embedded-approval-portal.md, `schema/portal.ts`).
   // The WhatsApp number its notices go out as, and how long two notices of the same client wait to become one.
   `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "portal_notice_number" uuid`,
+  // Who chose that number: a person's id, with no foreign key here as its number's own added column has none.
+  `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "portal_notice_number_by" text`,
   `CREATE TABLE IF NOT EXISTS "portal_notices" (
     "id" uuid PRIMARY KEY,
     "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,

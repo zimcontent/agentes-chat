@@ -1081,15 +1081,31 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
     },
     // The client of the approval portal is told a post (or its new version) waits on them (docs/adr/
     // doug-0022-embedded-approval-portal.md): one email to each contact with an address, one text when the workspace
-    // has a number. Nothing when the post was answered while the job waited, or the client was told within the day.
+    // has a number. Nothing when the post was answered while the job waited, or the client was told within the hour.
+    // A notice that went out inside the hour holds this one: the job comes back when that hour ends (`retryAt`), and
+    // gathers what landed meanwhile into one notice (`posts[]`), instead of a client being told post after post.
     [PORTAL_NOTIFY_JOB]: async (job) => {
       if (!deps.portalNotify) return;
-      await announcePortalPost(
+      const out = await announcePortalPost(
         deps.portalNotify,
         orgOf(job),
         String(job.payload.postId),
         Number(job.payload.version) || 1,
       );
+      if (out.skipped !== "recent" || !out.retryAt) return;
+      // One job per client and window: a second post inside the hour names the same window, and the first to set it
+      // takes it (the send's own `(org_id, dedupe key)` unique index does the rest).
+      const retryAt = out.retryAt;
+      await enqueue(deps.db, {
+        orgId: orgOf(job),
+        kind: PORTAL_NOTIFY_JOB,
+        payload: { postId: job.payload.postId, version: job.payload.version },
+        dedupeKey: `${PORTAL_NOTIFY_JOB}:retry:${out.client ?? ""}:${retryAt.toISOString()}`,
+        runAt: retryAt,
+        // The retry ends the wait itself (a client told again, or nothing left to tell): a failure here retries as
+        // any job does, and a second try inside the same window is refused again and moves the job once more.
+        maxAttempts: 4,
+      });
     },
     // Someone else let more people talk to an agent on a person's plan: that person's email (`planOpened`).
     [PLAN_OPENED_JOB]: async (job) => {

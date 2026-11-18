@@ -470,6 +470,12 @@ export const organizationSettings = pgTable("organization_settings", {
    */
   portalNoticeNumber: uuid().references(() => whatsappAccounts.id, { onDelete: "set null" }),
   /**
+   * Who chose the number above: a choice whose author may no longer use that number (taken off its `people` list,
+   * with no `manage_connectors` to see every number) tells nothing, and the portal goes by e-mail alone until someone
+   * picks one again (`chosenNumber`, portal-notices.ts).
+   */
+  portalNoticeNumberBy: text().references(() => users.id, { onDelete: "set null" }),
+  /**
    * How much the workspace's agents ask before acting (ADR 0173 addendum 2026-11-15): what every agent without its
    * own choice (`agents.approvals_level_own`) uses. A workspace with no row here is at `risky`.
    */

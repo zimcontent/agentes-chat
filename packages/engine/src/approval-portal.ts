@@ -868,16 +868,25 @@ function clientsTool(deps: PortalToolDeps): ToolDefinition {
             ctx.orgId,
           );
           if (!clients.length) return { content: "The portal has no clients yet." };
-          // The link is a client's own address: shown only to someone who may manage the portal, and never a stale one.
+          // A client's link is the whole of the access to its page: only someone who may manage the portal reads it.
+          // Anyone else on the run gets the client's name, and nothing that opens it or names who is behind it.
           const text = clients
-            .map(
-              (c) =>
-                `- ${c.client} (${c.name})` +
-                (c.link ? `: ${c.link}` : c.linkStale ? ", its link must be made again" : ", its link was revoked") +
+            .map((c) => {
+              const line = `- ${c.client} (${c.name})`;
+              if (!mayChange) return line;
+              const link = c.link
+                ? `: ${c.link}`
+                : c.linkStale
+                  ? ", its link must be made again"
+                  : ", its link was revoked";
+              return (
+                line +
+                link +
                 (c.contacts.length
                   ? `\n  contacts: ${c.contacts.map((p) => `${p.name}${p.email ? ` <${p.email}>` : ""}${p.whatsapp ? ` +${p.whatsapp}` : ""}`).join("; ")}`
-                  : ""),
-            )
+                  : "")
+              );
+            })
             .join("\n");
           // Names and contacts are people's words: outside text for a model.
           return { content: untrustedBlock("approval portal clients", text) };

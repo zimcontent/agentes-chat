@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import type { BlobStore, PortalClientColor, PortalStatus, PortalType } from "@agenteschat/adapters";
 import { PORTAL_CLIENT_COLORS } from "@agenteschat/adapters";
 import type { Database } from "@agenteschat/db";
@@ -18,7 +19,10 @@ const { issues } = schema;
 
 /** The most contacts a client has. */
 export const PORTAL_CLIENT_CONTACTS_MAX = 10;
-export const PORTAL_CLIENT_NAME_MAX = 80;
+/** The longest name the team may give a client (`setPortalClientName`, ADR 9001's rename), and the one it is made with. */
+export const PORTAL_CLIENT_NAME_MAX = 60;
+/** A client's own name as it is made here (`upsertPortalClient`): the page's title, not the team's rename. */
+export const PORTAL_CLIENT_TITLE_MAX = 80;
 export const PORTAL_CONTACT_NAME_MAX = 80;
 export const PORTAL_CONTACT_EMAIL_MAX = 200;
 
@@ -213,7 +217,7 @@ export async function upsertPortalClient(
   if (!PORTAL_CLIENT_ID.test(client)) {
     throw new ValidationError("The client's id is lowercase letters, digits and hyphens (up to 64)");
   }
-  const name = (input.name ?? "").trim().slice(0, PORTAL_CLIENT_NAME_MAX);
+  const name = (input.name ?? "").trim().slice(0, PORTAL_CLIENT_TITLE_MAX);
   if (!name) throw new ValidationError("Give the client a name");
   const contacts = (input.contacts ?? []).slice(0, PORTAL_CLIENT_CONTACTS_MAX).map(contactOf);
   const color = colorOf(input.color);
@@ -323,11 +327,17 @@ export const PORTAL_LINK_TOUCH_MS = 5 * 60_000;
  * The client behind a link's token, or null while the token names none (or the link was revoked). Opening it marks
  * the link as used (`last_used_at`), at most once each `PORTAL_LINK_TOUCH_MS`: best effort, a failure says nothing about
  * the page's own answer.
+ *
+ * The token is checked twice: its hash names the row, and the token the row's own id derives from this server's secret
+ * (`portalClientToken(secret, linkId)`) has to be the one presented. The hash alone would keep a link good whatever the
+ * secret became, and changing `AGENTES_SECRET` has to invalidate every link made under the old one — the same answer
+ * `clientLinkUrl` gives the team's list, never a page a secret meant to close still opens.
  */
-export async function portalClientOfToken(db: Database, token: string) {
+export async function portalClientOfToken(db: Database, token: string, secret: string) {
   const [row] = await db
     .select({
       linkId: portalClientLinks.id,
+      tokenHash: portalClientLinks.tokenHash,
       lastUsedAt: portalClientLinks.lastUsedAt,
       orgId: portalClients.orgId,
       id: portalClients.id,
@@ -340,6 +350,10 @@ export async function portalClientOfToken(db: Database, token: string) {
     .innerJoin(portalClients, eq(portalClients.id, portalClientLinks.clientId))
     .where(and(eq(portalClientLinks.tokenHash, sha256(token)), isNull(portalClientLinks.revokedAt)));
   if (!row) return null;
+  // The row's hash named it; the secret has to make the same token, or the link is from another secret's time.
+  const derived = portalClientToken(secret, row.linkId);
+  const same = derived.length === token.length && timingSafeEqual(Buffer.from(derived), Buffer.from(token));
+  if (!same) return null;
   const now = new Date();
   if (!row.lastUsedAt || now.getTime() - row.lastUsedAt.getTime() >= PORTAL_LINK_TOUCH_MS) {
     await db.update(portalClientLinks).set({ lastUsedAt: now }).where(eq(portalClientLinks.id, row.linkId));
@@ -501,6 +515,12 @@ export async function clientPortalPage(
 export interface ClientDecision {
   postId: string;
   decision: "approve" | "adjust";
+  /**
+   * The version of the post the client had on screen. A decision is about what the client saw: when the post moved
+   * on meanwhile (a new version went up while the page was open), the decision is refused with
+   * `portal.version_changed` (409) and the page asks the client to reload, instead of approving work they never saw.
+   */
+  version?: number;
   /** What they wrote: an approval's note, or the change asked. */
   text?: string;
   /** Where in a video, in seconds; null: not a point in time. */
@@ -544,6 +564,11 @@ export async function clientDecision(
       ),
     );
   if (!post) throw new NotFoundError("Post not found");
+  // The client decides on what they saw: a version that moved on since (a new one went up while the page was open) is
+  // refused, and the page asks them to look again, rather than approving a version nobody read.
+  if (typeof input.version === "number" && input.version !== post.version) {
+    throw new ConflictError("This post has a new version: reload the page", "portal.version_changed");
+  }
   const text = (input.text ?? "").trim().slice(0, CLIENT_NOTE_MAX);
   if (input.decision === "adjust" && !text) throw new ValidationError("Tell us what to change");
   const fraction = (v: number | null | undefined) =>
@@ -618,6 +643,68 @@ export async function clientPortalFile(
   const object = await deps.blobs.get(row.file.blobKey);
   if (!object) return null;
   return { body: object.body, contentType: row.file.contentType, name: row.file.name };
+}
+
+/** What a client's file route answers with: the bytes, the file's own words, its size, and the part when a `Range` asked. */
+export interface ClientPortalFileRead {
+  body: Uint8Array;
+  contentType: string;
+  name: string;
+  /** The file's whole length, for the `Content-Range` the answer carries. */
+  size: number;
+  /** The part read, when a `Range` asked for one; null: the whole file. */
+  part: { start: number; end: number } | null;
+}
+
+/**
+ * A post's file through the token's client, read whole or just the part a `Range` asks for: a store that can read a
+ * part without the whole of it in memory (`getRange`: S3, the disk) is asked for only those bytes, and one that only
+ * reads whole ones answers the slice, as `rangedResponse` made before. A range off the end of the file is `"bad"`
+ * (`416`, with `bytes *` and the file's size in `Content-Range`), not a read. The file must belong to the token's
+ * client's post, as `clientPortalFile` asks.
+ */
+export async function clientPortalFileRange(
+  deps: { db: Database; blobs: BlobStore },
+  clientRow: { orgId: string; client: string },
+  fileId: string,
+  range: string | undefined,
+): Promise<ClientPortalFileRead | "bad" | null> {
+  const [row] = await deps.db
+    .select({ file: portalPostFiles })
+    .from(portalPostFiles)
+    .innerJoin(portalPosts, eq(portalPosts.id, portalPostFiles.postId))
+    .where(
+      and(
+        eq(portalPostFiles.orgId, clientRow.orgId),
+        eq(portalPostFiles.id, fileId),
+        eq(portalPosts.client, clientRow.client),
+      ),
+    );
+  if (!row) return null;
+  const part = rangePart(range, row.file.size);
+  if (part === "bad") return "bad";
+  const base = { contentType: row.file.contentType, name: row.file.name };
+  if (!part) {
+    const whole = await deps.blobs.get(row.file.blobKey);
+    return whole ? { ...base, body: whole.body, size: whole.body.length, part: null } : null;
+  }
+  if (deps.blobs.getRange) {
+    const read = await deps.blobs.getRange(row.file.blobKey, part.start, part.end);
+    return read ? { ...base, body: read.body, size: read.total, part } : null;
+  }
+  const whole = await deps.blobs.get(row.file.blobKey);
+  if (!whole) return null;
+  return { ...base, body: whole.body.subarray(part.start, part.end + 1), size: whole.body.length, part };
+}
+
+/** A `Range` header against a file's size: the part, null (the whole), or `"bad"` for a part off the end. */
+function rangePart(header: string | undefined, size: number): { start: number; end: number } | "bad" | null {
+  if (!header) return null;
+  const match = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
+  if (!match || (!match[1] && !match[2])) return "bad";
+  const start = match[1] ? Number(match[1]) : Math.max(0, size - Number(match[2]));
+  const end = match[1] && match[2] ? Math.min(Number(match[2]), size - 1) : size - 1;
+  return start > end || start >= size ? "bad" : { start, end };
 }
 
 // ---------- how the team knows a client ----------

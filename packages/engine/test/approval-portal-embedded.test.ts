@@ -78,13 +78,13 @@ test("a client gets a link, editable contacts and a colour; a new link revokes t
   );
   expect(remade).not.toBe(first);
   const oldToken = first.split("/").at(-1) as string;
-  expect(await portalClientOfToken(f.db, oldToken)).toBeNull();
+  expect(await portalClientOfToken(f.db, oldToken, SECRET)).toBeNull();
   const newToken = remade.split("/").at(-1) as string;
-  expect((await portalClientOfToken(f.db, newToken))?.client).toBe("padaria-aurora");
+  expect((await portalClientOfToken(f.db, newToken, SECRET))?.client).toBe("padaria-aurora");
 
   // Revoked: it opens nothing either.
   await revokeClientLink({ db: f.db }, f.org.id, "padaria-aurora");
-  expect(await portalClientOfToken(f.db, newToken)).toBeNull();
+  expect(await portalClientOfToken(f.db, newToken, SECRET)).toBeNull();
 });
 
 test("a contact needs a name and an address or a number", async () => {
@@ -136,7 +136,7 @@ test("the portal's contract: a send becomes a post, a card is tied to it, the cl
   expect((await portal.cards("padaria-aurora")).find((c) => c.id === card.id)?.item).toBe(job.item);
 
   // The client's page shows the video and the caption, and marks it seen.
-  const mine = await portalClientOfToken(f.db, token);
+  const mine = await portalClientOfToken(f.db, token, SECRET);
   if (!mine) throw new Error("the client's link names none");
   const before = await clientPortalPage(f.db, mine, false);
   expect(before.waiting).toHaveLength(1);
@@ -216,7 +216,7 @@ test("a client's file is read only through its own link, and nothing of another 
 
   const upload = await portal.upload("post.png", new Uint8Array([7, 7, 7]));
   const job = await portal.send({ client: "padaria-aurora", type: "image", files: [upload], caption: "Foto" });
-  const auroraClient = await portalClientOfToken(f.db, auroraToken);
+  const auroraClient = await portalClientOfToken(f.db, auroraToken, SECRET);
   if (!auroraClient) throw new Error("the client's link names none");
   const page = await clientPortalPage(f.db, auroraClient, false);
   const fileId = page.waiting[0]?.media[0]?.id as string;

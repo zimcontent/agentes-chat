@@ -3,10 +3,12 @@ import type { Database } from "@agenteschat/db";
 import { and, desc, eq, schema, sql } from "@agenteschat/db";
 import { clientLinkUrl } from "./approval-portal-clients";
 import { queueEmail } from "./email";
+import { can, getMembership } from "./organizations";
+import { STANDING_COLUMNS, workRefusal } from "./standing";
 import type { WhatsAppAccountRow, WhatsAppDeps } from "./whatsapp/accounts";
 import { deliverWhatsAppText, whatsappJidOf } from "./whatsapp/conversations";
 
-const { portalPosts, portalClients, portalNotices, organizationSettings, whatsappAccounts } = schema;
+const { portalPosts, portalClients, portalNotices, organizationSettings, whatsappAccounts, organizations } = schema;
 
 /**
  * The notices a client gets when there is something new to approve, or a new version of a post (docs/adr/
@@ -32,6 +34,20 @@ const { portalPosts, portalClients, portalNotices, organizationSettings, whatsap
 
 /** The job the portal's notice for a post runs as. */
 export const PORTAL_NOTIFY_JOB = "portal.notify";
+
+/**
+ * What `announcePortalPost` did: how many contacts were told, and why nothing went when none was. `retryAt` comes with
+ * `skipped: "recent"`: the moment the client's hour is over, when the job runs again and gathers everything that landed
+ * meanwhile into one notice.
+ */
+export interface PortalNoticeResult {
+  sent: number;
+  skipped: string | null;
+  /** The moment the client's hour is over: the job runs again then, and gathers everything that landed meanwhile. */
+  retryAt?: Date;
+  /** The client whose hour held the notice, when `skipped` is `recent`: the retry's key names it. */
+  client?: string;
+}
 
 /** A notice for one client inside this of another is that same notice (`posts[]` joined), and never a second one. */
 export const PORTAL_NOTICE_GROUP_MS = 60 * 60_000;
@@ -87,12 +103,16 @@ async function clientOfPost(db: Database, orgId: string, client: string) {
 
 /**
  * The WhatsApp number the portal's notices go out as: the workspace's own choice (`organization_settings.
- * portal_notice_number`), while it is one of its connected numbers. Null: nothing goes by WhatsApp, whatever other
- * numbers the workspace has. A person's own number is never used on its own.
+ * portal_notice_number`), while it is one of its connected numbers the person who chose it may still use. Null: nothing
+ * goes by WhatsApp, whatever other numbers the workspace has. A person's own number is never used on its own.
+ *
+ * A choice whose author no longer uses that number (taken off its `people` list, with no `manage_connectors` to see
+ * every number) is ignored, as a number that left the workspace or went disconnected is: a number the chooser lost
+ * access to is not the workspace's to tell clients from.
  */
 async function chosenNumber(db: Database, orgId: string): Promise<WhatsAppAccountRow | null> {
   const [choice] = await db
-    .select({ id: organizationSettings.portalNoticeNumber })
+    .select({ id: organizationSettings.portalNoticeNumber, by: organizationSettings.portalNoticeNumberBy })
     .from(organizationSettings)
     .where(eq(organizationSettings.orgId, orgId));
   if (!choice?.id) return null;
@@ -100,8 +120,28 @@ async function chosenNumber(db: Database, orgId: string): Promise<WhatsAppAccoun
     .select()
     .from(whatsappAccounts)
     .where(and(eq(whatsappAccounts.orgId, orgId), eq(whatsappAccounts.id, choice.id)));
-  // A choice whose number left or went disconnected tells nothing: a new one is picked in Settings.
-  return row?.status === "connected" ? row : null;
+  if (row?.status !== "connected") return null;
+  // A number whose author is no person any more (or none was kept, as a choice made before this existed is) goes out
+  // as it did: the author's access is what is read, never a reason to silence a choice that never said who made it.
+  if (!choice.by) return row;
+  const by = await getMembership(db, choice.by, orgId);
+  if (!by) return null;
+  if (!can(by, "manage_connectors") && !row.people.includes(choice.by)) return null;
+  return row;
+}
+
+/**
+ * When this client's last notice went out, by any way and about any post; null when none ever did. Read from
+ * `portal_notices`, so the hour is measured by what really happened and not by an in-memory mark.
+ */
+async function lastNoticeAt(db: Database, orgId: string, client: string): Promise<Date | null> {
+  const [row] = await db
+    .select({ at: portalNotices.at })
+    .from(portalNotices)
+    .where(and(eq(portalNotices.orgId, orgId), eq(portalNotices.client, client)))
+    .orderBy(desc(portalNotices.at))
+    .limit(1);
+  return row?.at ?? null;
 }
 
 /** The most a post's version reached when this client's contacts were told about it, by any way; 0 when never. */
@@ -147,16 +187,20 @@ async function recordPortalNotice(
  * own link. A contact with an address gets the email; a number that already talks to the contact gets a text, and one
  * that doesn't only while the number may start a conversation today. Nothing goes when: the post was answered meanwhile
  * (`answered`), the client was removed (`client`), the client has no live link (`link`, its token no longer matching),
- * the client was told inside the hour (`recent`, that notice's `posts[]` already names this one), or a contact has no
- * way to be reached (`none`).
+ * a notice for this client went out inside the hour (`recent`, with `retryAt`: the job runs again then, and the posts
+ * that landed meanwhile go in one notice, `posts[]`), or nothing is waiting that the client wasn't told of (`none`).
  */
 export async function announcePortalPost(
   deps: PortalNoticeDeps,
   orgId: string,
   postId: string,
   version: number,
-): Promise<{ sent: number; skipped: string | null }> {
+): Promise<PortalNoticeResult> {
   const now = deps.now?.() ?? new Date();
+  // A workspace closed to work (suspended, being deleted, on a hold) tells its clients nothing (standing.ts): its page
+  // doesn't open either, so a notice saying a post is there would ask for something the workspace refuses.
+  const [standing] = await deps.db.select(STANDING_COLUMNS).from(organizations).where(eq(organizations.id, orgId));
+  if (workRefusal(standing ?? undefined)) return { sent: 0, skipped: "closed" };
   const [post] = await deps.db
     .select()
     .from(portalPosts)
@@ -179,6 +223,14 @@ export async function announcePortalPost(
     }
   }
   if (fresh.length === 0) return { sent: 0, skipped: "none" };
+  // One notice an hour for a client: a notice that went out in the last hour is the one this would be, so nothing is
+  // sent now. The job is rescheduled to the end of that window, and the posts that landed meanwhile gather in one
+  // notice there (`posts[]`), rather than each one telling a client on its own.
+  const last = await lastNoticeAt(deps.db, orgId, post.client);
+  if (last && now.getTime() - last.getTime() < PORTAL_NOTICE_GROUP_MS) {
+    const retryAt = new Date(last.getTime() + PORTAL_NOTICE_GROUP_MS);
+    return { sent: 0, skipped: "recent", retryAt, client: post.client };
+  }
   const posts = fresh.map((p) => ({ title: p.title, version: p.version }));
   const group = portalNoticeWindow(now);
   const number = deps.whatsapp?.gateway ? await chosenNumber(deps.db, orgId) : null;

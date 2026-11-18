@@ -11,7 +11,7 @@ import {
   shiftDay,
 } from "./approval-portal-watch";
 import { openPersonAgentDm } from "./dms";
-import { queueEditorFinals, syncEditorStages, taskReviewOf } from "./editor-delivery";
+import { editorPosts, queueEditorFinals, syncEditorStages, taskReviewOf } from "./editor-delivery";
 import { publishMessageCreated } from "./events";
 import { projectByName } from "./issue-projects";
 import {
@@ -1020,10 +1020,14 @@ export function portalTasksTick(deps: PortalTaskDeps, portal: ApprovalPortal): P
     if (deps.embedded && !(await hasPortalClients(deps.db))) return null;
     const result = await syncPortalTasks(deps, portal, orgId);
     await announcePortalStages(deps, orgId, result.changes);
-    // What the client wrote at the portal on an editor's post comes into its review, at the second they marked.
+    // What the client wrote at the portal on an editor's post comes into its review, at the second they marked. The
+    // posts are read once, already narrowed to the ones an editor's delivery named (the only ones either step looks
+    // at), so a workspace with hundreds of posts reads a handful inside the tick instead of every one of them.
     await portal
       .items()
-      .then(async (items) => {
+      .then(async (all) => {
+        const reviewing = await editorPosts(deps.db, orgId);
+        const items = all.filter((item) => reviewing.has(`${item.client}/${item.id}`));
         // Each editor's post keeps where it stands with the client: a task may have several (doug-0012 §13).
         await syncEditorStages(deps.db, orgId, items);
         return bringClientNotes(deps.db, orgId, items);

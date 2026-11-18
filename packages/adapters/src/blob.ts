@@ -21,6 +21,16 @@ export interface BlobStore {
   /** The largest object `put` takes, where the store has a limit of its own (a database row). */
   readonly maxObjectBytes?: number;
   get(key: string): Promise<{ body: Uint8Array; contentType: string } | null>;
+  /**
+   * The part `start`–`end` (both included) of the object's bytes, where the store can read part of one without the
+   * whole of it in memory; without it, `get` and a slice. A video read with `Range` asks for a second here, and the
+   * store answers just those bytes. `total` is always the object's whole size.
+   */
+  getRange?(
+    key: string,
+    start: number,
+    end: number,
+  ): Promise<{ body: Uint8Array; contentType: string; total: number } | null>;
   /** The object's bytes as they are read, where the store can; without it, `get`. */
   stream?(key: string): Promise<ReadableStream<Uint8Array> | null>;
   delete(key: string): Promise<void>;
@@ -82,6 +92,11 @@ export function createMemoryBlobStore(options: { sign?: boolean; kind?: string }
     async get(key) {
       const o = objects.get(key);
       return o ? { body: new Uint8Array(o.body), contentType: o.contentType } : null;
+    },
+    async getRange(key, start, end) {
+      const o = objects.get(key);
+      if (!o) return null;
+      return { body: new Uint8Array(o.body.slice(start, end + 1)), contentType: o.contentType, total: o.body.length };
     },
     async delete(key) {
       objects.delete(key);

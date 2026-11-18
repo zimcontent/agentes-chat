@@ -45,6 +45,24 @@ export function createDiskBlobStore(root: string): BlobStore {
         throw error;
       }
     },
+    async getRange(key, start, end) {
+      const path = pathOf(key);
+      const file = Bun.file(path);
+      try {
+        const size = file.size;
+        const from = Math.max(0, Math.min(start, size - 1));
+        const to = Math.max(from, Math.min(end, size - 1));
+        const [body, contentType] = await Promise.all([
+          // Only the part asked for is read off the disk: a player's jump to the last second never reads the whole file.
+          file.slice(from, to + 1).arrayBuffer(),
+          readFile(`${path}.type`, "utf8"),
+        ]);
+        return { body: new Uint8Array(body), contentType, total: size };
+      } catch (error) {
+        if (missing(error)) return null;
+        throw error;
+      }
+    },
     async stream(key) {
       const file = Bun.file(pathOf(key));
       return (await file.exists()) ? file.stream() : null;

@@ -84,6 +84,7 @@ const WORDS = {
     approved: "Aprovado. Obrigado!",
     asked: "Ajuste pedido. A equipe vai cuidar.",
     answered: "Esta publicação já foi respondida.",
+    versionChanged: "Saiu uma nova versão desta publicação. Recarregue a página para ver.",
     writeChange: "Escreva o que deve mudar.",
     sendFailed: "Não deu para enviar agora. Tente de novo.",
     connectionFailed: "Não deu para enviar agora. Confira a conexão.",
@@ -129,6 +130,7 @@ const WORDS = {
     approved: "Approved. Thank you!",
     asked: "Change asked. The team will take it.",
     answered: "This post was already answered.",
+    versionChanged: "A new version of this post is up. Reload the page to see it.",
     writeChange: "Write what should change.",
     sendFailed: "Couldn't send it now. Try again.",
     connectionFailed: "Couldn't send it now. Check your connection.",
@@ -303,12 +305,21 @@ function PostCard({
         body: JSON.stringify({
           postId: post.id,
           decision,
+          // The version this card shows: the server refuses a decision on one that moved on meanwhile.
+          version: post.version,
           text: decision === "adjust" ? note.trim() : undefined,
           atSeconds: decision === "adjust" && mark !== null ? mark : undefined,
           page: decision === "adjust" && page.current !== null && images.length > 1 ? page.current + 1 : undefined,
         }),
       });
       if (res.status === 409) {
+        // A version that moved on since this card was drawn: the page asks for a reload, and the decision waits.
+        const body = (await res.json().catch(() => null)) as { error?: { code?: string } } | null;
+        if (body?.error?.code === "portal.version_changed") {
+          setError(w.versionChanged);
+          await onChanged();
+          return;
+        }
         setError(w.answered);
         return;
       }

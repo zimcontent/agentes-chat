@@ -1,7 +1,7 @@
 import type { ApprovalPortal, BlobStore, PortalCard, PortalItem, PortalJob, PortalState } from "@agenteschat/adapters";
 import { ApprovalPortalError, PORTAL_FILE_BYTES } from "@agenteschat/adapters";
 import type { Database, Executor } from "@agenteschat/db";
-import { and, asc, desc, eq, inArray, schema } from "@agenteschat/db";
+import { and, asc, desc, eq, inArray, schema, sql } from "@agenteschat/db";
 import { portalWorkspaceOf } from "./approval-portal-clients";
 import { ConflictError } from "./errors";
 import { assertStorageRoom } from "./limits";
@@ -23,6 +23,12 @@ const { portalPosts, portalUploads } = schema;
 
 /** Where a post's files are kept in the platform's storage, beside the workspace's own keys. */
 export const PORTAL_BLOB_PREFIX = (orgId: string) => `orgs/${orgId}/portal`;
+
+/**
+ * A send whose key another request took meanwhile: the transaction rolls everything it wrote back, and the row that
+ * already exists answers (marked so it is never mistaken for anything else thrown inside the transaction).
+ */
+const SEND_TAKEN = Symbol("portal.send.taken");
 
 /** The type of a file by its name: what a browser needs to play or draw it. */
 export function portalContentType(name: string): string {
@@ -588,81 +594,93 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
       // One send per key, whatever arrives at the same moment: the job's `(org_id, key)` is unique, so a second
       // request's insert loses and answers the first one's row instead of sending a second post. Without a key the
       // insert always goes, as the contract says (a key is the caller's own way of making a send idempotent).
-      const [job] = await db.transaction(async (tx) => {
-        const before = input.key ? await jobForKey(orgId, input.key, tx) : null;
-        if (before) return [before];
-        const uploads = await uploadsOf(orgId, input.files, tx);
-        const cover = input.cover ? (await uploadsOf(orgId, [input.cover], tx))[0] : null;
-        const video = input.type === "reel" || uploads.some((u) => isVideoFile(u.name, u.contentType));
-        // A post's title: the send's own, else the card's it finishes, else its first file's name.
-        const title = input.title?.trim() || (await cardTitle(orgId, input.card, tx)) || uploads[0]?.name || "";
-        const [post] = await tx
-          .insert(portalPosts)
-          .values({
-            orgId,
-            client: input.client,
-            title,
-            type: input.type,
-            status: "sent",
-            caption: input.caption ?? "",
-            editor: input.editor ?? null,
-            video,
-            version: 1,
-            card: input.card ?? null,
-          })
-          .returning();
-        if (!post) throw new ApprovalPortalError(500, "The post could not be sent");
-        const files = [
-          ...uploads.map((u, position) => ({ u, position, role: "media" as const })),
-          ...(cover ? [{ u: cover, position: 0, role: "cover" as const }] : []),
-        ];
-        for (const { u, position, role } of files) {
-          await tx.insert(portalPostFiles).values({
-            orgId,
-            postId: post.id,
-            version: 1,
-            position,
-            role,
-            name: u.name,
-            contentType: u.contentType,
-            size: u.size,
-            blobKey: u.blobKey,
-            storageConfigId: u.storageConfigId,
-          });
-        }
-        await tx
-          .delete(portalUploads)
-          .where(and(eq(portalUploads.orgId, orgId), inArray(portalUploads.id, input.files)));
-        if (cover) await tx.delete(portalUploads).where(eq(portalUploads.id, cover.id));
-        // A card that is sent stays in its list, tied to the post it became (ADR 9001 §8).
-        if (input.card) {
+      const [job] = await db
+        .transaction(async (tx) => {
+          // One send at a time for this key, across every process on the database: a transaction-scoped advisory lock
+          // taken before the read, so two requests at the same moment line up instead of both reading "no job" and
+          // both inserting. The lock is the transaction's own: it goes when the transaction ends, whatever the answer.
+          await tx.execute(
+            sql`select pg_advisory_xact_lock(hashtext(${`${orgId}:${input.key ?? input.files.join("+")}`}))`,
+          );
+          const before = input.key ? await jobForKey(orgId, input.key, tx) : null;
+          if (before) return [before];
+          const uploads = await uploadsOf(orgId, input.files, tx);
+          const cover = input.cover ? (await uploadsOf(orgId, [input.cover], tx))[0] : null;
+          const video = input.type === "reel" || uploads.some((u) => isVideoFile(u.name, u.contentType));
+          // A post's title: the send's own, else the card's it finishes, else its first file's name.
+          const title = input.title?.trim() || (await cardTitle(orgId, input.card, tx)) || uploads[0]?.name || "";
+          const [post] = await tx
+            .insert(portalPosts)
+            .values({
+              orgId,
+              client: input.client,
+              title,
+              type: input.type,
+              status: "sent",
+              caption: input.caption ?? "",
+              editor: input.editor ?? null,
+              video,
+              version: 1,
+              card: input.card ?? null,
+            })
+            .returning();
+          if (!post) throw new ApprovalPortalError(500, "The post could not be sent");
+          const files = [
+            ...uploads.map((u, position) => ({ u, position, role: "media" as const })),
+            ...(cover ? [{ u: cover, position: 0, role: "cover" as const }] : []),
+          ];
+          for (const { u, position, role } of files) {
+            await tx.insert(portalPostFiles).values({
+              orgId,
+              postId: post.id,
+              version: 1,
+              position,
+              role,
+              name: u.name,
+              contentType: u.contentType,
+              size: u.size,
+              blobKey: u.blobKey,
+              storageConfigId: u.storageConfigId,
+            });
+          }
           await tx
-            .update(portalCards)
-            .set({ item: post.id, updatedAt: new Date() })
-            .where(and(eq(portalCards.orgId, orgId), eq(portalCards.id, input.card)));
-        }
-        const [made] = await tx
-          .insert(portalJobs)
-          .values({
-            orgId,
-            state: "done",
-            client: input.client,
-            item: post.id,
-            title,
-            missing: missingOf(post, !!cover),
-            key: input.key ?? null,
-          })
-          // A second send at the same moment: the key already answered, so its row answers instead.
-          .onConflictDoNothing()
-          .returning();
-        return made ? [made] : [];
-      });
-      // The other request's row: the same key answers the send that landed.
-      if (!job) {
-        const first = input.key ? await jobForKey(orgId, input.key) : null;
-        if (!first) throw new ApprovalPortalError(500, "The send could not be kept");
-        return jobOf(first);
-      }
+            .delete(portalUploads)
+            .where(and(eq(portalUploads.orgId, orgId), inArray(portalUploads.id, input.files)));
+          if (cover) await tx.delete(portalUploads).where(eq(portalUploads.id, cover.id));
+          // A card that is sent stays in its list, tied to the post it became (ADR 9001 §8).
+          if (input.card) {
+            await tx
+              .update(portalCards)
+              .set({ item: post.id, updatedAt: new Date() })
+              .where(and(eq(portalCards.orgId, orgId), eq(portalCards.id, input.card)));
+          }
+          const [made] = await tx
+            .insert(portalJobs)
+            .values({
+              orgId,
+              state: "done",
+              client: input.client,
+              item: post.id,
+              title,
+              missing: missingOf(post, !!cover),
+              key: input.key ?? null,
+            })
+            // The same key again, from another process (this one's lock is the database's, so it lines the two up: what
+            // is left is a send whose row landed after this transaction's read). The insert adds nothing, and the
+            // transaction is rolled back: the post, its files and the card it would have tied are undone with it.
+            .onConflictDoNothing()
+            .returning();
+          if (!made) throw SEND_TAKEN;
+          return [made];
+        })
+        .catch(async (error: unknown) => {
+          // The other request's row is the answer, and the transaction it was found in is rolled back.
+          if (error !== SEND_TAKEN) throw error;
+          const first = input.key ? await jobForKey(orgId, input.key) : null;
+          if (!first) throw new ApprovalPortalError(500, "The send could not be kept");
+          return [first];
+        });
+      if (!job) throw new ApprovalPortalError(500, "The send could not be kept");
       await notify(orgId, job.item as string, 1);
       return jobOf(job);
     },

@@ -2,9 +2,9 @@ import { eq, schema } from "@agenteschat/db";
 import {
   CLIENT_NOTE_MAX,
   clientDecision,
-  clientPortalFile,
+  clientPortalFileRange,
   clientPortalPage,
-  PORTAL_CLIENT_NAME_MAX,
+  PORTAL_CONTACT_NAME_MAX,
   portalClientOfToken,
   portalLogoKeyOf,
   STANDING_COLUMNS,
@@ -12,7 +12,6 @@ import {
 } from "@agenteschat/engine";
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import { z } from "zod";
-import { rangedResponse } from "../http/byte-range";
 import { requestLimitIp } from "../http/client-ip";
 import { apiError } from "../http/errors";
 import type { AppDeps } from "./app/context";
@@ -59,6 +58,8 @@ const Decision = z
   .object({
     postId: z.string().uuid(),
     decision: z.enum(["approve", "adjust"]),
+    /** The version the client had on screen (`409 portal.version_changed` when the post moved on since). */
+    version: z.number().int().min(1).optional(),
     text: ShortText(CLIENT_NOTE_MAX).optional(),
     atSeconds: z
       .number()
@@ -68,7 +69,7 @@ const Decision = z
     page: z.number().int().min(1).max(1000).nullish(),
     x: z.number().min(0).max(1).nullish(),
     y: z.number().min(0).max(1).nullish(),
-    by: ShortText(PORTAL_CLIENT_NAME_MAX).nullish(),
+    by: ShortText(PORTAL_CONTACT_NAME_MAX).nullish(),
   })
   .strict();
 
@@ -93,12 +94,44 @@ export function registerPortalPublicRoutes(app: OpenAPIHono, deps: AppDeps) {
   };
   const notFound = () => new Response("Not found", { status: 404, headers: { "cache-control": "no-store" } });
 
-  /** Whether a decision's body is past `PORTAL_DECIDE_BYTES`: `content-length` says so, else the body is read to see. */
-  const overLimit = async (c: { req: { raw: Request } }) => {
+  /**
+   * A decision's body, read in a stream and stopped at `PORTAL_DECIDE_BYTES`: a body past the cap is refused before it
+   * is all in memory (`too large`), and the reading never buffers more than the cap for a body that says no length (a
+   * chunked one), whatever a caller sends. Bytes are decoded once the whole body is in.
+   */
+  const decisionBody = async (c: {
+    req: { raw: Request };
+  }): Promise<{ bytes: Uint8Array<ArrayBuffer> } | { tooLarge: true } | { empty: true }> => {
     const length = c.req.raw.headers.get("content-length");
-    if (length !== null) return Number(length) > PORTAL_DECIDE_BYTES;
-    const bytes = await c.req.raw.clone().arrayBuffer();
-    return bytes.byteLength > PORTAL_DECIDE_BYTES;
+    if (length !== null && Number(length) > PORTAL_DECIDE_BYTES) return { tooLarge: true };
+    const body = c.req.raw.body;
+    if (!body) return { empty: true };
+    const reader = body.getReader();
+    const chunks: Uint8Array<ArrayBuffer>[] = [];
+    let size = 0;
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        size += value.byteLength;
+        if (size > PORTAL_DECIDE_BYTES) {
+          // The rest of the stream is never read: the answer is the refusal, and the caller's bytes stop here.
+          await reader.cancel().catch(() => undefined);
+          return { tooLarge: true };
+        }
+        chunks.push(value);
+      }
+    } finally {
+      reader.releaseLock();
+    }
+    if (size === 0) return { empty: true };
+    const merged = new Uint8Array(size);
+    let at = 0;
+    for (const chunk of chunks) {
+      merged.set(chunk, at);
+      at += chunk.byteLength;
+    }
+    return { bytes: merged };
   };
 
   /**
@@ -120,7 +153,7 @@ export function registerPortalPublicRoutes(app: OpenAPIHono, deps: AppDeps) {
   app.get("/p/api/:token", async (c) => {
     if (!TOKEN.safeParse(c.req.param("token")).success) return notFound();
     if (await limited(c, PORTAL_PAGE_PER_IP, "page")) return apiError(c, 429, "rate_limited", "Slow down");
-    const client = await portalClientOfToken(db, c.req.param("token"));
+    const client = await portalClientOfToken(db, c.req.param("token"), config.AGENTES_SECRET);
     if (!client) return notFound();
     if (await closed(client.orgId)) return notFound();
     const page = await clientPortalPage(db, client, true);
@@ -128,15 +161,24 @@ export function registerPortalPublicRoutes(app: OpenAPIHono, deps: AppDeps) {
   });
 
   // The client's decision: approve, or ask for a change (a note, maybe on a second of a video or a spot of a slide).
-  // Its body is capped at 64 KiB before it is read: a note holds at most 4000 characters, and a decision never more.
+  // Its body is capped at 64 KiB as it is read: a note holds at most 4000 characters, and a decision never more.
   app.post("/p/api/:token/decide", async (c) => {
     if (!TOKEN.safeParse(c.req.param("token")).success) return notFound();
     if (await limited(c, PORTAL_DECISION_PER_IP, "decide")) return apiError(c, 429, "rate_limited", "Slow down");
-    if (await overLimit(c)) return apiError(c, 413, "too_large", "The decision is too large");
-    const client = await portalClientOfToken(db, c.req.param("token"));
+    const client = await portalClientOfToken(db, c.req.param("token"), config.AGENTES_SECRET);
     if (!client) return notFound();
     if (await closed(client.orgId)) return notFound();
-    const parsed = Decision.safeParse(await c.req.json().catch(() => null));
+    const body = await decisionBody(c);
+    if ("tooLarge" in body) return apiError(c, 413, "too_large", "The decision is too large");
+    let input: unknown = null;
+    if ("bytes" in body) {
+      try {
+        input = JSON.parse(new TextDecoder().decode(body.bytes));
+      } catch {
+        input = null;
+      }
+    }
+    const parsed = Decision.safeParse(input);
     if (!parsed.success) return apiError(c, 400, "invalid", "Check what you sent");
     // A post takes a decision once: `clientDecision` turns a row still waiting on the client, and refuses a second.
     const result = await clientDecision({ db, wake: () => deps.wakeWorkers?.() }, client, parsed.data);
@@ -147,18 +189,35 @@ export function registerPortalPublicRoutes(app: OpenAPIHono, deps: AppDeps) {
   app.get("/p/api/:token/files/:fileId", async (c) => {
     if (!TOKEN.safeParse(c.req.param("token")).success) return notFound();
     if (await limited(c, PORTAL_FILE_PER_IP, "file")) return apiError(c, 429, "rate_limited", "Slow down");
-    const client = await portalClientOfToken(db, c.req.param("token"));
+    const client = await portalClientOfToken(db, c.req.param("token"), config.AGENTES_SECRET);
     if (!client) return notFound();
     if (await closed(client.orgId)) return notFound();
-    const file = await clientPortalFile(blobs, client, c.req.param("fileId"));
-    if (!file) return notFound();
-    return rangedResponse(file.body, c.req.header("range"), {
-      "content-type": file.contentType,
+    // The `Range` is worked out from the file's own size, and the store then reads only the part a player asks for
+    // (`clientPortalFileRange`): a jump into an hour-long video never pulls the whole of it into memory.
+    const read = await clientPortalFileRange(blobs, client, c.req.param("fileId"), c.req.header("range"));
+    if (read === "bad") return new Response(null, { status: 416, headers: { "cache-control": "no-store" } });
+    if (!read) return notFound();
+    const headers = {
+      "content-type": read.contentType,
       // A file's bytes never change under its id: the page keeps them.
       "cache-control": "private, max-age=3600",
-      "content-disposition": contentDisposition(file.name),
+      "content-disposition": contentDisposition(read.name),
+      "accept-ranges": "bytes",
       "x-content-type-options": "nosniff",
       "x-robots-tag": "noindex",
+    };
+    if (!read.part) {
+      return new Response(read.body as Uint8Array<ArrayBuffer>, {
+        headers: { ...headers, "content-length": String(read.body.length) },
+      });
+    }
+    return new Response(read.body as Uint8Array<ArrayBuffer>, {
+      status: 206,
+      headers: {
+        ...headers,
+        "content-length": String(read.body.length),
+        "content-range": `bytes ${read.part.start}-${read.part.end}/${read.size}`,
+      },
     });
   });
 
@@ -166,7 +225,7 @@ export function registerPortalPublicRoutes(app: OpenAPIHono, deps: AppDeps) {
   app.get("/p/api/:token/logo", async (c) => {
     if (!TOKEN.safeParse(c.req.param("token")).success) return notFound();
     if (await limited(c, PORTAL_FILE_PER_IP, "logo")) return apiError(c, 429, "rate_limited", "Slow down");
-    const client = await portalClientOfToken(db, c.req.param("token"));
+    const client = await portalClientOfToken(db, c.req.param("token"), config.AGENTES_SECRET);
     if (!client?.logo) return notFound();
     if (await closed(client.orgId)) return notFound();
     // The logo is kept in the workspace's own bucket, under the same key the members' route reads (`portalLogoPath`).

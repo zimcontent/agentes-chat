@@ -144,6 +144,8 @@ export function createS3BlobStore(
       payloadHash?: string;
       contentType?: string;
       timeoutMs?: number;
+      /** Extra request headers, signed on the request (S3's `Range`, for one). */
+      headers?: Record<string, string>;
     } = {},
   ): Promise<Response> {
     const { origin, host, path } = locate(settings, key);
@@ -155,6 +157,7 @@ export function createS3BlobStore(
       "x-amz-content-sha256": payloadHash,
       "x-amz-date": amzDate,
       ...(init.contentType ? { "content-type": init.contentType } : {}),
+      ...(init.headers ?? {}),
     };
     const names = Object.keys(headers).sort();
     const canonicalHeaders = names.map((n) => `${n}:${String(headers[n]).trim()}\n`).join("");
@@ -219,6 +222,23 @@ export function createS3BlobStore(
     },
     async stream(key) {
       return (await object(key, STREAM_TIMEOUT_MS))?.body ?? null;
+    },
+    async getRange(key, start, end) {
+      // S3 answers a `Range` with just that part, so a player's jump reads a chunk and never the whole object.
+      const res = await send("GET", key, { headers: { range: `bytes=${start}-${end}` } });
+      if (res.status === 404) {
+        const err = await fail(res);
+        if (err.code === "not_found") return null;
+        throw err;
+      }
+      if (!res.ok) throw await fail(res);
+      // `Content-Range: bytes a-b/total` names the object's whole size; the part's length is its body.
+      const total = Number(/\/\s*(\d+)\s*$/.exec(res.headers.get("content-range") ?? "")?.[1]);
+      return {
+        body: new Uint8Array(await res.arrayBuffer()),
+        contentType: res.headers.get("content-type") ?? "application/octet-stream",
+        total: Number.isFinite(total) ? total : end + 1,
+      };
     },
     async delete(key) {
       const res = await send("DELETE", key);

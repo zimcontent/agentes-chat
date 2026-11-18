@@ -27,6 +27,7 @@ import {
   portalClientSettingsOf,
   portalHere,
   portalLogoPath,
+  portalNoticeActorOf,
   portalNoticeSettingsOf,
   portalOverview,
   portalPipeline,
@@ -1546,7 +1547,8 @@ export function portalRoutes(deps: AppDeps) {
       const refused = await itsPortal(c, orgId);
       if (refused) return refused;
       await requirePermission(db, c.get("user").id, orgId, "read");
-      return c.json(await portalNoticeSettingsOf(db, orgId), 200);
+      const actor = await portalNoticeActorOf(db, c.get("user").id, orgId);
+      return c.json(await portalNoticeSettingsOf(db, orgId, actor), 200);
     },
   );
 
@@ -1569,7 +1571,8 @@ export function portalRoutes(deps: AppDeps) {
       if (refused) return refused;
       const user = c.get("user");
       await requireChangePermission(db, user.id, orgId, "assign_work");
-      await setPortalNoticeNumber(db, orgId, c.req.valid("json").number);
+      const actor = await portalNoticeActorOf(db, user.id, orgId);
+      await setPortalNoticeNumber(db, orgId, c.req.valid("json").number, actor);
       await recordAudit(db, {
         orgId,
         actor: { type: "person", id: user.id },

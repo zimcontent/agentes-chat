@@ -29,9 +29,9 @@ its own address, so a team can send a client a link and a client can approve wit
 3. **One workspace's.** The portal is one workspace's operation (ADR 9001 §18). `portalWorkspaceOf`
    (`packages/engine/src/approval-portal-clients.ts`) reads, in this order, the workspace holding the first
    `portal_clients` row, else the one whose watch already made a task of it (`issues.source` of type `portal`), else
-   the installation's first workspace. `portalOrgId` (the embedded contract), `portalWorkspace`/`portalHere` (the
-   watch) and `portalBelongsTo` read the same two sources in the same order, so a client made and a task the watch
-   later makes never name different workspaces. `upsertPortalClient`, `makeClientLink`, `revokeClientLink`,
+   the installation's first workspace. `portalOrgId` (the embedded contract), `portalHere` (the watch, whose answer
+   `portalWorkspace` names) and `portalBelongsTo` read the same two sources in the same order, so a client made and a
+   task the watch later makes never name different workspaces. `upsertPortalClient`, `makeClientLink`, `revokeClientLink`,
    `removePortalClient`, the tool and every route of `…/portal-clients*` call `portalBelongsTo`: another workspace on
    the same server answers `404 portal.off` on each, never gets a client or its link, and its agents get no portal
    tool.
@@ -39,8 +39,10 @@ its own address, so a team can send a client a link and a client can approve wit
    a colour) in Settings or with the `portal_clients` tool. Each client gets `<PUBLIC_URL>/p/<token>`, a token derived
    from the link's id and this server's `AGENTES_SECRET` (`portalClientToken`), so only its hash
    (`portal_client_links.token_hash`) is kept and the address can be shown again from the row. A new link revokes the
-   old one; a revoked link answers nothing. **A link is only shown while its token still matches its hash**
-   (`clientLinkUrl`): changing `AGENTES_SECRET` makes every old address open nothing, and the clients list reports it as
+   old one; a revoked link answers nothing. **A link is shown, and opens, only while the token derived from the row's
+   id and this server's secret is the one presented**: `clientLinkUrl` (the team's list) and `portalClientOfToken` (the
+   page, a decision, a file) both compare it, not the kept hash alone, so changing `AGENTES_SECRET` invalidates every
+   link made under the old one at once — the old address answers nothing, and the clients list reports it as
    `linkStale` ("make a new one"), never as a working link. The token is scoped to one client of one workspace:
    `portalClientOfToken`, and every file read through `clientPortalFile`, checks the token's client owns the post, so
    nothing of another client is ever reachable. Each open marks the link's `last_used_at`, at most once every five
@@ -71,13 +73,20 @@ its own address, so a team can send a client a link and a client can approve wit
    the post and version (`portalNotifyPostKey`), and `announcePortalPost` (`packages/engine/src/portal-notices.ts`)
    keeps what went out in `portal_notices` (client, channel, contact, post, version, time), where every limit is read.
    A client is *fresh* on a post while the version waiting on it is past the last version recorded, so the same
-   version never tells twice, a v2 after an adjustment tells again, and what one client gets inside an hour is one
-   notice with every fresh post in `posts[]` (the email's list, the text's first line). No notice goes while the
-   client's link isn't live (`skipped: "link"`). The e-mail (`portal_ready`, its own words in pt-BR and English) goes
-   to every contact with an address. WhatsApp goes to every contact with a number, only from the number the workspace
-   picked in Settings › Clientes do portal (`organization_settings.portal_notice_number`, `setPortalNoticeNumber`,
-   `…/portal-notices`): with none, nothing goes by WhatsApp, and no personal number is ever used. A number starts no
-   more conversations than the app itself allows (`whatsapp.new_chats_limit`, through `deliverWhatsAppText`).
+   version never tells twice, and a v2 after an adjustment tells again. **One notice an hour per client:** when a
+   notice for that client went out inside the last hour (`lastNoticeAt`, read from `portal_notices`), the job sends
+   nothing and comes back at the end of that hour (`retryAt = last notice + an hour`, a second `portal.notify` row
+   keyed by client and moment); there, every post that is still fresh — this one and whatever landed meanwhile — goes
+   in one notice with them in `posts[]` (the email's list, the text's first line). No notice goes while the client's
+   link isn't live (`skipped: "link"`), or while the workspace is closed to work (`skipped: "closed"`, `workRefusal`).
+   The e-mail (`portal_ready`, its own words in pt-BR and English) goes to every contact with an address. WhatsApp goes
+   to every contact with a number, only from the number a person picked in Settings › Clientes do portal
+   (`organization_settings.portal_notice_number`, `setPortalNoticeNumber`, `…/portal-notices`): with none, nothing
+   goes by WhatsApp, and no personal number is ever used. The picker offers, and the `PUT` accepts, only the numbers
+   the person is on (`whatsapp_accounts.people`) — every number of the workspace for someone with
+   `manage_connectors`; and a choice whose chooser may no longer use that number (`portal_notice_number_by`) tells
+   nothing, as if none had been picked. A number starts no more conversations than the app itself allows
+   (`whatsapp.new_chats_limit`, through `deliverWhatsAppText`).
 9. **A file is read through the same token.** `GET /p/api/<token>/files/<fileId>` streams a post's file, whole or
    the part a `Range` asks for (`rangedResponse`), so a video plays and jumps on a phone; a file's bytes never change
    under its id, so the page may keep them for an hour. Its name goes in `Content-Disposition` as RFC 6266's two
