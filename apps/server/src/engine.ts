@@ -3,6 +3,7 @@ import {
   type BrainTurnRequest,
   createFfmpegLightCopy,
   createFfmpegVideoCopies,
+  createFfmpegVideoGlance,
   createGarageStorageHost,
   createGoogleDriveBackup,
   type ErrorReporter,
@@ -533,6 +534,8 @@ export function buildEngine(o: EngineOptions) {
               keyWrappers,
               pubsub: adapters.pubsub,
               hookBase: (config.WHATSAPP_HOOK_URL ?? config.PUBLIC_URL).replace(/\/+$/, ""),
+              // Files both ways: opened from a conversation, sent from the Drive (docs/adr/doug-0034-whatsapp-files.md).
+              artifacts,
             }
           : null,
       ),
@@ -838,6 +841,8 @@ export function buildEngine(o: EngineOptions) {
   });
   // An audio file an agent opens is heard by the same engines as a voice message.
   artifacts.speech = speech.chain;
+  // A video an agent opens: frames and its sound's words, where ffmpeg is installed (the image has it).
+  artifacts.glance = createFfmpegVideoGlance();
   const voice: VoiceDeps = {
     db,
     pubsub: adapters.pubsub,
@@ -897,6 +902,11 @@ export function buildEngine(o: EngineOptions) {
         voiceOut: whatsappVoiceOut(config.ELEVENLABS_API_KEY),
         // A GIF now and then, from the same search as the app's (docs/adr/doug-0008-whatsapp-gif.md).
         gifs: adapters.gifs ?? null,
+        // Pictures, stickers, videos and documents they send, understood before the agent answers; a member's go to
+        // their conversation as Drive files, and the agent's files go back (docs/adr/doug-0034-whatsapp-files.md).
+        artifacts,
+        smallModel: (orgId) => smallModelFor({ db, gateway }, orgId, smallModels),
+        glance: artifacts.glance ?? null,
         // A member's messages go to their conversation with the agent, as theirs (addendum 2026-11-15).
         relay: (userId, orgId, channelId, input) =>
           postPersonMessage({ db, pubsub: adapters.pubsub }, userId, orgId, channelId, input),

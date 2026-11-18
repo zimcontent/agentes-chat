@@ -60,6 +60,7 @@ export { createBitwardenSource } from "./vault/bitwarden";
 export { createOnePasswordSource } from "./vault/onepassword";
 export * from "./vault/site";
 export * from "./vault/source";
+export * from "./video-glance";
 export * from "./video-light";
 export * from "./voice-out";
 export * from "./web-push";

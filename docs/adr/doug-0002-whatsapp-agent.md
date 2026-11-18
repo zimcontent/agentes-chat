@@ -46,7 +46,9 @@ with its smallest. A plan busy with the agent's other work answers `busy` and th
 ## Consequences
 
 - An answer takes 10 to 40 seconds. That is the point.
-- The agent can't see pictures or hear audio: it asks for words or hands over.
+- The agent can't see pictures or hear audio: it asks for words or hands over. (Superseded: voice messages are heard
+  since the 2026-11-15 addendum of doug-0004, and pictures, stickers, videos and documents are understood since
+  doug-0034.)
 - A workspace that wants the agent to act for a customer (book, look something up) doesn't get it here. That would
   mean tools reachable from outside text, and needs its own decision.
 - The columns are added at boot (`EXTRA_COLUMNS`), outside the numbered migrations, as the tables were.
