@@ -468,6 +468,12 @@ async function standingWritten(
     const { stopOrgWork } = await import("./cancel");
     await stopOrgWork(deps, orgId, standingText(after));
   }
+  // Back to work: the clients of the approval portal whose posts fell on the hold are told now (a notice sent while
+  // the workspace was closed answered `skipped: "closed"`, and nothing else would name it again).
+  if (moved && after.state === "active") {
+    const { queuePortalNoticesFor } = await import("./portal-notices");
+    await queuePortalNoticesFor(deps.db, orgId).catch(() => {});
+  }
 }
 
 /**

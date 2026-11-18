@@ -47,9 +47,9 @@ export interface FakePortal {
   colors: Record<string, PortalClientColor>;
   /** Each client's logo: where it is read. */
   logos: Record<string, string>;
-  /** The installation's own portal's clients (docs/adr/doug-0022), by id. */
+  /** The installation's own portal's clients (docs/adr/doug-0031), by id. */
   accounts: Record<string, PortalClientAccount>;
-  /** The number the portal's notices go out as, and the connected ones to pick from (ADR doug-0022 §7). */
+  /** The number the portal's notices go out as, and the connected ones to pick from (ADR doug-0031 §7). */
   noticeNumber: string | null;
   noticeNumbers: PortalNoticeNumber[];
   /** The name the team gave each client that has one, and the clients it hid (ADR 9001, addendum 2026-11-18). */
@@ -585,6 +585,7 @@ export function createFakePortal(
             whatsapp: c.whatsapp ?? null,
           })),
           color: input.color ?? null,
+          locale: input.locale ?? null,
           link: before?.link ?? `https://test.example/p/${hex().padEnd(24, "0")}`,
           revoked: false,
           linkStale: false,

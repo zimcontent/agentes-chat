@@ -183,7 +183,7 @@ export interface AuthConfig {
   /** The server has an approval portal (ADR 9001): the apps show Portal; absent or false: none. */
   approvalPortal?: boolean;
   /**
-   * The portal is this server's own (docs/adr/doug-0022-embedded-approval-portal.md), not a bridge's: the workspace
+   * The portal is this server's own (docs/adr/doug-0031-embedded-approval-portal.md), not a bridge's: the workspace
    * manages its clients and their links here (`GET …/portal-clients`). Absent from an older server.
    */
   approvalPortalEmbedded?: boolean;
@@ -8770,7 +8770,7 @@ export interface PortalClientSummary {
   name?: string | null;
 }
 
-/** A contact of a client, told when a post waits on them (the installation's own portal, docs/adr/doug-0022). */
+/** A contact of a client, told when a post waits on them (the installation's own portal, docs/adr/doug-0031). */
 export interface PortalContact {
   id: string;
   name: string;
@@ -8798,6 +8798,8 @@ export interface PortalClientAccount {
   revoked: boolean;
   /** A live link whose token no longer matches (`AGENTES_SECRET` changed): it must be made again, never shown. */
   linkStale: boolean;
+  /** The language its notices are written in (one of `LOCALE_CODES`); null: the workspace owner's own. */
+  locale: string | null;
   createdAt: string;
 }
 
@@ -8812,7 +8814,7 @@ export interface PortalClientsList {
   links: Record<string, string>;
 }
 
-/** One of the workspace's connected WhatsApp numbers the portal's notices may go out as (ADR doug-0022 §7). */
+/** One of the workspace's connected WhatsApp numbers the portal's notices may go out as (ADR doug-0031 §7). */
 export interface PortalNoticeNumber {
   id: string;
   label: string;

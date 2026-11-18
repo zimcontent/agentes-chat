@@ -516,3 +516,24 @@ describe("the approval portal's cards as tasks", () => {
     expect((await portal.cards()).length).toBe(3);
   });
 });
+
+describe("the tick reads the portal's list only when a review needs it (review 3)", () => {
+  test("no post under an editor's review: `items()` is never asked", async () => {
+    f = await setup();
+    // A bridge's portal has no client row of its own, so the tick runs; its `items()` is counted here.
+    let reads = 0;
+    const portal = createFakeApprovalPortal({ items: [item({ id: "p1", status: "approved" })] });
+    const counted: typeof portal = {
+      ...portal,
+      items: async () => {
+        reads++;
+        return portal.items();
+      },
+    };
+    const deps = { db: f.db, pubsub: f.pubsub };
+    await portalTasksTick(deps, counted);
+    // One read is `syncPortalTasks`' own (a post put up some other way gets a card). Nothing of an editor's delivery
+    // is in this workspace, so the review's pass — which reads the whole list again for it — is skipped.
+    expect(reads).toBe(1);
+  });
+});

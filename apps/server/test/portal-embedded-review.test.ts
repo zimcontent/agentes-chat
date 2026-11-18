@@ -3,7 +3,7 @@ import { eq, schema } from "@agenteschat/db";
 import { type Browser, browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 
 // The review's items on the server's side of the installation's own approval portal (docs/adr/
-// doug-0022-embedded-approval-portal.md): the portal is one workspace's, a file's name survives any character, a
+// doug-0031-embedded-approval-portal.md): the portal is one workspace's, a file's name survives any character, a
 // decision's body is capped and limited, a workspace closed to work answers nothing of it, and a post marked posted
 // goes to `published`.
 
@@ -220,4 +220,45 @@ test("a client or its link made, revoked or removed is left in the audit log", a
   expect(actions).toContain("portal.link_made");
   expect(actions).toContain("portal.link_revoked");
   expect(actions).toContain("portal.client_removed");
+});
+
+test("a file's id that isn't one answers 404, not a failure of the query", async () => {
+  const { api } = await start();
+  const { token } = await aClient(api);
+  for (const id of ["nope", "1", "00000000-0000-0000-0000-00000000000z", "' or 1=1"]) {
+    expect((await t.app.request(`/p/api/${token}/files/${encodeURIComponent(id)}`)).status).toBe(404);
+  }
+  // An id of the right shape that names no file is a 404 too.
+  expect((await t.app.request(`/p/api/${token}/files/00000000-0000-0000-0000-000000000000`)).status).toBe(404);
+});
+
+test("a range off the end answers 416 with the file's own size; a multi-range is the whole file", async () => {
+  const { api } = await start();
+  const { token } = await aClient(api);
+  const portal = t.adapters.approvalPortal as NonNullable<typeof t.adapters.approvalPortal>;
+  const upload = await portal.upload("reel.mp4", new Uint8Array(10));
+  await portal.send({ client: "padaria-aurora", type: "reel", files: [upload], title: "Reel", caption: "x" });
+  const page = (await (await t.app.request(`/p/api/${token}`)).json()) as { waiting: { media: { id: string }[] }[] };
+  const fileId = page.waiting[0]?.media[0]?.id as string;
+  const past = await t.app.request(`/p/api/${token}/files/${fileId}`, { headers: { range: "bytes=20-30" } });
+  expect(past.status).toBe(416);
+  expect(past.headers.get("content-range")).toBe("bytes */10");
+  // A multi-range header is ignored: the whole file, `200`.
+  const many = await t.app.request(`/p/api/${token}/files/${fileId}`, { headers: { range: "bytes=0-1,4-5" } });
+  expect(many.status).toBe(200);
+  expect(new Uint8Array(await many.arrayBuffer()).length).toBe(10);
+});
+
+test("a bridge's installation has no `published` of its own: the route is the embedded portal's", async () => {
+  // The same server with a bridge: the route answers `portal.off`, as the client routes do.
+  t = await createTestServer({ approvalPortal: null, env: { ALLOW_SIGNUP: "true" } });
+  const owner = browser(t);
+  await signUp(owner, "owner@example.com");
+  const { orgId } = await seedOrg(owner);
+  const res = await owner(`/api/app/organizations/${orgId}/portal/clients/acme/items/abc/published`, {
+    method: "POST",
+    json: {},
+  });
+  expect(res.status).toBe(404);
+  expect(await code(res)).toBe("portal.off");
 });

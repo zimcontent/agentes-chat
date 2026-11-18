@@ -16,7 +16,7 @@ import {
 } from "../src";
 import { setup } from "./fixtures";
 
-// The approval portal kept in this server's own database (docs/adr/doug-0022-embedded-approval-portal.md): the same
+// The approval portal kept in this server's own database (docs/adr/doug-0031-embedded-approval-portal.md): the same
 // contract as the bridge (ADR 9001), the clients and their links, the client's page and its decision. On PGlite, with
 // a memory file store and no network.
 

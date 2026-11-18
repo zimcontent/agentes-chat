@@ -306,7 +306,7 @@ export async function invitationLogoFile(deps: { db: Database; blobs: BlobStore 
 const portalLogoKey = (orgId: string, client: string, file: string) => `org-logos/${orgId}/portal/${client}/${file}`;
 /**
  * The key a client's logo is stored under: the members' route and the client's own page both read it through the
- * platform's storage (docs/adr/doug-0022-embedded-approval-portal.md).
+ * platform's storage (docs/adr/doug-0031-embedded-approval-portal.md).
  */
 export const portalLogoKeyOf = portalLogoKey;
 const PORTAL_CLIENT = /^[a-z0-9][a-z0-9-]{0,63}$/;

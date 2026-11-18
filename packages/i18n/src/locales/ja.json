@@ -16216,6 +16216,14 @@
     "change": {
       "mergedWithoutAsking": "{{repo}}で確認なしでマージしました",
       "portalApprovedForClient": "ポータルでクライアントの代わりに「{{title}}」を承認しました",
+      "portalClient": {
+        "renamed": "ポータルで顧客 {{client}} の名前を変更しました",
+        "hidden": "ポータルで顧客 {{client}} を一覧から外しました",
+        "shown": "ポータルで顧客 {{client}} を再び表示しました",
+        "color": "ポータルで顧客 {{client}} の色を変更しました",
+        "logo": "ポータルで顧客 {{client}} のロゴを変更しました",
+        "logoRemoved": "ポータルで顧客 {{client}} のロゴを削除しました"
+      },
       "pattern": "{{verb}}: {{area}}",
       "approval": {
         "approved": "リクエストを承認",
@@ -20208,6 +20216,16 @@
     "copied": "リンクをコピーしました",
     "copyFailed": "リンクをコピーできませんでした",
     "revoked": "リンクは無効にされました",
+    "linkStale": "このリンクは作り直しが必要です：送る用に新しいリンクを作ってください",
+    "noticesTitle": "WhatsApp でのお知らせ",
+    "noticesLead": "顧客の連絡先には必ずメールでお知らせします。WhatsApp はここで選んだ番号からだけ送られ、選ばなければ何も送られず、誰かの個人番号が使われることもありません。",
+    "noticesNumber": "お知らせする番号",
+    "noticesNone": "なし：メールのみ",
+    "noticesNoNumbers": "まだ番号が接続されていません。設定 › WhatsApp で接続すると、そちらでもお知らせできます。",
+    "locale": "{{language}}でお知らせ",
+    "localeLabel": "言語",
+    "localeHint": "この顧客の連絡先が受け取るメールとメッセージの言語です。名前から推測することはなく、ここで選ばなければチームの言語になります。",
+    "localeOwner": "チームの言語",
     "newLink": "新しいリンク",
     "revoke": "リンクを無効にする"
   },
@@ -20282,6 +20300,19 @@
       "remove": "ロゴを削除",
       "saved": "ロゴを保存しました",
       "removed": "ロゴを削除しました"
+    },
+    "clientEdit": {
+      "rename": "顧客名を変更",
+      "renameTitle": "顧客名を変更",
+      "renameHelp": "チームのどこにでも表示される名前です。空にすると「{{id}}」に戻ります。",
+      "name": "名前",
+      "renamed": "名前を保存しました",
+      "hide": "顧客を削除",
+      "hideTitle": "「{{name}}」を削除しますか？",
+      "hideText": "ここでのすべての一覧と集計から外れます。投稿とカードはポータルに残り、「非表示の顧客」から戻せます。",
+      "hidden": "「{{name}}」を削除しました",
+      "hiddenTitle": "非表示の顧客",
+      "show": "再び表示"
     },
     "clientColor": {
       "label": "クライアントの色",

@@ -1080,8 +1080,8 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
       if (deps.emailArt) await sendPlanWaitingEmail(deps.db, deps.emailArt.home, orgOf(job), job.payload.step);
     },
     // The client of the approval portal is told a post (or its new version) waits on them (docs/adr/
-    // doug-0022-embedded-approval-portal.md): one email to each contact with an address, one text when the workspace
-    // has a number. Nothing when the post was answered while the job waited, or the client was told within the hour.
+    // doug-0031-embedded-approval-portal.md): one email to each contact with an address, one text when the workspace
+    // has a number. Nothing when the client was told within the hour, or every waiting post was already told of.
     // A notice that went out inside the hour holds this one: the job comes back when that hour ends (`retryAt`), and
     // gathers what landed meanwhile into one notice (`posts[]`), instead of a client being told post after post.
     [PORTAL_NOTIFY_JOB]: async (job) => {
@@ -1091,16 +1091,19 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
         orgOf(job),
         String(job.payload.postId),
         Number(job.payload.version) || 1,
+        typeof job.payload.client === "string" && job.payload.client ? job.payload.client : null,
       );
-      if (out.skipped !== "recent" || !out.retryAt) return;
-      // One job per client and window: a second post inside the hour names the same window, and the first to set it
-      // takes it (the send's own `(org_id, dedupe key)` unique index does the rest).
+      if (out.skipped !== "recent" || !out.retryAt || !out.client) return;
+      // One retry per client and window, and that retry names the client, not the post: by the end of the hour that
+      // post may be answered, and what the client has to be told of is whatever is waiting then. A second post inside
+      // the hour names the same window, and the first to set it takes it (the outbox's `(org_id, dedupe key)` index
+      // does the rest).
       const retryAt = out.retryAt;
       await enqueue(deps.db, {
         orgId: orgOf(job),
         kind: PORTAL_NOTIFY_JOB,
-        payload: { postId: job.payload.postId, version: job.payload.version },
-        dedupeKey: `${PORTAL_NOTIFY_JOB}:retry:${out.client ?? ""}:${retryAt.toISOString()}`,
+        payload: { postId: String(job.payload.postId), version: Number(job.payload.version) || 1, client: out.client },
+        dedupeKey: `${PORTAL_NOTIFY_JOB}:retry:${out.client}:${retryAt.toISOString()}`,
         runAt: retryAt,
         // The retry ends the wait itself (a client told again, or nothing left to tell): a failure here retries as
         // any job does, and a second try inside the same window is refused again and moves the job once more.

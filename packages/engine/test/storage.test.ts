@@ -121,6 +121,22 @@ describe("S3 client against the fake server", () => {
     expect(error).toBeInstanceOf(StorageError);
     expect((error as StorageError).code).toBe("auth");
   });
+
+  test("a store that answers the whole object to a ranged read is cut here: the part is always the one asked for", async () => {
+    f = await setup();
+    const store = createS3BlobStore(
+      { ...bucket(), accessKeyId: "AKIATEST", secretAccessKey: SECRET },
+      { fetch: f.s3.fetch },
+    );
+    await store.put("a/long.mp4", new TextEncoder().encode("0123456789"), { contentType: "video/mp4" });
+    // A bucket behind a proxy that ignores `Range` answers `200` with every byte: `getRange` still answers just the
+    // part, and its `total` is the whole object's length.
+    const read = await store.getRange?.("a/long.mp4", 2, 5);
+    expect(new TextDecoder().decode(read?.body)).toBe("2345");
+    expect(read?.total).toBe(10);
+    // A part before the first byte is refused, as every store refuses it.
+    await expect(store.getRange?.("a/long.mp4", -1, 4)).rejects.toThrow(RangeError);
+  });
 });
 
 describe("org storage", () => {

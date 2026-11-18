@@ -134,7 +134,7 @@ export interface WorkerDeps {
   mail?: { deps: MailDeps; pollSeconds: number };
   /** The approval portal (ADR 9001): its cards and their tasks are kept in step; absent: no portal. */
   approvalPortal?: ApprovalPortal;
-  /** The portal is this server's own (docs/adr/doug-0022): a workspace with no client has nothing put in step. */
+  /** The portal is this server's own (docs/adr/doug-0031): a workspace with no client has nothing put in step. */
   approvalPortalEmbedded?: boolean;
   /** The agent browser's live view (ADR 0040): expired handoffs are told to its viewers. */
   browserLive?: BrowserLive;

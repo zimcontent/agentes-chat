@@ -16855,6 +16855,14 @@
     "change": {
       "mergedWithoutAsking": "Gemerged in {{repo}} zonder te vragen",
       "portalApprovedForClient": "“{{title}}” in het portaal goedgekeurd namens de klant",
+      "portalClient": {
+        "renamed": "Heeft de klant {{client}} in het portaal hernoemd",
+        "hidden": "Heeft de klant {{client}} uit de lijsten van het portaal gehaald",
+        "shown": "Toont de klant {{client}} weer in het portaal",
+        "color": "Heeft de kleur van de klant {{client}} in het portaal gewijzigd",
+        "logo": "Heeft het logo van de klant {{client}} in het portaal gewijzigd",
+        "logoRemoved": "Heeft het logo van de klant {{client}} in het portaal verwijderd"
+      },
       "pattern": "{{verb}}: {{area}}",
       "approval": {
         "approved": "Een verzoek goedgekeurd",
@@ -21031,6 +21039,16 @@
     "copied": "Link gekopieerd",
     "copyFailed": "De link kon niet worden gekopieerd",
     "revoked": "De link is ingetrokken",
+    "linkStale": "Deze link moet opnieuw gemaakt worden: maak een nieuwe om te sturen",
+    "noticesTitle": "WhatsApp-berichten",
+    "noticesLead": "De contacten van een klant worden altijd per e-mail op de hoogte gebracht. WhatsApp gaat alleen uit van het nummer dat je hier kiest: zonder een nummer wordt er niets via WhatsApp gestuurd, en niemands persoonlijke nummer wordt gebruikt.",
+    "noticesNumber": "Nummer dat bericht",
+    "noticesNone": "Geen: alleen e-mail",
+    "noticesNoNumbers": "Nog geen nummer verbonden. Verbind er een in Instellingen › WhatsApp om daar ook bericht te sturen.",
+    "locale": "Bericht in {{language}}",
+    "localeLabel": "Taal",
+    "localeHint": "De taal van de e-mails en berichten die de contacten van deze klant krijgen. Nooit geraden uit een naam; zonder keuze hier die van je team.",
+    "localeOwner": "De taal van het team",
     "newLink": "Nieuwe link",
     "revoke": "Link intrekken"
   },
@@ -21110,6 +21128,19 @@
       "remove": "Logo verwijderen",
       "saved": "Logo opgeslagen",
       "removed": "Logo verwijderd"
+    },
+    "clientEdit": {
+      "rename": "Klant hernoemen",
+      "renameTitle": "Klant hernoemen",
+      "renameHelp": "De naam die je team overal ziet. Laat hem leeg om terug te gaan naar ‘{{id}}’.",
+      "name": "Naam",
+      "renamed": "Naam opgeslagen",
+      "hide": "Klant verwijderen",
+      "hideTitle": "‘{{name}}’ verwijderen?",
+      "hideText": "Hij verdwijnt uit elke lijst en telling hier. Zijn berichten en kaarten blijven in het portaal, en je kunt hem terughalen via Verborgen klanten.",
+      "hidden": "‘{{name}}’ verwijderd",
+      "hiddenTitle": "Verborgen klanten",
+      "show": "Weer tonen"
     },
     "clientColor": {
       "label": "Kleur van de klant",

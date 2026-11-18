@@ -17879,6 +17879,14 @@
     "change": {
       "mergedWithoutAsking": "Scalono w {{repo}} bez pytania",
       "portalApprovedForClient": "Zatwierdzono „{{title}}” w portalu w imieniu klienta",
+      "portalClient": {
+        "renamed": "Zmienił nazwę klienta {{client}} w portalu",
+        "hidden": "Ukrył klienta {{client}} na listach portalu",
+        "shown": "Ponownie pokazał klienta {{client}} w portalu",
+        "color": "Zmienił kolor klienta {{client}} w portalu",
+        "logo": "Zmienił logo klienta {{client}} w portalu",
+        "logoRemoved": "Usunął logo klienta {{client}} w portalu"
+      },
       "pattern": "{{verb}} {{area}}",
       "approval": {
         "approved": "Zatwierdzono prośbę",
@@ -22151,6 +22159,16 @@
     "copied": "Link skopiowany",
     "copyFailed": "Nie udało się skopiować linku",
     "revoked": "Link został unieważniony",
+    "linkStale": "Ten link trzeba zrobić od nowa: utwórz nowy do wysłania",
+    "noticesTitle": "Powiadomienia WhatsApp",
+    "noticesLead": "Kontakty klienta zawsze dostają e-mail. WhatsApp wychodzi tylko z numeru, który wybierzesz tutaj: bez żadnego nic nie idzie przez WhatsApp i nie jest używany czyjkolwiek prywatny numer.",
+    "noticesNumber": "Numer, który powiadamia",
+    "noticesNone": "Brak: tylko e-mail",
+    "noticesNoNumbers": "Nie ma jeszcze podłączonego numeru. Podłącz jeden w Ustawieniach › WhatsApp, aby powiadamiać też tam.",
+    "locale": "Powiadomienia po {{language}}",
+    "localeLabel": "Język",
+    "localeHint": "Język e-maili i wiadomości, które dostają kontakty tego klienta. Nigdy nie zgadywany z imienia; bez wyboru tutaj — język twojego zespołu.",
+    "localeOwner": "Język zespołu",
     "newLink": "Nowy link",
     "revoke": "Unieważnij link"
   },
@@ -22240,6 +22258,19 @@
       "remove": "Usuń logo",
       "saved": "Logo zapisane",
       "removed": "Logo usunięte"
+    },
+    "clientEdit": {
+      "rename": "Zmień nazwę klienta",
+      "renameTitle": "Zmień nazwę klienta",
+      "renameHelp": "Nazwa, którą twój zespół widzi wszędzie. Zostaw puste, aby wrócić do „{{id}}”.",
+      "name": "Nazwa",
+      "renamed": "Nazwa zapisana",
+      "hide": "Usuń klienta",
+      "hideTitle": "Usunąć „{{name}}”?",
+      "hideText": "Znika z każdej listy i każdego podsumowania tutaj. Jego posty i karty zostają w portalu, a ty możesz go przywrócić w sekcji Ukryci klienci.",
+      "hidden": "Usunięto „{{name}}”",
+      "hiddenTitle": "Ukryci klienci",
+      "show": "Pokaż ponownie"
     },
     "clientColor": {
       "label": "Kolor klienta",

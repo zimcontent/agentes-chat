@@ -17342,6 +17342,14 @@
     "change": {
       "mergedWithoutAsking": "Ha fatto il merge in {{repo}} senza chiedere",
       "portalApprovedForClient": "Ha approvato “{{title}}” per conto del cliente nel portale",
+      "portalClient": {
+        "renamed": "Ha rinominato il cliente {{client}} nel portale",
+        "hidden": "Ha rimosso il cliente {{client}} dagli elenchi del portale",
+        "shown": "Ha mostrato di nuovo il cliente {{client}} nel portale",
+        "color": "Ha cambiato il colore del cliente {{client}} nel portale",
+        "logo": "Ha cambiato il logo del cliente {{client}} nel portale",
+        "logoRemoved": "Ha rimosso il logo del cliente {{client}} nel portale"
+      },
       "pattern": "{{verb}} {{area}}",
       "approval": {
         "approved": "Ha approvato una richiesta",
@@ -21584,6 +21592,16 @@
     "copied": "Link copiato",
     "copyFailed": "Non è stato possibile copiare il link",
     "revoked": "Il link è stato revocato",
+    "linkStale": "Questo link va rifatto: creane uno nuovo da inviare",
+    "noticesTitle": "Avvisi su WhatsApp",
+    "noticesLead": "I contatti di un cliente vengono sempre avvisati via e-mail. Il WhatsApp parte solo dal numero che scegli qui: senza nessuno, non si invia nulla su WhatsApp, e il numero personale di nessuno viene usato.",
+    "noticesNumber": "Numero che avvisa",
+    "noticesNone": "Nessuno: solo e-mail",
+    "noticesNoNumbers": "Nessun numero connesso per ora. Connettine uno in Impostazioni › WhatsApp per avvisare anche lì.",
+    "locale": "Avvisato in {{language}}",
+    "localeLabel": "Lingua",
+    "localeHint": "La lingua delle e-mail e dei messaggi che ricevono i contatti di questo cliente. Mai indovinata da un nome; senza scelta qui, è quella del team.",
+    "localeOwner": "La lingua del team",
     "newLink": "Nuovo link",
     "revoke": "Revoca link"
   },
@@ -21668,6 +21686,19 @@
       "remove": "Rimuovi logo",
       "saved": "Logo salvato",
       "removed": "Logo rimosso"
+    },
+    "clientEdit": {
+      "rename": "Rinomina cliente",
+      "renameTitle": "Rinomina cliente",
+      "renameHelp": "Il nome che il tuo team vede ovunque. Lascialo vuoto per tornare a «{{id}}».",
+      "name": "Nome",
+      "renamed": "Nome salvato",
+      "hide": "Rimuovi cliente",
+      "hideTitle": "Rimuovere «{{name}}»?",
+      "hideText": "Esce da ogni elenco e conteggio qui. I suoi post e le sue schede restano nel portale, e puoi riportarlo da Clienti nascosti.",
+      "hidden": "«{{name}}» rimosso",
+      "hiddenTitle": "Clienti nascosti",
+      "show": "Mostra di nuovo"
     },
     "clientColor": {
       "label": "Colore del cliente",

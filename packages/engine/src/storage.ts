@@ -653,7 +653,7 @@ export const storedBytesQueries = (db: Executor, orgId: string) =>
       })
       .from(voiceClips)
       .where(and(eq(voiceClips.orgId, orgId), isNull(voiceClips.audioDeletedAt))),
-    // A post's files at the installation's own approval portal (docs/adr/doug-0022-embedded-approval-portal.md): each
+    // A post's files at the installation's own approval portal (docs/adr/doug-0031-embedded-approval-portal.md): each
     // version's, and a file read and not yet sent. Its logo is a small name, as the workspace's is.
     db
       .select({

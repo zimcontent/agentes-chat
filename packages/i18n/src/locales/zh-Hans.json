@@ -16280,6 +16280,14 @@
     "change": {
       "mergedWithoutAsking": "未经询问在 {{repo}} 中合并",
       "portalApprovedForClient": "在门户中代客户批准了“{{title}}”",
+      "portalClient": {
+        "renamed": "在门户中重命名了客户 {{client}}",
+        "hidden": "在门户中把客户 {{client}} 从列表中隐藏了",
+        "shown": "在门户中重新显示了客户 {{client}}",
+        "color": "在门户中更改了客户 {{client}} 的颜色",
+        "logo": "在门户中更改了客户 {{client}} 的标志",
+        "logoRemoved": "在门户中移除了客户 {{client}} 的标志"
+      },
       "pattern": "{{verb}}{{area}}",
       "approval": {
         "approved": "批准了一个请求",
@@ -20387,6 +20395,16 @@
     "copied": "已复制链接",
     "copyFailed": "无法复制链接",
     "revoked": "链接已被撤销",
+    "linkStale": "此链接需要重做：创建一个新链接来发送",
+    "noticesTitle": "WhatsApp 通知",
+    "noticesLead": "客户的联系人总是会收到邮件通知。WhatsApp 只会从你在这里选择的号码发出：不选号码就不会发任何 WhatsApp 消息，也绝不会使用任何人的私人号码。",
+    "noticesNumber": "通知用的号码",
+    "noticesNone": "无：仅邮件",
+    "noticesNoNumbers": "还没有连接号码。在设置 › WhatsApp 中连接一个，就能在那里也通知。",
+    "locale": "以{{language}}通知",
+    "localeLabel": "语言",
+    "localeHint": "此客户联系人收到的邮件和消息所用的语言。绝不会从名字猜测；不在这里选择时，用团队的语言。",
+    "localeOwner": "团队的语言",
     "newLink": "新链接",
     "revoke": "撤销链接"
   },
@@ -20461,6 +20479,19 @@
       "remove": "移除徽标",
       "saved": "徽标已保存",
       "removed": "徽标已移除"
+    },
+    "clientEdit": {
+      "rename": "重命名客户",
+      "renameTitle": "重命名客户",
+      "renameHelp": "你的团队在各处看到的名称。留空会回到“{{id}}”。",
+      "name": "名称",
+      "renamed": "名称已保存",
+      "hide": "移除客户",
+      "hideTitle": "移除“{{name}}”？",
+      "hideText": "它会从这里的所有列表和计数中消失。它的帖子和卡片仍留在门户中，你可以从“隐藏的客户”中把它找回来。",
+      "hidden": "已移除“{{name}}”",
+      "hiddenTitle": "隐藏的客户",
+      "show": "重新显示"
     },
     "clientColor": {
       "label": "客户颜色",

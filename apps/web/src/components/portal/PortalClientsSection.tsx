@@ -1,6 +1,7 @@
 import { type PortalClientAccount, type PortalClientColor, type PortalContact, useApi } from "@agenteschat/client";
 import { can } from "@agenteschat/client/lib/permissions";
 import { portalErrorText } from "@agenteschat/client/lib/portal";
+import { readyLocales } from "@agenteschat/i18n/locale";
 import {
   Button,
   Card,
@@ -19,8 +20,14 @@ import { useOrg } from "@/components/org-context";
 import { useToast } from "@/lib/toast";
 import "@/pages/portal-clients.css";
 
+/** A language's own name, as its registry says it (`Deutsch`, `Português (Brasil)`); the code itself when unknown. */
+function languageName(code: string | null, fallback: string): string {
+  if (!code) return fallback;
+  return readyLocales().find((l) => l.code === code)?.native ?? code;
+}
+
 /**
- * The clients of the installation's own approval portal (docs/adr/doug-0022-embedded-approval-portal.md), in Settings:
+ * The clients of the installation's own approval portal (docs/adr/doug-0031-embedded-approval-portal.md), in Settings:
  * each client, its contacts (an e-mail, a WhatsApp number, or both) and the address of its own link, which opens its
  * page with no account. A person who may give agents work adds a client, edits its contacts, copies its link, makes a
  * new one (revoking the old), or removes the client. On a server whose portal is a bridge's the section isn't listed
@@ -30,6 +37,9 @@ export function PortalClientsSection() {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const api = useApi();
+  // A client with no language of its own is told in the workspace owner's: the member reading this is told in their
+  // own, which is what the select's "the team's language" says.
+  const ownerLocale = i18n.language;
   // This page exists only where the server has its own portal (`approvalPortalEmbedded`), so `portal` is here.
   const portal = api.portal as NonNullable<typeof api.portal>;
   const toast = useToast();
@@ -62,11 +72,18 @@ export function PortalClientsSection() {
   });
 
   const save = useMutation({
-    mutationFn: (input: { client: string; name: string; contacts: PortalContact[]; color: PortalClientColor | null }) =>
+    mutationFn: (input: {
+      client: string;
+      name: string;
+      contacts: PortalContact[];
+      color: PortalClientColor | null;
+      locale: string | null;
+    }) =>
       portal.saveClient(org.id, input.client, {
         name: input.name,
         contacts: input.contacts,
         color: input.color,
+        locale: input.locale,
       }),
     onSuccess: () => {
       setEditing(null);
@@ -148,6 +165,12 @@ export function PortalClientsSection() {
                 ) : (
                   <p className="portal-clients__quiet">{t("portalClients.noContacts")}</p>
                 )}
+                {/* The language its notices are written in (ADR doug-0031 §8): its own, or the team's. */}
+                <p className="portal-clients__quiet">
+                  {t("portalClients.locale", {
+                    language: languageName(client.locale || ownerLocale, i18n.language),
+                  })}
+                </p>
                 <div className="portal-clients__link">
                   {links[client.client] ? (
                     <>
@@ -195,7 +218,7 @@ export function PortalClientsSection() {
           </div>
         )}
       </SettingsSection>
-      {/* Which number tells the clients (ADR doug-0022 §7): e-mail always goes; WhatsApp only from a number the
+      {/* Which number tells the clients (ADR doug-0031 §7): e-mail always goes; WhatsApp only from a number the
           workspace picks here. With none, a client is never texted from a number nobody chose. */}
       <SettingsSection title={t("portalClients.noticesTitle")} description={t("portalClients.noticesLead")}>
         <Field label={t("portalClients.noticesNumber")}>
@@ -264,10 +287,17 @@ function ClientEditorDialog({
 }: {
   client: ClientRow | null;
   saving: boolean;
-  onSave: (input: { client: string; name: string; contacts: PortalContact[]; color: PortalClientColor | null }) => void;
+  onSave: (input: {
+    client: string;
+    name: string;
+    contacts: PortalContact[];
+    color: PortalClientColor | null;
+    locale: string | null;
+  }) => void;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
+  const [locale, setLocale] = useState<string>(client?.locale ?? "");
   const [name, setName] = useState(client?.name ?? "");
   const [id, setId] = useState(client?.client ?? "");
   const color: PortalClientColor | null = client?.color ?? null;
@@ -298,6 +328,8 @@ function ClientEditorDialog({
           whatsapp: c.whatsapp.trim() || null,
         })) as unknown as PortalContact[],
       color,
+      // Empty is the workspace owner's own language, sent as none.
+      locale: locale || null,
     });
   };
   return (
@@ -316,6 +348,19 @@ function ClientEditorDialog({
         )}
         <Field label={t("portalClients.name")}>
           <Input value={name} onChange={(e) => setName(e.target.value)} autoFocus />
+        </Field>
+        <Field
+          label={t("portalClients.localeLabel")}
+          hint={{ name: t("portalClients.localeLabel"), text: t("portalClients.localeHint") }}
+        >
+          <Select
+            value={locale || "none"}
+            onValueChange={(value) => setLocale(value === "none" ? "" : value)}
+            options={[
+              { value: "none", label: t("portalClients.localeOwner") },
+              ...readyLocales().map((l) => ({ value: l.code, label: l.native })),
+            ]}
+          />
         </Field>
       </div>
       <div className="portal-clients__contacts-edit">

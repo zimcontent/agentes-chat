@@ -1726,7 +1726,7 @@ export interface ApiClient {
     /** One's own, or any for who may give agents work. */
     deleteComment(orgId: string, cardId: string, commentId: string): Promise<PortalCard>;
     /**
-     * The installation's own portal's clients (docs/adr/doug-0022-embedded-approval-portal.md): each with its contacts,
+     * The installation's own portal's clients (docs/adr/doug-0031-embedded-approval-portal.md): each with its contacts,
      * and the address of its link for whoever may manage the portal (`assign_work`). Empty on a server that keeps a
      * bridge's portal (`AuthConfig.approvalPortalEmbedded`), where the client routes answer 404 `portal.off`.
      */
@@ -1735,7 +1735,13 @@ export interface ApiClient {
     saveClient(
       orgId: string,
       client: string,
-      input: { name: string; contacts?: PortalContact[]; color?: PortalClientColor | null },
+      input: {
+        name: string;
+        contacts?: PortalContact[];
+        color?: PortalClientColor | null;
+        /** The language its notices are written in; null: the workspace owner's own. */
+        locale?: string | null;
+      },
     ): Promise<PortalClientAccount>;
     /** Removes a client and its links. */
     removeClient(orgId: string, client: string): Promise<void>;
@@ -1745,7 +1751,7 @@ export interface ApiClient {
     revokeClientLink(orgId: string, client: string): Promise<void>;
     /**
      * The number the portal's notices go out as (`number`, one of `numbers`, or null: e-mail alone), and the workspace's
-     * connected numbers to pick from (docs/adr/doug-0022-embedded-approval-portal.md §7).
+     * connected numbers to pick from (docs/adr/doug-0031-embedded-approval-portal.md §7).
      */
     noticeSettings(orgId: string): Promise<{ number: string | null; numbers: PortalNoticeNumber[] }>;
     /** Sets the number the portal's notices go out as, or none with null. */

@@ -12,7 +12,7 @@ const { portalCards, portalClients, portalJobs, portalLabels, portalLists, porta
 const { portalPosts, portalUploads } = schema;
 
 /**
- * The approval portal kept in this server (docs/adr/doug-0022-embedded-approval-portal.md): the same contract as the
+ * The approval portal kept in this server (docs/adr/doug-0031-embedded-approval-portal.md): the same contract as the
  * bridge (`ApprovalPortal`, ADR 9001), with every client, card, post and note in this database instead of another
  * service. An installation with no bridge of its own gets this one, so the Portal page, the agents' tools and the
  * clients' own links work out of the box.
@@ -75,7 +75,6 @@ export interface EmbeddedPortalDeps {
   /** Where a client's page is (`<PUBLIC_URL>/p/<token>`) and what its links are derived from. */
   publicUrl: string;
   secret: string;
-  log?: { warn: (message: string, data?: Record<string, unknown>) => void };
 }
 
 /**
@@ -94,7 +93,6 @@ export async function portalOrgId(db: Database): Promise<string | null> {
  */
 export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): ApprovalPortal {
   const { db, blobs, publicUrl } = deps;
-  const warn = deps.log?.warn ?? (() => {});
 
   const org = async () => {
     const orgId = await portalOrgId(db);
@@ -281,14 +279,21 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
         )[0] ?? null)
       : null;
 
-  const notify = (orgId: string, postId: string, version: number) =>
-    enqueue(db, {
+  /**
+   * The job a send or a new version leaves for the client's notice, in the caller's own transaction: a post and its
+   * notice are kept together, so a notice is never queued for a post the transaction rolled back, and never lost for
+   * one it committed. A failure here fails the send: a post the client is never told of is a post they never see.
+   */
+  const notify = (tx: Executor, orgId: string, client: string, postId: string, version: number) =>
+    enqueue(tx, {
       orgId,
       kind: "portal.notify",
-      payload: { postId, version },
+      // The client is named in the payload: a retry that comes back at the end of the hour tells that client whatever
+      // became of this post (`announcePortalPost`), so the notice is never lost with the post it first came with.
+      payload: { postId, version, client },
       // The same post and version tell once (`portalNotifyPostKey`, portal-notices.ts); a new version is another key.
       dedupeKey: portalNotifyPostKey(postId, version),
-    }).catch((error: unknown) => warn("approval portal: a client's notice could not be queued", { postId, error }));
+    });
 
   return {
     state: async (): Promise<PortalState> => ({ stale: false, readAt: new Date().toISOString(), queued: 0 }),
@@ -671,6 +676,9 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
             .onConflictDoNothing()
             .returning();
           if (!made) throw SEND_TAKEN;
+          // The client's notice goes in this same transaction: a send either keeps the post, its files and the job that
+          // tells the client, or none of them.
+          await notify(tx, orgId, input.client, post.id, 1);
           return [made];
         })
         .catch(async (error: unknown) => {
@@ -681,7 +689,6 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
           return [first];
         });
       if (!job) throw new ApprovalPortalError(500, "The send could not be kept");
-      await notify(orgId, job.item as string, 1);
       return jobOf(job);
     },
 
@@ -756,16 +763,17 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
           })
           .onConflictDoNothing()
           .returning();
-        return made ? [made] : [];
+        if (!made) return [];
+        // The notice names the version this transaction turned, and goes with it: a version and the note that tells
+        // the client are kept together or not at all.
+        await notify(tx, orgId, client, post.id, version);
+        return [made];
       });
       if (!job) {
         const first = input.key ? await jobForKey(orgId, input.key) : null;
         if (!first) throw new ApprovalPortalError(500, "The version could not be kept");
         return jobOf(first);
       }
-      // The notice names the version it tells about: read back from the post the transaction turned.
-      const version = job.item ? await postVersion(orgId, job.item) : null;
-      await notify(orgId, job.item as string, version ?? 1);
       return jobOf(job);
     },
 
@@ -799,7 +807,7 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
       if (post.status !== "approved") throw new ApprovalPortalError(409, "only an approved post is scheduled");
       if (post.released) throw new ApprovalPortalError(409, "this post was already released");
       // This server has no publishing service: a released post is `scheduled` at once, for the team to publish and
-      // say so with `markPublished` (docs/adr/doug-0022-embedded-approval-portal.md).
+      // say so with `markPublished` (docs/adr/doug-0031-embedded-approval-portal.md).
       await db
         .update(portalPosts)
         .set({ released: true, scheduledFor: new Date(when), status: "scheduled", updatedAt: new Date() })
@@ -835,13 +843,5 @@ export function createEmbeddedApprovalPortal(deps: EmbeddedPortalDeps): Approval
       .from(portalCards)
       .where(and(eq(portalCards.orgId, orgId), eq(portalCards.id, cardId)));
     return card?.title ?? null;
-  }
-
-  async function postVersion(orgId: string, postId: string) {
-    const [post] = await db
-      .select({ version: portalPosts.version })
-      .from(portalPosts)
-      .where(and(eq(portalPosts.orgId, orgId), eq(portalPosts.id, postId)));
-    return post?.version ?? null;
   }
 }

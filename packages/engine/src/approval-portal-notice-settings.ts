@@ -7,7 +7,7 @@ const { organizationSettings, whatsappAccounts } = schema;
 
 /**
  * The workspace's choice of which of its WhatsApp numbers the approval portal's notices go out as (docs/adr/
- * doug-0022-embedded-approval-portal.md §8): the number's id, one of `whatsapp_accounts`; null is none, and then
+ * doug-0031-embedded-approval-portal.md §8): the number's id, one of `whatsapp_accounts`; null is none, and then
  * nothing goes by WhatsApp, whatever other numbers the workspace has. A client is never texted from a person's own
  * number, or from the number an agent happens to answer on, unless the workspace picked that one here.
  *

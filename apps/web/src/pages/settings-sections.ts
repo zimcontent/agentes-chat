@@ -88,7 +88,7 @@ export const SETTINGS_SECTIONS: {
   // Every member keeps their own logins, keys and contacts there; team items show to who they're shared with (ADR 0144).
   { id: "vault", icon: "lock", allowed: () => true },
   { id: "access", icon: "agent", allowed: (o) => can(o, "manage_agents") },
-  // The clients of the installation's own approval portal, and their links (docs/adr/doug-0022): only where this
+  // The clients of the installation's own approval portal, and their links (docs/adr/doug-0031): only where this
   // server keeps its own portal, for who may give agents work.
   {
     id: "portal",

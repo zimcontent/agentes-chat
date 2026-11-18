@@ -361,7 +361,7 @@ export interface PortalToolDeps {
   here?: (ctx: ToolContext) => Promise<boolean>;
   /**
    * On a server that keeps its own portal (`approvalPortalEmbedded`), the clients and their links: the tool that adds
-   * one with its contacts and its link, docs/adr/doug-0022-embedded-approval-portal.md. Absent on a bridge's portal.
+   * one with its contacts and its link, docs/adr/doug-0031-embedded-approval-portal.md. Absent on a bridge's portal.
    */
   clients?: { publicUrl: string; secret: string };
 }
@@ -805,7 +805,7 @@ async function runPeople(ctx: ToolContext): Promise<{ personId: string | null; m
 }
 
 /**
- * The installation's own portal's clients (docs/adr/doug-0022-embedded-approval-portal.md): make one with its contacts
+ * The installation's own portal's clients (docs/adr/doug-0031-embedded-approval-portal.md): make one with its contacts
  * and its link, or change it. Only on a server that keeps its own portal (`deps.clients`): on a bridge's, the tool
  * isn't listed. It changes what the team keeps for a client, so a person is behind the run (`elsewhere`), and a
  * routine never reaches it.

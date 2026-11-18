@@ -513,7 +513,7 @@ export function buildEngine(o: EngineOptions) {
       createPortalToolSource({
         portal: adapters.approvalPortal ?? null,
         artifacts,
-        // On a server that keeps its own portal, an agent may add a client and answer its link (docs/adr/doug-0022).
+        // On a server that keeps its own portal, an agent may add a client and answer its link (docs/adr/doug-0031).
         ...(adapters.approvalPortalEmbedded
           ? { clients: { publicUrl: config.PUBLIC_URL, secret: config.AGENTES_SECRET } }
           : {}),
@@ -912,7 +912,7 @@ export function buildEngine(o: EngineOptions) {
     // The agent answering a WhatsApp number, with its own brain: its API model, or its plan on its computer.
     ...(whatsappAgent ? { whatsapp: whatsappAgent } : {}),
     // The clients of the installation's own approval portal are told a post waits on them (docs/adr/
-    // doug-0022-embedded-approval-portal.md): e-mail, and a text from the workspace's number when it has one.
+    // doug-0031-embedded-approval-portal.md): e-mail, and a text from the workspace's number when it has one.
     ...(adapters.approvalPortalEmbedded
       ? {
           portalNotify: {

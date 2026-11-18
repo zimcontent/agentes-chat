@@ -3,6 +3,7 @@ import {
   CLIENT_NOTE_MAX,
   clientDecision,
   clientPortalFileRange,
+  clientPortalFileSize,
   clientPortalPage,
   PORTAL_CONTACT_NAME_MAX,
   portalClientOfToken,
@@ -74,7 +75,7 @@ const Decision = z
   .strict();
 
 /**
- * The client's side of the approval portal (docs/adr/doug-0022-embedded-approval-portal.md): a page with no account,
+ * The client's side of the approval portal (docs/adr/doug-0031-embedded-approval-portal.md): a page with no account,
  * opened by the client's own link (`/p/<token>`), whose data is read at `/p/api/<token>`. The token is the
  * whole of the access, good for one client of one workspace; nothing of the app's signed-in routes is read here, and
  * nothing of the workspace but the client's own name and logo reaches the page. Each answer is `no-store`, and each
@@ -188,6 +189,9 @@ export function registerPortalPublicRoutes(app: OpenAPIHono, deps: AppDeps) {
   // A post's file, read through the same token: the client whose link it is owns it, and nothing else.
   app.get("/p/api/:token/files/:fileId", async (c) => {
     if (!TOKEN.safeParse(c.req.param("token")).success) return notFound();
+    // A file's id is one of the database's own: anything else names no file, and is answered as a link that names
+    // none is, before a query or a store sees it.
+    if (!z.string().uuid().safeParse(c.req.param("fileId")).success) return notFound();
     if (await limited(c, PORTAL_FILE_PER_IP, "file")) return apiError(c, 429, "rate_limited", "Slow down");
     const client = await portalClientOfToken(db, c.req.param("token"), config.AGENTES_SECRET);
     if (!client) return notFound();
@@ -195,7 +199,13 @@ export function registerPortalPublicRoutes(app: OpenAPIHono, deps: AppDeps) {
     // The `Range` is worked out from the file's own size, and the store then reads only the part a player asks for
     // (`clientPortalFileRange`): a jump into an hour-long video never pulls the whole of it into memory.
     const read = await clientPortalFileRange(blobs, client, c.req.param("fileId"), c.req.header("range"));
-    if (read === "bad") return new Response(null, { status: 416, headers: { "cache-control": "no-store" } });
+    if (read === "bad") {
+      // A part off the end: `416` with the file's whole size (`bytes */size`), so a player rewinds to what exists.
+      const size = await clientPortalFileSize(db, client, c.req.param("fileId"));
+      const headers: Record<string, string> = { "cache-control": "no-store" };
+      if (size !== null) headers["content-range"] = `bytes */${size}`;
+      return new Response(null, { status: 416, headers });
+    }
     if (!read) return notFound();
     const headers = {
       "content-type": read.contentType,

@@ -1,5 +1,5 @@
 import { createHash, createHmac } from "node:crypto";
-import type { BlobStore } from "./blob";
+import { type BlobStore, badBlobRange, readableRange } from "./blob";
 
 /** The HTTP transport (global `fetch` by default; a fake S3 server in tests). */
 export type S3Fetch = (url: string, init: RequestInit) => Promise<Response>;
@@ -224,6 +224,7 @@ export function createS3BlobStore(
       return (await object(key, STREAM_TIMEOUT_MS))?.body ?? null;
     },
     async getRange(key, start, end) {
+      if (!readableRange(start, end)) throw badBlobRange(start, end);
       // S3 answers a `Range` with just that part, so a player's jump reads a chunk and never the whole object.
       const res = await send("GET", key, { headers: { range: `bytes=${start}-${end}` } });
       if (res.status === 404) {
@@ -234,8 +235,18 @@ export function createS3BlobStore(
       if (!res.ok) throw await fail(res);
       // `Content-Range: bytes a-b/total` names the object's whole size; the part's length is its body.
       const total = Number(/\/\s*(\d+)\s*$/.exec(res.headers.get("content-range") ?? "")?.[1]);
+      const body = new Uint8Array(await res.arrayBuffer());
+      // A bucket behind a proxy (or a store that ignores `Range`) may answer `200` with the whole object: the part is
+      // cut out here, so every store's `getRange` always answers the bytes it was asked for.
+      if (res.status !== 206) {
+        return {
+          body: body.subarray(start, end + 1),
+          contentType: res.headers.get("content-type") ?? "application/octet-stream",
+          total: body.length,
+        };
+      }
       return {
-        body: new Uint8Array(await res.arrayBuffer()),
+        body,
         contentType: res.headers.get("content-type") ?? "application/octet-stream",
         total: Number.isFinite(total) ? total : end + 1,
       };

@@ -24,7 +24,9 @@ export interface BlobStore {
   /**
    * The part `start`–`end` (both included) of the object's bytes, where the store can read part of one without the
    * whole of it in memory; without it, `get` and a slice. A video read with `Range` asks for a second here, and the
-   * store answers just those bytes. `total` is always the object's whole size.
+   * store answers just those bytes. `total` is always the object's whole size. Every store refuses a negative
+   * `start`/`end` the same way (`RangeError`, `badBlobRange`): a part before the first byte is a caller's mistake,
+   * never quietly the file's beginning.
    */
   getRange?(
     key: string,
@@ -44,6 +46,18 @@ export interface BlobStore {
    */
   signedUrl(key: string, options: { expiresInSeconds: number; filename?: string }): Promise<string | null>;
 }
+
+/**
+ * The refusal every store's `getRange` gives a part that begins before the first byte, or ends before it starts: a
+ * caller's mistake, the same in each store, never a silent read of the file's beginning.
+ */
+export function badBlobRange(start: number, end: number): RangeError {
+  return new RangeError(`a blob's part can't be ${start}-${end}: both are whole numbers, 0 ≤ start ≤ end`);
+}
+
+/** Whether this part is one a store reads: whole offsets, never before the object's first byte. */
+export const readableRange = (start: number, end: number) =>
+  Number.isInteger(start) && Number.isInteger(end) && start >= 0 && end >= start;
 
 /**
  * Where blobs of one organization go. `storageConfigId` null = platform
@@ -94,6 +108,7 @@ export function createMemoryBlobStore(options: { sign?: boolean; kind?: string }
       return o ? { body: new Uint8Array(o.body), contentType: o.contentType } : null;
     },
     async getRange(key, start, end) {
+      if (!readableRange(start, end)) throw badBlobRange(start, end);
       const o = objects.get(key);
       if (!o) return null;
       return { body: new Uint8Array(o.body.slice(start, end + 1)), contentType: o.contentType, total: o.body.length };

@@ -3,7 +3,7 @@ import { createFakeApprovalPortal } from "@agenteschat/adapters";
 import { browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 
 // An installation with a bridge of its own (`APPROVAL_PORTAL_URL` + `APPROVAL_PORTAL_TOKEN`) keeps everything it had
-// before the installation's own portal existed (docs/adr/doug-0022-embedded-approval-portal.md): the portal it reaches
+// before the installation's own portal existed (docs/adr/doug-0031-embedded-approval-portal.md): the portal it reaches
 // is the bridge's, and none of the client-managing routes or the client's own page come with it. This test is the
 // promise that turning the embedded one on changes nothing for the installation that already has a bridge.
 

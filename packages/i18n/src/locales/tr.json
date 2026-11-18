@@ -16728,6 +16728,14 @@
     "change": {
       "mergedWithoutAsking": "{{repo}} içinde sormadan birleştirdi",
       "portalApprovedForClient": "Portalda “{{title}}” öğesini müşteri adına onayladı",
+      "portalClient": {
+        "renamed": "Portalda {{client}} müşterisini yeniden adlandırdı",
+        "hidden": "{{client}} müşterisini portalın listelerinden kaldırdı",
+        "shown": "{{client}} müşterisini portalda yeniden gösterdi",
+        "color": "Portalda {{client}} müşterisinin rengini değiştirdi",
+        "logo": "Portalda {{client}} müşterisinin logosunu değiştirdi",
+        "logoRemoved": "Portalda {{client}} müşterisinin logosunu kaldırdı"
+      },
       "pattern": "{{verb}}: {{area}}",
       "approval": {
         "approved": "Bir isteği onayladı",
@@ -20783,6 +20791,16 @@
     "copied": "Bağlantı kopyalandı",
     "copyFailed": "Bağlantı kopyalanamadı",
     "revoked": "Bağlantı iptal edildi",
+    "linkStale": "Bu bağlantının yeniden yapılması gerekiyor: göndermek için yeni bir tane oluşturun",
+    "noticesTitle": "WhatsApp bildirimleri",
+    "noticesLead": "Bir müşterinin kişileri her zaman e-postayla haberdar edilir. WhatsApp yalnızca burada seçtiğiniz numaradan gider: hiçbiri seçilmemişse WhatsApp’tan hiçbir şey gönderilmez ve kimsenin kişisel numarası kullanılmaz.",
+    "noticesNumber": "Haberdar eden numara",
+    "noticesNone": "Yok: yalnızca e-posta",
+    "noticesNoNumbers": "Henüz bağlı numara yok. Ayarlar › WhatsApp bölümünden bir tane bağlayın, oradan da haberdar edin.",
+    "locale": "{{language}} bildirilir",
+    "localeLabel": "Dil",
+    "localeHint": "Bu müşterinin kişilerine giden e-posta ve mesajların dili. Bir addan asla tahmin edilmez; burada seçilmezse ekibinizin dili kullanılır.",
+    "localeOwner": "Ekibinizin dili",
     "newLink": "Yeni bağlantı",
     "revoke": "Bağlantıyı iptal et"
   },
@@ -20862,6 +20880,19 @@
       "remove": "Logoyu kaldır",
       "saved": "Logo kaydedildi",
       "removed": "Logo kaldırıldı"
+    },
+    "clientEdit": {
+      "rename": "Müşteriyi yeniden adlandır",
+      "renameTitle": "Müşteriyi yeniden adlandır",
+      "renameHelp": "Ekibinizin her yerde gördüğü ad. “{{id}}” adına dönmek için boş bırakın.",
+      "name": "Ad",
+      "renamed": "Ad kaydedildi",
+      "hide": "Müşteriyi kaldır",
+      "hideTitle": "“{{name}}” kaldırılsın mı?",
+      "hideText": "Buradaki her listeden ve sayımdan çıkar. Gönderileri ve kartları portalda kalır ve Gizli müşteriler bölümünden geri getirebilirsiniz.",
+      "hidden": "“{{name}}” kaldırıldı",
+      "hiddenTitle": "Gizli müşteriler",
+      "show": "Yeniden göster"
     },
     "clientColor": {
       "label": "Müşterinin rengi",

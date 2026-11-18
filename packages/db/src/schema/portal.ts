@@ -3,7 +3,7 @@ import { users } from "./auth";
 import { organizations } from "./tenancy";
 
 /**
- * The approval portal kept in this server (docs/adr/doug-0022-embedded-approval-portal.md): the clients a team makes
+ * The approval portal kept in this server (docs/adr/doug-0031-embedded-approval-portal.md): the clients a team makes
  * work for, the posts it sends them, the board's cards, the schedule's lists and labels. Only the installation's
  * portal workspace reads or writes them, and every row carries its `org_id`. Created by `EXTRA_COLUMNS`
  * (`packages/db/src/client.ts`), outside the numbered migrations, as every table of this instance's own features.
@@ -36,6 +36,11 @@ export const portalClients = pgTable(
     color: text(),
     /** The name of the logo's stored file (`PORTAL_LOGO_FILE`). */
     logo: text(),
+    /**
+     * The language this client's notices are written in (`portal_ready` emails and texts), one of `LOCALE_CODES`: the
+     * team picks it, the client has no account to hold a choice. Null: the workspace owner's own language.
+     */
+    locale: text(),
     createdBy: text().references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -305,7 +310,7 @@ export const portalUploads = pgTable(
 );
 
 /**
- * A notice a client was sent (docs/adr/doug-0022-embedded-approval-portal.md §7): which client, by which way
+ * A notice a client was sent (docs/adr/doug-0031-embedded-approval-portal.md §7): which client, by which way
  * (`email`, `whatsapp`), to which of its contacts, about which post and version, and when. It is what the limits are
  * read from: a contact hears about one post at most twice a day, and a notice for a client inside `PORTAL_NOTICE_GROUP_MS`
  * of another is that one, whose `posts[]` it joins. A row is written only when something went out, so a client with no

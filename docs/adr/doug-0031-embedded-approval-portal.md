@@ -1,4 +1,4 @@
-# doug-0022: every installation has its own approval portal, kept in its own database
+# doug-0031: every installation has its own approval portal, kept in its own database
 
 Status: accepted. This instance's own. 2026-11-18. Builds on ADR 9001 (approval portal) and doug-0012 (an editor's
 delivery).
@@ -29,12 +29,13 @@ its own address, so a team can send a client a link and a client can approve wit
 3. **One workspace's.** The portal is one workspace's operation (ADR 9001 §18). `portalWorkspaceOf`
    (`packages/engine/src/approval-portal-clients.ts`) reads, in this order, the workspace holding the first
    `portal_clients` row, else the one whose watch already made a task of it (`issues.source` of type `portal`), else
-   the installation's first workspace. `portalOrgId` (the embedded contract), `portalHere` (the watch, whose answer
-   `portalWorkspace` names) and `portalBelongsTo` read the same two sources in the same order, so a client made and a
-   task the watch later makes never name different workspaces. `upsertPortalClient`, `makeClientLink`, `revokeClientLink`,
-   `removePortalClient`, the tool and every route of `…/portal-clients*` call `portalBelongsTo`: another workspace on
-   the same server answers `404 portal.off` on each, never gets a client or its link, and its agents get no portal
-   tool.
+   the installation's first workspace. `portalOrgId` (the embedded contract) and `portalBelongsTo` read that same
+   function, and the watch's own `portalHere`/`portalWorkspace` (`approval-portal-tasks.ts`) read the portal's task
+   first and the installation's first workspace after it — the same order for the cases that decide a workspace, so a
+   client made and a task the watch later makes never name different workspaces. `upsertPortalClient`,
+   `makeClientLink`, `revokeClientLink`, `removePortalClient`, the tool and every route of `…/portal-clients*` call
+   `portalBelongsTo`: another workspace on the same server answers `404 portal.off` on each, never gets a client or its
+   link, and its agents get no portal tool.
 4. **A client has its own link, and that link is the whole access.** The team adds a client (its name, its contacts,
    a colour) in Settings or with the `portal_clients` tool. Each client gets `<PUBLIC_URL>/p/<token>`, a token derived
    from the link's id and this server's `AGENTES_SECRET` (`portalClientToken`), so only its hash
@@ -54,7 +55,8 @@ its own address, so a team can send a client a link and a client can approve wit
    client and the history, shows the video, the pictures or the carousel with the caption, and has "Aprovar" and
    "Pedir ajuste" (a note, and on a video the second marked, and on a carousel the slide). It works on a phone first,
    in the client's own language (pt-BR or English, from the browser), with the kit's components and this instance's
-   design. It is `/p/`, not `/portal/`, so a proxy that sends `/portal` to an outside portal keeps working. The root
+   design — and its notices (the e-mails and the texts) in the client's own `locale` (the team picks it in Settings,
+   `portal_clients.locale`; empty is the workspace owner's language, never the language of a name, §8). It is `/p/`, not `/portal/`, so a proxy that sends `/portal` to an outside portal keeps working. The root
    route answers only its `Outlet` under `/p`: the page asks for no session, no push listener and no desktop bridge.
    Each request counts against a limit of the caller's address; each answer is `no-store`. Opening the page marks what
    waits as `seen`, once. A decision's body is capped at 64 KiB before it is read (`PORTAL_DECIDE_BYTES`).
@@ -65,31 +67,52 @@ its own address, so a team can send a client a link and a client can approve wit
    and keeps the client's note (a second of a video, a slide, a point on the picture in `portal_post_notes`); the
    workspace's own watch (`portalTasksTick`, every 20 s) reads the change and carries it to the card's task, tells
    whoever has the post and starts an agent on a change, exactly as a post the bridge updated. A post takes one
-   decision, whatever arrives at once: `clientDecision` turns the row with `UPDATE … WHERE status IN (sent, seen,
-   adjusted) RETURNING` inside a transaction, and the note is inserted only when the row moved; the second decision
+   decision, whatever arrives at once: `clientDecision` turns the row with `UPDATE … WHERE id = … AND version = …
+   AND status IN (sent, seen, adjusted) RETURNING` inside a transaction — the version the client had on screen was
+   read first and is part of the statement, so a decision on V1 never lands on a V2 that went up between the read and
+   the write (`portal.version_changed`, 409) — and the note is inserted only when the row moved; the second decision
    finds no row and gets `portal.already_answered` (409). `portalTasksTick` skips a server with no client and no task
-   of the portal (nothing to put in step).
-8. **The client is told, once, and not too often.** A send (or a new version) enqueues the `portal.notify` job under
-   the post and version (`portalNotifyPostKey`), and `announcePortalPost` (`packages/engine/src/portal-notices.ts`)
-   keeps what went out in `portal_notices` (client, channel, contact, post, version, time), where every limit is read.
-   A client is *fresh* on a post while the version waiting on it is past the last version recorded, so the same
-   version never tells twice, and a v2 after an adjustment tells again. **One notice an hour per client:** when a
-   notice for that client went out inside the last hour (`lastNoticeAt`, read from `portal_notices`), the job sends
-   nothing and comes back at the end of that hour (`retryAt = last notice + an hour`, a second `portal.notify` row
-   keyed by client and moment); there, every post that is still fresh — this one and whatever landed meanwhile — goes
-   in one notice with them in `posts[]` (the email's list, the text's first line). No notice goes while the client's
-   link isn't live (`skipped: "link"`), or while the workspace is closed to work (`skipped: "closed"`, `workRefusal`).
-   The e-mail (`portal_ready`, its own words in pt-BR and English) goes to every contact with an address. WhatsApp goes
-   to every contact with a number, only from the number a person picked in Settings › Clientes do portal
-   (`organization_settings.portal_notice_number`, `setPortalNoticeNumber`, `…/portal-notices`): with none, nothing
-   goes by WhatsApp, and no personal number is ever used. The picker offers, and the `PUT` accepts, only the numbers
-   the person is on (`whatsapp_accounts.people`) — every number of the workspace for someone with
-   `manage_connectors`; and a choice whose chooser may no longer use that number (`portal_notice_number_by`) tells
-   nothing, as if none had been picked. A number starts no more conversations than the app itself allows
-   (`whatsapp.new_chats_limit`, through `deliverWhatsAppText`).
-9. **A file is read through the same token.** `GET /p/api/<token>/files/<fileId>` streams a post's file, whole or
-   the part a `Range` asks for (`rangedResponse`), so a video plays and jumps on a phone; a file's bytes never change
-   under its id, so the page may keep them for an hour. Its name goes in `Content-Disposition` as RFC 6266's two
+   of the portal (nothing to put in step), and skips the portal's whole list (`items()`) when no post is under an
+   editor's review, instead of reading it every twenty seconds for nothing.
+8. **The client is told, once, and not too often.** A send (or a new version) enqueues the `portal.notify` job in its
+   own transaction, under the post and version (`portalNotifyPostKey`), and names its client in the payload: a post
+   and the notice that tells the client of it are kept together or not at all. `announcePortalPost`
+   (`packages/engine/src/portal-notices.ts`) keeps what went out in `portal_notices` (client, channel, contact, post,
+   version, time), where every limit is read.
+   - **Fresh** is read from each waiting post's own row: its version waiting on the client is past the last version
+     recorded for it, so the same version never tells twice and a v2 after an adjustment does. The `version` a job
+     carries is what it was queued with, never what it is told about.
+   - **One notice an hour per client, and one at a time.** The last notice and what goes out are read and written
+     inside one transaction holding `pg_advisory_xact_lock(hashtext('portal-notice:<org>:<client>'))`, so two jobs
+     that arrive together (a send and a new version, a retry and a send) line up instead of both telling the client.
+     A notice that went out inside the hour sends nothing and comes back at the hour's end (`retryAt = last notice +
+     an hour`, a `portal.notify` row keyed by *client* and moment, not by post): the retry reads "tell this client",
+     and gathers every post still fresh — the one that first held it, if it still waits, and whatever landed
+     meanwhile — into one notice with them in `posts[]` (the email's list, the text's first line). A post that was
+     answered since is never named, and never blocks the retry: `portal.notify` names the client for exactly this.
+   - **Nothing goes** while the client has no live link (`skipped: "link"`), while the workspace is closed to work
+     (`skipped: "closed"`, `workRefusal`), or while its post is past deciding (`skipped: "answered"`). A workspace
+     back from its hold (`standingWritten`, back to `active`) queues a `portal.notify` for every waiting post nobody
+     was told of (`queuePortalNoticesFor`), so a notice that fell on the hold isn't lost.
+   - The e-mail (`portal_ready`, its own words in every language the app has) goes to every contact with an address,
+     in the client's own language: `portal_clients.locale`, picked in Settings, else the workspace owner's own
+     (`personLocale`), else English — never one guessed from a contact's name. WhatsApp goes to every contact with a
+     number, only from the number a person picked in Settings › Portal clients
+     (`organization_settings.portal_notice_number`, `setPortalNoticeNumber`, `…/portal-notices`): with none, nothing
+     goes by WhatsApp, and no personal number is ever used. The picker offers, and the `PUT` accepts, only the numbers
+     the person is on (`whatsapp_accounts.people`) — every number of the workspace for someone with
+     `manage_connectors`; and a choice whose chooser may no longer use that number (`portal_notice_number_by`) tells
+     nothing, as if none had been picked. A number starts no more conversations than the app itself allows
+     (`whatsapp.new_chats_limit`, through `deliverWhatsAppText`); a text that can't go takes back the rows its
+     decision wrote, so the client isn't read as told by WhatsApp, and still has the page and the e-mail.
+9. **A file is read through the same token.** `GET /p/api/<token>/files/<fileId>` (a `fileId` that isn't a uuid is
+   `404`, before any query) streams a post's file, whole or the part a `Range` asks for (`clientPortalFileRange`), so
+   a video plays and jumps on a phone. An open range (`bytes=0-`) reads at most 8 MiB (`PORTAL_FILE_RANGE_BYTES`), so
+   a jump never pulls an hour of video at once; a part off the end is `416` with `Content-Range: bytes */<size>`; a
+   multi-range header is ignored (the whole file, `200`, as RFC 9110 allows a server to do). Every store's
+   `getRange` refuses a negative offset the same way (`RangeError`, `badBlobRange`), and one that answers `200` to a
+   ranged read (S3 behind a proxy) is cut here, so the part answered is always the one asked for. A file's bytes
+   never change under its id, so the page may keep them for an hour. Its name goes in `Content-Disposition` as RFC 6266's two
    forms (`contentDisposition`): `filename*` with the name as UTF-8 percent-encoding, and a plain ASCII `filename` as
    the fallback, with control characters dropped, so a name with an emoji, CJK or a newline never breaks the header.
    A post's files count against the workspace's storage (`assertStorageRoom` in `keep`, and `storedBytes`).
@@ -105,7 +128,8 @@ its own address, so a team can send a client a link and a client can approve wit
     `portal.link_revoked`); so is a post marked posted and the number chosen for the notices.
 12. **A post marked posted.** This server has no publishing service, so a person says a scheduled post went out:
     `markPublished(client, item, { at, postUrl })` on the contract (`POST …/items/{itemId}/published`) turns a
-    `scheduled` post `published` with its date and, when the team wrote one, its address; any other status is refused.
+    `scheduled` post `published` with its date and, when the team wrote one, its address; any other status is refused,
+    and the route is the installation's own portal's alone — a bridge's portal publishes through its own publisher.
 
 ## Consequences
 

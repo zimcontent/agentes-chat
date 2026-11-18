@@ -21476,7 +21476,13 @@ export const en = {
       "A client's contacts are always told by e-mail. WhatsApp goes out only from the number you pick here: with none, nothing is sent on WhatsApp, and nobody's personal number is used.",
     noticesNumber: "Number that tells them",
     noticesNone: "None: e-mail only",
-    noticesNoNumbers: "No number connected yet. Connect one in Settings › WhatsApp to tell them there too.",
+    noticesNoNumbers: "No number connected yet. Connect one in Settings › WhatsApp to tell them there too.",
+    /** The language a client's notices are written in (ADR doug-0031 §8): {{language}} is its own name. */
+    locale: "Told in {{language}}",
+    localeLabel: "Language",
+    localeHint:
+      "The language of the e-mails and messages this client's contacts get. Never guessed from a name; the team's own when it isn't picked here.",
+    localeOwner: "The team's language",
     newLink: "New link",
     revoke: "Revoke link",
   },

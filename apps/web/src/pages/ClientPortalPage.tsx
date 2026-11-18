@@ -2,7 +2,7 @@ import { Button, Card, Logo, Textarea } from "@agenteschat/ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 /**
- * The client's page of the installation's approval portal (docs/adr/doug-0022-embedded-approval-portal.md): a post
+ * The client's page of the installation's approval portal (docs/adr/doug-0031-embedded-approval-portal.md): a post
  * waiting on them, its video, pictures or carousel with the caption, and "Aprovar" or "Pedir ajuste" (with a note,
  * and on a video a second marked). It works on a phone first, and loads nothing of the app that is signed in: its only
  * data comes from `/p/api/<token>`, read with the link's own token. Its words are the client's own, in pt-BR and

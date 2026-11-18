@@ -24,7 +24,7 @@ import {
 } from "../src";
 import { addMember, addUser, everyoneWithout, SECRET, setup } from "./fixtures";
 
-// The review's items of the installation's own approval portal (docs/adr/doug-0022-embedded-approval-portal.md):
+// The review's items of the installation's own approval portal (docs/adr/doug-0031-embedded-approval-portal.md):
 // the portal belongs to one workspace of the server, a client's link is only shown while its token still matches the
 // hash kept for it, saving a client without its contacts keeps them, and a post takes one decision however many
 // arrive at once. On PGlite, a memory file store and no network.
@@ -191,7 +191,7 @@ describe("the client's decision", () => {
   });
 });
 
-describe("a client's notices (ADR doug-0022 §7)", () => {
+describe("a client's notices (ADR doug-0031 §7)", () => {
   test("a v2 after an adjustment tells again; the same version tells once", async () => {
     await makeClient("padaria-aurora", "Padaria Aurora", [{ name: "Ana", email: "ana@example.com" }]);
     const upload = await portal.upload("reel.mp4", new Uint8Array([1, 2]));
@@ -469,7 +469,7 @@ describe("the number the portal's notices go out as is one the actor may use", (
   });
 });
 
-describe("one notice an hour for a client (ADR doug-0022 §8)", () => {
+describe("one notice an hour for a client (ADR doug-0031 §8)", () => {
   test("posts inside the hour wait for the window's end, and go in one notice there", async () => {
     await makeClient("padaria-aurora", "Padaria Aurora", [{ name: "Ana", email: "ana@example.com" }]);
     const start = new Date("2026-11-18T09:10:00.000Z");
@@ -528,7 +528,7 @@ describe("a send at the same moment", () => {
   });
 });
 
-describe("`AGENTES_SECRET` rotation (ADR doug-0022 §4)", () => {
+describe("`AGENTES_SECRET` rotation (ADR doug-0031 §4)", () => {
   test("a link made under the old secret opens nothing after it changes", async () => {
     const made = await makeClient("padaria-aurora", "Padaria Aurora");
     const token = (made.link as string).split("/").at(-1) as string;
@@ -539,7 +539,7 @@ describe("`AGENTES_SECRET` rotation (ADR doug-0022 §4)", () => {
   });
 });
 
-describe("the client decides on the version they saw (ADR doug-0022 §7)", () => {
+describe("the client decides on the version they saw (ADR doug-0031 §7)", () => {
   test("a decision naming a version the post left goes 409 `portal.version_changed`", async () => {
     await makeClient();
     const upload = await portal.upload("reel.mp4", new Uint8Array([1]));

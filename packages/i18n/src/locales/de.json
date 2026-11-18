@@ -16791,6 +16791,14 @@
     "change": {
       "mergedWithoutAsking": "In {{repo}} ohne Nachfrage gemergt",
       "portalApprovedForClient": "„{{title}}“ im Portal für den Kunden freigegeben",
+      "portalClient": {
+        "renamed": "Hat den Kunden {{client}} im Portal umbenannt",
+        "hidden": "Hat den Kunden {{client}} aus den Listen des Portals entfernt",
+        "shown": "Zeigt den Kunden {{client}} im Portal wieder",
+        "color": "Hat die Farbe des Kunden {{client}} im Portal geändert",
+        "logo": "Hat das Logo des Kunden {{client}} im Portal geändert",
+        "logoRemoved": "Hat das Logo des Kunden {{client}} im Portal entfernt"
+      },
       "pattern": "{{verb}}: {{area}}",
       "approval": {
         "approved": "Hat eine Anfrage freigegeben",
@@ -20852,6 +20860,16 @@
     "copied": "Link kopiert",
     "copyFailed": "Der Link konnte nicht kopiert werden",
     "revoked": "Der Link wurde widerrufen",
+    "linkStale": "Dieser Link muss neu gemacht werden: erstelle einen neuen zum Versenden",
+    "noticesTitle": "WhatsApp-Hinweise",
+    "noticesLead": "Die Kontakte eines Kunden werden immer per E-Mail benachrichtigt. WhatsApp geht nur über die Nummer raus, die du hier auswählst: ohne eine wird nichts per WhatsApp gesendet, und niemandes private Nummer wird benutzt.",
+    "noticesNumber": "Nummer, die benachrichtigt",
+    "noticesNone": "Keine: nur E-Mail",
+    "noticesNoNumbers": "Noch keine Nummer verbunden. Verbinde eine unter Einstellungen › WhatsApp, um auch dort zu benachrichtigen.",
+    "locale": "Benachrichtigt auf {{language}}",
+    "localeLabel": "Sprache",
+    "localeHint": "Die Sprache der E-Mails und Nachrichten, die die Kontakte dieses Kunden bekommen. Nie aus einem Namen geraten; ohne Wahl hier die deines Teams.",
+    "localeOwner": "Die Sprache des Teams",
     "newLink": "Neuer Link",
     "revoke": "Link widerrufen"
   },
@@ -20931,6 +20949,19 @@
       "remove": "Logo entfernen",
       "saved": "Logo gespeichert",
       "removed": "Logo entfernt"
+    },
+    "clientEdit": {
+      "rename": "Kunde umbenennen",
+      "renameTitle": "Kunde umbenennen",
+      "renameHelp": "Der Name, den dein Team überall sieht. Leer lassen, um zu „{{id}}“ zurückzukehren.",
+      "name": "Name",
+      "renamed": "Name gespeichert",
+      "hide": "Kunde entfernen",
+      "hideTitle": "„{{name}}“ entfernen?",
+      "hideText": "Er verlässt jede Liste und jede Zählung hier. Seine Beiträge und Karten bleiben im Portal, und du kannst ihn unter „Verborgene Kunden“ zurückholen.",
+      "hidden": "„{{name}}“ entfernt",
+      "hiddenTitle": "Verborgene Kunden",
+      "show": "Wieder anzeigen"
     },
     "clientColor": {
       "label": "Farbe des Kunden",

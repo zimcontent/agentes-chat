@@ -1582,6 +1582,7 @@
       "routines.setup.frameio.url",
       "hosting.cloud.name",
       "shell.portal",
+      "portal.clientEdit.name",
       "portal.title",
       "portalClients.name",
       "portal.types.reel",

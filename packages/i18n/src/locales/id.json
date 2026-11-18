@@ -16270,6 +16270,14 @@
     "change": {
       "mergedWithoutAsking": "Merge di {{repo}} tanpa bertanya",
       "portalApprovedForClient": "Menyetujui “{{title}}” atas nama klien di portal",
+      "portalClient": {
+        "renamed": "Mengganti nama klien {{client}} di portal",
+        "hidden": "Menyembunyikan klien {{client}} dari daftar portal",
+        "shown": "Menampilkan lagi klien {{client}} di portal",
+        "color": "Mengubah warna klien {{client}} di portal",
+        "logo": "Mengubah logo klien {{client}} di portal",
+        "logoRemoved": "Menghapus logo klien {{client}} di portal"
+      },
       "pattern": "{{verb}} {{area}}",
       "approval": {
         "approved": "Menyetujui permintaan",
@@ -20310,6 +20318,16 @@
     "copied": "Tautan disalin",
     "copyFailed": "Tautan gagal disalin",
     "revoked": "Tautan telah dicabut",
+    "linkStale": "Tautan ini harus dibuat ulang: buat tautan baru untuk dikirim",
+    "noticesTitle": "Pemberitahuan WhatsApp",
+    "noticesLead": "Kontak klien selalu diberi tahu lewat email. WhatsApp hanya keluar dari nomor yang kamu pilih di sini: tanpa nomor, tidak ada yang dikirim lewat WhatsApp, dan nomor pribadi siapa pun tidak dipakai.",
+    "noticesNumber": "Nomor yang memberi tahu",
+    "noticesNone": "Tidak ada: hanya email",
+    "noticesNoNumbers": "Belum ada nomor yang tersambung. Sambungkan satu di Pengaturan › WhatsApp untuk memberi tahu di sana juga.",
+    "locale": "Diberi tahu dalam {{language}}",
+    "localeLabel": "Bahasa",
+    "localeHint": "Bahasa email dan pesan yang diterima kontak klien ini. Tidak pernah ditebak dari nama; tanpa pilihan di sini, bahasanya bahasa timmu.",
+    "localeOwner": "Bahasa tim",
     "newLink": "Tautan baru",
     "revoke": "Cabut tautan"
   },
@@ -20384,6 +20402,19 @@
       "remove": "Hapus logo",
       "saved": "Logo disimpan",
       "removed": "Logo dihapus"
+    },
+    "clientEdit": {
+      "rename": "Ganti nama klien",
+      "renameTitle": "Ganti nama klien",
+      "renameHelp": "Nama yang dilihat timmu di mana-mana. Kosongkan untuk kembali ke “{{id}}”.",
+      "name": "Nama",
+      "renamed": "Nama tersimpan",
+      "hide": "Hapus klien",
+      "hideTitle": "Hapus “{{name}}”?",
+      "hideText": "Klien ini keluar dari semua daftar dan hitungan di sini. Postingan dan kartunya tetap di portal, dan kamu bisa memunculkannya lagi dari Klien tersembunyi.",
+      "hidden": "“{{name}}” dihapus",
+      "hiddenTitle": "Klien tersembunyi",
+      "show": "Tampilkan lagi"
     },
     "clientColor": {
       "label": "Warna klien",

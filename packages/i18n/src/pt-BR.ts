@@ -21420,7 +21420,12 @@ export const ptBR = {
     noticesNumber: "Número que avisa",
     noticesNone: "Nenhum: só e-mail",
     noticesNoNumbers:
-      "Nenhum número conectado ainda. Conecte um em Configurações › WhatsApp para avisar por lá também.",
+      "Nenhum número conectado ainda. Conecte um em Configurações › WhatsApp para avisar por lá também.",
+    locale: "Avisado em {{language}}",
+    localeLabel: "Idioma",
+    localeHint:
+      "O idioma dos e-mails e das mensagens que os contatos deste cliente recebem. Nunca vem do nome de ninguém; sem escolha aqui, é o idioma da equipe.",
+    localeOwner: "O idioma da equipe",
     newLink: "Novo link",
     revoke: "Revogar link",
   },

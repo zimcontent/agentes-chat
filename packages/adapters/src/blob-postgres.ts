@@ -1,5 +1,5 @@
 import { type Database, eq, like, schema } from "@agenteschat/db";
-import type { BlobStore } from "./blob";
+import { type BlobStore, badBlobRange, readableRange } from "./blob";
 
 const { blobs } = schema;
 /** An org's files (`orgs/{orgId}/…`) and its logo (`org-logos/{orgId}/…`). */
@@ -57,6 +57,7 @@ export function createPostgresBlobStore(db: Database): BlobStore {
       return { body: new Uint8Array(Buffer.from(row.content, "base64")), contentType: row.contentType };
     },
     async getRange(key, start, end) {
+      if (!readableRange(start, end)) throw badBlobRange(start, end);
       // The bytes are one base64 column, so the part is cut after it is read: no less memory than `get`, and the same
       // answer as the slice a caller would make. A store that can read a part as it streams has one of its own.
       const [row] = await db.select().from(blobs).where(eq(blobs.key, key));

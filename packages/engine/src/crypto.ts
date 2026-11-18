@@ -161,7 +161,7 @@ export function routineHookToken(masterSecret: string, keyId: string): string {
  * The token of a portal client's link (`<PUBLIC_URL>/p/<token>`): an HMAC of the link's id, as an invitation's,
  * so the address can be shown again from the row while only its hash is kept. A link that was revoked answers nothing
  * even while its token still matches, and a new `AGENTES_SECRET` gives every link a token that no longer does
- * (docs/adr/doug-0022-embedded-approval-portal.md).
+ * (docs/adr/doug-0031-embedded-approval-portal.md).
  */
 export function portalClientToken(masterSecret: string, linkId: string): string {
   return createHmac("sha256", deriveKey(masterSecret, "portal-clients")).update(linkId).digest("base64url");

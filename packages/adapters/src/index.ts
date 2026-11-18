@@ -106,7 +106,7 @@ export interface Adapters {
   /**
    * The approval portal (ADR 9001), reached through the installation's bridge (`APPROVAL_PORTAL_URL`);
    * null/absent = no portal: no page, no tools. On a server with no bridge, the portal kept in this server's own
-   * database takes its place (docs/adr/doug-0022-embedded-approval-portal.md): `approvalPortal` is that one there, and
+   * database takes its place (docs/adr/doug-0031-embedded-approval-portal.md): `approvalPortal` is that one there, and
    * `approvalPortalEmbedded` says so, so the client links and their notices are wired.
    */
   approvalPortal?: ApprovalPortal | null;

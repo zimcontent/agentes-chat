@@ -17259,6 +17259,14 @@
     "change": {
       "mergedWithoutAsking": "Hizo merge en {{repo}} sin preguntar",
       "portalApprovedForClient": "Aprobó “{{title}}” en nombre del cliente en el portal",
+      "portalClient": {
+        "renamed": "Renombró al cliente {{client}} en el portal",
+        "hidden": "Quitó al cliente {{client}} de las listas del portal",
+        "shown": "Volvió a mostrar al cliente {{client}} en el portal",
+        "color": "Cambió el color del cliente {{client}} en el portal",
+        "logo": "Cambió el logo del cliente {{client}} en el portal",
+        "logoRemoved": "Quitó el logo del cliente {{client}} en el portal"
+      },
       "pattern": "{{verb}} {{area}}",
       "approval": {
         "approved": "Aprobó una solicitud",
@@ -21434,6 +21442,16 @@
     "copied": "Enlace copiado",
     "copyFailed": "No se pudo copiar el enlace",
     "revoked": "El enlace fue revocado",
+    "linkStale": "Este enlace hay que rehacerlo: crea uno nuevo para enviarlo",
+    "noticesTitle": "Avisos por WhatsApp",
+    "noticesLead": "Los contactos del cliente siempre reciben un correo. El WhatsApp solo sale del número que elijas aquí: sin ninguno, no se envía nada por WhatsApp, y no se usa el número personal de nadie.",
+    "noticesNumber": "Número que avisa",
+    "noticesNone": "Ninguno: solo correo",
+    "noticesNoNumbers": "Todavía no hay ningún número conectado. Conecta uno en Ajustes › WhatsApp para avisar también por ahí.",
+    "locale": "Avisado en {{language}}",
+    "localeLabel": "Idioma",
+    "localeHint": "El idioma de los correos y mensajes que reciben los contactos de este cliente. Nunca se adivina por un nombre; sin elegirlo aquí, es el idioma del equipo.",
+    "localeOwner": "El idioma del equipo",
     "newLink": "Nuevo enlace",
     "revoke": "Revocar enlace"
   },
@@ -21518,6 +21536,19 @@
       "remove": "Quitar logo",
       "saved": "Logo guardado",
       "removed": "Logo quitado"
+    },
+    "clientEdit": {
+      "rename": "Renombrar cliente",
+      "renameTitle": "Renombrar cliente",
+      "renameHelp": "El nombre que tu equipo ve en todas partes. Déjalo vacío para volver a «{{id}}».",
+      "name": "Nombre",
+      "renamed": "Nombre guardado",
+      "hide": "Quitar cliente",
+      "hideTitle": "¿Quitar a «{{name}}»?",
+      "hideText": "Sale de todas las listas y recuentos de aquí. Sus publicaciones y tarjetas siguen en el portal, y puedes traerlo de vuelta desde Clientes ocultos.",
+      "hidden": "«{{name}}» quitado",
+      "hiddenTitle": "Clientes ocultos",
+      "show": "Mostrar de nuevo"
     },
     "clientColor": {
       "label": "Color del cliente",

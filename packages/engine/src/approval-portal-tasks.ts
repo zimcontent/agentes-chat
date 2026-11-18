@@ -56,7 +56,7 @@ export interface PortalTaskDeps {
   pubsub?: PubSub;
   log?: { warn: (message: string, details?: Record<string, unknown>) => void };
   /**
-   * The portal is this server's own (docs/adr/doug-0022-embedded-approval-portal.md): its clients are in this database,
+   * The portal is this server's own (docs/adr/doug-0031-embedded-approval-portal.md): its clients are in this database,
    * so a workspace that made none has nothing to put in step and the pass is skipped. Absent for a bridge's portal,
    * whose clients live at the bridge: its cards and posts are always read.
    */
@@ -1022,21 +1022,25 @@ export function portalTasksTick(deps: PortalTaskDeps, portal: ApprovalPortal): P
     await announcePortalStages(deps, orgId, result.changes);
     // What the client wrote at the portal on an editor's post comes into its review, at the second they marked. The
     // posts are read once, already narrowed to the ones an editor's delivery named (the only ones either step looks
-    // at), so a workspace with hundreds of posts reads a handful inside the tick instead of every one of them.
-    await portal
-      .items()
-      .then(async (all) => {
-        const reviewing = await editorPosts(deps.db, orgId);
-        const items = all.filter((item) => reviewing.has(`${item.client}/${item.id}`));
-        // Each editor's post keeps where it stands with the client: a task may have several (doug-0012 §13).
-        await syncEditorStages(deps.db, orgId, items);
-        return bringClientNotes(deps.db, orgId, items);
-      })
-      .catch((error: unknown) =>
-        deps.log?.warn("approval portal: the client's notes could not be brought to the reviews", {
-          error: error instanceof Error ? error.message : String(error),
-        }),
-      );
+    // at), so a workspace with hundreds of posts reads a handful inside the tick instead of every one of them. A
+    // workspace with no post under an editor's review is not even read: `items()` is the portal's whole list, and
+    // every twenty seconds for nothing.
+    const reviewing = await editorPosts(deps.db, orgId);
+    if (reviewing.size > 0) {
+      await portal
+        .items()
+        .then(async (all) => {
+          const items = all.filter((item) => reviewing.has(`${item.client}/${item.id}`));
+          // Each editor's post keeps where it stands with the client: a task may have several (doug-0012 §13).
+          await syncEditorStages(deps.db, orgId, items);
+          return bringClientNotes(deps.db, orgId, items);
+        })
+        .catch((error: unknown) =>
+          deps.log?.warn("approval portal: the client's notes could not be brought to the reviews", {
+            error: error instanceof Error ? error.message : String(error),
+          }),
+        );
+    }
     // A post the client approved: an editor's original is kept as the final and backed up (doug-0012).
     await queueEditorFinals(deps.db, orgId).catch((error: unknown) =>
       deps.log?.warn("approval portal: the finals of approved posts could not be queued", {

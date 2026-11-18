@@ -49,6 +49,7 @@ import {
   startPortalAgent,
   syncPortalTasks,
   TEAM_APPROVAL_NOTE,
+  USER_LOCALES,
   upsertPortalClient,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
@@ -73,7 +74,7 @@ const tags = ["Approval portal"];
 export const PORTAL_SENDS_PER_PERSON = { limit: 30, windowMs: 60_000 };
 
 const Missing = z.enum(["cover", "caption", "editor", "date"]);
-/** A client of the installation's own portal, with its contacts and the address of its link (`docs/adr/doug-0022`). */
+/** A client of the installation's own portal, with its contacts and the address of its link (`docs/adr/doug-0031`). */
 const PortalClient = z
   .object({
     id: z.string(),
@@ -83,6 +84,8 @@ const PortalClient = z
       z.object({ id: z.string(), name: z.string(), email: z.string().nullable(), whatsapp: z.string().nullable() }),
     ),
     color: z.enum(PORTAL_CLIENT_COLORS).nullable(),
+    /** The language its notices are written in; null: the workspace owner's own. */
+    locale: z.string().nullable(),
     link: z.string().nullable().openapi({ description: "The client's page's own address; null while revoked." }),
     revoked: z.boolean(),
     createdAt: z.string(),
@@ -1420,6 +1423,8 @@ export function portalRoutes(deps: AppDeps) {
               .max(10)
               .optional(),
             color: z.enum(PORTAL_CLIENT_COLORS).nullable().optional(),
+            /** The language its notices are written in; null (or absent): the workspace owner's own. */
+            locale: z.enum(USER_LOCALES).nullable().optional(),
           }),
         ),
       },
@@ -1520,7 +1525,7 @@ export function portalRoutes(deps: AppDeps) {
     },
   );
 
-  // The number the portal's notices go out as, and the connected ones to pick from (docs/adr/doug-0022 §7).
+  // The number the portal's notices go out as, and the connected ones to pick from (docs/adr/doug-0031 §7).
   app.openapi(
     createRoute({
       method: "get",
@@ -1584,7 +1589,9 @@ export function portalRoutes(deps: AppDeps) {
     },
   );
 
-  // A person says a scheduled post is out (the way out of `scheduled` that this server has no publisher for).
+  // A person says a scheduled post is out (the way out of `scheduled` that this server has no publisher for). The
+  // installation's own portal's alone: a bridge's portal publishes through its own publisher, and nothing here says a
+  // post of its went out.
   app.openapi(
     createRoute({
       method: "post",
@@ -1593,7 +1600,7 @@ export function portalRoutes(deps: AppDeps) {
       security,
       summary: "Mark a scheduled post posted: when it went out, and where, when known (assign_work)",
       description:
-        "A post approved and scheduled turns `published` here, with its date and (when the team wrote one) its address: this server has no publishing service, so a person says it went out. Only a `scheduled` post takes it.",
+        "A post approved and scheduled turns `published` here, with its date and (when the team wrote one) its address: this server has no publishing service, so a person says it went out. Only a `scheduled` post takes it. The installation's own portal's alone: a bridge's answers `404 portal.off`.",
       request: {
         params: OrgParams.extend({ client: ClientId, itemId: ItemId }),
         body: body(
@@ -1609,6 +1616,8 @@ export function portalRoutes(deps: AppDeps) {
     }),
     async (c) => {
       const { orgId, client, itemId } = c.req.valid("param");
+      const refused = await itsPortal(c, orgId);
+      if (refused) return refused;
       const user = c.get("user");
       await requireChangePermission(db, user.id, orgId, "assign_work");
       const input = c.req.valid("json");

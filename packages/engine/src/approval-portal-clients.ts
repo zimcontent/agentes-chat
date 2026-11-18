@@ -3,6 +3,7 @@ import type { BlobStore, PortalClientColor, PortalStatus, PortalType } from "@ag
 import { PORTAL_CLIENT_COLORS } from "@agenteschat/adapters";
 import type { Database } from "@agenteschat/db";
 import { and, asc, desc, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+import { isAppLocale, LOCALE_CODES } from "@agenteschat/i18n/locale";
 import { recordAudit } from "./audit";
 import { portalClientToken, sha256 } from "./crypto";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "./errors";
@@ -11,7 +12,7 @@ const { portalClientLinks, portalClients, portalPostFiles, portalPostNotes, port
 const { issues } = schema;
 
 /**
- * The clients of the installation's approval portal (docs/adr/doug-0022-embedded-approval-portal.md): each one has a
+ * The clients of the installation's approval portal (docs/adr/doug-0031-embedded-approval-portal.md): each one has a
  * name, its contacts (an e-mail, a WhatsApp number, or both) and a link of its own, `<PUBLIC_URL>/p/<token>`, with
  * no account: the token is the whole of the access, good for one client of one workspace, and the team may revoke it.
  * The page it opens is rendered as its own, never by the app's signed-in routes.
@@ -90,6 +91,11 @@ export interface PortalClientView {
    * address opens nothing, so the team has to make a new one (`makeClientLink`); never shown as if it worked.
    */
   linkStale: boolean;
+  /**
+   * The language the client's notices are written in, one of `LOCALE_CODES`; null: the workspace owner's own
+   * (`portalClientLocale`). The client has no account, so the team picks this in Settings.
+   */
+  locale: string | null;
   createdAt: string;
 }
 
@@ -109,6 +115,7 @@ const clientView = async (
     revoked: Boolean(last?.revokedAt),
     // An unrevoked link that answers null: its token no longer matches.
     linkStale: Boolean(last && !last.revokedAt && !link),
+    locale: row.locale ?? null,
     createdAt: row.createdAt.toISOString(),
   };
 };
@@ -178,11 +185,19 @@ function colorOf(value: unknown): PortalClientColor | null {
   throw new ValidationError("Pick one of the client's colours");
 }
 
+/** A language the client's notices are written in, or null (the workspace owner's own). */
+function localeOf(value: unknown): string | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "string" && isAppLocale(value)) return value;
+  throw new ValidationError(`The client's language is one of ${LOCALE_CODES.join(", ")}`);
+}
+
 export interface PortalClientInput {
   client?: string;
   name: string;
   contacts?: unknown[];
   color?: unknown;
+  locale?: unknown;
 }
 
 /** A client's name as an id ("Padaria Aurora" → "padaria-aurora"). */
@@ -221,6 +236,7 @@ export async function upsertPortalClient(
   if (!name) throw new ValidationError("Give the client a name");
   const contacts = (input.contacts ?? []).slice(0, PORTAL_CLIENT_CONTACTS_MAX).map(contactOf);
   const color = colorOf(input.color);
+  const locale = localeOf(input.locale);
   const [existing] = await db
     .select()
     .from(portalClients)
@@ -232,6 +248,7 @@ export async function upsertPortalClient(
         name,
         ...(input.contacts !== undefined ? { contacts } : {}),
         ...(input.color !== undefined ? { color } : {}),
+        ...(input.locale !== undefined ? { locale } : {}),
         updatedAt: new Date(),
       })
       .where(eq(portalClients.id, existing.id))
@@ -242,7 +259,7 @@ export async function upsertPortalClient(
   if (!by) throw new ForbiddenError("A person makes the team's clients");
   const [row] = await db
     .insert(portalClients)
-    .values({ orgId, client, name, contacts, color, createdBy: by })
+    .values({ orgId, client, name, contacts, color, locale, createdBy: by })
     .returning();
   if (!row) throw new ValidationError("The client could not be made");
   await makeClientLink(deps, orgId, row.id, by);
@@ -537,7 +554,7 @@ export interface ClientDecision {
 export const CLIENT_NOTE_MAX = 4000;
 
 /**
- * The client's decision through the link's token (docs/adr/doug-0022-embedded-approval-portal.md): an approval, or a
+ * The client's decision through the link's token (docs/adr/doug-0031-embedded-approval-portal.md): an approval, or a
  * change asked (a note, maybe with a second of a video or a spot of a slide). Only a post waiting on this client takes
  * one, and only once: it turns `approved` or `adjust_requested`, and the workspace's own watch reads the change (and
  * the note) and carries them to the team's card and task, to whoever has the work, and to an agent that starts on it.
@@ -582,10 +599,14 @@ export async function clientDecision(
     const [turned] = await tx
       .update(portalPosts)
       .set({ status, updatedAt: new Date() })
-      .where(and(eq(portalPosts.id, post.id), inArray(portalPosts.status, WAITING)))
+      // The version is part of the statement, not only of the read above: a new version that went up between the read
+      // and this write leaves the row unturned, so a decision on V1 never lands on the V2 a client hasn't seen.
+      .where(
+        and(eq(portalPosts.id, post.id), eq(portalPosts.version, post.version), inArray(portalPosts.status, WAITING)),
+      )
       .returning({ version: portalPosts.version });
-    // The post left the client's hands meanwhile (another decision, or the team's answer): the same refusal a second
-    // decision gets, and nothing is written on it.
+    // The post left the client's hands meanwhile (another decision, a new version, or the team's answer): the same
+    // refusal a second decision gets, and nothing is written on it.
     if (!turned) throw new ConflictError("This post was already answered", "portal.already_answered");
     await tx.insert(portalPostNotes).values({
       orgId: clientRow.orgId,
@@ -657,11 +678,18 @@ export interface ClientPortalFileRead {
 }
 
 /**
+ * The most one `bytes=` read answers with (`8 MiB`): a player's jump reads a chunk, never an hour of video at once.
+ * An open range (`bytes=0-`) is that chunk, so a store that reads parts is never asked for a whole long file.
+ */
+export const PORTAL_FILE_RANGE_BYTES = 8 * 1024 * 1024;
+
+/**
  * A post's file through the token's client, read whole or just the part a `Range` asks for: a store that can read a
  * part without the whole of it in memory (`getRange`: S3, the disk) is asked for only those bytes, and one that only
  * reads whole ones answers the slice, as `rangedResponse` made before. A range off the end of the file is `"bad"`
- * (`416`, with `bytes *` and the file's size in `Content-Range`), not a read. The file must belong to the token's
- * client's post, as `clientPortalFile` asks.
+ * (`416`, with `bytes *` and the file's size in `Content-Range`), not a read; a multi-range header is ignored (the
+ * whole file, `200`), as the RFC lets a server do. An open range (`bytes=0-`) ends after `PORTAL_FILE_RANGE_BYTES`.
+ * The file must belong to the token's client's post, as `clientPortalFile` asks.
  */
 export async function clientPortalFileRange(
   deps: { db: Database; blobs: BlobStore },
@@ -697,13 +725,53 @@ export async function clientPortalFileRange(
   return { ...base, body: whole.body.subarray(part.start, part.end + 1), size: whole.body.length, part };
 }
 
-/** A `Range` header against a file's size: the part, null (the whole), or `"bad"` for a part off the end. */
-function rangePart(header: string | undefined, size: number): { start: number; end: number } | "bad" | null {
+/** A file's size, for the `Content-Range` a `416` carries: the row's own count, out of any read. */
+export async function clientPortalFileSize(
+  db: Database,
+  clientRow: { orgId: string; client: string },
+  fileId: string,
+): Promise<number | null> {
+  const [row] = await db
+    .select({ size: portalPostFiles.size })
+    .from(portalPostFiles)
+    .innerJoin(portalPosts, eq(portalPosts.id, portalPostFiles.postId))
+    .where(
+      and(
+        eq(portalPostFiles.orgId, clientRow.orgId),
+        eq(portalPostFiles.id, fileId),
+        eq(portalPosts.client, clientRow.client),
+      ),
+    );
+  return row?.size ?? null;
+}
+
+/**
+ * A `Range` header against a file's size: the part, null (the whole: no header, or a multi-range one, which a server
+ * may answer whole), or `"bad"` for a part off the end (a `416`, whose `Content-Range` reads `bytes *` and then
+ * the size). An open range (`bytes=0-`, `bytes=-N`) ends at most `PORTAL_FILE_RANGE_BYTES` in, and the range spoken of
+ * only its first value.
+ */
+export function rangePart(header: string | undefined, size: number): { start: number; end: number } | "bad" | null {
   if (!header) return null;
+  // A multi-range header (`bytes=0-1,4-5`) is ignored: the RFC 9110 lets a server answer the whole representation,
+  // and one part would silently answer something the caller didn't ask for.
+  if (header.includes(",")) return null;
   const match = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
   if (!match || (!match[1] && !match[2])) return "bad";
-  const start = match[1] ? Number(match[1]) : Math.max(0, size - Number(match[2]));
-  const end = match[1] && match[2] ? Math.min(Number(match[2]), size - 1) : size - 1;
+  const last = size - 1;
+  // `bytes=-N`: the last N bytes, as many as the file has (a suffix range asks for its own length and is never
+  // shortened by the cap the way an open one is).
+  if (!match[1]) {
+    const wanted = Number(match[2]);
+    if (!Number.isFinite(wanted) || wanted <= 0) return "bad";
+    return { start: Math.max(0, size - wanted), end: last };
+  }
+  const start = Number(match[1]);
+  if (!Number.isFinite(start) || start < 0) return "bad";
+  const asked = match[2] ? Number(match[2]) : Number.POSITIVE_INFINITY;
+  if (Number.isNaN(asked)) return "bad";
+  // An open range (`bytes=0-`) is one read's cap; a closed one takes what it asks, up to its own cap as well.
+  const end = Math.min(asked, start + PORTAL_FILE_RANGE_BYTES - 1, last);
   return start > end || start >= size ? "bad" : { start, end };
 }
 
