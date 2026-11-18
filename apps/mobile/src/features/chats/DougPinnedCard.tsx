@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import Svg, { Circle, Defs, Mask, Pattern, RadialGradient, Rect, Stop, SvgXml } from "react-native-svg";
 import { iconSvg } from "@/brand/doug-icons.js";
-import { Button, Text, useTheme } from "@/ui";
+import { Button, IconButton, Text, useTheme } from "@/ui";
 
 /** This fork's own words, in Portuguese and English (any other language reads English). */
 const WORDS = {
@@ -74,10 +74,9 @@ export function DougPinnedCard({
   onStatus?: (() => void) | undefined;
 }) {
   const { scheme } = useTheme();
-  // Under 390 points (13 mini, SE, 12 and 13 at 375) or with larger text, "Ver as decisões" is "Decisões": the three
-  // buttons keep one row instead of the last one dropping under the others.
-  const { width, fontScale } = useWindowDimensions();
-  const short = width < 390 || fontScale > 1.1;
+  // Two buttons fit on every iPhone; only with the largest text "Ver as decisões" says "Decisões".
+  const { fontScale } = useWindowDimensions();
+  const short = fontScale > 1.3;
   const doing = working > 0 ? words.coordinating(working) : words.ready;
   return (
     <View style={styles.section}>
@@ -113,9 +112,10 @@ export function DougPinnedCard({
             </Text>
           </Pressable>
         </View>
+        {/* Ligar as a small phone beside him: the row below is for talking and his decisions. */}
+        <IconButton icon="handset" label={words.call} plate onPress={onCall} />
       </Pressable>
       <View style={styles.actions}>
-        <Button variant="secondary" size="sm" label={words.call} onPress={onCall} />
         <View style={styles.main}>
           <Button variant="primary" size="sm" label={words.talk} onPress={onTalk} wide />
         </View>
