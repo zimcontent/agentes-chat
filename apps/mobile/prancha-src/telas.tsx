@@ -51,6 +51,7 @@ import { IlhaCena } from "./ilha";
 import { Paineis, Paineis320, PaineisFormas } from "./paineis";
 import { PainelIa, PainelIa320, PainelIaFolha, PainelIaFolha320 } from "./painel-ia";
 import { PortalCartao, PortalCronograma, PortalCronograma320 } from "./portal";
+import { TimeDougComo, TimeDougMarca, TimeDougQuem } from "./time-doug";
 import {
   RevisaoConversa,
   RevisaoDesign,
@@ -1088,6 +1089,9 @@ export const TELAS: Record<string, () => ReactNode> = {
   "portal-cronograma": PortalCronograma,
   "portal-cronograma-320": PortalCronograma320,
   "portal-cartao": PortalCartao,
+  "time-doug-como": TimeDougComo,
+  "time-doug-quem": TimeDougQuem,
+  "time-doug-marca": TimeDougMarca,
   whatsapp: WhatsAppLista,
   "whatsapp-conversa": WhatsAppConversa,
   arquivos: Arquivos,
