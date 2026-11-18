@@ -1391,8 +1391,7 @@ export const envVars = {
   },
   LEGAL_COMPANY_TAX_ID: {
     schema: z.string().trim().min(1).max(40).optional(),
-    description:
-      "The company's CNPJ, shown with its legal name in the Terms of Use. Unset (default): `[a preencher]`.",
+    description: "The company's CNPJ, shown with its legal name in the Terms of Use. Unset (default): `[a preencher]`.",
     section: "Legal",
     example: "00.000.000/0001-00",
   },
