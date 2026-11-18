@@ -20,6 +20,7 @@ import {
   useAgentStatuses,
   useAiAccounts,
   useArchivedChannels,
+  useAuthConfig,
   useChannelCategories,
   useChannels,
   useConnections,
@@ -70,6 +71,7 @@ import { isRightHand, rightHandSeenKey } from "@agenteschat/client/lib/right-han
 import { SERVER_PLACE_ICON } from "@agenteschat/client/lib/server";
 import { inSidebarList, sidebarItemOrder, sidebarPlace } from "@agenteschat/client/lib/sidebar-items";
 import { AGENT_SORTS, sortAgents, splitPinned } from "@agenteschat/client/lib/sidebar-view";
+import { supportContactOf } from "@agenteschat/client/lib/support";
 import { badgeCount, looksUnread } from "@agenteschat/client/lib/unread";
 import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
 import {
@@ -2624,6 +2626,8 @@ function AccountMenu({
     setAccount("password");
   }, []);
   const handle = dir.memberById.get(me.user.id)?.handle;
+  // Where the operator lets people reach them (`SUPPORT_EMAIL`, `SUPPORT_WHATSAPP`): the account menu's Support entry.
+  const support = supportContactOf(useAuthConfig().data);
   // How you appear to yourself, read as the members column reads it (hidden stays hidden), and your line.
   const shown = usePersonPresence(me.user.id);
   const picked = shown?.person.availability;
@@ -2810,6 +2814,12 @@ function AccountMenu({
             {t("settings.section.account")}
           </MenuItem>
         )}
+        {/* Where the operator lets people reach them (`SUPPORT_EMAIL`, `SUPPORT_WHATSAPP`): nowhere otherwise. */}
+        {support ? (
+          <MenuItem icon="question" onSelect={() => openSettings("support")}>
+            {t("settings.section.support")}
+          </MenuItem>
+        ) : null}
         {/* In a personal workspace: every section, what a team's workspace menu opens. In a team's: Your account. */}
         <MenuItem icon="settings" onSelect={() => openSettings(personal ? undefined : "account")}>
           {t("shell.settings")}

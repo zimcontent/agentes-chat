@@ -18056,6 +18056,7 @@
       "voice": "Głos",
       "apps": "Aplikacje AI",
       "approvals": "Zatwierdzenia",
+      "support": "Pomoc",
       "about": "O DougBot",
       "generalPersonal": "O tobie",
       "keysPersonal": "AI i aplikacje",
@@ -18087,12 +18088,24 @@
       "voice": "Wiadomości głosowe w rozmowach i to, kto zamienia głos na tekst.",
       "apps": "Zlecaj zadania agentom z Claude, Cursor i innych aplikacji.",
       "approvals": "Kto decyduje za ciebie, gdy agent prosi o twoją zgodę.",
+      "support": "Kto prowadzi tę instalację i jak się z nimi skontaktować.",
       "about": "Kto go tworzy, jego licencja i gdzie jest kod źródłowy.",
       "generalPersonal": "Co twoi agenci wiedzą o tobie i jak działa ta przestrzeń robocza.",
       "usagePersonal": "Ile AI używają twoi agenci, i twój plan.",
       "connectorsPersonal": "Twoje aplikacje i serwery MCP, połączone raz dla twoich agentów.",
       "membersPersonal": "Kto jest tu z tobą.",
       "rolesPersonal": "Co może robić każda osoba tutaj. Właściciel może wszystko."
+    },
+    "support": {
+      "title": "Skontaktuj się z pomocą",
+      "lead": "Osoby prowadzące tę instalację, na wypadek, gdy coś w systemie nie działa.",
+      "email": "E-mail",
+      "whatsapp": "WhatsApp",
+      "client": "Ta instalacja",
+      "askTitle": "Poproś {{name}} o pomoc",
+      "askLead": "{{name}} zapisze, co się stało, i wyśle to do pomocy w Twoim imieniu. Przeczytasz wiadomość, zanim zostanie wysłana.",
+      "askStatus": "Otwiera rozmowę ze szczegółami już wpisanymi.",
+      "ask": "Poproś {{name}} o pomoc"
     },
     "about": {
       "basedOn": "Oparte na <site>DougBot</site> od Codari Global, LLC · AGPL-3.0",

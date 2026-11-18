@@ -16457,6 +16457,7 @@
       "voice": "语音",
       "apps": "AI 应用",
       "approvals": "审批",
+      "support": "支持",
       "about": "关于 DougBot",
       "generalPersonal": "关于你",
       "keysPersonal": "AI 和应用",
@@ -16488,12 +16489,24 @@
       "voice": "对话中的语音消息，以及由谁把语音转成文字。",
       "apps": "从 Claude、Cursor 等应用给智能体分配任务。",
       "approvals": "当智能体请求你的批准时，替你做决定的人。",
+      "support": "谁维护这套系统，以及如何联系他们。",
       "about": "开发者、许可证以及源代码的位置。",
       "generalPersonal": "你的智能体对你的了解，以及这个工作区的使用方式。",
       "usagePersonal": "你的智能体用了多少 AI，以及你的套餐。",
       "connectorsPersonal": "你的应用和 MCP 服务器，连接一次即可供智能体使用。",
       "membersPersonal": "谁和你一起在这里。",
       "rolesPersonal": "这里每个人可以做什么。所有者可以做任何事。"
+    },
+    "support": {
+      "title": "联系支持",
+      "lead": "维护这套系统的人，供系统出问题时联系。",
+      "email": "电子邮件",
+      "whatsapp": "WhatsApp",
+      "client": "此安装",
+      "askTitle": "向 {{name}} 求助",
+      "askLead": "{{name}} 会写下发生了什么，并以你的名义发给支持。发送前你可以先看这条消息。",
+      "askStatus": "打开对话，细节已填好。",
+      "ask": "向 {{name}} 求助"
     },
     "about": {
       "basedOn": "基于 Codari Global, LLC 的 <site>DougBot</site> · AGPL-3.0",

@@ -17032,6 +17032,7 @@
       "voice": "Spraak",
       "apps": "AI-apps",
       "approvals": "Goedkeuringen",
+      "support": "Support",
       "about": "Over DougBot",
       "generalPersonal": "Over jou",
       "keysPersonal": "AI en apps",
@@ -17063,12 +17064,24 @@
       "voice": "Spraakberichten in gesprekken, en wie spraak omzet in tekst.",
       "apps": "Geef de agents taken vanuit Claude, Cursor en andere apps.",
       "approvals": "Wie voor je beslist als een agent om je goedkeuring vraagt.",
+      "support": "Wie deze installatie beheert en hoe je hen bereikt.",
       "about": "Wie het maakt, de licentie en waar de broncode staat.",
       "generalPersonal": "Wat je agents over je weten, en hoe deze werkruimte werkt.",
       "usagePersonal": "Hoeveel AI je agents gebruiken, en je abonnement.",
       "connectorsPersonal": "Je apps en MCP-servers, één keer verbonden voor je agents.",
       "membersPersonal": "Wie hier met je is.",
       "rolesPersonal": "Wat ieder hier kan doen. Eigenaren kunnen alles."
+    },
+    "support": {
+      "title": "Support bereiken",
+      "lead": "De mensen die deze installatie beheren, voor als iets in het systeem niet werkt.",
+      "email": "E-mail",
+      "whatsapp": "WhatsApp",
+      "client": "Deze installatie",
+      "askTitle": "Vraag {{name}} om hulp",
+      "askLead": "{{name}} schrijft op wat er gebeurde en stuurt het in jouw naam naar support. Je leest het bericht voordat het weggaat.",
+      "askStatus": "Opent het gesprek met de gegevens al in het veld.",
+      "ask": "Vraag {{name}} om hulp"
     },
     "about": {
       "basedOn": "Gebaseerd op <site>DougBot</site> van Codari Global, LLC · AGPL-3.0",

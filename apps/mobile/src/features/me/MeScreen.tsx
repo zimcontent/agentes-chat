@@ -1,5 +1,6 @@
 import { useAuthConfig, useIssues, useMe, useOverview } from "@agenteschat/client";
 import { showsAbout } from "@agenteschat/client/lib/about";
+import { supportContactOf } from "@agenteschat/client/lib/support";
 import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
 import { isAppLocale, localeInfo, readyLocales } from "@agenteschat/i18n/locale";
 import Constants from "expo-constants";
@@ -112,6 +113,7 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
   const issues = useIssues(org.orgId);
   const proposals = useOverview(org.orgId).data?.proposalsWaitingForMe ?? 0;
   const push = usePushSwitch().on;
+  const support = supportContactOf(useAuthConfig().data);
   const about = showsAbout(useAuthConfig().data);
   const mine = meId ? dir.memberById.get(meId) : undefined;
   // How you appear (to yourself: hidden stays hidden), on your photo's corner (ADR 0084).
@@ -442,6 +444,16 @@ export function MeScreen({ tab = false }: { tab?: boolean }) {
               menu
               onPress={pickLanguage}
             />
+            {/* Who runs this installation (`SUPPORT_EMAIL`, `SUPPORT_WHATSAPP`): nowhere when neither is set. */}
+            {support ? (
+              <GroupedRow
+                key="support"
+                icon="help"
+                label={t("settings.section.support")}
+                chevron
+                onPress={() => open("/me/support")}
+              />
+            ) : null}
             {about ? (
               <GroupedRow
                 key="about"

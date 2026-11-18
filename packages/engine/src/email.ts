@@ -343,6 +343,25 @@ export type EmailTemplate =
    * each count of the UTC `day` against its daily average over the 7 days before, and the workspaces with the most.
    * Workspace names and counts only. `url`: the server's own address, for the pictures.
    */
+  /**
+   * A person's request for help with this installation itself (`contact_support`), to whoever runs the server
+   * (`SUPPORT_EMAIL`): their words, who they are, and which installation (`clientCode`, `version`). `url`: the server's
+   * own address, for the picture.
+   */
+  | {
+      kind: "support_request";
+      locale?: EmailLocale;
+      url: string;
+      name: string;
+      email: string;
+      orgName: string;
+      text: string;
+      /** The agent that wrote it, for "Written by"; null when its name is gone. */
+      agent: { name: string; handle: string } | null;
+      /** This installation's client code (`DOUG_CLIENT_CODE`), when it has one. */
+      clientCode: string | null;
+      version: string;
+    }
   | {
       kind: "autonomy_report";
       locale?: EmailLocale;
@@ -860,6 +879,28 @@ function docOf(t: EmailTemplate, sender: string | null): EmailDoc {
           { small: c.small },
           fallback(t.url),
         ],
+        c.why,
+      );
+    }
+    case "support_request": {
+      const c = w.supportRequest;
+      // The person's words first, made inert; then who asked and from where, and which installation it is.
+      const who = inertText(t.name) || inertText(t.email);
+      const facts: [string, string][] = [
+        [c.facts.from, `${who} <${inertText(t.email)}>`],
+        [c.facts.workspace, inertText(t.orgName)],
+        [
+          c.facts.writtenBy,
+          t.agent ? `${inertText(t.agent.name)} (@${inertText(t.agent.handle)}), ${c.anAgent}` : c.anAgent,
+        ],
+        ...(t.clientCode ? ([[c.facts.client, t.clientCode]] as [string, string][]) : []),
+        [c.facts.version, t.version],
+      ];
+      return doc(
+        c.subject,
+        c.preheader,
+        c.headline,
+        [{ p: inertText(t.text) }, { h2: c.from }, { facts }, { small: c.closing }],
         c.why,
       );
     }

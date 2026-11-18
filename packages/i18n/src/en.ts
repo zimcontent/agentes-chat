@@ -17327,6 +17327,7 @@ export const en = {
       voice: "Voice",
       apps: "AI apps",
       approvals: "Approvals",
+      support: "Support",
       about: "About DougBot",
       // A personal workspace's names (ADR 0159): General and Members in their own words.
       generalPersonal: "About you",
@@ -17361,6 +17362,7 @@ export const en = {
       voice: "Voice messages in conversations, and who turns voice into text.",
       apps: "Ask the agents for tasks from Claude, Cursor and other apps.",
       approvals: "Who decides for you when an agent asks for your approval.",
+      support: "Who runs this installation, and how to reach them.",
       about: "Who makes it, its license and where its source code is.",
       generalPersonal: "What your agents know about you, and how this workspace works.",
       usagePersonal: "How much AI your agents use, and your plan.",
@@ -17372,6 +17374,18 @@ export const en = {
      * The license's required attribution (AGPL-3.0 section 7(b), see NOTICE): translate it, but keep
      * "DougBot" and "Codari Global, LLC" and its meaning.
      */
+    support: {
+      title: "Reach support",
+      lead: "The people who run this installation, for something in the system that doesn't work.",
+      email: "Email",
+      whatsapp: "WhatsApp",
+      client: "This installation",
+      askTitle: "Ask {{name}} for help",
+      askLead:
+        "{{name}} writes down what happened and sends it to support, in your name. You read the message before it goes.",
+      askStatus: "Opens the conversation with the details already in the box.",
+      ask: "Ask {{name}} for help",
+    },
     about: {
       basedOn: "Based on <site>DougBot</site> by Codari Global, LLC · AGPL-3.0",
       version: "Version",

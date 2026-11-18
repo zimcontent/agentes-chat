@@ -141,6 +141,7 @@ describe("every email, in both languages", () => {
       plan_opened: true,
       plan_lent: true,
       plan_waiting: true,
+      support_request: true,
       autonomy_report: true,
     };
     expect(new Set<string>(Object.values(EMAIL_SAMPLES).map((t) => t.kind))).toEqual(new Set(Object.keys(kinds)));

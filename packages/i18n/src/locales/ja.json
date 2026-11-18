@@ -16393,6 +16393,7 @@
       "voice": "音声",
       "apps": "AIアプリ",
       "approvals": "承認",
+      "support": "サポート",
       "about": "DougBot について",
       "generalPersonal": "あなたについて",
       "keysPersonal": "AIとアプリ",
@@ -16424,12 +16425,24 @@
       "voice": "会話でのボイスメッセージと、音声をテキストにするサービス。",
       "apps": "Claude、Cursor などのアプリからエージェントにタスクを頼めます。",
       "approvals": "エージェントがあなたの承認を求めたとき、代わりに決める人。",
+      "support": "このシステムの運営者と、連絡の取り方。",
       "about": "開発元、ライセンス、ソースコードの場所。",
       "generalPersonal": "エージェントがあなたについて知っていることと、このワークスペースの使い方。",
       "usagePersonal": "エージェントが使うAIの量と、あなたのプラン。",
       "connectorsPersonal": "あなたのアプリとMCPサーバー。一度接続すればエージェントが使えます。",
       "membersPersonal": "ここで一緒にいる人。",
       "rolesPersonal": "ここで各メンバーができること。オーナーはすべてできます。"
+    },
+    "support": {
+      "title": "サポートに連絡",
+      "lead": "このシステムの中でうまくいかないことがあったときの、運営者の窓口です。",
+      "email": "メール",
+      "whatsapp": "WhatsApp",
+      "client": "このインストール",
+      "askTitle": "{{name}}に助けを求める",
+      "askLead": "{{name}}が起きたことを書き留め、あなたの名前でサポートに送ります。送る前にあなたがメッセージを読みます。",
+      "askStatus": "詳細が入力済みの会話が開きます。",
+      "ask": "{{name}}に助けを求める"
     },
     "about": {
       "basedOn": "Codari Global, LLC の <site>DougBot</site> をもとにしています · AGPL-3.0",

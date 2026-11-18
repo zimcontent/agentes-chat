@@ -107,6 +107,7 @@ import { KeyMismatch, KeyRefused, KeySite, ProviderKeySelect } from "@/component
 import { RolesSection } from "@/components/roles/RolesSection";
 import { SkillsSection } from "@/components/Skills";
 import { StorageSection } from "@/components/StorageSettings";
+import { SupportSection } from "@/components/SupportSettings";
 import { TeamMemoryCard } from "@/components/TeamMemory";
 import { OpenPrefsButton, useLocalServerHere } from "@/components/ThisMac";
 import { VoiceSettingsSection } from "@/components/VoiceSettings";
@@ -271,6 +272,7 @@ function Settings({
       {current === "download" && <AppsDownloadSection />}
       {current === "approvals" && <ApprovalsSection />}
       {current === "apps" && <AiAppsSection />}
+      {current === "support" && <SupportSection />}
       {current === "general" && <GeneralSection />}
       {current === "members" && <MembersPage embedded />}
       {current === "invites" && <InvitesPage />}

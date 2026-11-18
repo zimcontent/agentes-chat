@@ -157,6 +157,13 @@ export interface AuthConfig {
   privacyUrl?: string | null;
   /** Where people write to whoever runs this server (a workspace on hold or suspended); null: not given. */
   supportEmail?: string | null;
+  /**
+   * How people reach whoever runs this installation (Support under the account): the address and the WhatsApp number
+   * the operator set, either one alone, each null when unset. Null (or absent, on a server older than it): no Support.
+   */
+  support?: { email: string | null; whatsapp: string | null } | null;
+  /** This installation's client code (`DOUG_CLIENT_CODE`), shown in Support; null or absent: none. */
+  clientCode?: string | null;
   /** The server takes feedback (`POST /api/app/feedback`): the apps show the form; absent: a server too old to. */
   feedback?: boolean;
   /** It goes to the agentes.chat team, not to whoever runs this server: the form says so and takes pictures only. */

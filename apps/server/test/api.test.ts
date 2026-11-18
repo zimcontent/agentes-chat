@@ -29,6 +29,8 @@ describe("sign-up policy (self-host)", () => {
       termsUrl: null,
       privacyUrl: null,
       supportEmail: null,
+      support: null,
+      clientCode: null,
       passwordReset: true,
       workspaceComputer: false,
       cloud: false,
@@ -39,6 +41,8 @@ describe("sign-up policy (self-host)", () => {
         TERMS_URL: "https://example.com/terms",
         PRIVACY_URL: "https://example.com/privacy",
         SUPPORT_EMAIL: "help@example.com",
+        SUPPORT_WHATSAPP: "+55 11 99999-0000",
+        DOUG_CLIENT_CODE: "064",
         MACHINE_PROVISIONING: "external",
         OPERATOR_API_TOKEN: "o".repeat(40),
       },
@@ -47,6 +51,8 @@ describe("sign-up policy (self-host)", () => {
       termsUrl: "https://example.com/terms",
       privacyUrl: "https://example.com/privacy",
       supportEmail: "help@example.com",
+      support: { email: "help@example.com", whatsapp: "+55 11 99999-0000" },
+      clientCode: "064",
       workspaceComputer: true,
     });
   });

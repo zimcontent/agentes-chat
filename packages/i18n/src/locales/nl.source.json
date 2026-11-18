@@ -41816,6 +41816,9 @@
   "settings.section.approvals": {
     "value": "Approvals"
   },
+  "settings.section.support": {
+    "value": "Support"
+  },
   "settings.section.about": {
     "value": "About agentes.chat"
   },
@@ -41897,6 +41900,9 @@
   "settings.sectionText.approvals": {
     "value": "Who decides for you when an agent asks for your approval."
   },
+  "settings.sectionText.support": {
+    "value": "Who runs this installation, and how to reach them."
+  },
   "settings.sectionText.about": {
     "value": "Who makes it, its license and where its source code is."
   },
@@ -41914,6 +41920,33 @@
   },
   "settings.sectionText.rolesPersonal": {
     "value": "What each person here can do. The owner can do everything."
+  },
+  "settings.support.title": {
+    "value": "Reach support"
+  },
+  "settings.support.lead": {
+    "value": "The people who run this installation, for something in the system that doesn't work."
+  },
+  "settings.support.email": {
+    "value": "Email"
+  },
+  "settings.support.whatsapp": {
+    "value": "WhatsApp"
+  },
+  "settings.support.client": {
+    "value": "This installation"
+  },
+  "settings.support.askTitle": {
+    "value": "Ask {{name}} for help"
+  },
+  "settings.support.askLead": {
+    "value": "{{name}} writes down what happened and sends it to support, in your name. You read the message before it goes."
+  },
+  "settings.support.askStatus": {
+    "value": "Opens the conversation with the details already in the box."
+  },
+  "settings.support.ask": {
+    "value": "Ask {{name}} for help"
   },
   "settings.about.basedOn": {
     "value": "Based on <site>agentes.chat</site> by Codari Global, LLC · AGPL-3.0"

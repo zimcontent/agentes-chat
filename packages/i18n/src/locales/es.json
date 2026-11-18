@@ -17436,6 +17436,7 @@
       "voice": "Voz",
       "apps": "Apps de IA",
       "approvals": "Aprobaciones",
+      "support": "Soporte",
       "about": "Acerca de DougBot",
       "generalPersonal": "Sobre ti",
       "keysPersonal": "IA y apps",
@@ -17467,12 +17468,24 @@
       "voice": "Mensajes de voz en las conversaciones, y quién convierte la voz en texto.",
       "apps": "Pide tareas a los agentes desde Claude, Cursor y otras apps.",
       "approvals": "Quién decide por ti cuando un agente pide tu aprobación.",
+      "support": "Quién administra esta instalación y cómo contactarles.",
       "about": "Quién lo hace, su licencia y dónde está su código fuente.",
       "generalPersonal": "Lo que tus agentes saben de ti, y cómo funciona este espacio de trabajo.",
       "usagePersonal": "Cuánta IA usan tus agentes, y tu plan.",
       "connectorsPersonal": "Tus apps y servidores MCP, conectados una vez para tus agentes.",
       "membersPersonal": "Quién está aquí contigo.",
       "rolesPersonal": "Lo que cada persona de aquí puede hacer. Quien es propietario puede hacerlo todo."
+    },
+    "support": {
+      "title": "Contactar al soporte",
+      "lead": "Quienes administran esta instalación, para cuando algo del sistema no funciona.",
+      "email": "Correo",
+      "whatsapp": "WhatsApp",
+      "client": "Esta instalación",
+      "askTitle": "Pide ayuda a {{name}}",
+      "askLead": "{{name}} escribe lo que pasó y lo envía al soporte en tu nombre. Lees el mensaje antes de que salga.",
+      "askStatus": "Abre la conversación con los detalles ya escritos.",
+      "ask": "Pide ayuda a {{name}}"
     },
     "about": {
       "basedOn": "Basado en <site>DougBot</site> de Codari Global, LLC · AGPL-3.0",

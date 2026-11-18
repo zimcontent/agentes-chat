@@ -364,6 +364,19 @@ export function accountRoutes(deps: AppDeps) {
             supportEmail: z.string().nullable().openapi({
               description: "Where people write to whoever runs this server (SUPPORT_EMAIL): hold, suspension.",
             }),
+            support: z
+              .object({
+                email: z.string().nullable(),
+                whatsapp: z.string().nullable(),
+              })
+              .nullable()
+              .openapi({
+                description:
+                  "How people reach whoever runs this installation (`SUPPORT_EMAIL`, `SUPPORT_WHATSAPP`), shown in Support under the account; null: neither is set, and Support shows nothing.",
+              }),
+            clientCode: z.string().nullable().openapi({
+              description: "This installation's client code (`DOUG_CLIENT_CODE`), shown in Support; null: none.",
+            }),
             feedback: z.boolean().openapi({
               description:
                 "The apps offer the feedback form (FEEDBACK_EMAIL is set, or FEEDBACK_RELAY is on): `POST /api/app/feedback`.",
@@ -423,6 +436,11 @@ export function accountRoutes(deps: AppDeps) {
       return c.json(
         {
           ...authUiConfig(config),
+          support:
+            config.SUPPORT_EMAIL || config.SUPPORT_WHATSAPP
+              ? { email: config.SUPPORT_EMAIL ?? null, whatsapp: config.SUPPORT_WHATSAPP ?? null }
+              : null,
+          clientCode: config.DOUG_CLIENT_CODE ?? null,
           signupOpen: await signupOpen(db, config, users),
           firstRun: users === 0 && !ownerWaits,
           ownerClaim: users === 0 && Boolean(config.OWNER_CLAIM_SHA256),

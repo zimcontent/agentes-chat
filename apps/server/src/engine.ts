@@ -85,6 +85,7 @@ import {
   createSkillToolSource,
   createSpeechSettings,
   createStreamBroker,
+  createSupportToolSource,
   createTalker,
   createTeamStatusToolSource,
   createToolGateway,
@@ -480,6 +481,13 @@ export function buildEngine(o: EngineOptions) {
         to: feedbackDestination(config),
         version,
         rateLimiter: adapters.rateLimiter,
+      }),
+      // A summary to whoever runs this installation, in a person's name: only where it has a support address.
+      createSupportToolSource({
+        to: config.SUPPORT_EMAIL ?? null,
+        clientCode: config.DOUG_CLIENT_CODE ?? null,
+        publicUrl: config.PUBLIC_URL,
+        version,
       }),
       createReactToolSource({ pubsub: adapters.pubsub }),
       // A GIF or the agent's sticker when asked (ADR 0091): listed by the workspace's switches and the agent's.

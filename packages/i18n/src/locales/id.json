@@ -16447,6 +16447,7 @@
       "voice": "Suara",
       "apps": "Aplikasi AI",
       "approvals": "Persetujuan",
+      "support": "Dukungan",
       "about": "Tentang DougBot",
       "generalPersonal": "Tentang kamu",
       "keysPersonal": "AI dan aplikasi",
@@ -16478,12 +16479,24 @@
       "voice": "Pesan suara di percakapan, dan siapa yang mengubah suara menjadi teks.",
       "apps": "Minta tugas ke agen dari Claude, Cursor, dan aplikasi lain.",
       "approvals": "Siapa yang memutuskan untukmu saat agen meminta persetujuanmu.",
+      "support": "Siapa yang mengelola instalasi ini dan cara menghubungi mereka.",
       "about": "Siapa pembuatnya, lisensinya, dan letak kode sumbernya.",
       "generalPersonal": "Yang diketahui agen-agenmu tentang kamu, dan cara kerja ruang kerja ini.",
       "usagePersonal": "Seberapa banyak AI yang dipakai agen-agenmu, dan paketmu.",
       "connectorsPersonal": "Aplikasi dan server MCP-mu, dihubungkan sekali untuk agen-agenmu.",
       "membersPersonal": "Siapa yang ada di sini bersamamu.",
       "rolesPersonal": "Apa yang bisa dilakukan setiap orang di sini. Pemilik bisa melakukan semuanya."
+    },
+    "support": {
+      "title": "Hubungi dukungan",
+      "lead": "Orang yang mengelola instalasi ini, untuk saat ada yang tidak berjalan di sistem.",
+      "email": "Email",
+      "whatsapp": "WhatsApp",
+      "client": "Instalasi ini",
+      "askTitle": "Minta bantuan {{name}}",
+      "askLead": "{{name}} menuliskan apa yang terjadi dan mengirimnya ke dukungan atas namamu. Kamu membaca pesannya sebelum terkirim.",
+      "askStatus": "Membuka percakapan dengan detailnya sudah terisi.",
+      "ask": "Minta bantuan {{name}}"
     },
     "about": {
       "basedOn": "Berdasarkan <site>DougBot</site> oleh Codari Global, LLC · AGPL-3.0",
