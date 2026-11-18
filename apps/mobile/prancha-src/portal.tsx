@@ -4,6 +4,7 @@ import type {
   PlanCard,
   PortalBoard,
   PortalCard,
+  PortalCardInput,
   PortalClientSummary,
   PortalItem,
   PortalPlan,
@@ -108,7 +109,21 @@ const PLAN: PortalPlan = {
         card("l2", "Reel bastidores", { type: "reel", stage: "approved", postOn: day(3) }),
       ],
     },
-    { id: "l3", name: "Semana 24/11", kind: "plan", cards: [card("l3", "Story enquete", { type: "story" })] },
+    {
+      id: "l3",
+      name: "Semana 24/11",
+      kind: "plan",
+      cards: [
+        card("l3", "Story enquete", { type: "story" }),
+        // The worst description: long words, a link and several paragraphs, at 320 (`portal-cartao-longo`).
+        card("l3", "Vídeo institucional com depoimentos dos moradores", {
+          id: "card-longa",
+          type: "reel",
+          description:
+            "Roteiro: abrir com a fachada ao entardecer, depois três depoimentos curtos (até 20 s cada) dos moradores do bloco B.\n\nReferência aprovada pelo cliente: https://www.exemplo.com.br/referencias/institucional-construtora-2026-versao-final\n\nEvitar trilha com vocal. Legendas em português e inglês, logotipo só no fim. Palavra comprida para testar a quebra: anticonstitucionalissimamente.",
+        }),
+      ],
+    },
     { id: "m1", name: "Logins", kind: "materials", cards: [card("m1", "Instagram", { material: true })] },
   ],
   // Cards no list holds yet: "Sem lista", the schedule's last column (the case where a list added at the end used to
@@ -260,6 +275,27 @@ const PIPELINE = CLIENTS.flatMap((c) =>
 /** The portal's own time to answer: longer than a frame, as the real one over the network. */
 const later = () => new Promise((resolve) => setTimeout(resolve, 600));
 
+/** A schedule card wherever it sits: in a list or in none. */
+const planCardOf = (id: string): PlanCard | undefined =>
+  [...PLAN.lists.flatMap((l) => l.cards), ...PLAN.unlisted].find((c) => c.id === id);
+
+/** A schedule card's change, kept: its fields, and its place when the list or the order changes. */
+const patchPlanCard = (target: PlanCard, patch: PortalCardInput): PlanCard => {
+  const { list, order: at, date, ...fields } = patch;
+  Object.assign(target, fields, date !== undefined ? { date, postOn: date } : {}, { updatedAt: Date.now() });
+  if (list !== undefined || at !== undefined) {
+    for (const l of PLAN.lists) l.cards = l.cards.filter((c) => c.id !== target.id);
+    PLAN.unlisted = PLAN.unlisted.filter((c) => c.id !== target.id);
+    if (list !== undefined) target.list = list;
+    if (at !== undefined) target.order = at;
+    const home = PLAN.lists.find((l) => l.id === target.list);
+    const into = home ? home.cards : PLAN.unlisted;
+    into.push(target);
+    into.sort((a, b) => a.order - b.order);
+  }
+  return target;
+};
+
 /** A server that answers with the samples; anything else answers an empty list. */
 function fakeApi(): ApiClient {
   const empty = (): unknown =>
@@ -313,17 +349,28 @@ function fakeApi(): ApiClient {
           PLAN.unlisted.push(...(list?.cards ?? []).map((c) => ({ ...c, list: null })));
         },
         board: async () => structuredClone(BOARD),
-        // A team card moved between To do and In production, as the portal keeps it.
-        updateCard: async (_org: string, id: string, patch: { state?: "todo" | "doing" }) => {
+        // A card changed as the portal changes it: a schedule card takes the fields (its description, list, order,
+        // checklist…), moving to the list it names; a team card moves between To do and In production.
+        updateCard: async (_org: string, id: string, patch: PortalCardInput) => {
           await later();
+          const planned = planCardOf(id);
+          if (planned) return patchPlanCard(planned, patch);
           const all = [...BOARD.cards.todo, ...BOARD.cards.doing];
           const moved = all.find((c) => c.id === id);
-          if (moved && patch.state) {
+          const state = patch.state === "todo" || patch.state === "doing" ? patch.state : null;
+          if (moved && state) {
             BOARD.cards.todo = BOARD.cards.todo.filter((c) => c.id !== id);
             BOARD.cards.doing = BOARD.cards.doing.filter((c) => c.id !== id);
-            BOARD.cards[patch.state].push({ ...moved, state: patch.state });
+            BOARD.cards[state].push({ ...moved, state });
           }
           return moved;
+        },
+        // A new card goes last in its list (or in no list).
+        createCard: async (_org: string, input: { title: string } & PortalCardInput) => {
+          await later();
+          const made = card(null, input.title);
+          PLAN.unlisted.push(made);
+          return patchPlanCard(made, { ...input, list: input.list ?? null });
         },
         overview: async () => ({ clients: CLIENTS }),
         toSchedule: async () => ({ items: structuredClone(BOARD.items.approved) }),
@@ -354,7 +401,7 @@ function Server({ width = 390, children }: { width?: number; children: ReactNode
         <FixedOrg orgId={ORG} org={SUMMARY}>
           <ToastHost>
             <HeaderHeightContext.Provider value={100}>
-              <View style={[styles.phone, { width }]}>{children}</View>
+              <View style={[styles.phone, { width, maxWidth: "100%" }]}>{children}</View>
             </HeaderHeightContext.Provider>
           </ToastHost>
         </FixedOrg>
@@ -439,6 +486,15 @@ export function PortalCartao() {
   return (
     <Server>
       <CardScreen client={CLIENT} cardId="card-2" />
+    </Server>
+  );
+}
+
+/** A card with a long description at the narrowest phone: it wraps, and it opens to edit. */
+export function PortalCartaoLongo() {
+  return (
+    <Server width={320}>
+      <CardScreen client={CLIENT} cardId="card-longa" />
     </Server>
   );
 }

@@ -364,6 +364,6 @@ export function AjustesSobre() {
 }
 
 const styles = StyleSheet.create({
-  phone: { flex: 1, width: 390, overflow: "hidden" },
+  phone: { flex: 1, width: 390, maxWidth: "100%", overflow: "hidden" },
   sheet: { padding: 16, paddingTop: 64, gap: 12 },
 });
