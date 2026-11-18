@@ -31,6 +31,17 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* The Doug team's card: its badge ("Recommended") sits on its title's line (the kit's chip), its faces wrap. */
+.onb-start__badge {
+  flex: none;
+}
+.onb-start__who:has(> .onb-start__faces > :nth-child(8)) {
+  flex-wrap: wrap;
+}
+.onb-start__who:has(> .onb-start__faces > :nth-child(8)) > .onb-start__names {
+  flex-basis: 100%;
+  white-space: normal;
+}
 /* A place for an agent still to be made, the size of a face: the preview's "Your team shows up here", dashed. */
 .onb-start__seat {
   display: grid;

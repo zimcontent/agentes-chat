@@ -2288,6 +2288,12 @@
   "onboarding.flow.steps.team": {
     "value": "Your team"
   },
+  "onboarding.flow.steps.who": {
+    "value": "Who joins"
+  },
+  "onboarding.flow.steps.brand": {
+    "value": "Your brand"
+  },
   "onboarding.flow.steps.plan": {
     "value": "Turn the team on"
   },
@@ -2302,6 +2308,12 @@
   },
   "onboarding.flow.steps.teamPersonal": {
     "value": "Your agents"
+  },
+  "onboarding.flow.steps.whoPersonal": {
+    "value": "Who joins"
+  },
+  "onboarding.flow.steps.brandPersonal": {
+    "value": "Your brand"
   },
   "onboarding.flow.steps.planPersonal": {
     "value": "Turn the agents on"
@@ -2326,6 +2338,12 @@
   },
   "onboarding.flow.lodi.teamMadePersonal": {
     "value": "Your agents are already here. We move on whenever you're ready."
+  },
+  "onboarding.flow.lodi.who": {
+    "value": "The Doug team already knows the craft. Pick who joins now, the rest can come later."
+  },
+  "onboarding.flow.lodi.brand": {
+    "value": "Last thing before I put them to work: teach them your brand. ROSA and SONY read it before every piece."
   },
   "onboarding.flow.lodi.plan": {
     "value": "After the plan, all that's left is connecting an AI. I'll show you where."
@@ -2483,6 +2501,24 @@
   "onboarding.flow.team.start.scratchGo": {
     "value": "Go on with just {{name}}"
   },
+  "onboarding.flow.team.start.doug": {
+    "value": "Start with the Doug team"
+  },
+  "onboarding.flow.team.start.dougBadge": {
+    "value": "Recommended"
+  },
+  "onboarding.flow.team.start.dougText": {
+    "value": "The team that runs Doug's operation: design, video, ads, strategy, social media, code and finance. They arrive with no memory at all, ready to learn your company."
+  },
+  "onboarding.flow.team.start.dougWho": {
+    "value": {
+      "one": "{{count}} agent",
+      "other": "{{count}} agents"
+    }
+  },
+  "onboarding.flow.team.start.dougGo": {
+    "value": "Choose who joins"
+  },
   "onboarding.flow.team.ask.title": {
     "value": "Do you already have agents in another app?"
   },
@@ -2566,6 +2602,120 @@
   },
   "onboarding.flow.team.found.bringPersonal": {
     "value": "Bring the agents"
+  },
+  "onboarding.flow.who.title": {
+    "value": "Who joins your team?"
+  },
+  "onboarding.flow.who.lead": {
+    "value": "Uncheck whoever you don't need now. You can call any of them later, in Team › New agent."
+  },
+  "onboarding.flow.who.fixed": {
+    "value": "Stays"
+  },
+  "onboarding.flow.who.teamOf": {
+    "value": {
+      "one": "{{count}} in its team",
+      "other": "{{count}} in its team"
+    }
+  },
+  "onboarding.flow.who.agents": {
+    "value": {
+      "one": "{{count}} agent on the team",
+      "other": "{{count}} agents on the team"
+    }
+  },
+  "onboarding.flow.who.skills": {
+    "value": {
+      "one": "{{count}} craft skill",
+      "other": "{{count}} craft skills"
+    }
+  },
+  "onboarding.flow.who.routines": {
+    "value": {
+      "one": "{{count}} ready routine (paused until you turn it on)",
+      "other": "{{count}} ready routines (paused until you turn them on)"
+    }
+  },
+  "onboarding.flow.who.note": {
+    "value": "None of them arrives with memory, a client or a file from another company."
+  },
+  "onboarding.flow.who.qg": {
+    "value": "in {{channel}}"
+  },
+  "onboarding.flow.who.needsComputer": {
+    "value": "needs a computer connected"
+  },
+  "onboarding.flow.who.connectComputer": {
+    "value": "Use a computer"
+  },
+  "onboarding.flow.who.create": {
+    "value": "Create the team"
+  },
+  "onboarding.flow.brand.title": {
+    "value": "Teach your brand to the team"
+  },
+  "onboarding.flow.brand.lead": {
+    "value": "This is where ROSA takes the identity, SONY the style of the videos and the Social Media the tone. All of it stays in your workspace."
+  },
+  "onboarding.flow.brand.company": {
+    "value": "Company name"
+  },
+  "onboarding.flow.brand.companyPlaceholder": {
+    "value": "Aurora Bakery"
+  },
+  "onboarding.flow.brand.site": {
+    "value": "Website"
+  },
+  "onboarding.flow.brand.instagram": {
+    "value": "Instagram"
+  },
+  "onboarding.flow.brand.instagramPlaceholder": {
+    "value": "@thecompany"
+  },
+  "onboarding.flow.brand.audience": {
+    "value": "Audience"
+  },
+  "onboarding.flow.brand.audiencePlaceholder": {
+    "value": "Who buys from you?"
+  },
+  "onboarding.flow.brand.tone": {
+    "value": "Tone of voice"
+  },
+  "onboarding.flow.brand.toneOwn": {
+    "value": "Write your own"
+  },
+  "onboarding.flow.brand.tonePlaceholder": {
+    "value": "In your words: how the brand talks"
+  },
+  "onboarding.flow.brand.manual": {
+    "value": "Brand manual, logo, fonts and colors"
+  },
+  "onboarding.flow.brand.manualText": {
+    "value": "A PDF, Figma, images or a link. It becomes the skill “Brand {{company}}” for the whole team."
+  },
+  "onboarding.flow.brand.manualPick": {
+    "value": "Choose files"
+  },
+  "onboarding.flow.brand.manualLink": {
+    "value": "Paste a link"
+  },
+  "onboarding.flow.brand.manualLinkPlaceholder": {
+    "value": "https://drive.google.com/…"
+  },
+  "onboarding.flow.brand.manualAdd": {
+    "value": "Add"
+  },
+  "onboarding.flow.brand.saved": {
+    "value": "Saved"
+  },
+  "onboarding.flow.brand.later": {
+    "value": "Not now"
+  },
+  "onboarding.flow.brand.madeTitle": {
+    "value": "The team learned your brand"
+  },
+  "onboarding.flow.brand.made": {
+    "value": "“Brand {{company}}” is now the skill ROSA, SONY, the Social Media and CHESS read."
   },
   "onboarding.flow.plan.title": {
     "value": "Turn your team on"
@@ -37574,6 +37724,33 @@
   },
   "errors.teamProposal.undoExpired": {
     "value": "It is more than a day since this team was created, so it can't be undone here. Archive its agents on their pages."
+  },
+  "errors.dougTeam.made": {
+    "value": "This workspace already has the Doug team."
+  },
+  "errors.dougTeam.none": {
+    "value": "Check at least one agent to join the team."
+  },
+  "errors.dougTeam.brandPending": {
+    "value": "Before finishing, teach the team your brand: the company's name and the tone of voice."
+  },
+  "errors.dougTeam.companyRequired": {
+    "value": "Say the company's name."
+  },
+  "errors.dougTeam.toneRequired": {
+    "value": "Pick or write the tone of voice."
+  },
+  "errors.dougTeam.unknownTone": {
+    "value": "One of the tones picked no longer exists. Reload and pick again."
+  },
+  "errors.dougTeam.invalidLink": {
+    "value": "That website or link doesn't look like a valid address. Check it and try again."
+  },
+  "errors.dougTeam.invalidInstagram": {
+    "value": "That Instagram profile doesn't look like a valid one: write @something."
+  },
+  "errors.dougTeam.fileMissing": {
+    "value": "One of the manual's files isn't in your Drive anymore. Upload it again."
   },
   "errors.agentProposal.decided": {
     "value": "Someone already decided this proposal."

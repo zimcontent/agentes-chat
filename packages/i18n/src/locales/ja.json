@@ -902,11 +902,15 @@
         "business": "事業内容",
         "you": "あなたについて",
         "team": "あなたのチーム",
+        "who": "参加する人",
+        "brand": "あなたのブランド",
         "plan": "チームを動かす",
         "ai": "AIを接続",
         "people": "メンバーを招待",
         "namePersonal": "使い道",
         "teamPersonal": "あなたのエージェント",
+        "whoPersonal": "参加する人",
+        "brandPersonal": "あなたのブランド",
         "planPersonal": "エージェントを動かす",
         "aiPersonal": "AIを接続"
       },
@@ -917,6 +921,8 @@
         "team": "私ならこのチームにします。あとから何でも変えられます。",
         "teamMade": "チームはもうそろっています。準備ができたら次へ進みましょう。",
         "teamMadePersonal": "あなたのエージェントはもうそろっています。準備ができたら次へ進みましょう。",
+        "who": "Dougチームはもう仕事を知っています。今、誰が入るかを選んでください。残りは後から呼べます。",
+        "brand": "仕事を始める前に、あなたのブランドを教えてください。ROSAとSONYはどの制作物の前にも読みます。",
         "plan": "プランのあとは、AIを接続するだけです。どこで接続するかお見せします。",
         "planThen": "プランが動き出したら、次の画面でAIを接続します。",
         "you": "チームの前に、あなたのことを少しだけ。",
@@ -978,7 +984,12 @@
           "scratchText": "あなたの右腕、{{name}}だけ。エージェントはあとから1体ずつ、自分のやり方で作れます。",
           "scratchWho": "{{name}}と、あなたが作るエージェント",
           "see": "できあがったチームを見る",
-          "scratchGo": "{{name}}だけで進む"
+          "scratchGo": "{{name}}だけで進む",
+          "doug": "Dougチームで始める",
+          "dougBadge": "おすすめ",
+          "dougText": "Dougの運営を回すチーム:デザイン、動画、広告、戦略、SNS、コード、財務。記憶は一切なく届き、あなたの会社を学ぶ準備ができています。",
+          "dougWho_other": "{{count}} 人のエージェント",
+          "dougGo": "誰が入るかを選ぶ"
         },
         "ask": {
           "title": "ほかのアプリでもうエージェントを使っていますか？",
@@ -1013,6 +1024,44 @@
           "bring": "チームを連れてくる",
           "bringPersonal": "エージェントを連れてくる"
         }
+      },
+      "who": {
+        "title": "誰がチームに入りますか?",
+        "lead": "今いらない人のチェックを外してください。誰でも後から チーム › 新しいエージェント で呼べます。",
+        "fixed": "固定",
+        "teamOf_other": "彼のチームに{{count}}人",
+        "agents_other": "チームに{{count}}人のエージェント",
+        "skills_other": "{{count}} の職能スキル",
+        "routines_other": "{{count}} の準備済みルーティン(オンにするまで一時停止)",
+        "note": "誰も他の会社の記憶、顧客、ファイルを持って来ません。",
+        "qg": "{{channel}} で",
+        "needsComputer": "接続されたコンピューターが必要です",
+        "connectComputer": "コンピューターを使う",
+        "create": "チームを作成"
+      },
+      "brand": {
+        "title": "チームにあなたのブランドを教える",
+        "lead": "ROSAはここからアイデンティティを、SONYは動画のスタイルを、SNSはトーンを取ります。すべてはあなたのワークスペースだけに残ります。",
+        "company": "会社名",
+        "companyPlaceholder": "Aurora ベーカリー",
+        "site": "ウェブサイト",
+        "instagram": "Instagram",
+        "instagramPlaceholder": "@company",
+        "audience": "対象",
+        "audiencePlaceholder": "誰があなたから買いますか?",
+        "tone": "話し方のトーン",
+        "toneOwn": "自分で書く",
+        "tonePlaceholder": "あなたの言葉で:ブランドはどう話すか",
+        "manual": "ブランドガイド、ロゴ、フォント、色",
+        "manualText": "PDF、Figma、画像、またはリンク。チーム全員の「{{company}} ブランド」スキルになります。",
+        "manualPick": "ファイルを選ぶ",
+        "manualLink": "リンクを貼る",
+        "manualLinkPlaceholder": "https://drive.google.com/…",
+        "manualAdd": "追加",
+        "saved": "保存済み",
+        "later": "後で",
+        "madeTitle": "チームがあなたのブランドを学びました",
+        "made": "「{{company}} ブランド」は今、ROSA、SONY、SNS、CHESS が読むスキルです。"
       },
       "plan": {
         "title": "チームを動かしましょう",
@@ -14719,6 +14768,17 @@
     },
     "teamProposal": {
       "undoExpired": "このチームの作成から1日以上たったため、ここでは取り消せません。各エージェントのページでアーカイブしてください。"
+    },
+    "dougTeam": {
+      "made": "このワークスペースにはもう Dougチームがあります。",
+      "none": "チームに入るエージェントを少なくとも1つ選んでください。",
+      "brandPending": "終える前に、チームにあなたのブランドを教えてください:会社名と話し方のトーン。",
+      "companyRequired": "会社名を入力してください。",
+      "toneRequired": "話し方のトーンを選ぶか書いてください。",
+      "unknownTone": "選んだトーンの1つはもうありません。再読み込みして選び直してください。",
+      "invalidLink": "そのサイトやリンクは有効なアドレスではないようです。確認して再試行してください。",
+      "invalidInstagram": "そのInstagramプロフィールは有効ではないようです:@something のように書いてください。",
+      "fileMissing": "ガイドのファイルの1つがもうDriveにありません。もう一度アップロードしてください。"
     },
     "agentProposal": {
       "decided": "この提案はすでに誰かが判断しました。",

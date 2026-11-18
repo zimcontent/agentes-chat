@@ -902,11 +902,15 @@
         "business": "Apa yang kalian lakukan",
         "you": "Tentang kamu",
         "team": "Timmu",
+        "who": "Siapa yang masuk",
+        "brand": "Merek Anda",
         "plan": "Nyalakan tim",
         "ai": "Hubungkan AI",
         "people": "Undang orang",
         "namePersonal": "Untuk apa",
         "teamPersonal": "Agenmu",
+        "whoPersonal": "Siapa yang masuk",
+        "brandPersonal": "Merek Anda",
         "planPersonal": "Nyalakan agen",
         "aiPersonal": "Hubungkan AI"
       },
@@ -917,6 +921,8 @@
         "team": "Ini tim yang akan aku susun. Kamu bisa mengubah semuanya nanti.",
         "teamMade": "Timnya sudah tersusun. Kita lanjut kapan pun kamu siap.",
         "teamMadePersonal": "Agenmu sudah di sini. Kita lanjut kapan pun kamu siap.",
+        "who": "Tim Doug sudah tahu keahliannya. Pilih siapa yang masuk sekarang, sisanya bisa menyusul.",
+        "brand": "Sebelum mereka mulai: ajari mereka merek Anda. ROSA dan SONY membacanya sebelum setiap karya.",
         "plan": "Setelah paketnya, tinggal hubungkan AI. Nanti aku tunjukkan di mana.",
         "planThen": "Setelah paketnya aktif, layar berikutnya untuk menghubungkan AI-mu.",
         "you": "Sebelum tim, sedikit tentang kamu.",
@@ -978,7 +984,12 @@
           "scratchText": "Hanya {{name}}, tangan kananmu. Setiap agen kamu buat nanti, dengan caramu sendiri.",
           "scratchWho": "{{name}} dan agen yang kamu buat",
           "see": "Lihat tim siap pakai",
-          "scratchGo": "Lanjut hanya dengan {{name}}"
+          "scratchGo": "Lanjut hanya dengan {{name}}",
+          "doug": "Mulai dengan Tim Doug",
+          "dougBadge": "Disarankan",
+          "dougText": "Tim yang menjalankan operasi Doug: desain, video, iklan, strategi, media sosial, kode, dan keuangan. Mereka datang tanpa memori apa pun, siap mempelajari perusahaan Anda.",
+          "dougWho_other": "{{count}} agen",
+          "dougGo": "Pilih siapa yang masuk"
         },
         "ask": {
           "title": "Sudah punya agen di aplikasi lain?",
@@ -1013,6 +1024,44 @@
           "bring": "Bawa timnya",
           "bringPersonal": "Bawa agennya"
         }
+      },
+      "who": {
+        "title": "Siapa yang masuk ke tim Anda?",
+        "lead": "Hapus centang siapa yang belum Anda butuhkan sekarang. Anda bisa memanggil siapa pun nanti, di Tim › Agen baru.",
+        "fixed": "Tetap",
+        "teamOf_other": "{{count}} di timnya",
+        "agents_other": "{{count}} agen di tim",
+        "skills_other": "{{count}} skill keahlian",
+        "routines_other": "{{count}} rutinitas siap (dijeda sampai Anda menyalakannya)",
+        "note": "Tidak ada yang datang dengan memori, klien, atau berkas dari perusahaan lain.",
+        "qg": "di {{channel}}",
+        "needsComputer": "butuh komputer yang terhubung",
+        "connectComputer": "Pakai komputer",
+        "create": "Buat tim"
+      },
+      "brand": {
+        "title": "Ajarkan merek Anda ke tim",
+        "lead": "Dari sini ROSA mengambil identitas, SONY gaya videonya, dan Media Sosial nadanya. Semuanya hanya ada di ruang kerja Anda.",
+        "company": "Nama perusahaan",
+        "companyPlaceholder": "Toko Roti Aurora",
+        "site": "Situs web",
+        "instagram": "Instagram",
+        "instagramPlaceholder": "@perusahaan",
+        "audience": "Audiens",
+        "audiencePlaceholder": "Siapa yang membeli dari Anda?",
+        "tone": "Nada bicara",
+        "toneOwn": "Tulis sendiri",
+        "tonePlaceholder": "Dengan kata-kata Anda: bagaimana merek berbicara",
+        "manual": "Panduan merek, logo, font, dan warna",
+        "manualText": "PDF, Figma, gambar, atau tautan. Menjadi skill «Merek {{company}}» untuk seluruh tim.",
+        "manualPick": "Pilih berkas",
+        "manualLink": "Tempel tautan",
+        "manualLinkPlaceholder": "https://drive.google.com/…",
+        "manualAdd": "Tambah",
+        "saved": "Tersimpan",
+        "later": "Nanti saja",
+        "madeTitle": "Tim sudah mempelajari merek Anda",
+        "made": "«Merek {{company}}» kini menjadi skill yang dibaca ROSA, SONY, Media Sosial, dan CHESS."
       },
       "plan": {
         "title": "Nyalakan timmu",
@@ -14773,6 +14822,17 @@
     },
     "teamProposal": {
       "undoExpired": "Sudah lebih dari sehari sejak tim ini dibuat, jadi tidak bisa dibatalkan di sini. Arsipkan agennya di halaman masing-masing."
+    },
+    "dougTeam": {
+      "made": "Ruang kerja ini sudah punya Tim Doug.",
+      "none": "Centang setidaknya satu agen untuk masuk ke tim.",
+      "brandPending": "Sebelum selesai, ajarkan merek Anda ke tim: nama perusahaan dan nada bicara.",
+      "companyRequired": "Sebutkan nama perusahaan.",
+      "toneRequired": "Pilih atau tulis nada bicara.",
+      "unknownTone": "Salah satu nada yang dipilih sudah tidak ada. Muat ulang dan pilih lagi.",
+      "invalidLink": "Situs atau tautan itu sepertinya bukan alamat yang valid. Periksa dan coba lagi.",
+      "invalidInstagram": "Profil Instagram itu sepertinya tidak valid: tulis @sesuatu.",
+      "fileMissing": "Salah satu berkas panduan tidak lagi di Drive Anda. Unggah lagi."
     },
     "agentProposal": {
       "decided": "Seseorang sudah memutuskan usulan ini.",

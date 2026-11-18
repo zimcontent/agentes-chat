@@ -71,17 +71,25 @@ export const stepIndex = (id: OnboardingStepId) => ONBOARDING_STEPS.findIndex((s
  * 2026-11-11). A personal workspace (ADR 0159) has no "what it does" step: its name step is the purpose question. The
  * phone lists neither the person's step, the AI step, the people step nor a personal path (`railState`'s `funnel`).
  */
-export type RailStep = "name" | "business" | "you" | "team" | "plan" | "ai" | "people";
+export type RailStep = "name" | "business" | "you" | "team" | "who" | "brand" | "plan" | "ai" | "people";
 export const railSteps = (f: {
   plan: boolean;
   ai: boolean;
   personal: boolean;
   people?: boolean;
   you?: boolean;
+  /**
+   * The Doug team's two steps (docs/adr/doug-0020-time-doug.md): "Quem entra" after its card and "Sua marca" once it
+   * was made. A workspace that didn't pick it, or picked it and already saved a brand, has neither.
+   */
+  who?: boolean;
+  brand?: boolean;
 }): RailStep[] => [
   ...(f.personal ? (["name"] as const) : (["name", "business"] as const)),
   ...(f.you ? (["you"] as const) : []),
   "team",
+  ...(f.who ? (["who"] as const) : []),
+  ...(f.brand ? (["brand"] as const) : []),
   ...(f.plan ? (["plan"] as const) : []),
   ...(f.ai ? (["ai"] as const) : []),
   ...(f.people ? (["people"] as const) : []),
@@ -105,11 +113,20 @@ export function railStepAt(f: {
   thinks: boolean;
   people?: boolean;
   invited?: boolean;
+  /**
+   * The Doug team's card picked on the team step, in this visit (docs/adr/doug-0020-time-doug.md): "Quem entra" is
+   * next, before the team is made. A reload before it is made opens the team step again, its card still picked.
+   */
+  dougPicked?: boolean;
+  /** The Doug team's brand step waits: the team is made and the server refuses to finish until it is saved. */
+  brandWaits?: boolean;
 }): RailStep | "open" {
   if (!f.created) return "name";
   if (!f.personal && !f.context) return "business";
   if (f.you && !f.about) return "you";
-  if (!f.team) return "team";
+  // No team yet: who enters the Doug team, once its card is picked; else the team step itself.
+  if (!f.team) return f.dougPicked ? "who" : "team";
+  if (f.brandWaits) return "brand";
   if (f.waitsForPlan) return "plan";
   if (f.ai && !f.thinks) return "ai";
   return f.people && !f.invited ? "people" : "open";
@@ -155,6 +172,13 @@ export function railState(f: {
   picked: RailStep | null;
   personal?: boolean;
   funnel: RailFunnel | null;
+  /**
+   * The steps the Doug team adds (docs/adr/doug-0020-time-doug.md): "Quem entra" while its card is picked and the
+   * team isn't made (`dougPicked`), "Sua marca" while its brand still waits (`brandWaits`, `GET /me`'s
+   * `onboarding.brandPending`). Both are the workspace's own state, never this visit's.
+   */
+  dougPicked?: boolean;
+  brandWaits?: boolean;
 }) {
   const waitsForPlan = f.orgId ? billingHoldOf(f.standing) === "payment" : Boolean(f.billingUrl);
   const funnel = f.funnel;
@@ -169,8 +193,12 @@ export function railState(f: {
   const people = funnel !== null && !personal;
   // The person's own step, the web's, team or personal.
   const you = funnel !== null;
+  // The Doug team's two steps: "who" while its card is picked (no team yet), "brand" once it was made and its brand
+  // still waits. A workspace that never picked it has neither.
+  const who = funnel !== null && !personal && f.team === 0 && f.dougPicked === true;
+  const brand = funnel !== null && !personal && f.brandWaits === true;
   const steps = funnel
-    ? railSteps({ plan: hasPlanStep, ai: true, personal, people, you })
+    ? railSteps({ plan: hasPlanStep, ai: true, personal, people, you, who, brand })
     : railSteps({ plan: waitsForPlan, ai: false, personal: false });
   const at =
     !funnel && personal && f.orgId !== null
@@ -190,6 +218,8 @@ export function railState(f: {
           thinks: funnel?.thinks === true || (people && passed >= stepIndex("ai")),
           people,
           invited: passed >= stepIndex("team"),
+          dougPicked: who,
+          brandWaits: brand,
         });
   const reached = at === "open" ? steps.length : steps.indexOf(at);
   const back = f.picked ? steps.indexOf(f.picked) : -1;

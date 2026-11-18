@@ -23,6 +23,8 @@ import type {
   AuthConfig,
   Availability,
   BrainMachine,
+  Brand,
+  BrandTone,
   CarrySource,
   Channel,
   ChannelCategory,
@@ -108,7 +110,7 @@ import type {
   UsageQueue,
   WorkspaceLimits,
 } from "@agenteschat/client";
-import { ApiError } from "@agenteschat/client";
+import { ApiError, BRAND_TONES } from "@agenteschat/client";
 import { moveInGroups } from "@agenteschat/client/lib/agent-groups";
 import { answersOthers, audienceOf, listsAllAgents } from "@agenteschat/client/lib/audience";
 import type { ChatPrefs } from "@agenteschat/client/lib/chat-look";
@@ -142,6 +144,20 @@ import { createFakeThreads } from "./fakes/threads";
 import { createFakeWiki } from "./fakes/wiki";
 
 export const NOW = new Date("2026-10-14T13:44:00.000Z");
+/** The tones' words in pt-BR, as `GET …/brand` sends them (the tests run in Portuguese). */
+const BRAND_TONE_LABEL: Record<BrandTone, string> = {
+  proximo: "Próximo",
+  profissional: "Profissional",
+  divertido: "Divertido",
+  inspirador: "Inspirador",
+  direto: "Direto",
+  acolhedor: "Acolhedor",
+  tecnico: "Técnico",
+  sofisticado: "Sofisticado",
+  ousado: "Ousado",
+  educativo: "Educativo",
+};
+
 export const ORG_ID = "00000000-0000-4000-8000-000000000001";
 export const GENERAL_ID = "00000000-0000-4000-8000-0000000000c1";
 export const ENG_ID = "00000000-0000-4000-8000-0000000000c2";
@@ -203,6 +219,10 @@ export interface FakeState {
   me: Me | null;
   /** "Ver modelos de time" (`agents.teamTemplates`; default none). */
   teamTemplates?: TeamTemplate[];
+  /** "Sua marca" (docs/adr/doug-0020-time-doug.md): the brand already saved, and whether its step still waits. */
+  brand?: Brand | null;
+  brandPending?: boolean;
+  brandSkillId?: string;
   /** What a one-click proposed agent thinks with (default: what its draft suggested). */
   proposalAi?: "account" | "model" | "none";
   /** By agent: the mailboxes others gave it, which a wider audience would take (`agents.mailLoss`; default none). */
@@ -1875,6 +1895,35 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         org.showActivity = show;
         return show;
       },
+      // "Sua marca" (docs/adr/doug-0020-time-doug.md): the workspace's brand and the tones to tap.
+      brand: async (orgId, locale) => {
+        log("orgs.brand", orgId, locale);
+        return {
+          pending: state.brandPending ?? false,
+          brand: state.brand ?? null,
+          skillId: state.brand ? (state.brandSkillId ?? "skill-marca") : null,
+          tones: BRAND_TONES.map((id) => ({ id, label: BRAND_TONE_LABEL[id] })),
+        };
+      },
+      saveBrand: async (orgId, input) => {
+        log("orgs.saveBrand", orgId, input);
+        if (input.company.trim() === "") throw new ApiError(400, "brand.company_required", "Say the company's name");
+        if (!(input.tones ?? []).length && !(input.tone ?? "").trim())
+          throw new ApiError(400, "brand.tone_required", "Pick or write the tone of voice");
+        const brand = {
+          company: input.company.trim(),
+          tones: input.tones ?? [],
+          tone: input.tone ?? null,
+          site: input.site ?? null,
+          instagram: input.instagram ?? null,
+          audience: input.audience ?? null,
+          files: (input.files ?? []).map((id) => ({ id, title: id })),
+          links: input.links ?? [],
+        };
+        state.brand = brand;
+        state.brandPending = false;
+        return { skillId: "skill-marca", brand, pending: false };
+      },
       setAgentStyle: async (orgId, style) => {
         log("orgs.setAgentStyle", orgId, style);
         const org = state.me?.organizations.find((o) => o.id === orgId);
@@ -2523,8 +2572,8 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         return state.teamTemplates ?? [];
       },
       // As the server: the template's team is made at once (ADR 0155 §6).
-      applyTeamTemplate: async (orgId, templateId, locale) => {
-        log("agents.applyTeamTemplate", orgId, templateId, locale);
+      applyTeamTemplate: async (orgId, templateId, locale, handles) => {
+        log("agents.applyTeamTemplate", orgId, templateId, locale, handles);
         const template = state.teamTemplates?.find((x) => x.id === templateId);
         const team = template?.team.agents ?? [];
         const agentIds: string[] = [];

@@ -921,11 +921,15 @@
         "business": "Was ihr macht",
         "you": "Über dich",
         "team": "Dein Team",
+        "who": "Wer beitritt",
+        "brand": "Deine Marke",
         "plan": "Team einschalten",
         "ai": "KI verbinden",
         "people": "Leute einladen",
         "namePersonal": "Wofür du es nutzt",
         "teamPersonal": "Deine Agenten",
+        "whoPersonal": "Wer beitritt",
+        "brandPersonal": "Deine Marke",
         "planPersonal": "Agenten einschalten",
         "aiPersonal": "KI verbinden"
       },
@@ -936,6 +940,8 @@
         "team": "So würde ich das Team zusammenstellen. Du kannst später alles ändern.",
         "teamMade": "Das Team steht schon. Wir machen weiter, wann immer du bereit bist.",
         "teamMadePersonal": "Deine Agenten sind schon da. Wir machen weiter, wann immer du bereit bist.",
+        "who": "Das Doug-Team kennt das Handwerk schon. Wähle, wer jetzt beitritt, der Rest kann später kommen.",
+        "brand": "Bevor sie loslegen: bring ihnen deine Marke bei. ROSA und SONY lesen sie vor jedem Stück.",
         "plan": "Nach dem Tarif fehlt nur noch eine KI. Ich zeige dir, wo.",
         "planThen": "Sobald der Tarif läuft, verbindest du auf dem nächsten Bildschirm deine KI.",
         "you": "Vor dem Team ein bisschen über dich.",
@@ -998,7 +1004,13 @@
           "scratchText": "Nur {{name}}, deine rechte Hand. Jeden Agenten erstellst du später, auf deine Art.",
           "scratchWho": "{{name}} und wen du erstellst",
           "see": "Das fertige Team ansehen",
-          "scratchGo": "Nur mit {{name}} weiter"
+          "scratchGo": "Nur mit {{name}} weiter",
+          "doug": "Mit dem Doug-Team starten",
+          "dougBadge": "Empfohlen",
+          "dougText": "Das Team, das Dougs Betrieb trägt: Design, Video, Werbung, Strategie, Social Media, Code und Finanzen. Sie kommen ganz ohne Erinnerung und sind bereit, dein Unternehmen zu lernen.",
+          "dougWho_one": "{{count}} Agent",
+          "dougWho_other": "{{count}} Agenten",
+          "dougGo": "Wählen, wer beitritt"
         },
         "ask": {
           "title": "Hast du schon Agenten in einer anderen App?",
@@ -1034,6 +1046,48 @@
           "bring": "Team holen",
           "bringPersonal": "Agenten holen"
         }
+      },
+      "who": {
+        "title": "Wer tritt deinem Team bei?",
+        "lead": "Hake ab, wen du jetzt nicht brauchst. Du kannst jeden später in Team › Neuer Agent holen.",
+        "fixed": "Bleibt",
+        "teamOf_one": "{{count}} in seinem Team",
+        "teamOf_other": "{{count}} in seinem Team",
+        "agents_one": "{{count}} Agent im Team",
+        "agents_other": "{{count}} Agenten im Team",
+        "skills_one": "{{count}} Handwerks-Skill",
+        "skills_other": "{{count}} Handwerks-Skills",
+        "routines_one": "{{count}} fertige Routine (pausiert, bis du sie einschaltest)",
+        "routines_other": "{{count}} fertige Routinen (pausiert, bis du sie einschaltest)",
+        "note": "Keiner kommt mit Erinnerung, Kunde oder Datei eines anderen Unternehmens.",
+        "qg": "im {{channel}}",
+        "needsComputer": "braucht einen verbundenen Computer",
+        "connectComputer": "Computer nutzen",
+        "create": "Team erstellen"
+      },
+      "brand": {
+        "title": "Bring deinem Team deine Marke bei",
+        "lead": "Hierher nimmt ROSA die Identität, SONY den Stil der Videos und Social Media den Ton. Alles bleibt in deinem Workspace.",
+        "company": "Firmenname",
+        "companyPlaceholder": "Bäckerei Aurora",
+        "site": "Webseite",
+        "instagram": "Instagram",
+        "instagramPlaceholder": "@dasunternehmen",
+        "audience": "Zielgruppe",
+        "audiencePlaceholder": "Wer kauft bei dir?",
+        "tone": "Tonalität",
+        "toneOwn": "Eigene schreiben",
+        "tonePlaceholder": "In deinen Worten: wie die Marke spricht",
+        "manual": "Markenhandbuch, Logo, Schriften und Farben",
+        "manualText": "Eine PDF, Figma, Bilder oder ein Link. Daraus wird der Skill „Marke {{company}}“ für das ganze Team.",
+        "manualPick": "Dateien wählen",
+        "manualLink": "Link einfügen",
+        "manualLinkPlaceholder": "https://drive.google.com/…",
+        "manualAdd": "Hinzufügen",
+        "saved": "Gespeichert",
+        "later": "Jetzt nicht",
+        "madeTitle": "Das Team hat deine Marke gelernt",
+        "made": "„Marke {{company}}“ ist jetzt der Skill, den ROSA, SONY, Social Media und CHESS lesen."
       },
       "plan": {
         "title": "Schalte dein Team ein",
@@ -15275,6 +15329,17 @@
     },
     "teamProposal": {
       "undoExpired": "Seit der Erstellung dieses Teams ist mehr als ein Tag vergangen, daher lässt es sich hier nicht rückgängig machen. Archiviere die Agenten auf ihren Seiten."
+    },
+    "dougTeam": {
+      "made": "Dieser Workspace hat das Doug-Team schon.",
+      "none": "Hake mindestens einen Agenten für das Team an.",
+      "brandPending": "Bring dem Team vor dem Abschluss deine Marke bei: den Firmennamen und die Tonalität.",
+      "companyRequired": "Nenne den Firmennamen.",
+      "toneRequired": "Wähle oder schreibe die Tonalität.",
+      "unknownTone": "Einer der gewählten Töne gibt es nicht mehr. Lade neu und wähle erneut.",
+      "invalidLink": "Diese Website oder dieser Link sieht nicht wie eine gültige Adresse aus. Prüfe und versuche es erneut.",
+      "invalidInstagram": "Dieses Instagram-Profil sieht nicht gültig aus: schreibe @etwas.",
+      "fileMissing": "Eine Datei des Handbuchs ist nicht mehr in deinem Drive. Lade sie erneut hoch."
     },
     "agentProposal": {
       "decided": "Über diesen Vorschlag hat schon jemand entschieden.",

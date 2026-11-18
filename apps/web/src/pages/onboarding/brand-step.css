@@ -1,0 +1,165 @@
+/*
+ * "Ensine a sua marca ao time" (docs/adr/doug-0020-time-doug.md): the company's fields two by two, the tone's chips,
+ * the brand manual as one dashed box with its files under it. The kit's ruler, the onboarding's column.
+ */
+.onb-brand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+/* The four optional facts, two by two from 640, each a field of its own. */
+.onb-brand__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+@media (min-width: 640px) {
+  .onb-brand__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+.onb-brand__tones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+/* A picked chip: the kit's chip button darkens its plate; its ring says it's on. */
+.onb-brand__tones .tp-chip[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--raised);
+}
+.onb-brand__own.ac-input {
+  margin-top: var(--space-2);
+  padding-block: var(--space-2);
+  resize: none;
+}
+/*
+ * The brand manual: a dashed box (a drop zone), its mark, its words and the two ways in, its files below on the same
+ * plate. Dashed, never a plain border: it is where something goes, not where something is.
+ */
+.onb-brand__manual {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.onb-brand__drop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--card-pad);
+  border: 1.5px dashed var(--line2);
+  border-radius: var(--radius-lg);
+  background: var(--sunken);
+}
+.onb-brand__drop-mark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--control-h-md);
+  height: var(--control-h-md);
+  border-radius: var(--radius-md);
+  background: var(--raised);
+  box-shadow: var(--e1);
+  color: var(--muted);
+}
+.onb-brand__drop-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.onb-brand__drop-text b {
+  color: var(--ink);
+  font-weight: 600;
+}
+.onb-brand__drop-text span {
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.onb-brand__drop-acts {
+  display: flex;
+  flex: none;
+  gap: 8px;
+}
+/* The files and links already taken, each one line with its ×. */
+.onb-brand__files {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.onb-brand__file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--control-h-sm);
+  padding: 0 8px 0 12px;
+  border-radius: var(--radius-md);
+  background: var(--plate);
+  color: var(--muted);
+}
+.onb-brand__file-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 13.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.onb-brand__file-state {
+  flex: none;
+  font-size: 12px;
+  color: var(--faint);
+}
+/* The × on its plate, 8 from the row's end (its words' height, the row's). */
+.onb-brand__file-x {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--faint);
+  cursor: pointer;
+}
+.onb-brand__file-x:hover {
+  background: var(--raised);
+  color: var(--ink);
+}
+html:not([data-pointer]) .onb-brand__file-x:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+/* The link's field and its "Add", one row. */
+.onb-brand__linkrow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.onb-brand__linkrow .ac-input {
+  flex: 1;
+  min-width: 0;
+}
+/* A phone: the box's ways in under its words, the row's ends 8 from its edges. */
+@media (max-width: 560px) {
+  .onb-brand__drop {
+    flex-wrap: wrap;
+  }
+  .onb-brand__drop-text {
+    flex-basis: calc(100% - var(--control-h-md) - var(--space-3));
+  }
+  .onb-brand__drop-acts {
+    flex-basis: 100%;
+  }
+  .onb-brand__drop-acts .ac-btn {
+    flex: 1;
+  }
+}

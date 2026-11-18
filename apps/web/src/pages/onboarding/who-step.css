@@ -1,0 +1,158 @@
+/*
+ * "Quem entra no seu time?" (docs/adr/doug-0020-time-doug.md): the Doug team's agents, every box checked, the QG de
+ * Tráfego's team under its MARK, and the summary beside them. On the onboarding's column, the kit's ruler.
+ */
+.onb-who {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+/* The list and its summary side by side from 900 (the preview took the room beside the step). */
+@media (min-width: 900px) {
+  .onb-who {
+    grid-template-columns: minmax(0, 1fr) 200px;
+  }
+}
+.onb-who__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* A row: the box, the face, the name and role, then what it brings. A border, the card's plate: whole row presses. */
+.onb-who__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--control-h-lg);
+  padding: 6px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--raised);
+  cursor: pointer;
+}
+label.onb-who__row:hover {
+  border-color: var(--line-strong);
+}
+/* The right hand's row: it is already here, so it presses nothing. */
+.onb-who__row[data-fixed] {
+  background: var(--sunken);
+  cursor: default;
+}
+/* A row of a QG's team, under its lead: a hairline and a smaller face, the whole line pressing. */
+.onb-who__group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.onb-who__team {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 0 18px;
+  padding: 4px 0 4px 12px;
+  border-left: 1px solid var(--line2);
+  list-style: none;
+}
+.onb-who__row[data-small] {
+  min-height: var(--control-h-sm);
+  padding: 4px 10px;
+  border-color: transparent;
+  background: transparent;
+}
+label.onb-who__row[data-small]:hover {
+  border-color: var(--line);
+}
+.onb-who__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+.onb-who__name {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.onb-who__qg {
+  color: var(--faint);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.onb-who__role {
+  font-size: 13px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+/* What an agent that only works on a computer needs, and the button beside it. */
+.onb-who__needs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.onb-who__needs .ac-iconline {
+  white-space: nowrap;
+}
+.onb-who__fixed {
+  flex: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--faint);
+}
+/* The summary: three counts, a large number over its line, then the note under a hairline. */
+.onb-who__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-self: start;
+  padding: var(--card-pad);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--card-well);
+}
+.onb-who__counts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+}
+.onb-who__counts > div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+}
+.onb-who__counts dd {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 650;
+  line-height: 1;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.onb-who__counts dt {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.onb-who__note {
+  margin: 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--faint);
+  align-items: flex-start;
+}
+.onb-who__note .ac-icon {
+  flex: none;
+  margin-top: 2px;
+}

@@ -83,6 +83,8 @@ import type {
   BatchInviteResult,
   BlockState,
   BrainMachine,
+  Brand,
+  BrandState,
   BrowserHandoff,
   BrowserProfile,
   CalendarEvent,
@@ -833,6 +835,13 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           }),
         ),
       get: (orgId) => request<Organization>(org(orgId)),
+      brand: (orgId, locale) =>
+        request<BrandState>(`${org(orgId)}/brand`, { ...(locale ? { query: { locale } } : {}) }),
+      saveBrand: (orgId, input) =>
+        request<{ skillId: string; brand: Brand; pending: boolean }>(`${org(orgId)}/brand`, {
+          method: "PUT",
+          json: input,
+        }),
       deletionCode: (orgId) => request<CodeSent>(`${org(orgId)}/deletion/code`, { json: {} }),
       deleteWorkspace: async (orgId, input = {}) =>
         (await request<{ deletion: { dueAt: string } }>(`${org(orgId)}/deletion`, { json: input })).deletion,
@@ -1060,13 +1069,17 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
             ...(locale ? { query: { locale } } : {}),
           })
         ).templates,
-      applyTeamTemplate: (orgId, templateId, locale) =>
+      applyTeamTemplate: (orgId, templateId, locale, handles) =>
         request<{
           channelId: string;
           messageId: string;
           state: TeamProposalCard["state"];
           error: TeamProposalCard["error"] | null;
-        }>(`${org(orgId)}/team-templates/${enc(templateId)}/use`, { json: locale ? { locale } : {} }),
+          needsComputer?: { agentId: string; handle: string; name: string }[];
+          brandPending?: boolean;
+        }>(`${org(orgId)}/team-templates/${enc(templateId)}/use`, {
+          json: { ...(locale ? { locale } : {}), ...(handles ? { handles: [...handles] } : {}) },
+        }),
       decideCostly: (orgId, signalId, decision) =>
         request<{ state: CostlyDecision }>(`${org(orgId)}/autonomy-proposals/${enc(signalId)}`, {
           json: { decision },

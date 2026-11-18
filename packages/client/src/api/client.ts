@@ -119,6 +119,9 @@ import type {
   BrainKind,
   BrainMachine,
   BrainScope,
+  Brand,
+  BrandInput,
+  BrandState,
   BrowserHandoff,
   BrowserProfile,
   CalendarEvent,
@@ -733,6 +736,13 @@ export interface ApiClient {
     /** `mail`: the proof on its own email's link (ADR 0090); accepted with it, the address counts as confirmed. */
     acceptInvitation(token: string, mail?: string): Promise<{ orgId: string }>;
     settings(orgId: string): Promise<OrgSettings>;
+    /**
+     * "Sua marca" (docs/adr/doug-0020-time-doug.md): the brand, the tones to tap in `locale` and whether the onboarding
+     * waits for it. `pending`: the Doug team was made and the brand step hasn't been saved.
+     */
+    brand(orgId: string, locale?: string): Promise<BrandState>;
+    /** Saves the brand as the workspace skill "Marca <empresa>" (who manages agents). */
+    saveBrand(orgId: string, input: BrandInput): Promise<{ skillId: string; brand: Brand; pending: boolean }>;
     updateSettings(
       orgId: string,
       input: Partial<Omit<OrgSettings, "name" | "autoModels" | ReadOnlyOrgSettings>> & {
@@ -882,16 +892,24 @@ export interface ApiClient {
     ): Promise<{ card: TeamProposalCard }>;
     /** "Ver modelos de time": the templates in `locale`. */
     teamTemplates(orgId: string, locale?: string): Promise<TeamTemplate[]>;
-    /** "Criar o time": the template's team, made at once; its card in the person's DM with the right hand. */
+    /**
+     * "Criar o time": the template's team, made at once; its card in the person's DM with the right hand. The Doug
+     * team (`doug`) takes `handles`: the templates chosen, every one when absent (docs/adr/doug-0020-time-doug.md).
+     */
     applyTeamTemplate(
       orgId: string,
       templateId: string,
       locale?: string,
+      handles?: readonly string[],
     ): Promise<{
       channelId: string;
       messageId: string;
       state: TeamProposalCard["state"];
       error: TeamProposalCard["error"] | null;
+      /** The Doug team only: its agents made that work on a computer, for the notice and Connect. */
+      needsComputer?: { agentId: string; handle: string; name: string }[];
+      /** The Doug team only: the onboarding's brand step waits (`brand.save`). */
+      brandPending?: boolean;
     }>;
     /** Decides an agent's proposal of costly work nobody asked for (ADR 0131): its card's `signalId`. */
     decideCostly(orgId: string, signalId: string, decision: CostlyDecision): Promise<{ state: CostlyDecision }>;

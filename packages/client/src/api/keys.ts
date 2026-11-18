@@ -39,6 +39,8 @@ export const keys = {
   agentProposal: (orgId: string, messageId: string) => ["org", orgId, "agent-proposal", messageId] as const,
   actionCard: (orgId: string, messageId: string) => ["org", orgId, "action-card", messageId] as const,
   teamTemplates: (orgId: string, locale: string) => ["org", orgId, "team-templates", locale] as const,
+  /** The workspace's brand ("Sua marca", docs/adr/doug-0020-time-doug.md), with the tones in each language. */
+  brand: (orgId: string, locale: string) => ["org", orgId, "brand", locale] as const,
   team: (orgId: string) => ["org", orgId, "team"] as const,
   credentials: (orgId: string) => ["org", orgId, "credentials"] as const,
   /** Under `credentials`: a key added, rotated or removed refreshes it too. */

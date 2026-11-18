@@ -963,11 +963,15 @@ export const ptBR = {
         business: "O que vocês fazem",
         you: "Sobre você",
         team: "Seu time",
+        who: "Quem entra",
+        brand: "Sua marca",
         plan: "Ligar o time",
         ai: "Conectar uma IA",
         people: "Convidar pessoas",
         namePersonal: "Para que vai usar",
         teamPersonal: "Seus agentes",
+        whoPersonal: "Quem entra",
+        brandPersonal: "Sua marca",
         planPersonal: "Ligar os agentes",
         aiPersonal: "Conectar uma IA",
       },
@@ -979,6 +983,9 @@ export const ptBR = {
         team: "Esse é o time que eu montaria. Você muda tudo depois.",
         teamMade: "O time já está montado. Quando quiser, a gente segue.",
         teamMadePersonal: "Os seus agentes já estão aqui. Quando quiser, a gente segue.",
+        /** Em "Quem entra" e "Sua marca", as do Time Doug (docs/adr/doug-0020-time-doug.md). */
+        who: "O Time Doug já sabe o ofício. Escolha quem entra agora, o resto vem quando você quiser.",
+        brand: "Antes de botar o time pra trabalhar, ensine a sua marca. A ROSA e a SONY leem ela antes de cada peça.",
         plan: "Depois do plano, falta só conectar uma IA. Eu mostro onde.",
         planThen: "Com o plano ligado, a próxima tela já é a de conectar a sua IA.",
         you: "Antes do time, um pouco sobre você.",
@@ -1046,6 +1053,17 @@ export const ptBR = {
           see: "Ver o time pronto",
           scratchGo: "Seguir só com o {{name}}",
           scratchGo_female: "Seguir só com a {{name}}",
+          /** The Doug team's card (docs/adr/doug-0020-time-doug.md): first, already picked. */
+          doug: "Começar com o Time Doug",
+          /** Beside its title: the card that comes picked. */
+          dougBadge: "Recomendado",
+          dougText:
+            "O time que roda a operação do Doug: design, vídeo, tráfego, estratégia, social media, código e financeiro. Chegam sem nenhuma memória, prontos para aprender a sua empresa.",
+          /** Under its faces: who the card brings. */
+          dougWho_one: "{{count}} agente",
+          dougWho_other: "{{count}} agentes",
+          /** The button, with the Doug team picked. */
+          dougGo: "Escolher quem entra",
         },
         ask: {
           title: "Você já tem agentes em outro app?",
@@ -1081,6 +1099,67 @@ export const ptBR = {
           bring: "Trazer o time",
           bringPersonal: "Trazer os agentes",
         },
+      },
+      /**
+       * "Quem entra no seu time?" (docs/adr/doug-0020-time-doug.md): os agentes do Time Doug, todos marcados, o braço
+       * direito fixo, e o time do QG de Tráfego sob o MARK.
+       */
+      who: {
+        title: "Quem entra no seu time?",
+        lead: "Desmarque quem você não precisa agora. Dá para chamar qualquer um depois, em Equipe › Novo agente.",
+        /** A linha do braço direito: ele nunca sai (já está aqui). */
+        fixed: "Fica",
+        /** Sob as linhas do MARK: o QG de Tráfego que ele abre. `{{count}}`: quantos ele tem. */
+        teamOf_one: "{{count}} no time dele",
+        teamOf_other: "{{count}} no time dele",
+        /** O resumo ao lado da lista. */
+        agents_one: "{{count}} agente no time",
+        agents_other: "{{count}} agentes no time",
+        skills_one: "{{count}} skill de ofício",
+        skills_other: "{{count}} skills de ofício",
+        routines_one: "{{count}} rotina pronta (pausada até você ligar)",
+        routines_other: "{{count}} rotinas prontas (pausadas até você ligar)",
+        note: "Nenhum chega com memória, cliente ou arquivo de outra empresa.",
+        /** O canal em que o agente da linha trabalha: o QG dele. */
+        qg: "no {{channel}}",
+        /** O aviso no agente que só trabalha num computador, e o botão ao lado. */
+        needsComputer: "precisa de um computador conectado",
+        connectComputer: "Conectar computador",
+        create: "Criar o time",
+      },
+      /**
+       * "Ensine a sua marca ao time" (docs/adr/doug-0020-time-doug.md): o nome da empresa e o tom, obrigatórios, e o
+       * site, o perfil, o público e o manual de marca, opcionais. Vira a skill "Marca" do workspace.
+       */
+      brand: {
+        title: "Ensine a sua marca ao time",
+        lead: "É daqui que a ROSA tira a identidade, a SONY o estilo dos vídeos e o Social Media o tom. Tudo fica só no seu workspace.",
+        company: "Nome da empresa",
+        companyPlaceholder: "Padaria Aurora",
+        site: "Site",
+        instagram: "Instagram",
+        instagramPlaceholder: "@aempresa",
+        audience: "Público",
+        audiencePlaceholder: "Quem compra de você?",
+        tone: "Tom de voz",
+        /** O chip que abre o campo para um tom escrito pela pessoa. */
+        toneOwn: "Escrever o seu",
+        tonePlaceholder: "Nas suas palavras: como a marca fala",
+        /** O manual de marca: um arquivo ou um link, opcionais. */
+        manual: "Manual de marca, logo, fontes e cores",
+        manualText: "Um PDF, Figma, imagens ou um link. Vira a skill “Marca {{company}}” do time inteiro.",
+        manualPick: "Escolher arquivos",
+        manualLink: "Colar um link",
+        manualLinkPlaceholder: "https://drive.google.com/…",
+        /** O botão que guarda o link colado, ao lado do campo. */
+        manualAdd: "Adicionar",
+        /** Sob o título do arquivo, depois que ele está no Drive. */
+        saved: "Salvo",
+        /** O botão da própria etapa, sob Continuar: não salva nada e segue (o servidor ainda espera por ela). */
+        later: "Conto depois",
+        /** A skill em que vira, depois de salva. */
+        madeTitle: "O time aprendeu a sua marca",
+        made: "“Marca {{company}}” agora é a skill que a ROSA, a SONY, o Social Media e o CHESS leem.",
       },
       plan: {
         title: "Ligue o time",
@@ -15491,6 +15570,18 @@ export const ptBR = {
     teamProposal: {
       undoExpired:
         "Já passou um dia desde que este time foi criado, então não dá para desfazer aqui. Arquive os agentes nas páginas deles.",
+    },
+    /** The Doug team and its brand step (docs/adr/doug-0020-time-doug.md). */
+    dougTeam: {
+      made: "Este workspace já tem o Time Doug.",
+      none: "Marque pelo menos um agente para entrar no time.",
+      brandPending: "Antes de terminar, ensine a sua marca ao time: o nome da empresa e o tom de voz.",
+      companyRequired: "Diga o nome da empresa.",
+      toneRequired: "Escolha ou escreva o tom de voz.",
+      unknownTone: "Um dos tons escolhidos não existe mais. Recarregue e escolha de novo.",
+      invalidLink: "Esse site ou link não parece um endereço válido. Confira e tente de novo.",
+      invalidInstagram: "Esse perfil do Instagram não parece um perfil válido: escreva @alguma-coisa.",
+      fileMissing: "Um dos arquivos do manual não está mais no seu Drive. Envie de novo.",
     },
     agentProposal: {
       decided: "Alguém já decidiu esta proposta.",

@@ -1,6 +1,8 @@
 {
   "app": {
     "pt-BR": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "mediaGen.secondsValue",
       "usageViews.logins",
       "chat.wait.said",
@@ -338,6 +340,8 @@
       "onboarding.import.agenteschatName"
     ],
     "es": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "mediaGen.audioKind",
       "mediaGen.nVideos",
       "mediaGen.nAudios",
@@ -633,6 +637,8 @@
       "contextMenu.lookOurs"
     ],
     "fr": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "mediaGen.audioKind",
       "mediaGen.nImages",
       "mediaGen.nAudios",
@@ -1110,6 +1116,8 @@
       "contextMenu.lookOurs"
     ],
     "de": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "mediaGen.audioKind",
       "mediaGen.video",
       "devices.iphone.steps.account",
@@ -1614,6 +1622,8 @@
       "contextMenu.lookOurs"
     ],
     "it": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "mediaGen.audioKind",
       "mediaGen.input",
       "mediaGen.nVideos",
@@ -2031,6 +2041,8 @@
       "contextMenu.lookOurs"
     ],
     "nl": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "mediaGen.audioKind",
       "mediaGen.nVideos",
       "mediaGen.nAudios",
@@ -2684,6 +2696,8 @@
       "agentFront.ai"
     ],
     "ja": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "channel.tooLong.fileName",
       "devices.system.android",
       "devices.system.ios",
@@ -2897,6 +2911,8 @@
       "dougTeam.channels.financeiro"
     ],
     "ko": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "channel.tooLong.fileName",
       "devices.system.android",
       "devices.system.ios",
@@ -3104,6 +3120,8 @@
       "dougTeam.channels.financeiro"
     ],
     "zh-Hans": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "channel.tooLong.fileName",
       "devices.system.android",
       "devices.system.ios",
@@ -3302,6 +3320,8 @@
       "dougTeam.channels.financeiro"
     ],
     "id": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "agentFront.ai",
       "mediaGen.audioKind",
       "mediaGen.input",
@@ -3654,6 +3674,8 @@
       "contextMenu.lookOurs"
     ],
     "tr": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "mediaGen.nVideos",
       "mediaGen.video",
       "mediaGen.model",
@@ -3882,6 +3904,8 @@
       "contextMenu.lookOurs"
     ],
     "pl": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "mediaGen.audioKind",
       "mediaGen.title",
       "mediaGen.model",
@@ -4222,6 +4246,8 @@
       "agentFront.ai"
     ],
     "ru": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "channel.tooLong.fileName",
       "devices.system.android",
       "devices.system.ios",
@@ -4435,6 +4461,8 @@
   },
   "mobile-features": {
     "pt-BR": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "browser.live.key.Enter",
       "browser.live.key.Escape",
       "browser.live.key.Tab",
@@ -4476,6 +4504,8 @@
       "roles.icons.pullRequest"
     ],
     "es": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "devices.os.android",
       "devices.os.ios",
       "devices.cpus",
@@ -4511,6 +4541,8 @@
       "vault.tab.personal"
     ],
     "fr": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "devices.os.android",
       "devices.os.ios",
       "devices.cpus",
@@ -4591,6 +4623,8 @@
       "vault.sheet.note"
     ],
     "de": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "devices.status.offline",
       "devices.os.android",
       "devices.os.ios",
@@ -4670,6 +4704,8 @@
       "vault.sheet.details"
     ],
     "it": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "devices.status.offline",
       "devices.os.android",
       "devices.os.ios",
@@ -4725,6 +4761,8 @@
       "vault.sheet.password"
     ],
     "nl": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "devices.status.offline",
       "devices.cpus",
       "devices.connect.computers",
@@ -4813,6 +4851,8 @@
       "agentLite.ai"
     ],
     "ja": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "devices.os.android",
       "devices.os.ios",
       "devices.connect.windows",
@@ -4829,6 +4869,8 @@
       "agentLite.ai"
     ],
     "ko": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "devices.os.android",
       "devices.os.ios",
       "devices.connect.windows",
@@ -4842,6 +4884,8 @@
       "agentLite.ai"
     ],
     "zh-Hans": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "devices.os.android",
       "devices.os.ios",
       "devices.connect.windows",
@@ -4857,6 +4901,8 @@
       "agentLite.ai"
     ],
     "id": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "devices.status.offline",
       "devices.os.android",
       "devices.os.ios",
@@ -4892,6 +4938,8 @@
       "agentLite.ai"
     ],
     "tr": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "devices.os.android",
       "devices.os.ios",
       "devices.cpus",
@@ -4910,6 +4958,8 @@
       "files.type.video"
     ],
     "pl": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "devices.status.offline",
       "devices.os.android",
       "devices.os.ios",
@@ -4944,6 +4994,8 @@
       "agentLite.ai"
     ],
     "ru": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "devices.os.android",
       "devices.os.ios",
       "devices.connect.windows",
@@ -4958,6 +5010,8 @@
   },
   "desktop": {
     "pt-BR": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "common.hours",
       "common.minutes",
       "device.mac",
@@ -4985,6 +5039,8 @@
       "own.back"
     ],
     "es": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "common.hours",
       "common.minutes",
       "device.mac",
@@ -5008,6 +5064,8 @@
       "own.back"
     ],
     "fr": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "common.hours",
       "common.minutes",
       "device.mac",
@@ -5034,6 +5092,8 @@
       "own.back"
     ],
     "de": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "device.mac",
       "device.windows",
       "iphone.account",
@@ -5064,6 +5124,8 @@
       "own.back"
     ],
     "it": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "common.hours",
       "common.minutes",
       "device.linux",
@@ -5090,6 +5152,8 @@
       "own.back"
     ],
     "nl": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "common.minutes",
       "device.linux",
       "device.mac",
@@ -5124,6 +5188,8 @@
       "own.back"
     ],
     "ja": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "connect.placeholder",
       "device.mac",
       "device.windows",
@@ -5143,6 +5209,8 @@
       "own.back"
     ],
     "ko": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "connect.placeholder",
       "device.mac",
       "device.windows",
@@ -5161,6 +5229,8 @@
       "own.back"
     ],
     "zh-Hans": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "connect.placeholder",
       "device.mac",
       "device.windows",
@@ -5179,6 +5249,8 @@
       "own.back"
     ],
     "id": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "device.mac",
       "device.windows",
       "link.chipTailnet",
@@ -5202,6 +5274,8 @@
       "own.back"
     ],
     "tr": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "device.mac",
       "device.windows",
       "link.chipTailnet",
@@ -5219,6 +5293,8 @@
       "own.back"
     ],
     "pl": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "common.minutes",
       "device.mac",
       "device.windows",
@@ -5239,6 +5315,8 @@
       "own.back"
     ],
     "ru": [
+      "onboarding.flow.brand.instagram",
+      "onboarding.flow.brand.manualLinkPlaceholder",
       "connect.placeholder",
       "device.mac",
       "link.chipTailnet",

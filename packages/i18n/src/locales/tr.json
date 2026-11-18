@@ -921,11 +921,15 @@
         "business": "Ne yapıyorsunuz",
         "you": "Hakkında",
         "team": "Ekibin",
+        "who": "Kimler katılıyor",
+        "brand": "Markan",
         "plan": "Ekibi başlat",
         "ai": "Yapay zeka bağla",
         "people": "Kişileri davet et",
         "namePersonal": "Ne için kullanacaksın",
         "teamPersonal": "Ajanların",
+        "whoPersonal": "Kimler katılıyor",
+        "brandPersonal": "Markan",
         "planPersonal": "Ajanları başlat",
         "aiPersonal": "Yapay zeka bağla"
       },
@@ -936,6 +940,8 @@
         "team": "Ben olsam bu ekibi kurardım. Her şeyi sonra değiştirebilirsin.",
         "teamMade": "Ekip zaten kuruldu. Hazır olduğunuzda devam ederiz.",
         "teamMadePersonal": "Ajanlarınız zaten burada. Hazır olduğunuzda devam ederiz.",
+        "who": "Doug Ekibi mesleği zaten biliyor. Şimdi kimlerin katılacağını seç, gerisi sonra gelebilir.",
+        "brand": "Onları işe koşmadan önce: markanı öğrensinler. ROSA ve SONY her parçadan önce onu okur.",
         "plan": "Plandan sonra sadece bir yapay zeka bağlamak kalıyor. Nerede olduğunu gösteririm.",
         "planThen": "Plan başlayınca sıradaki ekranda yapay zekanı bağlayacaksın.",
         "you": "Ekipten önce biraz senden bahsedelim.",
@@ -998,7 +1004,13 @@
           "scratchText": "Sadece {{name}}, sağ kolun. Her ajanı sonra kendi tarzınla oluşturursun.",
           "scratchWho": "{{name}} ve senin oluşturacakların",
           "see": "Hazır ekibi gör",
-          "scratchGo": "Sadece {{name}} ile devam et"
+          "scratchGo": "Sadece {{name}} ile devam et",
+          "doug": "Doug Ekibi ile başla",
+          "dougBadge": "Önerilen",
+          "dougText": "Doug'un operasyonunu yürüten ekip: tasarım, video, reklam, strateji, sosyal medya, kod ve finans. Hiçbir anı olmadan gelirler, şirketini öğrenmeye hazırdırlar.",
+          "dougWho_one": "{{count}} ajan",
+          "dougWho_other": "{{count}} ajan",
+          "dougGo": "Kimlerin gireceğini seç"
         },
         "ask": {
           "title": "Başka bir uygulamada zaten ajanın var mı?",
@@ -1034,6 +1046,48 @@
           "bring": "Ekibi getir",
           "bringPersonal": "Ajanları getir"
         }
+      },
+      "who": {
+        "title": "Ekibine kimler katılıyor?",
+        "lead": "Şimdi ihtiyacın olmayanın işaretini kaldır. Hepsini sonra Ekip › Yeni ajan'dan çağırabilirsin.",
+        "fixed": "Kalır",
+        "teamOf_one": "ekibinde {{count}} kişi",
+        "teamOf_other": "ekibinde {{count}} kişi",
+        "agents_one": "ekipte {{count}} ajan",
+        "agents_other": "ekipte {{count}} ajan",
+        "skills_one": "{{count}} meslek becerisi",
+        "skills_other": "{{count}} meslek becerisi",
+        "routines_one": "{{count}} hazır rutin (sen açana kadar duraklatılmış)",
+        "routines_other": "{{count}} hazır rutin (sen açana kadar duraklatılmış)",
+        "note": "Hiçbiri başka bir şirketin anısıyle, müşterisiyle ya da dosyasıyla gelmez.",
+        "qg": "{{channel}} içinde",
+        "needsComputer": "bağlı bir bilgisayar gerektirir",
+        "connectComputer": "Bilgisayar kullan",
+        "create": "Ekibi oluştur"
+      },
+      "brand": {
+        "title": "Ekibine markanı öğret",
+        "lead": "ROSA kimliği buradan alır, SONY videoların stilini, Sosyal Medya ise tonu. Her şey yalnızca çalışma alanında kalır.",
+        "company": "Şirket adı",
+        "companyPlaceholder": "Aurora Fırını",
+        "site": "Web sitesi",
+        "instagram": "Instagram",
+        "instagramPlaceholder": "@sirket",
+        "audience": "Hedef kitle",
+        "audiencePlaceholder": "Senden kim satın alıyor?",
+        "tone": "Konuşma tonu",
+        "toneOwn": "Kendininkini yaz",
+        "tonePlaceholder": "Kendi sözlerinle: marka nasıl konuşur",
+        "manual": "Marka kılavuzu, logo, yazı tipleri ve renkler",
+        "manualText": "Bir PDF, Figma, görseller ya da bir bağlantı. Tüm ekibin «Marka {{company}}» becerisine dönüşür.",
+        "manualPick": "Dosya seç",
+        "manualLink": "Bağlantı yapıştır",
+        "manualLinkPlaceholder": "https://drive.google.com/…",
+        "manualAdd": "Ekle",
+        "saved": "Kaydedildi",
+        "later": "Şimdi değil",
+        "madeTitle": "Ekip markanı öğrendi",
+        "made": "«Marka {{company}}» artık ROSA, SONY, Sosyal Medya ve CHESS'in okuduğu beceri."
       },
       "plan": {
         "title": "Ekibini başlat",
@@ -15212,6 +15266,17 @@
     },
     "teamProposal": {
       "undoExpired": "Bu ekip oluşturulalı bir günden fazla oldu, bu yüzden burada geri alınamaz. Ajanları kendi sayfalarından arşivle."
+    },
+    "dougTeam": {
+      "made": "Bu çalışma alanında zaten Doug Ekibi var.",
+      "none": "Ekibe katılması için en az bir ajanı işaretle.",
+      "brandPending": "Bitirmeden önce ekibine markanı öğret: şirket adı ve konuşma tonu.",
+      "companyRequired": "Şirket adını söyle.",
+      "toneRequired": "Konuşma tonunu seç ya da yaz.",
+      "unknownTone": "Seçilen tonlardan biri artık yok. Yeniden yükle ve tekrar seç.",
+      "invalidLink": "Bu site ya da bağlantı geçerli bir adrese benzemiyor. Kontrol et ve tekrar dene.",
+      "invalidInstagram": "Bu Instagram profili geçerli görünmüyor: @birsey yaz.",
+      "fileMissing": "Kılavuzun dosyalarından biri artık Drive'ında değil. Yeniden yükle."
     },
     "agentProposal": {
       "decided": "Bu öneri hakkında zaten biri karar verdi.",
