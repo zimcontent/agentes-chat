@@ -49,6 +49,22 @@ export const featureKeysEn = {
     pollAnswered_one: "{{count}} of {{total}} answered",
     pollAnswered_other: "{{count}} of {{total}} answered",
     voteFailed: "Your vote didn't go through.",
+    /** A slide, a static post or a reel's beat opened on the whole screen, with a note for the agent about it. */
+    openPiece: "Open full screen",
+    openSlide: "Open slide {{at}}",
+    pieceAt: "{{at}} of {{count}}",
+    carouselTitle: "Carousel",
+    posterTitle: "Static post",
+    reelTitle: "Reel script",
+    /** Names the piece inside the note sent to the agent and in the field's placeholder. */
+    aboutSlide: "slide {{at}} (“{{title}}”)",
+    aboutPoster: "the static post (“{{title}}”)",
+    aboutBeat: "the {{time}} beat of the reel",
+    /** The message the agent gets, as the person's answer to the block. */
+    noteMessage: "About {{about}}: {{note}}",
+    notePlaceholder: "A note on {{about}}",
+    noteLabel: "Your note",
+    noteSent: "Sent to {{name}}",
   },
   choices: {
     step: "{{step}} of {{total}}",

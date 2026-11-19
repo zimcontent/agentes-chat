@@ -46,7 +46,20 @@
     "pollAnswered_one": "{{count}} di {{total}} ha risposto",
     "pollAnswered_many": "{{count}} di {{total}} hanno risposto",
     "pollAnswered_other": "{{count}} di {{total}} hanno risposto",
-    "voteFailed": "Il tuo voto non è andato a buon fine."
+    "voteFailed": "Il tuo voto non è andato a buon fine.",
+    "openPiece": "Apri in grande",
+    "openSlide": "Apri la slide {{at}}",
+    "pieceAt": "{{at}} di {{count}}",
+    "carouselTitle": "Carosello",
+    "posterTitle": "Post statico",
+    "reelTitle": "Copione del reel",
+    "aboutSlide": "la slide {{at}} («{{title}}»)",
+    "aboutPoster": "il post statico («{{title}}»)",
+    "aboutBeat": "il passaggio {{time}} del reel",
+    "noteMessage": "Su {{about}}: {{note}}",
+    "notePlaceholder": "Commenta {{about}}",
+    "noteLabel": "Il tuo commento",
+    "noteSent": "Inviato a {{name}}"
   },
   "choices": {
     "step": "{{step}} di {{total}}",

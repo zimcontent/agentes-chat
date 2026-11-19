@@ -42,7 +42,20 @@
     "pollClosed": "投票已结束",
     "pollMultiple": "可以选择多项。",
     "pollAnswered_other": "{{count}}/{{total}} 人已回答",
-    "voteFailed": "你的投票没有提交成功。"
+    "voteFailed": "你的投票没有提交成功。",
+    "openPiece": "放大查看",
+    "openSlide": "打开第 {{at}} 张",
+    "pieceAt": "{{at}} / {{count}}",
+    "carouselTitle": "轮播图",
+    "posterTitle": "静态帖子",
+    "reelTitle": "短视频脚本",
+    "aboutSlide": "第 {{at}} 张（“{{title}}”）",
+    "aboutPoster": "静态帖子（“{{title}}”）",
+    "aboutBeat": "短视频的 {{time}} 段",
+    "noteMessage": "关于{{about}}：{{note}}",
+    "notePlaceholder": "评论{{about}}",
+    "noteLabel": "你的评论",
+    "noteSent": "已发送给 {{name}}"
   },
   "choices": {
     "step": "{{step}} / {{total}}",

@@ -44,7 +44,20 @@
     "pollMultiple": "Birden fazla seçebilirsiniz.",
     "pollAnswered_one": "{{count}} / {{total}} yanıtladı",
     "pollAnswered_other": "{{count}} / {{total}} yanıtladı",
-    "voteFailed": "Oyunuz kaydedilemedi."
+    "voteFailed": "Oyunuz kaydedilemedi.",
+    "openPiece": "Büyük aç",
+    "openSlide": "{{at}}. slaytı aç",
+    "pieceAt": "{{at}} / {{count}}",
+    "carouselTitle": "Karusel",
+    "posterTitle": "Statik gönderi",
+    "reelTitle": "Reels senaryosu",
+    "aboutSlide": "{{at}}. slayt (“{{title}}”)",
+    "aboutPoster": "statik gönderi (“{{title}}”)",
+    "aboutBeat": "reels'in {{time}} bölümü",
+    "noteMessage": "{{about}} hakkında: {{note}}",
+    "notePlaceholder": "Not ekle: {{about}}",
+    "noteLabel": "Notunuz",
+    "noteSent": "{{name}} adlı kişiye gönderildi"
   },
   "choices": {
     "step": "{{step}} / {{total}}",
