@@ -1054,6 +1054,8 @@
       "composio_limit_one": "Este espacio de trabajo usó sus llamadas de Composio del mes",
       "composio_limit_many": "Este espacio de trabajo usó sus llamadas de Composio del mes",
       "composio_limit_other": "Este espacio de trabajo usó sus llamadas de Composio del mes",
+      "company_request_one": "{{names}} pidió DougBot para una empresa",
+      "company_request_other": "{{names}} pidieron DougBot para una empresa",
       "change_request_one": "{{names}} pide un cambio en el equipo",
       "change_request_many": "{{names}} piden un cambio en el equipo",
       "change_request_other": "{{names}} piden un cambio en el equipo",
@@ -1107,9 +1109,7 @@
       "computer_no_chrome_other": "Computadoras necesitan Google Chrome. Descárgalo en google.com/chrome",
       "app_created_one": "Una app de IA creó cosas para ti",
       "app_created_many": "Una app de IA creó cosas para ti",
-      "app_created_other": "Una app de IA creó cosas para ti",
-      "company_request_one": "{{names}} pidió DougBot para una empresa",
-      "company_request_other": "{{names}} pidieron DougBot para una empresa"
+      "app_created_other": "Una app de IA creó cosas para ti"
     },
     "markRead": "Marcar como leído",
     "markUnread": "Marcar como no leído",
@@ -1165,6 +1165,8 @@
     "added": "{{name}} se unió al grupo"
   },
   "me": {
+    "groupAlerts": "Avisos y aprobaciones",
+    "groupLook": "Apariencia y sonido",
     "title": "Tú",
     "role": {
       "owner": "propietario",
@@ -1300,9 +1302,7 @@
       "suggested": "Sugeridas",
       "all": "Todas",
       "none": "No hay ninguna zona horaria con ese nombre"
-    },
-    "groupAlerts": "Avisos y aprobaciones",
-    "groupLook": "Apariencia y sonido"
+    }
   },
   "delete": {
     "intro": "No se puede deshacer.",
@@ -1367,6 +1367,8 @@
     "new": "Nueva tarea",
     "viewList": "Lista",
     "viewBoard": "Tablero",
+    "viewTeam": "Equipo",
+    "viewMine": "Mías",
     "search": "Buscar tareas",
     "noMatch": "No hay ninguna tarea con ese nombre.",
     "list": {
@@ -1398,6 +1400,43 @@
       "canceled": "Cancelada"
     },
     "until": "vence el {{date}}",
+    "team": {
+      "today": "Hoy",
+      "week": "Semana",
+      "everyone": "Todos",
+      "people": "Personas",
+      "agents": "Agentes",
+      "clear": "Nadie tiene tareas abiertas",
+      "mineClear": "Estás al día",
+      "clearToday": "Nada en curso, atrasado ni para hoy.",
+      "clearWeek": "Nada en curso, atrasado ni para esta semana.",
+      "working_one": "{{count}} trabajando",
+      "working_many": "{{count}} trabajando",
+      "working_other": "{{count}} trabajando",
+      "lateCount_one": "{{count}} atrasada",
+      "lateCount_many": "{{count}} atrasadas",
+      "lateCount_other": "{{count}} atrasadas",
+      "blockedCount_one": "{{count}} bloqueada",
+      "blockedCount_many": "{{count}} bloqueadas",
+      "blockedCount_other": "{{count}} bloqueadas",
+      "doingCount_one": "Trabajando en {{count}}",
+      "doingCount_many": "Trabajando en {{count}}",
+      "doingCount_other": "Trabajando en {{count}}",
+      "notStarted": "Nada en curso",
+      "free": "Libre",
+      "queued_one": "{{count}} en la cola",
+      "queued_many": "{{count}} en la cola",
+      "queued_other": "{{count}} en la cola",
+      "expand": "Muestra toda la cola",
+      "collapse": "Muestra solo lo siguiente",
+      "now": "Ahora",
+      "next": "Después",
+      "more_one": "+{{count}} en la cola",
+      "more_many": "+{{count}} en la cola",
+      "more_other": "+{{count}} en la cola",
+      "blocked": "Bloqueada",
+      "lateOn": "Atrasada desde {{date}}"
+    },
     "loadFailed": "No se pudieron cargar las tareas.",
     "createdBy": "creada por {{name}}",
     "fromMessage": "de un mensaje",
@@ -1601,6 +1640,22 @@
     }
   },
   "taskManager": {
+    "shortTitle": "Actividad",
+    "stat": {
+      "working": "Trabajando",
+      "waiting": "Te esperan",
+      "done": "Hechas hoy"
+    },
+    "needsYou": "Te necesita",
+    "review": "Abrir y responder",
+    "inProgress": "En curso",
+    "paused": "En pausa",
+    "pausedLine": "En pausa",
+    "comingBack": "Vuelven más tarde",
+    "more_one": "{{count}} tarea más",
+    "more_many": "{{count}} tareas más",
+    "more_other": "{{count}} tareas más",
+    "fewer": "Ver menos",
     "loadFailed": "No se pudo cargar el trabajo.",
     "gone": "Este trabajo ya no está aquí.",
     "quiet": "Nada en curso",
@@ -1658,6 +1713,10 @@
     }
   },
   "activityNow": {
+    "needsYou": "Te necesita",
+    "running": "Trabajando ahora",
+    "runningAll": "Ver todo",
+    "steps": "{{done}} de {{total}}",
     "kind": {
       "approval": "Aprobar",
       "question": "Pregunta",
@@ -1680,11 +1739,16 @@
       "today": "hoy a las {{time}}",
       "tomorrow": "mañana a las {{time}}",
       "later": "{{day}} a las {{time}}"
-    },
-    "needsYou": "Te necesita",
-    "running": "Trabajando ahora",
-    "runningAll": "Ver todo",
-    "steps": "{{done}} de {{total}}"
+    }
+  },
+  "toSchedule": {
+    "title": "Listo para programar",
+    "row": "Publicación aprobada, toca para programar",
+    "untitled": "Publicación sin título",
+    "sheetTitle": "Programar publicación",
+    "confirm": "Programar",
+    "when": "Sale {{when}}",
+    "past": "Elige una hora que aún no haya pasado"
   },
   "agentLite": {
     "uses": "Puede usar",
@@ -2498,7 +2562,7 @@
     "more": "+{{n}} más del QG",
     "less": "Ver menos",
     "computerText": "Estos agentes trabajan en un ordenador: {{names}}.",
-    "computerButton": "Conectar un ordenador",
+    "computerButton": "Conectar ordenador",
     "computerLater": "La conexión del ordenador se abre en cuanto el equipo esté dentro.",
     "computerSkip": "Ahora no",
     "needOne": "Deja al menos un agente además de Doug.",
@@ -3326,14 +3390,5 @@
   "brand": {
     "basedOn": "Basado en DougBot de Codari Global, LLC · AGPL-3.0",
     "source": "Código fuente de DougBot"
-  },
-  "toSchedule": {
-    "title": "Listo para programar",
-    "row": "Publicación aprobada, toca para programar",
-    "untitled": "Publicación sin título",
-    "sheetTitle": "Programar publicación",
-    "confirm": "Programar",
-    "when": "Sale {{when}}",
-    "past": "Elige una hora que aún no haya pasado"
   }
 }

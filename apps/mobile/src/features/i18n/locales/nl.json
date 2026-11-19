@@ -996,6 +996,8 @@
       "invitation_accepted_other": "{{names}} hebben je uitnodiging aangenomen",
       "composio_limit_one": "Deze werkruimte heeft haar Composio-aanroepen voor de maand opgebruikt",
       "composio_limit_other": "Deze werkruimte heeft haar Composio-aanroepen voor de maand opgebruikt",
+      "company_request_one": "{{names}} vroeg DougBot aan voor een bedrijf",
+      "company_request_other": "{{names}} vroegen DougBot aan voor een bedrijf",
       "change_request_one": "{{names}} vraagt om een wijziging in het team",
       "change_request_other": "{{names}} vragen om een wijziging in het team",
       "usage_limit_warning": "Je hebt {{percent}}% van je limiet deze maand gebruikt",
@@ -1033,9 +1035,7 @@
       "computer_no_chrome_one": "Een computer heeft Google Chrome nodig. Download het op google.com/chrome",
       "computer_no_chrome_other": "Computers hebben Google Chrome nodig. Download het op google.com/chrome",
       "app_created_one": "Een AI-app heeft dingen voor je aangemaakt",
-      "app_created_other": "AI-apps hebben dingen voor je aangemaakt",
-      "company_request_one": "{{names}} vroeg DougBot aan voor een bedrijf",
-      "company_request_other": "{{names}} vroegen DougBot aan voor een bedrijf"
+      "app_created_other": "AI-apps hebben dingen voor je aangemaakt"
     },
     "markRead": "Markeren als gelezen",
     "markUnread": "Markeren als ongelezen",
@@ -1091,6 +1091,8 @@
     "added": "{{name}} is lid geworden van de groep"
   },
   "me": {
+    "groupAlerts": "Meldingen en goedkeuringen",
+    "groupLook": "Weergave en geluid",
     "title": "Jij",
     "role": {
       "owner": "eigenaar",
@@ -1223,9 +1225,7 @@
       "suggested": "Voorgesteld",
       "all": "Alle",
       "none": "Geen tijdzone met die naam"
-    },
-    "groupAlerts": "Meldingen en goedkeuringen",
-    "groupLook": "Weergave en geluid"
+    }
   },
   "delete": {
     "intro": "Dit kan niet ongedaan worden.",
@@ -1290,6 +1290,8 @@
     "new": "Nieuwe taak",
     "viewList": "Lijst",
     "viewBoard": "Bord",
+    "viewTeam": "Team",
+    "viewMine": "Mijn",
     "search": "Taken zoeken",
     "noMatch": "Geen taak met die naam.",
     "list": {
@@ -1321,6 +1323,37 @@
       "canceled": "Geannuleerd"
     },
     "until": "uiterlijk {{date}}",
+    "team": {
+      "today": "Vandaag",
+      "week": "Deze week",
+      "everyone": "Iedereen",
+      "people": "Mensen",
+      "agents": "Agents",
+      "clear": "Niemand heeft open taken",
+      "mineClear": "Je bent helemaal bij",
+      "clearToday": "Niets bezig, te laat of voor vandaag.",
+      "clearWeek": "Niets bezig, te laat of voor deze week.",
+      "working_one": "{{count}} aan het werk",
+      "working_other": "{{count}} aan het werk",
+      "lateCount_one": "{{count}} te laat",
+      "lateCount_other": "{{count}} te laat",
+      "blockedCount_one": "{{count}} geblokkeerd",
+      "blockedCount_other": "{{count}} geblokkeerd",
+      "doingCount_one": "Bezig met {{count}}",
+      "doingCount_other": "Bezig met {{count}}",
+      "notStarted": "Niets bezig",
+      "free": "Vrij",
+      "queued_one": "{{count}} in de wachtrij",
+      "queued_other": "{{count}} in de wachtrij",
+      "expand": "Toont de hele wachtrij",
+      "collapse": "Toont alleen wat hierna komt",
+      "now": "Nu",
+      "next": "Hierna",
+      "more_one": "+{{count}} in de wachtrij",
+      "more_other": "+{{count}} in de wachtrij",
+      "blocked": "Geblokkeerd",
+      "lateOn": "Te laat sinds {{date}}"
+    },
     "loadFailed": "De taken konden niet worden geladen.",
     "createdBy": "aangemaakt door {{name}}",
     "fromMessage": "vanuit een bericht",
@@ -1516,6 +1549,21 @@
     }
   },
   "taskManager": {
+    "shortTitle": "Activiteit",
+    "stat": {
+      "working": "Aan het werk",
+      "waiting": "Wachten op jou",
+      "done": "Vandaag afgerond"
+    },
+    "needsYou": "Wacht op jou",
+    "review": "Openen en antwoorden",
+    "inProgress": "Bezig",
+    "paused": "Gepauzeerd",
+    "pausedLine": "Gepauzeerd",
+    "comingBack": "Komen later terug",
+    "more_one": "Nog {{count}} taak",
+    "more_other": "Nog {{count}} taken",
+    "fewer": "Minder tonen",
     "loadFailed": "Kon het werk niet laden.",
     "gone": "Dit werk is er niet meer.",
     "quiet": "Er loopt niets",
@@ -1572,6 +1620,10 @@
     }
   },
   "activityNow": {
+    "needsYou": "Wacht op jou",
+    "running": "Nu bezig",
+    "runningAll": "Alles bekijken",
+    "steps": "{{done}} van {{total}}",
     "kind": {
       "approval": "Goedkeuren",
       "question": "Vraag",
@@ -1594,11 +1646,16 @@
       "today": "vandaag om {{time}}",
       "tomorrow": "morgen om {{time}}",
       "later": "{{day}} om {{time}}"
-    },
-    "needsYou": "Wacht op jou",
-    "running": "Nu bezig",
-    "runningAll": "Alles bekijken",
-    "steps": "{{done}} van {{total}}"
+    }
+  },
+  "toSchedule": {
+    "title": "Klaar om in te plannen",
+    "row": "Bericht goedgekeurd, tik om in te plannen",
+    "untitled": "Bericht zonder titel",
+    "sheetTitle": "Bericht inplannen",
+    "confirm": "Inplannen",
+    "when": "Gaat live {{when}}",
+    "past": "Kies een tijd die nog niet voorbij is"
   },
   "agentLite": {
     "uses": "Kan gebruiken",
@@ -2394,7 +2451,7 @@
     "more": "+{{n}} meer in het HQ",
     "less": "Minder tonen",
     "computerText": "Deze agents werken op een computer: {{names}}.",
-    "computerButton": "Een computer koppelen",
+    "computerButton": "Computer koppelen",
     "computerLater": "De computerinstelling opent zodra het team erin zit.",
     "computerSkip": "Nu niet",
     "needOne": "Houd minstens één agent over naast Doug.",
@@ -3209,14 +3266,5 @@
   "brand": {
     "basedOn": "Gebaseerd op DougBot van Codari Global, LLC · AGPL-3.0",
     "source": "Broncode van DougBot"
-  },
-  "toSchedule": {
-    "title": "Klaar om in te plannen",
-    "row": "Bericht goedgekeurd, tik om in te plannen",
-    "untitled": "Bericht zonder titel",
-    "sheetTitle": "Bericht inplannen",
-    "confirm": "Inplannen",
-    "when": "Gaat live {{when}}",
-    "past": "Kies een tijd die nog niet voorbij is"
   }
 }

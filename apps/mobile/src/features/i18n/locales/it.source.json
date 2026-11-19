@@ -908,6 +908,12 @@
   "chat.profile": {
     "value": "Profile"
   },
+  "chat.call": {
+    "value": "Call"
+  },
+  "chat.toneGreen": {
+    "value": "In green"
+  },
   "chat.here": {
     "value": {
       "one": "{{count}} here",
@@ -2403,6 +2409,12 @@
       "other": "This workspace used its Composio calls for the month"
     }
   },
+  "activity.kind.company_request": {
+    "value": {
+      "one": "{{names}} asked for DougBot for a company",
+      "other": "{{names}} asked for DougBot for a company"
+    }
+  },
   "activity.kind.change_request": {
     "value": {
       "one": "{{names}} asks for a change to the team",
@@ -2632,6 +2644,12 @@
   },
   "mention.added": {
     "value": "{{name}} joined the group"
+  },
+  "me.groupAlerts": {
+    "value": "Alerts and approvals"
+  },
+  "me.groupLook": {
+    "value": "Look and sound"
   },
   "me.title": {
     "value": "You"
@@ -3170,6 +3188,12 @@
   "issues.viewBoard": {
     "value": "Board"
   },
+  "issues.viewTeam": {
+    "value": "Team"
+  },
+  "issues.viewMine": {
+    "value": "Mine"
+  },
   "issues.search": {
     "value": "Search tasks"
   },
@@ -3244,6 +3268,93 @@
   },
   "issues.until": {
     "value": "due {{date}}"
+  },
+  "issues.team.today": {
+    "value": "Today"
+  },
+  "issues.team.week": {
+    "value": "Week"
+  },
+  "issues.team.everyone": {
+    "value": "Everyone"
+  },
+  "issues.team.people": {
+    "value": "People"
+  },
+  "issues.team.agents": {
+    "value": "Agents"
+  },
+  "issues.team.clear": {
+    "value": "Nobody has open tasks"
+  },
+  "issues.team.mineClear": {
+    "value": "You're all caught up"
+  },
+  "issues.team.clearToday": {
+    "value": "Nothing under way, late or due today."
+  },
+  "issues.team.clearWeek": {
+    "value": "Nothing under way, late or due this week."
+  },
+  "issues.team.working": {
+    "value": {
+      "one": "{{count}} working",
+      "other": "{{count}} working"
+    }
+  },
+  "issues.team.lateCount": {
+    "value": {
+      "one": "{{count}} late",
+      "other": "{{count}} late"
+    }
+  },
+  "issues.team.blockedCount": {
+    "value": {
+      "one": "{{count}} blocked",
+      "other": "{{count}} blocked"
+    }
+  },
+  "issues.team.doingCount": {
+    "value": {
+      "one": "Working on {{count}}",
+      "other": "Working on {{count}}"
+    }
+  },
+  "issues.team.notStarted": {
+    "value": "Nothing under way"
+  },
+  "issues.team.free": {
+    "value": "Free"
+  },
+  "issues.team.queued": {
+    "value": {
+      "one": "{{count}} in the queue",
+      "other": "{{count}} in the queue"
+    }
+  },
+  "issues.team.expand": {
+    "value": "Shows the whole queue"
+  },
+  "issues.team.collapse": {
+    "value": "Shows only what's next"
+  },
+  "issues.team.now": {
+    "value": "Now"
+  },
+  "issues.team.next": {
+    "value": "Next"
+  },
+  "issues.team.more": {
+    "value": {
+      "one": "+{{count}} in the queue",
+      "other": "+{{count}} in the queue"
+    }
+  },
+  "issues.team.blocked": {
+    "value": "Blocked"
+  },
+  "issues.team.lateOn": {
+    "value": "Late since {{date}}"
   },
   "issues.loadFailed": {
     "value": "Couldn't load the tasks."
@@ -3716,6 +3827,45 @@
   "routines.when.lastDay": {
     "value": "Last day"
   },
+  "taskManager.shortTitle": {
+    "value": "Activity"
+  },
+  "taskManager.stat.working": {
+    "value": "Working"
+  },
+  "taskManager.stat.waiting": {
+    "value": "Waiting on you"
+  },
+  "taskManager.stat.done": {
+    "value": "Done today"
+  },
+  "taskManager.needsYou": {
+    "value": "Needs you"
+  },
+  "taskManager.review": {
+    "value": "Open and reply"
+  },
+  "taskManager.inProgress": {
+    "value": "In progress"
+  },
+  "taskManager.paused": {
+    "value": "Paused"
+  },
+  "taskManager.pausedLine": {
+    "value": "Paused"
+  },
+  "taskManager.comingBack": {
+    "value": "Coming back"
+  },
+  "taskManager.more": {
+    "value": {
+      "one": "{{count}} more task",
+      "other": "{{count}} more tasks"
+    }
+  },
+  "taskManager.fewer": {
+    "value": "Show less"
+  },
   "taskManager.loadFailed": {
     "value": "Couldn't load the work."
   },
@@ -3746,6 +3896,69 @@
   },
   "homeTools.more": {
     "value": "More"
+  },
+  "homeTools.all": {
+    "value": "Everything"
+  },
+  "homeTools.edit": {
+    "value": "Edit shortcuts"
+  },
+  "homeTools.done": {
+    "value": "Done"
+  },
+  "homeTools.editHint": {
+    "value": "Tap to pin up to 4 on Home"
+  },
+  "homeTools.full": {
+    "value": "Home already has 4. Unpin one first."
+  },
+  "homeTools.search": {
+    "value": "Search conversations, files, people"
+  },
+  "homeTools.searchTile": {
+    "value": "Search"
+  },
+  "homeTools.pinned": {
+    "value": "pinned to Home"
+  },
+  "homeTools.attach": {
+    "value": "Attach to the conversation"
+  },
+  "homeTools.here": {
+    "value": "In this conversation"
+  },
+  "homeTools.create": {
+    "value": "Create"
+  },
+  "homeTools.newAgent": {
+    "value": "New agent"
+  },
+  "homeTools.newChat": {
+    "value": "New conversation"
+  },
+  "homeTools.mission": {
+    "value": "Mission"
+  },
+  "homeTools.summary": {
+    "value": "Summary"
+  },
+  "homeTools.remind": {
+    "value": "Reminder"
+  },
+  "homeTools.calendar": {
+    "value": "Calendar"
+  },
+  "homeTools.people": {
+    "value": "People"
+  },
+  "homeTools.computer": {
+    "value": "Computer"
+  },
+  "homeTools.vault": {
+    "value": "Vault"
+  },
+  "homeTools.settings": {
+    "value": "Settings"
   },
   "homeNow.working": {
     "value": {
@@ -3785,6 +3998,18 @@
   },
   "homeNow.first.examples": {
     "value": "Or start with one of these"
+  },
+  "activityNow.needsYou": {
+    "value": "Needs you"
+  },
+  "activityNow.running": {
+    "value": "Working now"
+  },
+  "activityNow.runningAll": {
+    "value": "See all"
+  },
+  "activityNow.steps": {
+    "value": "{{done}} of {{total}}"
   },
   "activityNow.kind.approval": {
     "value": "Approve"
@@ -3836,6 +4061,27 @@
   },
   "activityNow.next.later": {
     "value": "{{day}} at {{time}}"
+  },
+  "toSchedule.title": {
+    "value": "Ready to schedule"
+  },
+  "toSchedule.row": {
+    "value": "Approved post, tap to schedule"
+  },
+  "toSchedule.untitled": {
+    "value": "Untitled post"
+  },
+  "toSchedule.sheetTitle": {
+    "value": "Schedule post"
+  },
+  "toSchedule.confirm": {
+    "value": "Schedule"
+  },
+  "toSchedule.when": {
+    "value": "Goes out {{when}}"
+  },
+  "toSchedule.past": {
+    "value": "Pick a time that hasn't passed yet"
   },
   "agentLite.uses": {
     "value": "Can use"
@@ -5809,10 +6055,10 @@
     }
   },
   "dougOnb.fixed": {
-    "value": "always on the team"
+    "value": "always part of the team"
   },
   "dougOnb.fixedA11y": {
-    "value": "{{name}} is always on the team"
+    "value": "{{name}} is always part of the team"
   },
   "dougOnb.toggleHint": {
     "value": "Double tap to include or leave out {{name}}"
@@ -5830,7 +6076,7 @@
     "value": "These agents work on a computer: {{names}}."
   },
   "dougOnb.computerButton": {
-    "value": "Connect a computer"
+    "value": "Connect computer"
   },
   "dougOnb.computerLater": {
     "value": "The computer's setup opens as soon as the team is in."
@@ -7768,93 +8014,5 @@
   },
   "brand.source": {
     "value": "DougBot source code"
-  },
-  "activity.kind.company_request": {
-    "value": {
-      "one": "{{names}} asked for DougBot for a company",
-      "other": "{{names}} asked for DougBot for a company"
-    }
-  },
-  "chat.call": {
-    "value": "Call"
-  },
-  "chat.toneGreen": {
-    "value": "In green"
-  },
-  "homeTools.all": {
-    "value": "Everything"
-  },
-  "homeTools.edit": {
-    "value": "Edit shortcuts"
-  },
-  "homeTools.done": {
-    "value": "Done"
-  },
-  "homeTools.editHint": {
-    "value": "Tap to pin up to 4 on Home"
-  },
-  "homeTools.full": {
-    "value": "Home already has 4. Unpin one first."
-  },
-  "homeTools.search": {
-    "value": "Search conversations, files, people"
-  },
-  "homeTools.searchTile": {
-    "value": "Search"
-  },
-  "homeTools.pinned": {
-    "value": "pinned to Home"
-  },
-  "homeTools.attach": {
-    "value": "Attach to the conversation"
-  },
-  "homeTools.here": {
-    "value": "In this conversation"
-  },
-  "homeTools.create": {
-    "value": "Create"
-  },
-  "homeTools.newAgent": {
-    "value": "New agent"
-  },
-  "homeTools.newChat": {
-    "value": "New conversation"
-  },
-  "homeTools.mission": {
-    "value": "Mission"
-  },
-  "homeTools.summary": {
-    "value": "Summary"
-  },
-  "homeTools.remind": {
-    "value": "Reminder"
-  },
-  "homeTools.calendar": {
-    "value": "Calendar"
-  },
-  "homeTools.people": {
-    "value": "People"
-  },
-  "homeTools.computer": {
-    "value": "Computer"
-  },
-  "homeTools.vault": {
-    "value": "Vault"
-  },
-  "homeTools.settings": {
-    "value": "Settings"
-  },
-  "activityNow.needsYou": "Needs you",
-  "activityNow.running": "Working now",
-  "activityNow.runningAll": "See all",
-  "activityNow.steps": "{{done}} of {{total}}",
-  "toSchedule.title": "Ready to schedule",
-  "toSchedule.row": "Approved post, tap to schedule",
-  "toSchedule.untitled": "Untitled post",
-  "toSchedule.sheetTitle": "Schedule post",
-  "toSchedule.confirm": "Schedule",
-  "toSchedule.when": "Goes out {{when}}",
-  "toSchedule.past": "Pick a time that hasn't passed yet",
-  "me.groupAlerts": "Alerts and approvals",
-  "me.groupLook": "Look and sound"
+  }
 }

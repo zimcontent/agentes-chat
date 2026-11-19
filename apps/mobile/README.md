@@ -45,6 +45,12 @@ The native projects (`ios/`, `android/`) are made from `app.config.ts` and `plug
 committed. **Credentials never go in the repo** (it is public): the upload key, Firebase's files and store accounts
 live in GitHub's secrets or the stores.
 
+Every EAS build but the development client first runs `scripts/build-gate.sh` (the `eas-build-post-install` hook):
+the app's unit tests, its typecheck and `expo install --check`. A red check stops the build before it compiles, so
+it never reaches TestFlight; it doesn't depend on GitHub's CI being up. By hand: `bun run mobile:check`, and
+`bun run mobile:check --bundle` also makes the iOS bundle and compiles it to Hermes bytecode.
+`react-native-keyboard-controller` is pinned past the SDK's version on purpose (`expo.install.exclude`).
+
 ## Android on GitHub Actions
 
 Run **Android build** (Actions → Run workflow) with `preview` (an arm64 APK to install directly, kept as the run's
