@@ -625,7 +625,8 @@ function SlideFace({
     <View
       style={[
         styles.slide,
-        big ? styles.slideBig : null,
+        // Large, the card grows with its words from 4:5 down: the viewer is where they are read, never cut off.
+        big ? [styles.slideBig, { aspectRatio: undefined, minHeight: Math.round(width * 1.25) }] : null,
         { width, backgroundColor: c.sunken, borderColor: x.tag ? alpha(copy.accent, 0.7) : c.line2 },
       ]}
     >
@@ -664,7 +665,9 @@ function PosterFace({ part: p, width }: { part: Extract<BlockViewPart, { kind: "
       style={[
         styles.poster,
         width !== undefined ? { width, maxWidth: width } : null,
-        big ? styles.posterBig : null,
+        big && width !== undefined
+          ? [styles.posterBig, { aspectRatio: undefined, minHeight: Math.round(width * 1.25) }]
+          : null,
         { backgroundColor: c.sunken, borderColor: alpha(copy.accent, 0.6) },
       ]}
       accessible
