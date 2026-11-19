@@ -788,6 +788,255 @@
       "failed": "Talep gönderilemedi. Tekrar dene.",
       "privacy": "Gizlilik Politikası"
     },
+    "landing": {
+      "docTitle": "DougBot · Sağ kolun ve yapay zeka ekibi",
+      "home": "DougBot ana sayfa",
+      "navLabel": "Sayfa bölümleri",
+      "nav": {
+        "difference": "Fark",
+        "team": "Ekip",
+        "how": "Nasıl çalışır",
+        "join": "Bekleme listesi",
+        "signIn": "Giriş yap"
+      },
+      "hero": {
+        "eyebrow": "Bekleme listesi açık",
+        "title": "Sağ kolun, koca bir yapay zeka ekibiyle.",
+        "lead": "Doug senin CEO’n. Operasyonu yürütür ve yönetimden ajansa bir uzman ekibini yönetir. Her şirket için, ya da aynı anda birkaçı için.",
+        "join": "Bekleme listesine katıl",
+        "compare": "Nasıl çalıştığını gör",
+        "note": "Ekibimiz kurar, yalnızca sana ait bir sunucuda."
+      },
+      "chat": {
+        "label": "Örnek konuşma: Ana kampanyayı ister, Doug işi dağıtır, Rosa görselleri teslim eder ve Mark yayın için onay ister.",
+        "channel": "lansman",
+        "ask": "@Doug Cuma kampanyasının yarına hazır olması lazım.",
+        "plan": "Tamamdır. Görselleri Rosa yapıyor, videoyu Sony kurguluyor, reklamları Mark kuruyor.",
+        "delivered": "Markanın tonunda üç görsel hazır.",
+        "askApproval": "Reklamlar hazır. Yayınlayayım mı?",
+        "approval": "3 reklam yayınla, günde 2.000 ₺",
+        "approve": "Onayla",
+        "notNow": "Şimdi değil"
+      },
+      "manifesto": "Sen Doug’la konuşursun. O işi dağıtır, ekibi takipte tutar ve seni yalnızca önemli şeyler için çağırır.",
+      "compare": {
+        "eyebrow": "Fark",
+        "title": "Kiralık bir bot mu, kendi ekibin mi?",
+        "lead": "Grok Bot ve diğerleri kendi bulutlarında katalog botları kiralar. DougBot senin işine göre kurulur.",
+        "them": "Grok Bot",
+        "themNote": "ve diğer bulut botları",
+        "rows": {
+          "where": {
+            "label": "Nerede çalışır",
+            "them": "Onların bulutunda",
+            "us": "Yalnızca sana ait bir sunucuda"
+          },
+          "talk": {
+            "label": "Nerede konuşursunuz",
+            "them": "Slack, Teams ve kendi uygulamaları",
+            "us": "Uygulama, telefon ve WhatsApp"
+          },
+          "setup": {
+            "label": "Kim kurar",
+            "them": "Sen, bir katalogdan",
+            "us": "Ekibimiz, senin işine göre"
+          },
+          "price": {
+            "label": "Nasıl ödersin",
+            "them": "Aylık bir plan",
+            "us": "Destekli kurulum"
+          }
+        }
+      },
+      "pillars": {
+        "ops": {
+          "title": "Operasyonu Doug yürütür",
+          "text": "Görevleri dağıtır, teslim tarihlerini takip eder ve aynı anda birkaç şirketle ilgilenir."
+        },
+        "agency": {
+          "title": "Yerleşik ajans",
+          "text": "Tasarım, video, reklam ve sosyal medya, yayına çıkmadan önce ekibinin kontrolünde."
+        },
+        "whatsapp": {
+          "title": "WhatsApp’ta yanıt verir",
+          "text": "Müşterilerine şirket numarasından, senin tarzınla yanıt verir."
+        },
+        "portal": {
+          "title": "Müşteri bağlantıyla onaylar",
+          "text": "Hesap gerekmez. Yalnızca ekibinin onayladığını görür."
+        }
+      },
+      "why": {
+        "eyebrow": "Neden DougBot",
+        "title": "Bir işletmenin ihtiyacı olan her şey, tek ekipte."
+      },
+      "scenes": {
+        "ops": {
+          "a": "Şafak Fırını",
+          "b": "Işık Stüdyo",
+          "c": "Hayat Klinik",
+          "todo": "Yapılacak",
+          "doing": "Yapılıyor",
+          "done": "Bitti",
+          "t1": "3 müşteriye fatura kes",
+          "t2": "Cuma gönderisi",
+          "t3": "Yılbaşı kampanyası",
+          "t4": "Yeni site",
+          "t5": "Aylık rapor",
+          "t6": "Yorumları yanıtla",
+          "brief": "3 şirkette 12 görev"
+        },
+        "video": {
+          "file": "lansman-reel.mp4",
+          "review": "İnceleme",
+          "caption": "Kalıcı olsun diye",
+          "note1": "Repliğin önündeki nefesi kes",
+          "note2": "Altyazı burada biraz daha büyük",
+          "by": "Sony kurguladı",
+          "askChanges": "Değişiklik iste"
+        },
+        "whatsapp": {
+          "contact": "Müşteri",
+          "online": "çevrimiçi",
+          "ask": "Merhaba! Yarın teslimat var mı?",
+          "answer": "Var, saat 18.00’e kadar. Seninkini hemen ayırayım mı?",
+          "via": "ajan yanıtladı",
+          "agent": "Numaranı Mark yanıtlıyor"
+        },
+        "portal": {
+          "url": "Müşteri linki",
+          "title": "Bu haftanın gönderileri",
+          "status": "Seni bekliyor",
+          "team": "Ekip onayladı",
+          "adjust": "Değişiklik iste",
+          "by": "Rosa hazırladı"
+        }
+      },
+      "stage": {
+        "team": "Ekip",
+        "channels": {
+          "money": "finans",
+          "support": "destek"
+        },
+        "composer": "Ekibe yaz…",
+        "done": "bitti",
+        "working": "çalışıyor",
+        "waiting": "onay bekliyor"
+      },
+      "activity": {
+        "label": "Ekip şu an ne yapıyor",
+        "items": {
+          "a": "Rosa, Işık Stüdyo için 3 görsel teslim etti",
+          "b": "Sony, Şafak Fırını’nın videosunu kurguluyor",
+          "c": "Mark 3 reklam yayınlamak istiyor",
+          "d": "Kiara, Hayat Klinik’in müşterilerine fatura kesti",
+          "e": "Junin mağazayı WhatsApp’a bağladı",
+          "f": "Chess rakip analizini tamamladı",
+          "g": "Doug 3 şirkette 12 görevi dağıttı"
+        }
+      },
+      "team": {
+        "eyebrow": "Doug’un ekibi",
+        "title": "Bir sağ kol ve altı uzman.",
+        "lead": "Sen Doug’la konuşursun. Gerisini o yönetir.",
+        "chief": "Ekibi yönetir",
+        "members": {
+          "doug": {
+            "role": "Sağ kolun",
+            "text": "Operasyonu yürütür, ekibi yönetir ve seni yalnızca karar için çağırır."
+          },
+          "rosa": {
+            "role": "Tasarım",
+            "text": "Müşterinin markasında gönderiler, carousel’ler ve kapaklar."
+          },
+          "sony": {
+            "role": "Video",
+            "text": "Reels ve reklam videoları kurgular."
+          },
+          "mark": {
+            "role": "Reklam",
+            "text": "Bütçe sınırı ve senin onayınla ücretli reklamlar."
+          },
+          "chess": {
+            "role": "Strateji",
+            "text": "Nişi araştırır ve metinleri yazar."
+          },
+          "kiara": {
+            "role": "Finans",
+            "text": "Tahsilat, faturalar ve satış raporları."
+          },
+          "junin": {
+            "role": "Site ve otomasyon",
+            "text": "Siteler, entegrasyonlar ve otomasyonlar."
+          }
+        },
+        "demo": {
+          "doug": {
+            "title": "Operasyonun sabah özeti",
+            "one": "Bugün 3 teslimat",
+            "two": "2 iş müşteriyi bekliyor",
+            "three": "1 iş takıldı: logo eksik"
+          },
+          "rosa": {
+            "label": "Carousel, 5 slayt"
+          },
+          "mark": {
+            "cpa": "Satış başına maliyet",
+            "cpaValue": "650 ₺",
+            "roas": "Getiri",
+            "roasValue": "3,2x"
+          },
+          "chess": {
+            "hooks": "Kancalar",
+            "one": "En pahalıya patlayan hata",
+            "two": "Zamanın geldiğini gösteren 3 işaret",
+            "three": "30 sn’de önce ve sonra"
+          },
+          "kiara": {
+            "first": "Fatura #1042",
+            "second": "Fatura #1043",
+            "amount": "160.000 ₺",
+            "due": "son gün yarın",
+            "approve": "Gönderimi onayla"
+          },
+          "junin": {
+            "deploy": "Site yayında",
+            "tests": "12 test geçti"
+          }
+        }
+      },
+      "how": {
+        "eyebrow": "Nasıl çalışır",
+        "title": "Talepten iş başındaki bir ekibe.",
+        "steps": {
+          "join": {
+            "title": "Listeye katıl",
+            "text": "Bize işinden bahset."
+          },
+          "talk": {
+            "title": "Konuşuruz",
+            "text": "Sana WhatsApp’tan ulaşırız."
+          },
+          "install": {
+            "title": "Ekibin yayında",
+            "text": "Yalnızca sana ait bir sunucuya kurulur."
+          }
+        }
+      },
+      "join": {
+        "eyebrow": "Bekleme listesi",
+        "title": "Bekleme listesine katıl.",
+        "lead": "Her seferinde tek bir şirket açıyoruz. Seni ararız.",
+        "points": {
+          "one": "Kart yok, taahhüt yok",
+          "two": "WhatsApp’tan yanıt veriyoruz",
+          "three": "Bilgilerin yalnızca sana ulaşmak için"
+        }
+      },
+      "foot": {
+        "line": "Sağ kolun, bir yapay zeka ekibiyle."
+      }
+    },
     "interests": {
       "design": "Tasarım",
       "video": "Video",

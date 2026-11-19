@@ -788,6 +788,255 @@
       "failed": "Het verzoek kon niet worden verstuurd. Probeer het opnieuw.",
       "privacy": "Privacybeleid"
     },
+    "landing": {
+      "docTitle": "DougBot · Je rechterhand, met een AI-team",
+      "home": "DougBot-startpagina",
+      "navLabel": "Paginasecties",
+      "nav": {
+        "difference": "Het verschil",
+        "team": "Het team",
+        "how": "Hoe het werkt",
+        "join": "Wachtlijst",
+        "signIn": "Inloggen"
+      },
+      "hero": {
+        "eyebrow": "Wachtlijst open",
+        "title": "Je rechterhand, met een heel AI-team.",
+        "lead": "Doug is je CEO. Hij runt de operatie en leidt een team van specialisten, van management tot bureau. Voor elk bedrijf, of meerdere tegelijk.",
+        "join": "Zet je op de wachtlijst",
+        "compare": "Bekijk hoe het werkt",
+        "note": "Geïnstalleerd door ons team, op een server die alleen van jou is."
+      },
+      "chat": {
+        "label": "Voorbeeldgesprek: Ana vraagt om de campagne, Doug verdeelt het werk, Rosa levert de beelden en Mark vraagt akkoord om te publiceren.",
+        "channel": "lancering",
+        "ask": "@Doug Ik heb de campagne van vrijdag morgen al nodig.",
+        "plan": "Komt goed. Rosa maakt de beelden, Sony monteert de video en Mark zet de advertenties klaar.",
+        "delivered": "Drie uitingen klaar, in de stijl van het merk.",
+        "askApproval": "De advertenties staan klaar. Mag ik publiceren?",
+        "approval": "3 advertenties publiceren, € 60 per dag",
+        "approve": "Goedkeuren",
+        "notNow": "Nu niet"
+      },
+      "manifesto": "Jij praat met Doug. Hij verdeelt het werk, houdt het team scherp en roept je alleen voor wat telt.",
+      "compare": {
+        "eyebrow": "Het verschil",
+        "title": "Een gehuurde bot, of een eigen team?",
+        "lead": "Grok Bot en anderen verhuren catalogusbots in hun cloud. DougBot wordt ingericht voor jouw bedrijf.",
+        "them": "Grok Bot",
+        "themNote": "en andere cloudbots",
+        "rows": {
+          "where": {
+            "label": "Waar het draait",
+            "them": "In hun cloud",
+            "us": "Op een server die alleen van jou is"
+          },
+          "talk": {
+            "label": "Waar je praat",
+            "them": "Slack, Teams en hun apps",
+            "us": "App, telefoon en WhatsApp"
+          },
+          "setup": {
+            "label": "Wie het inricht",
+            "them": "Jij, uit een catalogus",
+            "us": "Ons team, voor jouw bedrijf"
+          },
+          "price": {
+            "label": "Hoe je betaalt",
+            "them": "Een maandabonnement",
+            "us": "Een implementatie met support"
+          }
+        }
+      },
+      "pillars": {
+        "ops": {
+          "title": "Doug runt de operatie",
+          "text": "Verdeelt de taken, bewaakt deadlines en zorgt voor meerdere bedrijven tegelijk."
+        },
+        "agency": {
+          "title": "Een ingebouwd bureau",
+          "text": "Design, video, ads en social media, door je team gecontroleerd voordat ze live gaan."
+        },
+        "whatsapp": {
+          "title": "Antwoordt op WhatsApp",
+          "text": "Beantwoordt je klanten op het nummer van het bedrijf, op jouw manier."
+        },
+        "portal": {
+          "title": "Klanten keuren goed via een link",
+          "text": "Zonder account. Ze zien alleen wat je team heeft goedgekeurd."
+        }
+      },
+      "why": {
+        "eyebrow": "Waarom DougBot",
+        "title": "Alles wat een bedrijf nodig heeft, in één team."
+      },
+      "scenes": {
+        "ops": {
+          "a": "Bakkerij Aurora",
+          "b": "Studio Licht",
+          "c": "Kliniek Vita",
+          "todo": "Te doen",
+          "doing": "Bezig",
+          "done": "Klaar",
+          "t1": "3 klanten factureren",
+          "t2": "Post voor vrijdag",
+          "t3": "Kerstcampagne",
+          "t4": "Nieuwe website",
+          "t5": "Maandrapport",
+          "t6": "Reviews beantwoorden",
+          "brief": "12 taken bij 3 bedrijven"
+        },
+        "video": {
+          "file": "lancering-reel.mp4",
+          "review": "Beoordeling",
+          "caption": "Gemaakt om te blijven",
+          "note1": "Knip de ademhaling voor de zin weg",
+          "note2": "Ondertitel hier iets groter",
+          "by": "Gemonteerd door Sony",
+          "askChanges": "Vraag om wijzigingen"
+        },
+        "whatsapp": {
+          "contact": "Klant",
+          "online": "online",
+          "ask": "Hoi! Bezorgen jullie morgen?",
+          "answer": "Zeker, tot 18.00 uur. Zal ik de jouwe meteen reserveren?",
+          "via": "beantwoord door de agent",
+          "agent": "Mark beantwoordt je nummer"
+        },
+        "portal": {
+          "url": "Klantlink",
+          "title": "Posts van deze week",
+          "status": "Wacht op jou",
+          "team": "Goedgekeurd door het team",
+          "adjust": "Vraag om wijzigingen",
+          "by": "Gemaakt door Rosa"
+        }
+      },
+      "stage": {
+        "team": "Team",
+        "channels": {
+          "money": "financiën",
+          "support": "klantenservice"
+        },
+        "composer": "Schrijf naar het team…",
+        "done": "klaar",
+        "working": "bezig",
+        "waiting": "wacht op akkoord"
+      },
+      "activity": {
+        "label": "Waar het team mee bezig is",
+        "items": {
+          "a": "Rosa leverde 3 uitingen voor Studio Licht",
+          "b": "Sony monteert de video van Bakkerij Aurora",
+          "c": "Mark wil 3 advertenties publiceren",
+          "d": "Kiara factureerde de klanten van Kliniek Vita",
+          "e": "Junin koppelde de webshop aan WhatsApp",
+          "f": "Chess rondde de concurrentieanalyse af",
+          "g": "Doug verdeelde 12 taken over 3 bedrijven"
+        }
+      },
+      "team": {
+        "eyebrow": "Het team van Doug",
+        "title": "Een rechterhand en zes specialisten.",
+        "lead": "Jij praat met Doug. Hij leidt de rest.",
+        "chief": "Leidt het team",
+        "members": {
+          "doug": {
+            "role": "Je rechterhand",
+            "text": "Runt de operatie, leidt het team en roept je alleen om te beslissen."
+          },
+          "rosa": {
+            "role": "Design",
+            "text": "Posts, carrousels en covers in de huisstijl van de klant."
+          },
+          "sony": {
+            "role": "Video",
+            "text": "Monteert Reels en advertentievideo's."
+          },
+          "mark": {
+            "role": "Advertenties",
+            "text": "Betaalde advertenties, met een budgetplafond en jouw akkoord."
+          },
+          "chess": {
+            "role": "Strategie",
+            "text": "Onderzoekt de niche en schrijft de copy."
+          },
+          "kiara": {
+            "role": "Financiën",
+            "text": "Facturatie, rekeningen en verkooprapporten."
+          },
+          "junin": {
+            "role": "Sites en automatisering",
+            "text": "Sites, integraties en automatiseringen."
+          }
+        },
+        "demo": {
+          "doug": {
+            "title": "Ochtendupdate van de operatie",
+            "one": "3 leveringen vandaag",
+            "two": "2 wachten op de klant",
+            "three": "1 zit vast: het logo ontbreekt"
+          },
+          "rosa": {
+            "label": "Carrousel, 5 slides"
+          },
+          "mark": {
+            "cpa": "Kosten per verkoop",
+            "cpaValue": "€ 18,40",
+            "roas": "Rendement",
+            "roasValue": "3,2x"
+          },
+          "chess": {
+            "hooks": "Openers",
+            "one": "De fout die het meest kost",
+            "two": "3 tekenen dat het tijd is",
+            "three": "Voor en na in 30 s"
+          },
+          "kiara": {
+            "first": "Factuur #1042",
+            "second": "Factuur #1043",
+            "amount": "€ 4.800",
+            "due": "vervalt morgen",
+            "approve": "Verzending goedkeuren"
+          },
+          "junin": {
+            "deploy": "Site gepubliceerd",
+            "tests": "12 tests geslaagd"
+          }
+        }
+      },
+      "how": {
+        "eyebrow": "Hoe het werkt",
+        "title": "Van aanvraag tot een team aan het werk.",
+        "steps": {
+          "join": {
+            "title": "Meld je aan",
+            "text": "Vertel ons over je bedrijf."
+          },
+          "talk": {
+            "title": "We praten",
+            "text": "We nemen contact op via WhatsApp."
+          },
+          "install": {
+            "title": "Je team gaat live",
+            "text": "Geïnstalleerd op een server die alleen van jou is."
+          }
+        }
+      },
+      "join": {
+        "eyebrow": "Wachtlijst",
+        "title": "Zet je op de wachtlijst.",
+        "lead": "We openen één bedrijf tegelijk. We bellen je.",
+        "points": {
+          "one": "Geen creditcard, geen verplichtingen",
+          "two": "We antwoorden via WhatsApp",
+          "three": "Je gegevens alleen om je te bereiken"
+        }
+      },
+      "foot": {
+        "line": "Je rechterhand, met een AI-team."
+      }
+    },
     "interests": {
       "design": "Design",
       "video": "Video",

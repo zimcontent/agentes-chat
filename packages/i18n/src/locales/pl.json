@@ -816,6 +816,255 @@
       "failed": "Nie udało się wysłać zgłoszenia. Spróbuj ponownie.",
       "privacy": "Polityka prywatności"
     },
+    "landing": {
+      "docTitle": "DougBot · Twoja prawa ręka z zespołem AI",
+      "home": "Strona główna DougBot",
+      "navLabel": "Sekcje strony",
+      "nav": {
+        "difference": "Różnica",
+        "team": "Zespół",
+        "how": "Jak to działa",
+        "join": "Lista oczekujących",
+        "signIn": "Zaloguj się"
+      },
+      "hero": {
+        "eyebrow": "Lista oczekujących otwarta",
+        "title": "Twoja prawa ręka z całym zespołem AI.",
+        "lead": "Doug to twój CEO. Prowadzi operacje i kieruje zespołem specjalistów, od zarządzania po agencję. Dla każdej firmy, albo kilku naraz.",
+        "join": "Zapisz się na listę",
+        "compare": "Zobacz, jak to działa",
+        "note": "Instalowany przez nasz zespół, na serwerze tylko dla ciebie."
+      },
+      "chat": {
+        "label": "Przykładowa rozmowa: Ana prosi o kampanię, Doug dzieli pracę, Rosa dostarcza grafiki, a Mark prosi o zgodę na publikację.",
+        "channel": "premiera",
+        "ask": "@Doug Potrzebuję piątkowej kampanii gotowej na jutro.",
+        "plan": "Jasne. Rosa robi grafiki, Sony montuje wideo, a Mark przygotowuje reklamy.",
+        "delivered": "Trzy grafiki gotowe, w stylu marki.",
+        "askApproval": "Reklamy gotowe. Mogę publikować?",
+        "approval": "Opublikuj 3 reklamy, 250 zł dziennie",
+        "approve": "Zatwierdź",
+        "notNow": "Nie teraz"
+      },
+      "manifesto": "Rozmawiasz z Dougiem. On dzieli pracę, pilnuje zespołu i woła cię tylko w ważnych sprawach.",
+      "compare": {
+        "eyebrow": "Różnica",
+        "title": "Wynajęty bot czy własny zespół?",
+        "lead": "Grok Bot i inni wynajmują boty z katalogu w swojej chmurze. DougBot jest budowany pod twój biznes.",
+        "them": "Grok Bot",
+        "themNote": "i inne boty w chmurze",
+        "rows": {
+          "where": {
+            "label": "Gdzie działa",
+            "them": "W ich chmurze",
+            "us": "Na serwerze tylko dla ciebie"
+          },
+          "talk": {
+            "label": "Gdzie rozmawiacie",
+            "them": "Slack, Teams i ich aplikacje",
+            "us": "Aplikacja, telefon i WhatsApp"
+          },
+          "setup": {
+            "label": "Kto to ustawia",
+            "them": "Ty, z katalogu",
+            "us": "Nasz zespół, pod twój biznes"
+          },
+          "price": {
+            "label": "Jak płacisz",
+            "them": "Miesięczny abonament",
+            "us": "Wdrożenie ze wsparciem"
+          }
+        }
+      },
+      "pillars": {
+        "ops": {
+          "title": "Doug prowadzi operacje",
+          "text": "Dzieli zadania, pilnuje terminów i prowadzi kilka firm naraz."
+        },
+        "agency": {
+          "title": "Wbudowana agencja",
+          "text": "Grafika, wideo, reklamy i social media, sprawdzane przez twój zespół przed publikacją."
+        },
+        "whatsapp": {
+          "title": "Obsługuje WhatsAppa",
+          "text": "Odpowiada twoim klientom z firmowego numeru, po twojemu."
+        },
+        "portal": {
+          "title": "Klient zatwierdza przez link",
+          "text": "Bez zakładania konta. Widzi tylko to, co zatwierdził twój zespół."
+        }
+      },
+      "why": {
+        "eyebrow": "Dlaczego DougBot",
+        "title": "Wszystko, czego potrzebuje firma, w jednym zespole."
+      },
+      "scenes": {
+        "ops": {
+          "a": "Piekarnia Jutrzenka",
+          "b": "Studio Światło",
+          "c": "Klinika Vita",
+          "todo": "Do zrobienia",
+          "doing": "W toku",
+          "done": "Gotowe",
+          "t1": "Faktury dla 3 klientów",
+          "t2": "Post na piątek",
+          "t3": "Kampania świąteczna",
+          "t4": "Nowa strona",
+          "t5": "Raport miesięczny",
+          "t6": "Odpowiedzi na opinie",
+          "brief": "12 zadań w 3 firmach"
+        },
+        "video": {
+          "file": "reel-premiera.mp4",
+          "review": "Przegląd",
+          "caption": "Zrobione na lata",
+          "note1": "Wytnij oddech przed kwestią",
+          "note2": "Tu napisy trochę większe",
+          "by": "Zmontował Sony",
+          "askChanges": "Poproś o zmiany"
+        },
+        "whatsapp": {
+          "contact": "Klient",
+          "online": "dostępny",
+          "ask": "Cześć! Dostarczacie jutro?",
+          "answer": "Tak, do 18:00. Zarezerwować od razu dla ciebie?",
+          "via": "odpowiedź od agenta",
+          "agent": "Mark obsługuje twój numer"
+        },
+        "portal": {
+          "url": "Link klienta",
+          "title": "Posty z tego tygodnia",
+          "status": "Czeka na ciebie",
+          "team": "Zatwierdzone przez zespół",
+          "adjust": "Poproś o zmiany",
+          "by": "Przygotowała Rosa"
+        }
+      },
+      "stage": {
+        "team": "Zespół",
+        "channels": {
+          "money": "finanse",
+          "support": "obsługa"
+        },
+        "composer": "Napisz do zespołu…",
+        "done": "gotowe",
+        "working": "w toku",
+        "waiting": "czeka na zgodę"
+      },
+      "activity": {
+        "label": "Czym zajmuje się zespół",
+        "items": {
+          "a": "Rosa dostarczyła 3 grafiki dla Studia Światło",
+          "b": "Sony montuje film Piekarni Jutrzenka",
+          "c": "Mark chce opublikować 3 reklamy",
+          "d": "Kiara wystawiła faktury klientom Kliniki Vita",
+          "e": "Junin podłączył sklep do WhatsAppa",
+          "f": "Chess skończył analizę konkurencji",
+          "g": "Doug rozdzielił 12 zadań w 3 firmach"
+        }
+      },
+      "team": {
+        "eyebrow": "Zespół Douga",
+        "title": "Prawa ręka i sześciu specjalistów.",
+        "lead": "Rozmawiasz z Dougiem. On kieruje resztą.",
+        "chief": "Prowadzi zespół",
+        "members": {
+          "doug": {
+            "role": "Twoja prawa ręka",
+            "text": "Prowadzi operacje, kieruje zespołem i woła cię tylko do decyzji."
+          },
+          "rosa": {
+            "role": "Grafika",
+            "text": "Posty, karuzele i okładki w marce klienta."
+          },
+          "sony": {
+            "role": "Wideo",
+            "text": "Montuje Reels i filmy reklamowe."
+          },
+          "mark": {
+            "role": "Reklamy",
+            "text": "Płatne reklamy, z limitem budżetu i twoją zgodą."
+          },
+          "chess": {
+            "role": "Strategia",
+            "text": "Bada niszę i pisze copy."
+          },
+          "kiara": {
+            "role": "Finanse",
+            "text": "Windykacja, rachunki i raporty sprzedaży."
+          },
+          "junin": {
+            "role": "Strony i automatyzacje",
+            "text": "Strony, integracje i automatyzacje."
+          }
+        },
+        "demo": {
+          "doug": {
+            "title": "Poranny raport z operacji",
+            "one": "3 dostawy dziś",
+            "two": "2 czekają na klienta",
+            "three": "1 utknęła: brakuje logo"
+          },
+          "rosa": {
+            "label": "Karuzela, 5 slajdów"
+          },
+          "mark": {
+            "cpa": "Koszt sprzedaży",
+            "cpaValue": "72 zł",
+            "roas": "Zwrot",
+            "roasValue": "3,2x"
+          },
+          "chess": {
+            "hooks": "Haczyki",
+            "one": "Błąd, który kosztuje najwięcej",
+            "two": "3 znaki, że już czas",
+            "three": "Przed i po w 30 s"
+          },
+          "kiara": {
+            "first": "Faktura #1042",
+            "second": "Faktura #1043",
+            "amount": "19 000 zł",
+            "due": "termin jutro",
+            "approve": "Zatwierdź wysyłkę"
+          },
+          "junin": {
+            "deploy": "Strona opublikowana",
+            "tests": "12 testów zaliczonych"
+          }
+        }
+      },
+      "how": {
+        "eyebrow": "Jak to działa",
+        "title": "Od zgłoszenia do zespołu przy pracy.",
+        "steps": {
+          "join": {
+            "title": "Zapisz się",
+            "text": "Opowiedz nam o swojej firmie."
+          },
+          "talk": {
+            "title": "Rozmawiamy",
+            "text": "Odezwiemy się na WhatsAppie."
+          },
+          "install": {
+            "title": "Twój zespół rusza",
+            "text": "Instalowany na serwerze tylko dla ciebie."
+          }
+        }
+      },
+      "join": {
+        "eyebrow": "Lista oczekujących",
+        "title": "Zapisz się na listę oczekujących.",
+        "lead": "Otwieramy jedną firmę naraz. Zadzwonimy do ciebie.",
+        "points": {
+          "one": "Bez karty, bez zobowiązań",
+          "two": "Odpowiadamy na WhatsAppie",
+          "three": "Twoje dane tylko do kontaktu z tobą"
+        }
+      },
+      "foot": {
+        "line": "Twoja prawa ręka z zespołem AI."
+      }
+    },
     "interests": {
       "design": "Design",
       "video": "Wideo",

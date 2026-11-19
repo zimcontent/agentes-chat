@@ -24,14 +24,23 @@ afterEach(() => {
 });
 
 describe("route guards", () => {
-  test("signed out: / goes to sign-in (the landing page is its own site), or to sign-up on first run", async () => {
-    const signedOut = (authConfig: { firstRun?: boolean }) => createFakeApi(seedState({ me: null, authConfig }));
+  test("signed out: / shows the company landing page, sign-in on the cloud, sign-up on first run", async () => {
+    // The fake server is on the Cloud by default (`instance.cloud`): a server of one's own shows the landing page.
+    const signedOut = (authConfig: { firstRun?: boolean }, cloud = false) =>
+      createFakeApi(seedState({ me: null, authConfig, instance: { cloud } }));
     const { router } = await renderApp("/", { api: signedOut({}) });
-    expect(router.state.location.pathname).toBe("/login");
+    expect(router.state.location.pathname).toBe("/");
+    expect(screen().getAllByRole("heading", { name: /Seu braço direito/ }).length).toBeGreaterThan(0);
+    cleanup();
+    const cloud = await renderApp("/", { api: signedOut({}, true) });
+    expect(cloud.router.state.location.pathname).toBe("/login");
     expect(screen().getByRole("heading", { name: "Oi. Qual é o seu e-mail?" })).toBeTruthy();
     cleanup();
     const first = await renderApp("/", { api: signedOut({ firstRun: true }) });
     expect(first.router.state.location.pathname).toBe("/signup");
+    cleanup();
+    const open = await renderApp("/?open=jev", { api: signedOut({}) });
+    expect(open.router.state.location.pathname).toBe("/login");
   });
 
   test("signed in without organizations: / goes to onboarding", async () => {

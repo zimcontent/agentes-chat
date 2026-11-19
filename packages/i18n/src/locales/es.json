@@ -802,6 +802,255 @@
       "failed": "No se pudo enviar la solicitud. Inténtalo de nuevo.",
       "privacy": "Política de Privacidad"
     },
+    "landing": {
+      "docTitle": "DougBot · Tu mano derecha, con un equipo de IA",
+      "home": "Inicio de DougBot",
+      "navLabel": "Secciones de la página",
+      "nav": {
+        "difference": "La diferencia",
+        "team": "El equipo",
+        "how": "Cómo funciona",
+        "join": "Lista de espera",
+        "signIn": "Iniciar sesión"
+      },
+      "hero": {
+        "eyebrow": "Lista de espera abierta",
+        "title": "Tu mano derecha, con todo un equipo de IA.",
+        "lead": "Doug es tu CEO. Lleva la operación y dirige un equipo de especialistas, de la gestión a la agencia. Para cualquier empresa, o varias a la vez.",
+        "join": "Unirme a la lista de espera",
+        "compare": "Ver cómo funciona",
+        "note": "Lo instala nuestro equipo, en un servidor solo tuyo."
+      },
+      "chat": {
+        "label": "Conversación de ejemplo: Ana pide la campaña, Doug reparte el trabajo, Rosa entrega las piezas y Mark pide aprobación para publicar.",
+        "channel": "lanzamiento",
+        "ask": "@Doug necesito la campaña del viernes lista para mañana.",
+        "plan": "Hecho. Rosa hace las piezas, Sony edita el video y Mark prepara los anuncios.",
+        "delivered": "Tres piezas listas, con el tono de la marca.",
+        "askApproval": "Los anuncios están listos. ¿Puedo publicar?",
+        "approval": "Publicar 3 anuncios, 50 € al día",
+        "approve": "Aprobar",
+        "notNow": "Ahora no"
+      },
+      "manifesto": "Hablas con Doug. Él reparte el trabajo, mantiene al equipo en marcha y solo te llama para lo importante.",
+      "compare": {
+        "eyebrow": "La diferencia",
+        "title": "¿Un bot alquilado o un equipo propio?",
+        "lead": "Grok Bot y otros alquilan bots de catálogo en su nube. DougBot se arma para tu negocio.",
+        "them": "Grok Bot",
+        "themNote": "y otros bots en la nube",
+        "rows": {
+          "where": {
+            "label": "Dónde funciona",
+            "them": "En su nube",
+            "us": "En un servidor solo tuyo"
+          },
+          "talk": {
+            "label": "Dónde se conversa",
+            "them": "Slack, Teams y sus apps",
+            "us": "App, celular y WhatsApp"
+          },
+          "setup": {
+            "label": "Quién lo arma",
+            "them": "Tú, desde un catálogo",
+            "us": "Nuestro equipo, para tu negocio"
+          },
+          "price": {
+            "label": "Cómo pagas",
+            "them": "Un plan mensual",
+            "us": "Implementación con soporte"
+          }
+        }
+      },
+      "pillars": {
+        "ops": {
+          "title": "Doug lleva la operación",
+          "text": "Reparte las tareas, persigue los plazos y cuida varias empresas a la vez."
+        },
+        "agency": {
+          "title": "Una agencia incluida",
+          "text": "Diseño, video, anuncios y redes sociales, revisados por tu equipo antes de salir."
+        },
+        "whatsapp": {
+          "title": "Atiende en WhatsApp",
+          "text": "Responde a tus clientes en el número de la empresa, a tu manera."
+        },
+        "portal": {
+          "title": "El cliente aprueba con un enlace",
+          "text": "Sin crear cuenta. Solo ve lo que tu equipo aprobó."
+        }
+      },
+      "why": {
+        "eyebrow": "Por qué DougBot",
+        "title": "Todo lo que un negocio necesita, en un solo equipo."
+      },
+      "scenes": {
+        "ops": {
+          "a": "Panadería Aurora",
+          "b": "Estudio Luz",
+          "c": "Clínica Vida",
+          "todo": "Por hacer",
+          "doing": "En curso",
+          "done": "Hecho",
+          "t1": "Cobrar a 3 clientes",
+          "t2": "Post del viernes",
+          "t3": "Campaña de Navidad",
+          "t4": "Sitio nuevo",
+          "t5": "Informe del mes",
+          "t6": "Responder reseñas",
+          "brief": "12 tareas en 3 empresas"
+        },
+        "video": {
+          "file": "reel-lanzamiento.mp4",
+          "review": "Revisión",
+          "caption": "Hecho para durar",
+          "note1": "Corta la respiración antes de la frase",
+          "note2": "Aquí el subtítulo un poco más grande",
+          "by": "Editado por Sony",
+          "askChanges": "Pedir cambios"
+        },
+        "whatsapp": {
+          "contact": "Cliente",
+          "online": "en línea",
+          "ask": "¡Hola! ¿Entregan mañana?",
+          "answer": "Sí, hasta las 18 h. ¿Quieres que reserve el tuyo ya?",
+          "via": "respondido por el agente",
+          "agent": "Mark atiende tu número"
+        },
+        "portal": {
+          "url": "Enlace del cliente",
+          "title": "Posts de la semana",
+          "status": "Esperándote",
+          "team": "Aprobado por el equipo",
+          "adjust": "Pedir cambios",
+          "by": "Hecho por Rosa"
+        }
+      },
+      "stage": {
+        "team": "Equipo",
+        "channels": {
+          "money": "finanzas",
+          "support": "soporte"
+        },
+        "composer": "Escribe al equipo…",
+        "done": "hecho",
+        "working": "trabajando",
+        "waiting": "pide aprobación"
+      },
+      "activity": {
+        "label": "Lo que hace el equipo",
+        "items": {
+          "a": "Rosa entregó 3 piezas de Estudio Luz",
+          "b": "Sony está editando el video de Panadería Aurora",
+          "c": "Mark quiere publicar 3 anuncios",
+          "d": "Kiara cobró a los clientes de Clínica Vida",
+          "e": "Junin conectó la tienda a WhatsApp",
+          "f": "Chess terminó el análisis de la competencia",
+          "g": "Doug repartió 12 tareas en 3 empresas"
+        }
+      },
+      "team": {
+        "eyebrow": "El equipo de Doug",
+        "title": "Una mano derecha y seis especialistas.",
+        "lead": "Hablas con Doug. Él dirige al resto.",
+        "chief": "Lidera el equipo",
+        "members": {
+          "doug": {
+            "role": "Tu mano derecha",
+            "text": "Lleva la operación, dirige al equipo y solo te llama para decidir."
+          },
+          "rosa": {
+            "role": "Diseño",
+            "text": "Posts, carruseles y portadas con la marca del cliente."
+          },
+          "sony": {
+            "role": "Video",
+            "text": "Edita Reels y videos de anuncios."
+          },
+          "mark": {
+            "role": "Anuncios",
+            "text": "Anuncios pagados, con tope de presupuesto y tu aprobación."
+          },
+          "chess": {
+            "role": "Estrategia",
+            "text": "Investiga el nicho y escribe el copy."
+          },
+          "kiara": {
+            "role": "Finanzas",
+            "text": "Cobros, cuentas e informes de ventas."
+          },
+          "junin": {
+            "role": "Sitios y automatizaciones",
+            "text": "Sitios, integraciones y automatizaciones."
+          }
+        },
+        "demo": {
+          "doug": {
+            "title": "Resumen matinal de la operación",
+            "one": "3 entregas hoy",
+            "two": "2 esperando al cliente",
+            "three": "1 atascada: falta el logo"
+          },
+          "rosa": {
+            "label": "Carrusel, 5 diapositivas"
+          },
+          "mark": {
+            "cpa": "Costo por venta",
+            "cpaValue": "18,40 €",
+            "roas": "Retorno",
+            "roasValue": "3,2x"
+          },
+          "chess": {
+            "hooks": "Ganchos",
+            "one": "El error que más cuesta",
+            "two": "3 señales de que es hora",
+            "three": "Antes y después en 30 s"
+          },
+          "kiara": {
+            "first": "Factura #1042",
+            "second": "Factura #1043",
+            "amount": "4.800 €",
+            "due": "vence mañana",
+            "approve": "Aprobar envío"
+          },
+          "junin": {
+            "deploy": "Sitio publicado",
+            "tests": "12 pruebas superadas"
+          }
+        }
+      },
+      "how": {
+        "eyebrow": "Cómo funciona",
+        "title": "De la solicitud a un equipo trabajando.",
+        "steps": {
+          "join": {
+            "title": "Únete a la lista",
+            "text": "Cuéntanos sobre tu negocio."
+          },
+          "talk": {
+            "title": "Hablamos",
+            "text": "Te escribimos por WhatsApp."
+          },
+          "install": {
+            "title": "Tu equipo en marcha",
+            "text": "Instalado en un servidor solo tuyo."
+          }
+        }
+      },
+      "join": {
+        "eyebrow": "Lista de espera",
+        "title": "Únete a la lista de espera.",
+        "lead": "Abrimos una empresa a la vez. Te llamamos.",
+        "points": {
+          "one": "Sin tarjeta ni compromiso",
+          "two": "Respondemos por WhatsApp",
+          "three": "Tus datos, solo para contactarte"
+        }
+      },
+      "foot": {
+        "line": "Tu mano derecha, con un equipo de IA."
+      }
+    },
     "interests": {
       "design": "Diseño",
       "video": "Video",

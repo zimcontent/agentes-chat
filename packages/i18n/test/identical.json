@@ -349,7 +349,12 @@
       "companies.interests.design",
       "companies.interests.social",
       "companies.list.whatsapp",
-      "portalClients.email"
+      "portalClients.email",
+      "companies.landing.team.demo.kiara.first",
+      "companies.landing.team.demo.kiara.second",
+      "companies.landing.compare.them",
+      "companies.landing.scenes.whatsapp.online",
+      "companies.landing.team.members.rosa.role"
     ],
     "es": [
       "liveVoice.phoneLine.gptLive",
@@ -657,7 +662,9 @@
       "companies.page.whatsappExample",
       "companies.interests.video",
       "companies.list.whatsapp",
-      "companies.list.clientCodePlaceholder"
+      "companies.list.clientCodePlaceholder",
+      "companies.landing.compare.them",
+      "companies.landing.team.members.sony.role"
     ],
     "fr": [
       "liveVoice.phoneLine.gptLive",
@@ -1153,7 +1160,10 @@
       "companies.list.notes",
       "companies.list.clientCodePlaceholder",
       "portalClients.editTitle",
-      "portalClients.email"
+      "portalClients.email",
+      "companies.landing.compare.them",
+      "companies.landing.scenes.whatsapp.contact",
+      "companies.landing.team.members.rosa.role"
     ],
     "de": [
       "liveVoice.phoneLine.gptLive",
@@ -1677,7 +1687,12 @@
       "companies.list.whatsapp",
       "companies.list.clientCodePlaceholder",
       "portal.clientEdit.name",
-      "portalClients.name"
+      "portalClients.name",
+      "companies.landing.compare.them",
+      "companies.landing.scenes.whatsapp.online",
+      "companies.landing.stage.team",
+      "companies.landing.team.members.rosa.role",
+      "companies.landing.team.members.sony.role"
     ],
     "it": [
       "liveVoice.phoneLine.gptLive",
@@ -2113,7 +2128,12 @@
       "companies.list.email",
       "companies.list.whatsapp",
       "companies.list.clientCodePlaceholder",
-      "portalClients.email"
+      "portalClients.email",
+      "companies.landing.compare.them",
+      "companies.landing.scenes.whatsapp.online",
+      "companies.landing.stage.team",
+      "companies.landing.team.members.rosa.role",
+      "companies.landing.team.members.sony.role"
     ],
     "nl": [
       "liveVoice.phoneLine.gptLive",
@@ -2783,7 +2803,12 @@
       "companies.interests.code",
       "companies.list.whatsapp",
       "companies.list.clientCodePlaceholder",
-      "portalClients.email"
+      "portalClients.email",
+      "companies.landing.compare.them",
+      "companies.landing.scenes.whatsapp.online",
+      "companies.landing.stage.team",
+      "companies.landing.team.members.rosa.role",
+      "companies.landing.team.members.sony.role"
     ],
     "ja": [
       "liveVoice.phoneLine.gptLive",
@@ -3007,7 +3032,8 @@
       "companies.page.whatsapp",
       "companies.page.whatsappExample",
       "companies.list.whatsapp",
-      "companies.list.clientCodePlaceholder"
+      "companies.list.clientCodePlaceholder",
+      "companies.landing.compare.them"
     ],
     "ko": [
       "liveVoice.phoneLine.gptLive",
@@ -3225,7 +3251,8 @@
       "companies.page.whatsapp",
       "companies.page.whatsappExample",
       "companies.list.whatsapp",
-      "companies.list.clientCodePlaceholder"
+      "companies.list.clientCodePlaceholder",
+      "companies.landing.compare.them"
     ],
     "zh-Hans": [
       "liveVoice.phoneLine.gptLive",
@@ -3434,7 +3461,8 @@
       "companies.page.whatsapp",
       "companies.page.whatsappExample",
       "companies.list.whatsapp",
-      "companies.list.clientCodePlaceholder"
+      "companies.list.clientCodePlaceholder",
+      "companies.landing.compare.them"
     ],
     "id": [
       "liveVoice.phoneLine.gptLive",
@@ -3802,7 +3830,10 @@
       "companies.interests.video",
       "companies.list.email",
       "companies.list.whatsapp",
-      "companies.list.clientCodePlaceholder"
+      "companies.list.clientCodePlaceholder",
+      "companies.landing.compare.them",
+      "companies.landing.scenes.whatsapp.online",
+      "companies.landing.team.members.sony.role"
     ],
     "tr": [
       "liveVoice.phoneLine.gptLive",
@@ -4043,7 +4074,9 @@
       "companies.page.whatsappExample",
       "companies.interests.video",
       "companies.list.whatsapp",
-      "companies.list.clientCodePlaceholder"
+      "companies.list.clientCodePlaceholder",
+      "companies.landing.compare.them",
+      "companies.landing.team.members.sony.role"
     ],
     "pl": [
       "liveVoice.phoneLine.gptLive",
@@ -4397,7 +4430,8 @@
       "companies.interests.design",
       "companies.list.whatsapp",
       "companies.list.clientCodePlaceholder",
-      "portalClients.email"
+      "portalClients.email",
+      "companies.landing.compare.them"
     ],
     "ru": [
       "liveVoice.phoneLine.gptLive",
@@ -4605,7 +4639,8 @@
       "companies.page.whatsapp",
       "companies.page.whatsappExample",
       "companies.list.whatsapp",
-      "companies.list.clientCodePlaceholder"
+      "companies.list.clientCodePlaceholder",
+      "companies.landing.compare.them"
     ]
   },
   "mobile-base": {

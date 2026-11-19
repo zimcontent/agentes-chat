@@ -26,6 +26,7 @@
 @media (max-width: 560px) {
   .companies__pair {
     grid-template-columns: 1fr;
+    row-gap: var(--form-gap);
   }
 }
 /* The size bands, as a wrap of pills that can be pressed (a radio group): one per line at a phone's width. */

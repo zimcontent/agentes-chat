@@ -759,7 +759,7 @@
       "doneTitle": "Permintaanmu sudah kami terima",
       "doneLead": "Tim membaca setiap permintaan dan menghubungi setiap perusahaan lewat WhatsApp. Kamu juga akan menerima email.",
       "again": "Kirim permintaan lain",
-      "confirmTitle": "Mengonfirmasi email Anda…",
+      "confirmTitle": "Mengonfirmasi emailmu…",
       "confirmLead": "Sebentar.",
       "confirmFailedTitle": "Tautan ini tidak dikenal atau kedaluwarsa",
       "confirmFailedLead": "Kirim formulir lagi untuk mendapat tautan baru.",
@@ -773,6 +773,255 @@
       "deleteFailedLead": "Tidak ada lagi yang bisa dihapus dengannya, atau sudah kedaluwarsa.",
       "failed": "Permintaan tidak terkirim. Coba lagi.",
       "privacy": "Kebijakan Privasi"
+    },
+    "landing": {
+      "docTitle": "DougBot · Tangan kananmu, dengan tim AI",
+      "home": "Beranda DougBot",
+      "navLabel": "Bagian halaman",
+      "nav": {
+        "difference": "Bedanya",
+        "team": "Timnya",
+        "how": "Cara kerja",
+        "join": "Daftar tunggu",
+        "signIn": "Masuk"
+      },
+      "hero": {
+        "eyebrow": "Daftar tunggu dibuka",
+        "title": "Tangan kananmu, dengan satu tim AI lengkap.",
+        "lead": "Doug adalah CEO-mu. Ia menjalankan operasi dan memimpin tim spesialis, dari manajemen sampai agensi. Untuk perusahaan apa pun, atau beberapa sekaligus.",
+        "join": "Gabung daftar tunggu",
+        "compare": "Lihat cara kerjanya",
+        "note": "Dipasang oleh tim kami, di server khusus milikmu."
+      },
+      "chat": {
+        "label": "Contoh percakapan: Ana minta kampanye, Doug membagi pekerjaan, Rosa mengirim desain dan Mark minta persetujuan untuk publikasi.",
+        "channel": "peluncuran",
+        "ask": "@Doug kampanye hari Jumat harus siap besok ya.",
+        "plan": "Siap. Rosa bikin desain, Sony potong video dan Mark menyiapkan iklan.",
+        "delivered": "Tiga desain siap, sesuai gaya brand.",
+        "askApproval": "Iklan sudah siap. Boleh dipublikasikan?",
+        "approval": "Publikasikan 3 iklan, Rp 1 juta per hari",
+        "approve": "Setujui",
+        "notNow": "Nanti dulu"
+      },
+      "manifesto": "Kamu cukup bicara dengan Doug. Ia membagi pekerjaan, menjaga tim tetap jalan dan hanya memanggilmu untuk hal penting.",
+      "compare": {
+        "eyebrow": "Bedanya",
+        "title": "Bot sewaan, atau tim sendiri?",
+        "lead": "Grok Bot dan lainnya menyewakan bot katalog di cloud mereka. DougBot disiapkan untuk bisnismu.",
+        "them": "Grok Bot",
+        "themNote": "dan bot cloud lainnya",
+        "rows": {
+          "where": {
+            "label": "Tempat berjalan",
+            "them": "Di cloud mereka",
+            "us": "Di server khusus milikmu"
+          },
+          "talk": {
+            "label": "Tempat ngobrol",
+            "them": "Slack, Teams dan aplikasi mereka",
+            "us": "Aplikasi, ponsel dan WhatsApp"
+          },
+          "setup": {
+            "label": "Siapa yang menyiapkan",
+            "them": "Kamu, dari katalog",
+            "us": "Tim kami, untuk bisnismu"
+          },
+          "price": {
+            "label": "Cara bayar",
+            "them": "Paket bulanan",
+            "us": "Implementasi dengan dukungan"
+          }
+        }
+      },
+      "pillars": {
+        "ops": {
+          "title": "Doug menjalankan operasi",
+          "text": "Membagi tugas, mengejar tenggat dan mengurus beberapa perusahaan sekaligus."
+        },
+        "agency": {
+          "title": "Agensi bawaan",
+          "text": "Desain, video, iklan dan media sosial, diperiksa timmu sebelum tayang."
+        },
+        "whatsapp": {
+          "title": "Melayani di WhatsApp",
+          "text": "Membalas pelangganmu di nomor perusahaan, dengan gayamu."
+        },
+        "portal": {
+          "title": "Klien menyetujui lewat tautan",
+          "text": "Tanpa membuat akun. Klien hanya melihat yang sudah disetujui timmu."
+        }
+      },
+      "why": {
+        "eyebrow": "Kenapa DougBot",
+        "title": "Semua yang dibutuhkan bisnis, dalam satu tim."
+      },
+      "scenes": {
+        "ops": {
+          "a": "Roti Fajar",
+          "b": "Studio Cahaya",
+          "c": "Klinik Sehat",
+          "todo": "Belum",
+          "doing": "Dikerjakan",
+          "done": "Selesai",
+          "t1": "Tagih 3 klien",
+          "t2": "Post hari Jumat",
+          "t3": "Kampanye akhir tahun",
+          "t4": "Situs baru",
+          "t5": "Laporan bulanan",
+          "t6": "Balas ulasan",
+          "brief": "12 tugas di 3 perusahaan"
+        },
+        "video": {
+          "file": "reel-peluncuran.mp4",
+          "review": "Tinjauan",
+          "caption": "Dibuat untuk bertahan",
+          "note1": "Potong tarikan napas sebelum dialog",
+          "note2": "Teks di sini sedikit lebih besar",
+          "by": "Diedit oleh Sony",
+          "askChanges": "Minta revisi"
+        },
+        "whatsapp": {
+          "contact": "Klien",
+          "online": "online",
+          "ask": "Halo! Besok bisa kirim?",
+          "answer": "Bisa, sampai jam 18.00. Mau langsung kupesankan?",
+          "via": "dijawab oleh agen",
+          "agent": "Mark melayani nomormu"
+        },
+        "portal": {
+          "url": "Tautan klien",
+          "title": "Postingan minggu ini",
+          "status": "Menunggumu",
+          "team": "Disetujui tim",
+          "adjust": "Minta revisi",
+          "by": "Dibuat oleh Rosa"
+        }
+      },
+      "stage": {
+        "team": "Tim",
+        "channels": {
+          "money": "keuangan",
+          "support": "layanan"
+        },
+        "composer": "Tulis ke tim…",
+        "done": "selesai",
+        "working": "sedang kerja",
+        "waiting": "perlu persetujuan"
+      },
+      "activity": {
+        "label": "Yang sedang dikerjakan tim",
+        "items": {
+          "a": "Rosa mengirim 3 desain untuk Studio Cahaya",
+          "b": "Sony sedang mengedit video Roti Fajar",
+          "c": "Mark mau memublikasikan 3 iklan",
+          "d": "Kiara menagih klien Klinik Sehat",
+          "e": "Junin menghubungkan toko ke WhatsApp",
+          "f": "Chess menyelesaikan analisis kompetitor",
+          "g": "Doug membagi 12 tugas di 3 perusahaan"
+        }
+      },
+      "team": {
+        "eyebrow": "Tim Doug",
+        "title": "Satu tangan kanan dan enam spesialis.",
+        "lead": "Kamu bicara dengan Doug. Ia memimpin sisanya.",
+        "chief": "Pimpin tim",
+        "members": {
+          "doug": {
+            "role": "Tangan kananmu",
+            "text": "Menjalankan operasi, memimpin tim dan memanggilmu hanya untuk memutuskan."
+          },
+          "rosa": {
+            "role": "Desain",
+            "text": "Post, carousel dan cover sesuai brand klien."
+          },
+          "sony": {
+            "role": "Video",
+            "text": "Mengedit Reels dan video iklan."
+          },
+          "mark": {
+            "role": "Iklan",
+            "text": "Iklan berbayar, dengan batas anggaran dan persetujuanmu."
+          },
+          "chess": {
+            "role": "Strategi",
+            "text": "Meriset niche dan menulis copy."
+          },
+          "kiara": {
+            "role": "Keuangan",
+            "text": "Penagihan, tagihan dan laporan penjualan."
+          },
+          "junin": {
+            "role": "Situs dan otomasi",
+            "text": "Situs, integrasi dan otomasi."
+          }
+        },
+        "demo": {
+          "doug": {
+            "title": "Laporan pagi operasional",
+            "one": "3 pengiriman hari ini",
+            "two": "2 menunggu klien",
+            "three": "1 macet: logonya belum ada"
+          },
+          "rosa": {
+            "label": "Carousel, 5 slide"
+          },
+          "mark": {
+            "cpa": "Biaya per penjualan",
+            "cpaValue": "Rp 280.000",
+            "roas": "Imbal hasil",
+            "roasValue": "3,2x"
+          },
+          "chess": {
+            "hooks": "Hook",
+            "one": "Kesalahan yang paling mahal",
+            "two": "3 tanda sudah waktunya",
+            "three": "Sebelum dan sesudah dalam 30 detik"
+          },
+          "kiara": {
+            "first": "Faktur #1042",
+            "second": "Faktur #1043",
+            "amount": "Rp 75 juta",
+            "due": "jatuh tempo besok",
+            "approve": "Setujui pengiriman"
+          },
+          "junin": {
+            "deploy": "Situs terbit",
+            "tests": "12 tes lolos"
+          }
+        }
+      },
+      "how": {
+        "eyebrow": "Cara kerja",
+        "title": "Dari permintaan sampai tim mulai bekerja.",
+        "steps": {
+          "join": {
+            "title": "Gabung daftar",
+            "text": "Ceritakan tentang bisnismu."
+          },
+          "talk": {
+            "title": "Kita ngobrol",
+            "text": "Kami menghubungimu lewat WhatsApp."
+          },
+          "install": {
+            "title": "Timmu mulai bekerja",
+            "text": "Dipasang di server khusus milikmu."
+          }
+        }
+      },
+      "join": {
+        "eyebrow": "Daftar tunggu",
+        "title": "Gabung daftar tunggu.",
+        "lead": "Kami membuka satu perusahaan dalam satu waktu. Nanti kami hubungi.",
+        "points": {
+          "one": "Tanpa kartu, tanpa komitmen",
+          "two": "Kami balas lewat WhatsApp",
+          "three": "Datamu hanya untuk menghubungimu"
+        }
+      },
+      "foot": {
+        "line": "Tangan kananmu, dengan tim AI."
+      }
     },
     "interests": {
       "design": "Desain",
@@ -834,7 +1083,7 @@
       "pendingConfirm": "Alamat ini punya formulir baru untuk dikonfirmasi: tim melihat permintaan seperti sebelumnya sampai dikonfirmasi.",
       "delete": "Hapus",
       "deleteTitle": "Hapus permintaan dari {{company}}?",
-      "deleteText": "Semua isinya hilang, termasuk persetujuan, dan tidak ada yang kembali. Inilah yang diminta UU PDP saat perusahaan meminta dilupakan.",
+      "deleteText": "Semua isinya hilang, termasuk persetujuan, dan tidak ada yang kembali. Inilah yang diminta LGPD saat perusahaan meminta dilupakan.",
       "deleted": "Permintaan dihapus.",
       "notesTooLong": "Catatan lebih panjang dari yang muat di sini. Pendekkan."
     },

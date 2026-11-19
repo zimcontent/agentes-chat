@@ -763,9 +763,9 @@
       "message": "Sonst noch etwas",
       "messageExample": "Wir posten zwei Videos pro Woche von Hand.",
       "messageOptional": "Optional",
-      "messageTooLong": "Das ist länger, als das Formular annimmt. Kürzen Sie es.",
-      "invalidField": "Prüfen Sie diesen Teil des Formulars und versuchen Sie es erneut.",
-      "invalidEmail": "Geben Sie eine E-Mail wie ana@firma.de an.",
+      "messageTooLong": "Das ist länger, als das Formular erlaubt. Kürz es.",
+      "invalidField": "Prüf diesen Teil des Formulars und versuch es noch mal.",
+      "invalidEmail": "Gib eine E-Mail wie ana@firma.de ein.",
       "consent": "Ich stimme zu, dass DougBot diese Antworten speichert, um mich zu kontaktieren, wie in der <link>Datenschutzerklärung</link> beschrieben.",
       "consentRequired": "Akzeptiere die Datenschutzerklärung, um fortzufahren.",
       "submit": "Anfrage senden",
@@ -773,10 +773,10 @@
       "doneTitle": "Deine Anfrage ist bei uns",
       "doneLead": "Das Team liest jede Anfrage und spricht mit jedem Unternehmen per WhatsApp. Du bekommst auch eine E-Mail.",
       "again": "Weitere Anfrage senden",
-      "confirmTitle": "Ihre E-Mail wird bestätigt…",
+      "confirmTitle": "Deine E-Mail wird bestätigt…",
       "confirmLead": "Einen Moment.",
       "confirmFailedTitle": "Dieser Link ist unbekannt oder abgelaufen",
-      "confirmFailedLead": "Senden Sie das Formular erneut, um einen neuen Link zu erhalten.",
+      "confirmFailedLead": "Sende das Formular erneut, um einen neuen Link zu bekommen.",
       "confirmAgain": "Formular erneut senden",
       "deleteTitle": "Anfrage löschen?",
       "deleteLead": "Das löscht die Anfrage und alles, was sie enthält, die Einwilligung eingeschlossen, und lässt sich nicht rückgängig machen. Wenn du nur etwas ändern wolltest, sende das Formular stattdessen erneut aus deiner E-Mail.",
@@ -787,6 +787,255 @@
       "deleteFailedLead": "Damit lässt sich nichts mehr löschen, oder er ist abgelaufen.",
       "failed": "Die Anfrage konnte nicht gesendet werden. Versuch es erneut.",
       "privacy": "Datenschutzerklärung"
+    },
+    "landing": {
+      "docTitle": "DougBot · Deine rechte Hand, mit einem KI-Team",
+      "home": "DougBot Startseite",
+      "navLabel": "Abschnitte der Seite",
+      "nav": {
+        "difference": "Der Unterschied",
+        "team": "Das Team",
+        "how": "So funktioniert's",
+        "join": "Warteliste",
+        "signIn": "Anmelden"
+      },
+      "hero": {
+        "eyebrow": "Warteliste offen",
+        "title": "Deine rechte Hand, mit einem ganzen KI-Team.",
+        "lead": "Doug ist dein CEO. Er führt den Betrieb und leitet ein Team von Spezialisten, vom Management bis zur Agentur. Für jedes Unternehmen, oder mehrere zugleich.",
+        "join": "Auf die Warteliste",
+        "compare": "So funktioniert's",
+        "note": "Von unserem Team eingerichtet, auf einem Server nur für dich."
+      },
+      "chat": {
+        "label": "Beispielgespräch: Ana bittet um die Kampagne, Doug verteilt die Arbeit, Rosa liefert die Grafiken und Mark bittet um Freigabe zum Veröffentlichen.",
+        "channel": "produktlaunch",
+        "ask": "@Doug ich brauche die Kampagne für Freitag bis morgen.",
+        "plan": "Klar. Rosa macht die Grafiken, Sony schneidet das Video und Mark richtet die Anzeigen ein.",
+        "delivered": "Drei Motive fertig, im Ton der Marke.",
+        "askApproval": "Die Anzeigen sind fertig. Darf ich veröffentlichen?",
+        "approval": "3 Anzeigen schalten, 50 € pro Tag",
+        "approve": "Freigeben",
+        "notNow": "Nicht jetzt"
+      },
+      "manifesto": "Du sprichst mit Doug. Er verteilt die Arbeit, hält das Team auf Kurs und holt dich nur für das Wichtige dazu.",
+      "compare": {
+        "eyebrow": "Der Unterschied",
+        "title": "Gemieteter Bot oder eigenes Team?",
+        "lead": "Grok Bot und andere vermieten Katalog-Bots in ihrer Cloud. DougBot wird für dein Geschäft eingerichtet.",
+        "them": "Grok Bot",
+        "themNote": "und andere Cloud-Bots",
+        "rows": {
+          "where": {
+            "label": "Wo es läuft",
+            "them": "In ihrer Cloud",
+            "us": "Auf einem Server nur für dich"
+          },
+          "talk": {
+            "label": "Wo ihr redet",
+            "them": "Slack, Teams und ihre Apps",
+            "us": "App, Handy und WhatsApp"
+          },
+          "setup": {
+            "label": "Wer es einrichtet",
+            "them": "Du, aus einem Katalog",
+            "us": "Unser Team, für dein Geschäft"
+          },
+          "price": {
+            "label": "Wie du zahlst",
+            "them": "Ein Monatsabo",
+            "us": "Einrichtung mit Support"
+          }
+        }
+      },
+      "pillars": {
+        "ops": {
+          "title": "Doug führt den Betrieb",
+          "text": "Verteilt die Aufgaben, hakt bei Fristen nach und betreut mehrere Firmen zugleich."
+        },
+        "agency": {
+          "title": "Eine eingebaute Agentur",
+          "text": "Design, Video, Anzeigen und Social Media, von deinem Team geprüft, bevor sie rausgehen."
+        },
+        "whatsapp": {
+          "title": "Antwortet auf WhatsApp",
+          "text": "Antwortet deinen Kunden über die Firmennummer, so wie du es willst."
+        },
+        "portal": {
+          "title": "Kunden geben per Link frei",
+          "text": "Ganz ohne Konto. Sie sehen nur, was dein Team freigegeben hat."
+        }
+      },
+      "why": {
+        "eyebrow": "Warum DougBot",
+        "title": "Alles, was ein Unternehmen braucht, in einem Team."
+      },
+      "scenes": {
+        "ops": {
+          "a": "Bäckerei Morgenrot",
+          "b": "Studio Licht",
+          "c": "Praxis Vital",
+          "todo": "Offen",
+          "doing": "In Arbeit",
+          "done": "Erledigt",
+          "t1": "3 Kunden abrechnen",
+          "t2": "Post für Freitag",
+          "t3": "Weihnachtskampagne",
+          "t4": "Neue Website",
+          "t5": "Monatsbericht",
+          "t6": "Bewertungen beantworten",
+          "brief": "12 Aufgaben in 3 Firmen"
+        },
+        "video": {
+          "file": "produktlaunch-reel.mp4",
+          "review": "Korrektur",
+          "caption": "Gemacht, um zu bleiben",
+          "note1": "Den Atmer vor dem Satz rausschneiden",
+          "note2": "Untertitel hier etwas größer",
+          "by": "Geschnitten von Sony",
+          "askChanges": "Änderungen anfragen"
+        },
+        "whatsapp": {
+          "contact": "Kunde",
+          "online": "online",
+          "ask": "Hallo! Liefert ihr morgen?",
+          "answer": "Ja, bis 18 Uhr. Soll ich deins gleich reservieren?",
+          "via": "vom Agenten beantwortet",
+          "agent": "Mark betreut deine Nummer"
+        },
+        "portal": {
+          "url": "Kundenlink",
+          "title": "Posts der Woche",
+          "status": "Wartet auf dich",
+          "team": "Vom Team freigegeben",
+          "adjust": "Änderungen anfragen",
+          "by": "Von Rosa gemacht"
+        }
+      },
+      "stage": {
+        "team": "Team",
+        "channels": {
+          "money": "finanzen",
+          "support": "kundenservice"
+        },
+        "composer": "Schreib dem Team…",
+        "done": "erledigt",
+        "working": "arbeitet",
+        "waiting": "braucht Freigabe"
+      },
+      "activity": {
+        "label": "Was das Team gerade macht",
+        "items": {
+          "a": "Rosa hat 3 Motive für Studio Licht geliefert",
+          "b": "Sony schneidet das Video der Bäckerei Morgenrot",
+          "c": "Mark will 3 Anzeigen schalten",
+          "d": "Kiara hat die Kunden der Praxis Vital abgerechnet",
+          "e": "Junin hat den Shop mit WhatsApp verbunden",
+          "f": "Chess hat die Wettbewerbsanalyse abgeschlossen",
+          "g": "Doug hat 12 Aufgaben auf 3 Firmen verteilt"
+        }
+      },
+      "team": {
+        "eyebrow": "Dougs Team",
+        "title": "Eine rechte Hand und sechs Spezialisten.",
+        "lead": "Du sprichst mit Doug. Er führt den Rest.",
+        "chief": "Führt das Team",
+        "members": {
+          "doug": {
+            "role": "Deine rechte Hand",
+            "text": "Führt den Betrieb, leitet das Team und holt dich nur für Entscheidungen dazu."
+          },
+          "rosa": {
+            "role": "Design",
+            "text": "Posts, Karussells und Cover im Branding des Kunden."
+          },
+          "sony": {
+            "role": "Video",
+            "text": "Schneidet Reels und Werbevideos."
+          },
+          "mark": {
+            "role": "Anzeigen",
+            "text": "Bezahlte Anzeigen, mit Budgetgrenze und deiner Freigabe."
+          },
+          "chess": {
+            "role": "Strategie",
+            "text": "Recherchiert die Nische und schreibt die Texte."
+          },
+          "kiara": {
+            "role": "Finanzen",
+            "text": "Abrechnung, Rechnungen und Verkaufsberichte."
+          },
+          "junin": {
+            "role": "Websites und Automationen",
+            "text": "Websites, Integrationen und Automationen."
+          }
+        },
+        "demo": {
+          "doug": {
+            "title": "Morgenbriefing zum Betrieb",
+            "one": "3 Lieferungen heute",
+            "two": "2 warten auf den Kunden",
+            "three": "1 hängt: das Logo fehlt"
+          },
+          "rosa": {
+            "label": "Karussell, 5 Slides"
+          },
+          "mark": {
+            "cpa": "Kosten pro Verkauf",
+            "cpaValue": "18,40 €",
+            "roas": "Rendite",
+            "roasValue": "3,2x"
+          },
+          "chess": {
+            "hooks": "Aufhänger",
+            "one": "Der Fehler, der am meisten kostet",
+            "two": "3 Zeichen, dass es Zeit ist",
+            "three": "Vorher und nachher in 30 s"
+          },
+          "kiara": {
+            "first": "Rechnung #1042",
+            "second": "Rechnung #1043",
+            "amount": "4.800 €",
+            "due": "fällig morgen",
+            "approve": "Versand freigeben"
+          },
+          "junin": {
+            "deploy": "Website veröffentlicht",
+            "tests": "12 Tests bestanden"
+          }
+        }
+      },
+      "how": {
+        "eyebrow": "So funktioniert's",
+        "title": "Von der Anfrage zum Team bei der Arbeit.",
+        "steps": {
+          "join": {
+            "title": "Auf die Liste",
+            "text": "Erzähl uns von deinem Unternehmen."
+          },
+          "talk": {
+            "title": "Wir reden",
+            "text": "Wir melden uns per WhatsApp."
+          },
+          "install": {
+            "title": "Dein Team legt los",
+            "text": "Eingerichtet auf einem Server nur für dich."
+          }
+        }
+      },
+      "join": {
+        "eyebrow": "Warteliste",
+        "title": "Komm auf die Warteliste.",
+        "lead": "Wir öffnen ein Unternehmen nach dem anderen. Wir rufen dich an.",
+        "points": {
+          "one": "Keine Karte, keine Verpflichtung",
+          "two": "Wir antworten per WhatsApp",
+          "three": "Deine Daten nur, um dich zu erreichen"
+        }
+      },
+      "foot": {
+        "line": "Deine rechte Hand, mit einem KI-Team."
+      }
     },
     "interests": {
       "design": "Design",
@@ -850,7 +1099,7 @@
       "deleteTitle": "Die Anfrage von {{company}} löschen?",
       "deleteText": "Alles, was sie enthält, geht, die Einwilligung eingeschlossen, und nichts kommt zurück. Das verlangt die DSGVO, wenn ein Unternehmen vergessen werden möchte.",
       "deleted": "Anfrage gelöscht.",
-      "notesTooLong": "Die Notizen sind länger, als hier hineinpasst. Kürzen Sie sie."
+      "notesTooLong": "Die Notizen sind länger, als hier hineinpasst. Kürz sie."
     },
     "notice": {
       "title": "{{company}} hat DougBot angefragt",
