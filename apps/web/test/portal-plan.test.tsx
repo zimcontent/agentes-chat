@@ -960,7 +960,7 @@ describe("the client's materials (ADR 9001 §20)", () => {
     expect(calls(state, "portal.createList")).toEqual([[ORG_ID, "acme", "Geral", "materials"]]);
     const made = portal.lists.find((l) => l.name === "Geral");
     expect(made?.kind).toBe("materials");
-    expect((calls(state, "portal.updateCard")[0]?.[2] as { list: string }).list).toBe(made?.id as string);
+    expect((calls(state, "portal.updateCard")[0]?.[2] as { list: string } | undefined)?.list).toBe(made?.id as string);
     expect(screen().getByText("“Story de enquete” foi para Materiais do cliente, na lista Geral.")).toBeTruthy();
   });
 
