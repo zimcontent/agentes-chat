@@ -44,6 +44,7 @@ import { quietNoticeSql } from "./notices";
 import { can } from "./organizations";
 import { maySql } from "./permissions";
 import { afterReplyAnswered } from "./questions";
+import { isQuickAck } from "./quick-ack";
 import { rightHandReaches } from "./right-hand";
 import { inChannelRun, waitsOnUsage, workKeepsThread, workTakesPersonMessage } from "./run-scope";
 import { computerWaitSql, KEPT_ON_HOLD, NO_AI, outageParkedSql, passedSql, runErrorDetail, usageWaitSql } from "./runs";
@@ -696,8 +697,8 @@ export async function insertMessageWithRuns(
   // conversation later. Nothing to search in it either.
   const mediaOnly = body === "" && !files && media !== null;
   // The sticker or GIF an agent adds after its own reply is silent (ADR 0091 §4): it notifies nobody, and a thread
-  // waits for the reply's own assessment.
-  const silent = isMediaAfterReply(input.meta);
+  // waits for the reply's own assessment. So is an agent's first line before its answer (docs/adr/doug-0037).
+  const silent = isMediaAfterReply(input.meta) || isQuickAck(input.meta);
   if (body.length > MAX_MESSAGE_LENGTH)
     throw new ValidationError(`Message is longer than ${MAX_MESSAGE_LENGTH} characters`, "message.too_long", {
       length: body.length,

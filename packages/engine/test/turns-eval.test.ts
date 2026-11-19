@@ -115,6 +115,8 @@ const size = (r: ModelRequest) =>
  * never told as "the first time", and the DM rule saying what may be said of it elsewhere. Where each workspace gets its
  * own computer, `workspaceComputerText` adds 447 to that (48,078); and a sign-in whose link or
  * code goes to a mailbox the agent reads being its own work adds 360; the ceiling leaves a little room above both.
+ * A task carried to its end in one turn, an answer about as long as the message and no em dash came in at about the
+ * same size (48,635), once two rules stopped repeating them.
  */
 const OI_CEILING_CHARS = 48_700;
 

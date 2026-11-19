@@ -991,6 +991,8 @@ export function buildEngine(o: EngineOptions) {
     // It ends early when the person isn't typing, and Claude's API reads the prompt into its cache meanwhile.
     quietByTyping: true,
     prewarm: true,
+    // The first words (docs/adr/doug-0037): a person asking for work hears a line from the agent in about a second.
+    quickAck: true,
     // Tools on demand (ADR 0043): each run lists what the judge expects it to need; the rest behind `find_tools`.
     toolsOnDemand: o.toolsOnDemand ?? true,
     warmBrowser,

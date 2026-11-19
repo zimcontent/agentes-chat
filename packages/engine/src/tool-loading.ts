@@ -27,8 +27,11 @@ export interface ToolGroupChoice {
   groups: string[];
   /** Each group's probability; empty when the judge didn't answer. */
   scores: Record<string, number>;
-  /** "judge", or why it fell back to the core tools and `keep` ("timeout", "error", "none"). */
-  source: "judge" | "timeout" | "error" | "none";
+  /**
+   * "judge", or why it fell back to the core tools and `keep` ("timeout", "error", "none"), or "small_talk": a
+   * greeting or thanks, not asked (`isSmallTalk`).
+   */
+  source: "judge" | "timeout" | "error" | "none" | "small_talk";
   /** Groups loaded without asking (`keptToolGroups`). */
   kept: string[];
 }

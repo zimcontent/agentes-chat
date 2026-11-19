@@ -444,7 +444,7 @@ describe("a run of an agent on Automático", () => {
       reply: () => ({ chunks: ["Oi!"] }),
     });
     await updateAgent(f.db, f.owner.id, f.org.id, f.agent.id, { model: AUTO_MODEL });
-    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev oi" });
+    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev olha isso" });
     await drainOutbox(f.db, f.handlers);
     expect(f.provider.calls[0]?.request).toMatchObject({ model: "claude-sonnet-5-5", effort: "medium" });
     const steps = await f.db.select().from(schema.agentRunSteps).where(eq(schema.agentRunSteps.kind, "context"));
@@ -464,7 +464,7 @@ describe("a run of an agent on Automático", () => {
       apiKey: "sk-test-openai-key-1234567890",
     });
     await updateAgent(f.db, f.owner.id, f.org.id, f.agent.id, { model: AUTO_MODEL, credentialId: key.id });
-    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev oi" });
+    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev olha isso" });
     await drainOutbox(f.db, f.handlers);
     expect(f.provider.calls).toHaveLength(0);
     expect(f.openaiProvider.calls[0]?.request).toMatchObject({ model: "gpt-6-luna", effort: "high" });
@@ -480,7 +480,7 @@ describe("a run of an agent on Automático", () => {
       makeDefault: true,
     });
     await updateAgent(f.db, f.owner.id, f.org.id, f.agent.id, { model: AUTO_MODEL, credentialId: null });
-    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev oi" });
+    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev olha isso" });
     await drainOutbox(f.db, f.handlers);
     expect(f.provider.calls[0]).toMatchObject({
       apiKey: "sk-deepseek-test-1234567890",
@@ -516,7 +516,7 @@ describe("a run of an agent on Automático", () => {
       autoModels: { openrouter: { small: null } },
     });
     expect(cleared.autoModels).toEqual({ openrouter: { large: "anthropic/claude-sonnet-5.5" } });
-    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev oi" });
+    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev olha isso" });
     await drainOutbox(f.db, f.handlers);
     expect(f.provider.calls[0]).toMatchObject({
       apiKey: "or-test-key-12345678",
@@ -541,7 +541,7 @@ describe("a run of an agent on Automático", () => {
     await expect(cheapModelForOrg(f.db, f.org.id, { anthropic: "claude-haiku-5-5" })).rejects.toMatchObject({
       retryable: true,
     });
-    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev oi" });
+    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev olha isso" });
     await drainOutbox(f.db, f.handlers);
     const run = async () =>
       (await f.db.select().from(schema.agentRuns).where(eq(schema.agentRuns.agentId, f.agent.id)))[0];
@@ -597,7 +597,7 @@ describe("a run of an agent on Automático", () => {
       .update(schema.agents)
       .set({ model: AUTO_MODEL, credentialId: key.id })
       .where(eq(schema.agents.id, f.agent.id));
-    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev oi" });
+    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev olha isso" });
     await drainOutbox(f.db, f.handlers);
 
     const [run] = await f.db.select().from(schema.agentRuns).where(eq(schema.agentRuns.agentId, f.agent.id));
@@ -630,7 +630,7 @@ describe("a run of an agent on Automático", () => {
       { net: { allowPrivate: true } },
     );
     await updateAgent(f.db, f.owner.id, f.org.id, f.agent.id, { model: AUTO_MODEL, credentialId: null });
-    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev oi" });
+    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev olha isso" });
     await drainOutbox(f.db, f.handlers);
     // The workspace's own endpoint key, read the way `orgModelProvider` read the provider from it.
     expect(f.provider.calls.at(-1)?.request.model).toBe(customModelId(key.id, "llama-4"));
@@ -658,7 +658,7 @@ describe("a run of an agent on Automático", () => {
       { net: { allowPrivate: true } },
     );
     await updateAgent(f.db, f.owner.id, f.org.id, f.agent.id, { model: AUTO_MODEL, credentialId: null });
-    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev oi" });
+    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev olha isso" });
     await drainOutbox(f.db, f.handlers);
     expect(f.provider.calls.at(-1)?.request.model).toBe(customModelId(key.id, "llama-4"));
     expect(f.provider.calls.at(-1)?.apiKey).toBe("gw-key-1234567");
@@ -666,7 +666,7 @@ describe("a run of an agent on Automático", () => {
 
   test("an agent without auto never asks the judge about its model", async () => {
     f = await setup({ judge: judgeAnswers({ current: "large" }), reply: () => ({ chunks: ["ok"] }) });
-    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev oi" });
+    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev olha isso" });
     await drainOutbox(f.db, f.handlers);
     expect(f.provider.calls[0]?.request.model).toBe("claude-sonnet-5-5");
     expect(f.provider.calls[0]?.request.effort).toBeUndefined();
@@ -677,7 +677,7 @@ describe("a run of an agent on Automático", () => {
   test("a fixed model on a key thinks at the agent's effort, without asking the judge", async () => {
     f = await setup({ judge: judgeAnswers({ current: "large" }), reply: () => ({ chunks: ["ok"] }) });
     await f.db.update(schema.agents).set({ brainEffort: "max" }).where(eq(schema.agents.id, f.agent.id));
-    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev oi" });
+    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev olha isso" });
     await drainOutbox(f.db, f.handlers);
     // The API takes low, medium and high: max goes as high.
     expect(f.provider.calls[0]?.request).toMatchObject({ model: "claude-sonnet-5-5", effort: "high" });
@@ -689,7 +689,7 @@ describe("a run of an agent on Automático", () => {
     f = await setup({ judge: judgeAnswers({ current: "large" }), reply: () => ({ chunks: ["ok"] }) });
     await updateAgent(f.db, f.owner.id, f.org.id, f.agent.id, { model: AUTO_MODEL });
     await f.db.update(schema.agents).set({ brainEffort: "low" }).where(eq(schema.agents.id, f.agent.id));
-    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev oi" });
+    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev olha isso" });
     await drainOutbox(f.db, f.handlers);
     expect(f.provider.calls[0]?.request).toMatchObject({ model: "claude-opus-5-5", effort: "high" });
   });

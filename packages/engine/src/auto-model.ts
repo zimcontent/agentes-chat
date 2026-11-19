@@ -45,8 +45,11 @@ export interface AutoChoice {
   effort: AutoEffort;
   /** One line, for the run's `context` step. */
   reason: string;
-  /** "judge", or why it is medium/medium ("timeout", "error", "none": no judge, "kept": resumed without one). */
-  source: "judge" | "timeout" | "error" | "none" | "kept";
+  /**
+   * "judge", or why it is medium/medium ("timeout", "error", "none": no judge, "kept": resumed without one), or
+   * "small_talk": a greeting or thanks, small and low without asking (`isSmallTalk`).
+   */
+  source: "judge" | "timeout" | "error" | "none" | "kept" | "small_talk";
 }
 
 /** Kept on the transcript: the choice and the API model it mapped to (stable if the keys change mid-run). */
@@ -54,8 +57,16 @@ export interface AutoModelRecord extends AutoChoice {
   apiModel?: string;
 }
 
+/** Small talk ("oi", "valeu", `isSmallTalk`): the smallest tier, low effort, with no judge to wait for. */
+export const SMALL_TALK_CHOICE: AutoChoice = {
+  tier: "small",
+  effort: "low",
+  reason: "Small talk: small tier, low effort.",
+  source: "small_talk",
+};
+
 /** What a run that couldn't ask thinks with: the everyday model, ordinary effort. */
-export function fallbackChoice(source: Exclude<AutoChoice["source"], "judge">): AutoChoice {
+export function fallbackChoice(source: Exclude<AutoChoice["source"], "judge" | "small_talk">): AutoChoice {
   const why: Record<typeof source, string> = {
     timeout: "The judge didn't answer in time",
     error: "The judge failed",

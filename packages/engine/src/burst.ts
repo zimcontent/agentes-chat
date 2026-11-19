@@ -9,10 +9,11 @@ export const BURST_MAX_WINDOWS = 4;
 
 /**
  * Without a sign of more coming (a `user.typing` from the person here, or another message of theirs), the wait ends
- * this long after their message instead of the whole window (token-trim B11). The apps send a typing frame the
- * moment a new message starts, so "oi" then "preciso de uma coisa" is still read as one (ADR 0112).
+ * this long after their message instead of the whole window: long enough for the typing frame the apps send the
+ * moment a new message starts to arrive, so "oi" then "preciso de uma coisa" is still read as one (ADR 0112), and
+ * short enough that one message alone starts its answer at once. What comes later still reaches the run (its inbox).
  */
-export const TYPING_GRACE_MS = 1200;
+export const TYPING_GRACE_MS = 500;
 
 type TypingWhere = { channelId: string; threadId: string | null; userId: string };
 

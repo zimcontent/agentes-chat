@@ -61,6 +61,7 @@ import {
   inMission,
   needsAutoChoice,
   orgAutoModels,
+  SMALL_TALK_CHOICE,
   withAuto,
 } from "./auto-model";
 import type { BlockSpecReader } from "./block-state";
@@ -165,7 +166,13 @@ import { recordContextUse } from "./context/feedback";
 import { afterTurnDone, learnTags, reportLearnFailure } from "./context/learn";
 import { rulesForRun } from "./context/rules";
 import { memoryArmOf } from "./context/scorecard";
-import { type ContextDeps, ensureThreadSummary, resolveSummaryModel } from "./context/summaries";
+import {
+  type ContextDeps,
+  currentThreadSummary,
+  ensureThreadSummary,
+  refreshThreadSummary,
+  resolveSummaryModel,
+} from "./context/summaries";
 import { EXPAND_TOOL, itemLabel, retrieveForRun } from "./context/tools";
 import { compactToolResults, cutOldToolSteps, cutResultIds, dropOldImages, fitContextWindow } from "./context-budget";
 import {
@@ -268,6 +275,7 @@ import { assertPersonUnderLimit } from "./person-usage";
 import { createProfiler, type StageTiming } from "./profile";
 import { createProgressLine, progressWords } from "./progress-line";
 import { ASK_USER_TOOL, QUESTION_MAX_CHARS, questionResult } from "./questions";
+import { ackLanguage, ackMeta, asksForWork, isSmallTalk, pickAckLine, quickAckNote } from "./quick-ack";
 import {
   endsWithSentinel,
   isSentinelOnly,
@@ -490,6 +498,12 @@ export interface EngineDeps {
    * `pubsub`). Off: the whole window.
    */
   quietByTyping?: boolean;
+  /**
+   * The first words (docs/adr/doug-0037-conversation-pace.md): a person who asks for work hears a short line from the
+   * agent in about a second (`quick-ack.ts`). Needs a calibrated judge in `context`. Off: the run says nothing until
+   * its answer.
+   */
+  quickAck?: boolean;
   /** Memory and summaries (ADR 0017). Without it the context is the recent conversation only. */
   context?: ContextDeps;
   /** Latency measurements (`trigger_to_claim_ms`, `claim_to_first_delta_ms`, `run_ms`), for logs. */
@@ -1838,6 +1852,8 @@ async function executeRunInner(
     recentRead ??= recentForJudge(db, run).catch(() => [] as string[]);
     return recentRead;
   };
+  // Small talk ("oi", "valeu"): nothing to size, so neither judge below is asked (docs/adr/doug-0037).
+  const smallTalk = needsContext && isSmallTalk(trigger?.body ?? topTrigger?.body ?? "", (trigger ?? topTrigger)?.meta);
   // "Automático": the judge picks the run's model tier and effort while the context is built; the
   // choice is applied once the brain is known, before the first model call. Never blocks: no answer in time
   // is medium/medium.
@@ -1862,26 +1878,30 @@ async function executeRunInner(
       )
       .catch(() => fallbackChoice("error"));
   };
-  const autoAsked = needsContext && autoWanted(agent) ? askAuto() : null;
+  const autoAsked =
+    needsContext && autoWanted(agent) ? (smallTalk ? Promise.resolve(SMALL_TALK_CHOICE) : askAuto()) : null;
   // The judge's answer is awaited where the tools are needed: the context is read meanwhile (`CONTEXT_TOOLS`).
   const judging: Promise<void> | null =
     needsContext && deps.toolsOnDemand && judge && granted.length > 0 && !every
       ? (async () => {
           const [recent, keep] = await Promise.all([
-            recentMessages(),
+            smallTalk ? [] : recentMessages(),
             keptToolGroups(db, run, granted).catch(() => [] as string[]),
           ]);
-          const choice = await chooseToolGroups(judge, {
-            orgId: run.orgId,
-            agentId: agent.id,
-            runId: run.id,
-            agent: { name: agent.name, role: agent.role, instructions: agent.instructions },
-            message: trigger?.body ?? "",
-            recent,
-            tools: granted,
-            // The message's words may not mention its file (it may have none), and the agent has to open it.
-            keep: Array.isArray(trigger?.meta.artifacts) ? [...keep, toolGroupKey({ scope: "drive:read" })] : keep,
-          });
+          // Small talk asks nothing: the core tools and the groups kept from the run before.
+          const choice: ToolGroupChoice = smallTalk
+            ? { groups: keep, scores: {}, source: "small_talk", kept: keep }
+            : await chooseToolGroups(judge, {
+                orgId: run.orgId,
+                agentId: agent.id,
+                runId: run.id,
+                agent: { name: agent.name, role: agent.role, instructions: agent.instructions },
+                message: trigger?.body ?? "",
+                recent,
+                tools: granted,
+                // The message's words may not mention its file (it may have none), and the agent has to open it.
+                keep: Array.isArray(trigger?.meta.artifacts) ? [...keep, toolGroupKey({ scope: "drive:read" })] : keep,
+              });
           toolChoice = choice;
           ctx.loadedGroups = choice.groups;
           tools = presentTools(granted, isSensitive, ctx.loadedGroups);
@@ -1892,6 +1912,56 @@ async function executeRunInner(
       : null;
   // Read only when the context is built; a failure surfaces there.
   judging?.catch(() => {});
+  // The first words (docs/adr/doug-0037): a person who asks for work hears a line in about a second, while the run
+  // reads its context. Posted the moment the judge says so, never once the first model call is on its way
+  // (`ackClosed`); one message that started several runs gets none (two agents would both say it).
+  /** The line posted, read by the first model call as already said. */
+  let ackLine: string | null = null;
+  let ackClosed = false;
+  const asker = trigger?.authorType === "person" ? trigger.authorUserId : null;
+  if (
+    needsContext &&
+    deps.quickAck &&
+    judge &&
+    trigger &&
+    asker &&
+    !smallTalk &&
+    run.turns === 0 &&
+    !run.background &&
+    !run.workId &&
+    !askingForRoom &&
+    !(channelRow && isAgentOnlyDm(channelRow))
+  ) {
+    const ackJudge = judge;
+    const body = trigger.body;
+    void queryTrace
+      .run({ count: 0 }, async () => {
+        const [recent, others, person] = await Promise.all([
+          recentMessages(),
+          db
+            .select({ n: count() })
+            .from(agentRuns)
+            .where(and(eq(agentRuns.triggerMessageId, run.triggerMessageId), ne(agentRuns.id, run.id))),
+          db.select({ locale: schema.users.locale }).from(schema.users).where(eq(schema.users.id, asker)),
+        ]);
+        if ((others[0]?.n ?? 0) > 0) return;
+        const work = await asksForWork(ackJudge, {
+          orgId: run.orgId,
+          agentId: agent.id,
+          runId: run.id,
+          agent: { name: agent.name, role: agent.role },
+          message: body,
+          recent,
+        });
+        if (!work || ackClosed) return;
+        const line = pickAckLine(agent.id, ackLanguage(person[0]?.locale, body));
+        ackLine = line;
+        const m = await postAgentMessage(db, run, replyThreadId, line, ackMeta(run.id));
+        const [view] = await withWikiLinks(db, run.orgId, [messageView(m)]);
+        if (view) await publishMessageCreated(deps.pubsub, view);
+      })
+      .catch(() => {});
+  }
   // What the agent shows it is doing (ADR 0084 §8–9): lines from facts everyone may see, picked by Jev in a request
   // of its own, beside the run and never in its way: its statements count apart from the run's.
   if (needsContext) {
@@ -2364,10 +2434,15 @@ async function executeRunInner(
     if (issueId) later(() => linkRunToIssue({ db, pubsub: deps.pubsub }, run, issueId));
     const system: ContextBlock[] = [...context.system];
     if (contextDeps && context.stats.truncated) {
-      // Long thread: the summary stands in for what didn't fit.
-      const found = await ensureThreadSummary(contextDeps, run.orgId, run.threadRootId, { force: true }).catch(
-        () => null,
-      );
+      // Long thread: the summary stands in for what didn't fit. One already written is read as it is and rewritten
+      // beside the run (what it misses is the newest messages, which the run reads whole); only a thread's first
+      // summary is waited for.
+      const current = await currentThreadSummary(db, run.orgId, run.threadRootId).catch(() => null);
+      const found =
+        current ??
+        (await ensureThreadSummary(contextDeps, run.orgId, run.threadRootId, { force: true }).catch(() => null));
+      if (current)
+        void queryTrace.run({ count: 0 }, () => refreshThreadSummary(contextDeps, run.orgId, run.threadRootId));
       const dm = found
         ? await agentsDmReads(db, run.orgId, run.channelId, () => readerOfRun(db, run.orgId, run.id))
         : null;
@@ -4532,6 +4607,12 @@ async function executeRunInner(
       // unless it started too late to be near its end.
       if (warming && Date.now() - warmedAt >= PREWARM_MIN_LEAD_MS)
         await Promise.race([warming, Bun.sleep(PREWARM_WAIT_MS)]);
+    }
+    // The first words: from here on no line goes out, and one that did is part of what the run already said.
+    ackClosed = true;
+    if (ackLine) {
+      const note: ContextBlock = { turn: true, text: quickAckNote(ackLine) };
+      transcript.system.push(note);
     }
     for (;;) {
       // A restart announced ahead (ADR doug-0005): between two turns is where the run stops, checkpointed, for the

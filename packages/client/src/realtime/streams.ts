@@ -715,7 +715,8 @@ function finish(state: StreamsState, runId: string): StreamsState {
 }
 
 /**
- * A message its run posts while it goes on working, never its reply: a fast reply (`meta.talker`), and anything posted
+ * A message its run posts while it goes on working, never its reply: a fast reply (`meta.talker`), its first line
+ * before the answer (`meta.ack`, docs/adr/doug-0037), and anything posted
  * while one of its calls runs, since a tool posts inside its call (`invokeWithChip` sends the call's start before the
  * tool runs, on every brain): a card (an agent's proposal, Connect, an event), a DM, a post in another
  * channel. Taken for the run's end, it froze the row with that call still running, and dropped every later event of the
@@ -723,6 +724,7 @@ function finish(state: StreamsState, runId: string): StreamsState {
  */
 const postedOnTheWay = (state: StreamsState, m: Pick<Message, "agentRunId" | "meta">) =>
   Boolean(m.meta?.talker) ||
+  Boolean(m.meta?.ack) ||
   Boolean(m.agentRunId && state.runs[m.agentRunId]?.work?.some((w) => w.kind === "call" && w.running));
 
 /** No event for this long: the row says "sem notícias há 3 min · Atualizar". */

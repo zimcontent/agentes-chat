@@ -20,6 +20,7 @@ import {
   createContextToolSource,
   createFakeJudge,
   createToolGateway,
+  currentThreadSummary,
   decideApproval,
   decideProposal,
   deleteContextItem,
@@ -43,6 +44,7 @@ import {
   proposeChange,
   recordOutcome,
   reflectThread,
+  refreshThreadSummary,
   retrieveForRun,
   revokeConnection,
   similarity,
@@ -222,6 +224,22 @@ describe("consolidation", () => {
 });
 
 describe("summaries", () => {
+  test("rewritten beside a run: two runs in one thread start one rewrite", async () => {
+    let n = 0;
+    f = await setup({
+      reply: (req) =>
+        req.system.toString().includes("short summaries") ? { chunks: [`Summary v${++n}`] } : { chunks: ["ok"] },
+    });
+    const root = await post(f, "planning the launch");
+    await post(f, "date: friday", root.id);
+    await Promise.all([
+      refreshThreadSummary(f.context, f.org.id, root.id),
+      refreshThreadSummary(f.context, f.org.id, root.id),
+    ]);
+    expect(n).toBe(1);
+    expect((await currentThreadSummary(f.db, f.org.id, root.id))?.content).toBe("Summary v1");
+  });
+
   test("lazy: only long or forced threads; a new version when the thread moved on", async () => {
     let n = 0;
     f = await setup({
