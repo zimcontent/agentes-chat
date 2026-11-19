@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import { and, asc, eq, schema, sql } from "@agenteschat/db";
+import { and, asc, eq, schema, sql } from "@dougbot/db";
 import { createFakeJudge, createJobHandlers, drainOutbox, postPersonMessage } from "../src";
 import { ackLanguage, asksForWork, isSmallTalk, pickAckLine } from "../src/quick-ack";
 import { type Fixture, setup } from "./fixtures";
