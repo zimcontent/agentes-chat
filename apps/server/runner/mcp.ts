@@ -731,6 +731,14 @@ export const LIST_MEMO_MS = TOOLS_CACHE_MS;
 export const TOOLS_POLL_MS = 1000;
 /** …and while each ask reaches the server (a daemon that doesn't answer by itself). */
 export const TOOLS_REFRESH_MS = 60_000;
+/**
+ * How long the executor's first `tools/list` waits for the server's list. Claude Code gives up on a server whose list
+ * takes 30 s (2.1.326) and then has none of its tools, its `--permission-prompt-tool` included: the first command
+ * that needs a prompt ends the turn ("MCP tool … not found. Available MCP tools: none"). That happened to every turn
+ * started in the minute after the server and the runner restarted together (issue #218). Past this wait the executor
+ * gets the prompt alone, and the server's list is announced (`tools/list_changed`) as soon as it comes.
+ */
+export const FIRST_LIST_WAIT_MS = 10_000;
 
 /**
  * The run's tool list in the MCP process (one process per task or run, so
@@ -748,20 +756,47 @@ export class McpToolCache {
   private asking: Promise<boolean> | null = null;
   /** The daemon answered the last ask by itself (between turns, or the same run's list): asking often is free. */
   local = false;
+  /** The executor got the prompt alone while the first list was late: that list, once here, is announced. */
+  private stopgap = false;
 
   constructor(
     private readonly fetch: () => Promise<IpcReply>,
-    private readonly opts: { ttlMs?: number; now?: () => number; onChange?: () => void } = {},
+    private readonly opts: {
+      ttlMs?: number;
+      now?: () => number;
+      onChange?: () => void;
+      /** `FIRST_LIST_WAIT_MS`. */
+      firstWaitMs?: number;
+    } = {},
   ) {}
 
   get loaded() {
     return this.list !== null;
   }
 
+  /** Never loaded, and the executor was given the prompt alone meanwhile: the background refresh keeps asking. */
+  get late() {
+    return this.stopgap && this.list === null;
+  }
+
   async get(): Promise<readonly McpToolInfo[]> {
     const now = (this.opts.now ?? Date.now)();
     if (this.list && now - this.loadedAt < (this.opts.ttlMs ?? TOOLS_CACHE_MS)) return this.list;
-    await this.refresh();
+    if (this.list) {
+      await this.refresh();
+      return this.list ?? MISSION_MCP_TOOLS;
+    }
+    // Never loaded: the executor's list waits a bounded time, never long enough for it to give up on this server.
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const late = new Promise<"late">((resolve) => {
+      timer = setTimeout(() => resolve("late"), this.opts.firstWaitMs ?? FIRST_LIST_WAIT_MS);
+      timer.unref?.();
+    });
+    const answered = await Promise.race([this.refresh(), late]).finally(() => clearTimeout(timer));
+    if (answered === "late" && this.list === null) {
+      this.stopgap = true;
+      return PROMPT_ONLY;
+    }
     return this.list ?? MISSION_MCP_TOOLS;
   }
 
@@ -781,7 +816,9 @@ export class McpToolCache {
     if (idle) this.loadedAt = 0;
     if (!reply?.ok || !reply.tools) return false;
     const key = JSON.stringify(reply.tools);
-    const changed = this.list !== null && key !== this.key;
+    // The first list is news too when the executor was given the prompt alone before it.
+    const changed = (this.list !== null || this.stopgap) && key !== this.key;
+    this.stopgap = false;
     this.list = reply.tools;
     this.key = key;
     this.loadedAt = (this.opts.now ?? Date.now)();
@@ -1043,6 +1080,8 @@ export async function runMcpServer(options: {
   refreshMs?: number;
   /** Tests: `TOOLS_POLL_MS`. */
   pollMs?: number;
+  /** Tests: `FIRST_LIST_WAIT_MS`. */
+  firstListWaitMs?: number;
   /** How calls reach the daemon. Default: over `socketPath`. Inside the daemon (a `session`): straight to its bridge. */
   ipc?: (req: IpcRequest) => Promise<IpcReply>;
   /** Default: `AGENTES_MCP_BRANCHES` and `AGENTES_MCP_TASK`. */
@@ -1070,6 +1109,7 @@ export async function runMcpServer(options: {
   // it (Claude Code 2.1.316 does, between the tool calls of a turn; Codex 0.165.0 doesn't, `brain-codex-app.ts`).
   const cache = new McpToolCache(() => ipc({ taskId: options.taskId, token, tool: "", args: {}, kind: "list" }), {
     onChange: () => write({ jsonrpc: "2.0", method: "notifications/tools/list_changed" }),
+    ...(options.firstListWaitMs !== undefined ? { firstWaitMs: options.firstListWaitMs } : {}),
   });
   const list: ToolLister = context.local ? async () => PROMPT_ONLY : () => cache.get();
   let stopped = false;
@@ -1080,7 +1120,8 @@ export async function runMcpServer(options: {
     const often = !cache.loaded || cache.local;
     const ms = often ? (options.pollMs ?? TOOLS_POLL_MS) : (options.refreshMs ?? TOOLS_REFRESH_MS);
     refresher = setTimeout(() => {
-      if (!cache.loaded) refreshLater();
+      // A first list still late (the executor has the prompt alone): asked again until it comes.
+      if (!cache.loaded && !cache.late) refreshLater();
       else void cache.refresh().finally(refreshLater);
     }, ms);
     refresher.unref?.();

@@ -9,6 +9,7 @@ import {
   MISSION_PROTOCOL,
   MISSION_RULES_NO_GIT,
   PERMISSION_PROMPT_TOOL,
+  PERMISSION_TOOL,
   parseRunnerFrame,
   parseServerFrame,
   type RunnerFrame,
@@ -677,6 +678,107 @@ test("every change the MCP process sees is announced, one a call's get saw first
   await Promise.all([cache.refresh(), cache.refresh()]);
   expect(asked).toBe(before + 1);
 });
+
+test("a first list that is late: the prompt alone at once, then the server's list announced when it comes (#218)", async () => {
+  let answer: (r: unknown) => void = () => {};
+  let asked = 0;
+  let announced = 0;
+  const cache = new McpToolCache(
+    () => {
+      asked++;
+      return new Promise((resolve) => {
+        answer = resolve as (r: unknown) => void;
+      });
+    },
+    { firstWaitMs: 20, onChange: () => announced++ },
+  );
+  // The server is slow after a restart: the executor still gets its permission prompt, never an empty server.
+  expect((await cache.get()).map((t) => t.name)).toEqual([PERMISSION_TOOL]);
+  expect(cache.loaded).toBe(false);
+  expect(cache.late).toBe(true);
+  // A second list while still waiting: the same ask, not another one.
+  expect((await cache.get()).map((t) => t.name)).toEqual([PERMISSION_TOOL]);
+  expect(asked).toBe(1);
+  answer({
+    ok: true,
+    text: "",
+    tools: [{ name: "find_tools", description: "Find", inputSchema: { type: "object" } }],
+  });
+  await waitFor(() => cache.loaded);
+  expect(announced).toBe(1);
+  expect(cache.late).toBe(false);
+  expect((await cache.get()).map((t) => t.name)).toEqual(["find_tools"]);
+  // In time: no stopgap and nothing announced.
+  let quiet = 0;
+  const fast = new McpToolCache(async () => ({ ok: true, text: "", tools: [] }), {
+    firstWaitMs: 1000,
+    onChange: () => quiet++,
+  });
+  expect(await fast.get()).toEqual([]);
+  expect(quiet).toBe(0);
+});
+
+test.skipIf(!posix)(
+  "the executor's first tools/list never waits past FIRST_LIST_WAIT_MS, and the real list follows (#218)",
+  async () => {
+    const home = tempDir("mcp-");
+    dirs.push(home);
+    const socketPath = path.join(home, "mcp.sock");
+    const info: McpTaskInfo = {
+      token: "tok-123456789",
+      missionId: "",
+      running: true,
+      runId: "0193aaaa-0000-7000-8000-0000000000c1",
+      serverToken: SERVER_TOKEN,
+    };
+    const b = new McpBridge({ socketPath, task: (id) => (id === TASK ? info : null), callTimeoutMs: 5000 });
+    closers.push(() => b.close());
+    await b.listen();
+    const tool = (name: string) => ({ name, description: name, inputSchema: { type: "object", properties: {} } });
+    let pendingList: string | null = null;
+    b.attach((f) => {
+      if (f.type === "mcp.list") pendingList = f.callId;
+    });
+    const input = new PassThrough();
+    const output = new PassThrough();
+    const lines: Record<string, unknown>[] = [];
+    output.on("data", (chunk: Buffer) => {
+      for (const l of chunk.toString().split("\n").filter(Boolean)) lines.push(JSON.parse(l));
+    });
+    const server = runMcpServer({
+      taskId: TASK,
+      socketPath,
+      token: "tok-123456789",
+      input,
+      output,
+      pollMs: 20,
+      firstListWaitMs: 50,
+    });
+    const send = (msg: Record<string, unknown>) => input.write(`${JSON.stringify({ jsonrpc: "2.0", ...msg })}\n`);
+    const listed = async (id: number) => {
+      send({ id, method: "tools/list" });
+      await waitFor(() => lines.some((l) => l.id === id));
+      const reply = lines.find((l) => l.id === id) as { result: { tools: { name: string }[] } };
+      return reply.result.tools.map((t) => t.name);
+    };
+    send({ id: 1, method: "initialize", params: {} });
+    // The server hasn't answered: the prompt is there all the same.
+    expect(await listed(2)).toEqual([PERMISSION_TOOL]);
+    expect(lines.some((l) => l.method === "notifications/tools/list_changed")).toBe(false);
+    await waitFor(() => pendingList !== null);
+    b.tools({
+      type: "mcp.tools",
+      callId: pendingList as unknown as string,
+      ok: true,
+      tools: [tool(PERMISSION_TOOL), tool("find_tools")],
+    });
+    await waitFor(() => lines.some((l) => l.method === "notifications/tools/list_changed"), 2000);
+    expect(await listed(3)).toEqual([PERMISSION_TOOL, "find_tools"]);
+    input.end();
+    expect(await server).toBe(0);
+  },
+  10_000,
+);
 
 test("MCP JSON-RPC with the bridge's list: tools/list is the run's; a name it lacks still goes to the server", async () => {
   const calls: string[] = [];
