@@ -32,6 +32,7 @@ import { scheduleOnRN } from "react-native-worklets";
 import { botDoAgente, corDoBot } from "@/brand/bots";
 import { Button, fieldText, haptics, Segmented, Text, ToggleSwitch, useReducedMotion, useToast } from "@/ui";
 import { router } from "@/ui/navigation";
+import { CARD_PAD } from "@/ui/rhythm";
 import { useTheme } from "@/ui/theme";
 
 import { ChartView } from "../chat/ChartCard";
@@ -1239,11 +1240,8 @@ function BlockChart({ part, accent }: { part: Extract<BlockViewPart, { kind: "ch
   );
 }
 
-/**
- * A slide or a timeline's beat drawn whole screen (PieceViewer) keeps the margin of the piece it shows, larger than the
- * chat's: it is the piece's own inside, not a screen's side (SCREEN_X) nor a card's (CARD_PAD).
- */
-const BIG_PIECE_PAD = 20;
+/** A slide or a moment opened full screen: a card a little roomier than one in the chat. */
+const BIG_PAD = CARD_PAD + 4;
 
 const styles = StyleSheet.create({
   body: { gap: 14, paddingHorizontal: 14, paddingTop: 6, paddingBottom: 14 },
@@ -1345,7 +1343,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: "hidden",
   },
-  slideBig: { gap: 8, padding: BIG_PIECE_PAD, borderRadius: 20, borderBottomLeftRadius: 6 },
+  slideBig: { gap: 8, padding: BIG_PAD, borderRadius: 20, borderBottomLeftRadius: 6 },
   slideTitle: { marginTop: "auto" },
   dots: { flexDirection: "row", justifyContent: "center", gap: 5 },
   dotSmall: { width: 5, height: 5, borderRadius: 3 },
@@ -1385,7 +1383,7 @@ const styles = StyleSheet.create({
   time: { fontVariant: ["tabular-nums"] },
   beatBig: {
     gap: 8,
-    padding: BIG_PIECE_PAD,
+    padding: BIG_PAD,
     borderRadius: 16,
     borderBottomLeftRadius: 4,
     borderWidth: StyleSheet.hairlineWidth,
