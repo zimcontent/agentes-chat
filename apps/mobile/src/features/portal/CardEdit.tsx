@@ -5,7 +5,7 @@ import { errorText } from "@agenteschat/client/lib/errors";
 import { portalWithResponsible } from "@agenteschat/client/lib/portal";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Linking, Pressable, StyleSheet, View } from "react-native";
 import { useOrg } from "@/providers/org";
@@ -301,6 +301,10 @@ export function useAddCardFiles(card: PlanCard) {
   const orgId = useOrgId();
   const toast = useToast();
   const { patch } = useCardPatch(card.id);
+  // The card as it is when the uploads end, not when they started: files added or taken off meanwhile (here or on the
+  // web) are kept.
+  const latest = useRef(card);
+  latest.current = card;
   const [progress, setProgress] = useState<{ at: number; total: number; pct: number } | null>(null);
   const upload = async (picked: { uri: string; name: string; type: string }[]) => {
     if (picked.length === 0) return;
@@ -319,7 +323,7 @@ export function useAddCardFiles(card: PlanCard) {
     } finally {
       setProgress(null);
       if (added.length > 0)
-        patch({ files: [...card.files, ...added] }, () => {
+        patch({ files: [...latest.current.files, ...added] }, () => {
           successHaptic();
           toast({ title: w.edit.uploaded(added.length), icon: "check" });
         });

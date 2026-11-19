@@ -272,7 +272,8 @@ const en = {
     membersNone: "No members",
     membersEdit: "Members",
     makeResponsible: "Make responsible",
-    agentStarts: "The flag makes someone responsible: they get the card's task. An agent made responsible starts at once.",
+    agentStarts:
+      "The flag makes someone responsible: they get the card's task. An agent made responsible starts at once.",
     people: "People",
     agents: "Agents",
     addCheck: "Add an item",
@@ -567,7 +568,8 @@ const ptBR: PortalWords = {
     membersNone: "Sem membros",
     membersEdit: "Membros",
     makeResponsible: "Tornar responsável",
-    agentStarts: "A bandeira torna alguém responsável: fica com a tarefa do cartão. Um agente responsável começa na hora.",
+    agentStarts:
+      "A bandeira torna alguém responsável: fica com a tarefa do cartão. Um agente responsável começa na hora.",
     people: "Pessoas",
     agents: "Agentes",
     addCheck: "Adicionar um item",

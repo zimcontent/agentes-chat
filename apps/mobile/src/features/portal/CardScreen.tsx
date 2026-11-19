@@ -545,7 +545,7 @@ function SendState({
 
 /**
  * The caption the post goes with, written here as on the web's card: a press opens it in a field, Salvar keeps it.
- * Once the post was sent the caption is the portal's (its panel shows it), so this one is read only when there is one.
+ * A material card (no post of its own) only shows a caption it already has; whoever can't change the board reads it.
  */
 function Words({ w, card }: { w: PortalWords; card: PlanCard }) {
   const c = useColors();
@@ -556,7 +556,6 @@ function Words({ w, card }: { w: PortalWords; card: PlanCard }) {
   const [draft, setDraft] = useState<string | null>(null);
   const edits = changes && !card.material;
   if (!card.caption && !edits) return null;
-  if (card.material && !card.caption) return null;
   const done = () =>
     patch({ caption: (draft ?? "").trim() }, () => {
       successHaptic();
