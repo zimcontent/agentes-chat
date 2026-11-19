@@ -1,19 +1,6 @@
-import type { ErrorTags } from "@agenteschat/adapters";
-import {
-  and,
-  type Database,
-  desc,
-  type Executor,
-  eq,
-  inArray,
-  isNull,
-  lte,
-  ne,
-  or,
-  schema,
-  sql,
-} from "@agenteschat/db";
-import { modelInfo } from "@agenteschat/providers";
+import type { ErrorTags } from "@dougbot/adapters";
+import { and, type Database, desc, type Executor, eq, inArray, isNull, lte, ne, or, schema, sql } from "@dougbot/db";
+import { modelInfo } from "@dougbot/providers";
 import { recordAgentActions } from "../agent-actions";
 import { steeredByOthers } from "../authority";
 import { callLine, type LearnSignal, type RunCall, runCalls } from "../continuation";
@@ -158,6 +145,7 @@ const OTHERS_WORDS = new Set([
   "team_status",
   "list_issues",
   "list_artifacts",
+  "drive_folders",
   "list_routines",
   "get_summary",
   "expand",

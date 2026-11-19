@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { ApiError } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { heldWhole } from "@agenteschat/client/lib/format";
+import { ApiError } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { heldWhole } from "@dougbot/client/lib/format";
 import {
   BLANK_HEADER,
   connectsWithoutKey,
@@ -12,7 +12,7 @@ import {
   MAX_REQUEST_HEADERS,
   savedHeadersLine,
   savedHeadersUnreadable,
-} from "@agenteschat/client/lib/request-headers";
+} from "@dougbot/client/lib/request-headers";
 import { headerNamesText, needsKeyText } from "../../src/features/connectors/logic";
 import { translator } from "./fixtures";
 

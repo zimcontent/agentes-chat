@@ -1,10 +1,10 @@
-import type { OrgSummary } from "@agenteschat/client";
-import { useComputerSetup } from "@agenteschat/client";
-import { computerEdition } from "@agenteschat/client/lib/computer";
-import type { keyRefusal } from "@agenteschat/client/lib/errors";
-import { planHoldOf, planHoldPhoneLine } from "@agenteschat/client/lib/no-ai";
-import { can } from "@agenteschat/client/lib/permissions";
-import { type CodingPlan, planReplies } from "@agenteschat/client/lib/plans";
+import type { OrgSummary } from "@dougbot/client";
+import { useComputerSetup } from "@dougbot/client";
+import { computerEdition } from "@dougbot/client/lib/computer";
+import type { keyRefusal } from "@dougbot/client/lib/errors";
+import { planHoldOf, planHoldPhoneLine } from "@dougbot/client/lib/no-ai";
+import { can } from "@dougbot/client/lib/permissions";
+import { type CodingPlan, planReplies } from "@dougbot/client/lib/plans";
 import * as Clipboard from "expo-clipboard";
 import { openBrowserAsync } from "expo-web-browser";
 import type { TFunction } from "i18next";

@@ -58,6 +58,9 @@ export function fcmMessage(m: PushMessage) {
         body: JSON.stringify(m.data),
         channelId: FCM_ANDROID_CHANNEL,
         sound: "default",
+        // The buttons (expo-notifications reads `categoryId`); words that come with the push, for the app to register.
+        ...(m.category ? { categoryId: m.category } : {}),
+        ...(m.actions?.length ? { actions: JSON.stringify(m.actions) } : {}),
       },
     },
   };

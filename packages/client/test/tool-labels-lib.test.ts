@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { en as enStrings, resources, STRINGS } from "@agenteschat/i18n";
-import { type AppLocale, LOCALE_CODES, localeInfo } from "@agenteschat/i18n/locale";
-import { checkLocale } from "@agenteschat/i18n/testing";
+import { en as enStrings, resources, STRINGS } from "@dougbot/i18n";
+import { type AppLocale, LOCALE_CODES, localeInfo } from "@dougbot/i18n/locale";
+import { checkLocale } from "@dougbot/i18n/testing";
 import i18next, { type TFunction } from "i18next";
 import identical from "../../i18n/test/identical.json";
 import type { Approval } from "../src/index";

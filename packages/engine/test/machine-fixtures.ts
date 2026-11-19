@@ -8,8 +8,8 @@ import {
   type PubSub,
   type SecretRequest,
   type ServerFrame,
-} from "@agenteschat/adapters";
-import type { Database } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import type { Database } from "@dougbot/db";
 import {
   confirmDeviceCode,
   grantScopes,

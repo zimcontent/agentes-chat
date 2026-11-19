@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from "bun:test";
-import { createFakeMailConnector, createFakeMailPoller, createFakeMailTester } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
+import { createFakeMailConnector, createFakeMailPoller, createFakeMailTester } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
 import { turnsWorld } from "../eval/turns";
 import {
   CONNECTOR_ALL,

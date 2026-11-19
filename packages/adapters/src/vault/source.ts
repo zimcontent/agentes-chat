@@ -1,7 +1,7 @@
 /**
  * A Vault source (ADR 0144): where the values of some Vault items live. The built-in source (Postgres, sealed with
  * the installation's key wrapper, ADR 0007) lives in the engine; 1Password and Bitwarden are adapters here, and a
- * module can add more through `AgentesModule.adapters()` (`vaultSources`, merged by kind).
+ * module can add more through `DougBotModule.adapters()` (`vaultSources`, merged by kind).
  *
  * Nothing outside a source knows which one it is: access, history, the box to the computer and the runner's checks
  * are the same for every item. A source connects, lists metadata and resolves one value when asked; one that can also

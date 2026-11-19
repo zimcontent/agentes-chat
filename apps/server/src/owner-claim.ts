@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
-import { nameIsPassword } from "@agenteschat/client/lib/text";
-import type { Config } from "@agenteschat/config";
-import { type Database, schema, sql } from "@agenteschat/db";
-import { onUserCreated, pinnedOwner, recordSignUp, safeEqual, sha256 } from "@agenteschat/engine";
+import { nameIsPassword } from "@dougbot/client/lib/text";
+import type { Config } from "@dougbot/config";
+import { type Database, schema, sql } from "@dougbot/db";
+import { onUserCreated, pinnedOwner, recordSignUp, safeEqual, sha256 } from "@dougbot/engine";
 import type { BetterAuthPlugin } from "better-auth";
 import { APIError, createAuthEndpoint, formCsrfMiddleware } from "better-auth/api";
 import { setSessionCookie } from "better-auth/cookies";

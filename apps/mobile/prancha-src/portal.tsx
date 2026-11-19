@@ -8,12 +8,13 @@ import type {
   PortalClientSummary,
   PortalItem,
   PortalPlan,
-} from "@agenteschat/client";
-import { ApiProvider } from "@agenteschat/client";
+} from "@dougbot/client";
+import { ApiProvider } from "@dougbot/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HeaderHeightContext } from "expo-router/react-navigation";
 import { type ReactNode, useEffect, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";
+import { DateSheet, LabelsSheet, MembersSheet } from "@/features/portal/CardEdit";
 import { CardScreen } from "@/features/portal/CardScreen";
 import { ClientEditSheet } from "@/features/portal/ClientEditSheet";
 import { ClientScreen } from "@/features/portal/ClientScreen";
@@ -82,6 +83,11 @@ const PLAN: PortalPlan = {
           files: [{ id: "capa", name: "render.png" }],
           description: "Usar as fotos da obra da semana passada.",
           labels: ["lb1", "lb3"],
+          members: ["u1", "u2"],
+          produceOn: day(1).slice(0, 10),
+          date: `${day(3).slice(0, 10)}T10:30`,
+          postOn: `${day(3).slice(0, 10)}T10:30`,
+          caption: "Obra entregue no prazo. Arrasta para ver o antes e depois.",
           checklist: [
             { id: "a", text: "Render", done: true },
             { id: "b", text: "Moodboard", done: false },
@@ -317,6 +323,16 @@ function fakeApi(): ApiClient {
       apply: () => Promise.resolve([]),
     });
   const own: Record<string, unknown> = {
+    orgs: new Proxy(
+      {
+        members: async () => [
+          { userId: "u1", name: "Gabriel Zim", email: "", image: null, role: "owner", handle: "gabriel" },
+          { userId: "u2", name: "Rosa Lima", email: "", image: null, role: "member", handle: "rosa" },
+          { userId: "u3", name: "Messi Duarte", email: "", image: null, role: "member", handle: "messi" },
+        ],
+      },
+      { get: (t, k) => (k in t ? t[k as keyof typeof t] : empty()) },
+    ),
     account: new Proxy(
       {
         authConfig: async () => ({ approvalPortal: true }),
@@ -546,6 +562,51 @@ export function PortalCronogramaPostados320() {
     <Server width={320}>
       <ClientScreen client={CLIENT} initialTab="posted" />
     </Server>
+  );
+}
+
+/** The card everything is on (files, labels, members, dates, checklist, caption), each part changed in place. */
+export function PortalCartaoEditar() {
+  return (
+    <Server>
+      <CardScreen client={CLIENT} cardId="card-1" />
+    </Server>
+  );
+}
+
+/** A sheet of the card's editing, opened over it as its row's press opens it. */
+function OverCard({ children }: { children: ReactNode }) {
+  return (
+    <Server>
+      <SheetHostProvider>
+        <CardScreen client={CLIENT} cardId="card-1" />
+        <OpenOnce>{children}</OpenOnce>
+      </SheetHostProvider>
+    </Server>
+  );
+}
+
+export function PortalCartaoData() {
+  return (
+    <OverCard>
+      <DateSheet title="Data do post" day={day(3).slice(0, 10)} time="10:30" onSave={() => {}} />
+    </OverCard>
+  );
+}
+
+export function PortalCartaoEtiquetas() {
+  return (
+    <OverCard>
+      <LabelsSheet client={CLIENT} cardId="card-1" />
+    </OverCard>
+  );
+}
+
+export function PortalCartaoMembros() {
+  return (
+    <OverCard>
+      <MembersSheet client={CLIENT} cardId="card-1" />
+    </OverCard>
   );
 }
 

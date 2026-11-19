@@ -1,10 +1,10 @@
 /**
- * The server here ("Run agentes.chat on this computer") as the windows see it: `local_server.rs` keeps it and
+ * The server here ("Run DougBot on this computer") as the windows see it: `local_server.rs` keeps it and
  * says how it is; this decides what each window shows (the first run's steps and screens, the popover's
  * banners, the cover's line, Preferences' words). Pure, so it is tested without the app.
  */
 
-import { CLOUD_SERVER } from "@agenteschat/client/lib/server";
+import { CLOUD_SERVER } from "@dougbot/client/lib/server";
 import type { Platform } from "./platform";
 
 /** `restarting`: it stopped by itself and starts again in a moment (nobody has to start it). */
@@ -198,7 +198,7 @@ export const FAIL_TEXT: Record<SetupStep, string> = {
   reach: "desktop.common.error",
 };
 
-/** What "Run agentes.chat on this computer" shows. */
+/** What "Run DougBot on this computer" shows. */
 export type HereView =
   /** The form; `ask`: the owner's name and email (no owner yet). */
   | { kind: "form"; ask: boolean }
@@ -216,7 +216,7 @@ export type HereView =
 export const ownerless = (status: LocalServerStatus) => status.installed === "app" && status.run && !status.owner;
 
 /**
- * `answering`: an agentes.chat server that answered on this computer's loopback (Connect's discovery), when the
+ * `answering`: a DougBot server that answered on this computer's loopback (Connect's discovery), when the
  * app doesn't run one itself.
  */
 export function hereView(status: LocalServerStatus, answering: string | null): HereView {

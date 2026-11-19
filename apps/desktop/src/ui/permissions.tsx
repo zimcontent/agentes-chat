@@ -1,4 +1,4 @@
-import { Button, Chip, Icon } from "@agenteschat/ui";
+import { Button, Chip, Icon } from "@dougbot/ui";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHost } from "../app";

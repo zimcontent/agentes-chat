@@ -1,4 +1,4 @@
-import { and, type Database, eq, inArray, isNotNull, isNull, schema } from "@agenteschat/db";
+import { and, type Database, eq, inArray, isNotNull, isNull, schema } from "@dougbot/db";
 import { type AiStatusDeps, agentAiStates, orgHasAi } from "./ai-status";
 import { portalDigest, portalZone } from "./approval-portal-watch";
 import { seesAgentDetails } from "./audience";

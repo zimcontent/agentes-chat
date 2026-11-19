@@ -310,3 +310,24 @@ in on the schedule.
   task board: the pass sets `board_rank` (`scheduleRank`, always above zero, so a task a person put on top of a column
   stays there) without activity and without changing `updatedAt` (`rankIssue`). The schedule owns that order: a
   portal task dragged on the task board goes back to its card's place at the next pass.
+
+## Addendum 2026-11-18: a card carries the work
+
+A person asked an agent, inside the thread of a carousel's copy, to put that carousel on a card in a given week. The
+agent made the card with "Copy and visual direction of the 6 slides + caption" as its description: a line about the
+copy, not the copy. The task made from the card carried the same line, and whoever opened either found no copy. The
+day before, on the same carousel, an agent had tried a field the tool doesn't have (`brief`), was told so, and made
+the card again with no description at all. A card is what whoever makes the post reads (§11): what the conversation
+wrote for it has to be on it, and a model asked to copy a long text into a field may shorten it or drop it.
+
+- `portal_card` checks, when it makes a card or writes a card's description, whether the run's conversation holds
+  work: messages of at least 400 characters over at least four lines (a request said in one breath is not work), in
+  the run's thread, or at a channel's top level from the last six hours. A relayed answer counts without its envelope.
+- If the description doesn't carry one of them (70% of its words, in any order or layout), the call is refused with
+  those messages listed by a ref, latest first. In a thread this holds always; at a channel's top level, where many
+  posts are talked about at once, only when the request or the card speaks of a copy, caption, script, text, visual
+  direction or slides.
+- The agent names the ref in `description_from`, and the server copies that message onto the card word for word,
+  under the agent's own `description`; the model picks which message, the code copies it. `none` says no message
+  there is this card's work. An agent that writes the whole text itself passes.
+- Changing a card's stage, list or place asks nothing: only writing its description or making it does.

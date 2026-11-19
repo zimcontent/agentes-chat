@@ -1,6 +1,6 @@
 # Security policy
 
-agentes.chat keeps organizations' model keys and connector credentials, and its agents act with
+DougBot keeps organizations' model keys and connector credentials, and its agents act with
 real permissions. We take reports seriously and appreciate coordinated disclosure.
 
 ## Reporting a vulnerability

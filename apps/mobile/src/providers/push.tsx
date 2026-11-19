@@ -1,5 +1,5 @@
-import { type AiStatus, keys, type Me, useApi } from "@agenteschat/client";
-import { type PushOfferMoment, pushOfferDue, pushOffersFrom } from "@agenteschat/client/lib/push-offer";
+import { type AiStatus, keys, type Me, useApi } from "@dougbot/client";
+import { type PushOfferMoment, pushOfferDue, pushOffersFrom } from "@dougbot/client/lib/push-offer";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Notifications from "expo-notifications";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
@@ -8,6 +8,8 @@ import { AppState } from "react-native";
 import { registerDeviceActions, runDeviceAction } from "@/features/devices/push";
 import { hrefForPush, notificationWebPath, pushAsNotification } from "@/features/links/logic";
 import { openWebPath } from "@/features/links/open-web";
+import { watchLiveActivities } from "@/features/live-activity";
+import { isBlockPress } from "@/features/push/actions";
 import { openWorkspace } from "@/features/server";
 import { pushOpens } from "@/lib/org-choice";
 import {
@@ -51,7 +53,7 @@ let afterSwitch: Notifications.NotificationResponse | null = null;
 
 /**
  * Push for a signed-in person with an organization: registers silently when already allowed, says when our
- * sheet should come before the system's prompt (`@agenteschat/client/lib/push-offer`; never at launch, never inside a
+ * sheet should come before the system's prompt (`@dougbot/client/lib/push-offer`; never at launch, never inside a
  * conversation: Conversas opens it), and opens what a tapped notification is about.
  */
 export function PushProvider({ children }: { children: ReactNode }) {
@@ -117,6 +119,17 @@ export function PushProvider({ children }: { children: ReactNode }) {
     if (ready) void registerDeviceActions(t);
   }, [ready, t]);
 
+  // Live Activities' push tokens reach the server, and one ended on the phone is told (docs/adr/doug-0021-lock-screen.md).
+  const apiRef = useRef(api);
+  apiRef.current = api;
+  useEffect(() => {
+    if (!ready) return;
+    return watchLiveActivities(
+      () => apiRef.current,
+      () => localeRef.current,
+    );
+  }, [ready]);
+
   // The system may hand the app a new token while it runs; it's registered again (ADR 0152, ADR 0178).
   useEffect(() => {
     if (!ready) return;
@@ -128,6 +141,8 @@ export function PushProvider({ children }: { children: ReactNode }) {
     if (!ready) return;
     const open = (response: Notifications.NotificationResponse | null) => {
       if (!response) return;
+      // A live block's button: sent on its own (`startPushButtons`), never a screen.
+      if (isBlockPress(response.actionIdentifier)) return;
       const id = response.notification.request.identifier;
       if (opened.has(id)) return;
       opened.add(id);

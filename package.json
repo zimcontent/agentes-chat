@@ -1,5 +1,5 @@
 {
-  "name": "agentes-chat",
+  "name": "dougbot",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -8,9 +8,9 @@
     "clients"
   ],
   "scripts": {
-    "dev": "bun run --filter '@agenteschat/server' --filter '@agenteschat/web' dev",
-    "start": "bun run --filter '@agenteschat/server' start",
-    "build": "bun run --filter '@agenteschat/web' build && bun run --filter '@agenteschat/server' build",
+    "dev": "bun run --filter '@dougbot/server' --filter '@dougbot/web' dev",
+    "start": "bun run --filter '@dougbot/server' start",
+    "build": "bun run --filter '@dougbot/web' build && bun run --filter '@dougbot/server' build",
     "test": "bun test",
     "typecheck": "bun run --filter '*' typecheck",
     "lint": "biome check .",
@@ -23,7 +23,7 @@
     "ci:local": "bash scripts/ci-local.sh",
     "mobile:check": "bash apps/mobile/scripts/build-gate.sh",
     "db:generate": "cd packages/db && bunx drizzle-kit generate --name",
-    "docs:env": "bun run --filter '@agenteschat/config' docs",
+    "docs:env": "bun run --filter '@dougbot/config' docs",
     "i18n:missing": "bun scripts/i18n.ts missing",
     "i18n:apply": "bun scripts/i18n.ts apply",
     "i18n:status": "bun scripts/i18n.ts status",

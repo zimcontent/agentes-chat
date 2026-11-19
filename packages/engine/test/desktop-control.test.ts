@@ -5,9 +5,9 @@ import {
   type MachineRequest,
   STREAM_CLOSE,
   type StreamRequest,
-} from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
+} from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
 import {
   authorizeStream,
   BROWSER_SCOPE,

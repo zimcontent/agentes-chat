@@ -1,5 +1,5 @@
-import { errorText } from "@agenteschat/client/lib/errors";
-import type { Who } from "@agenteschat/client/lib/live-host";
+import { errorText } from "@dougbot/client/lib/errors";
+import type { Who } from "@dougbot/client/lib/live-host";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

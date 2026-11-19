@@ -2,7 +2,7 @@ import { afterEach, expect, test } from "bun:test";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { browserNeeded, MACHINE_PROTOCOL_VERSION } from "@agenteschat/adapters/machine-protocol";
+import { browserNeeded, MACHINE_PROTOCOL_VERSION } from "@dougbot/adapters/machine-protocol";
 import { findChrome } from "../../runner/browser";
 import { RUNNER_VERSION } from "../../runner/errors";
 import { acquireLock, LOCK_FILE } from "../../runner/lock";

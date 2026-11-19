@@ -1,4 +1,4 @@
-import type { AppLocale } from "@agenteschat/i18n/locale";
+import type { AppLocale } from "@dougbot/i18n/locale";
 import { strings as de } from "./de";
 import { en, type PushStrings } from "./en";
 import { strings as es } from "./es";

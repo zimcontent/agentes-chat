@@ -1,8 +1,8 @@
-import type { Agent, AgentSecret } from "@agenteschat/client";
-import { keys } from "@agenteschat/client";
-import { formatTime } from "@agenteschat/client/lib/format";
-import { siteHost } from "@agenteschat/client/lib/secret-requests";
-import { Button } from "@agenteschat/ui";
+import type { Agent, AgentSecret } from "@dougbot/client";
+import { keys } from "@dougbot/client";
+import { formatTime } from "@dougbot/client/lib/format";
+import { siteHost } from "@dougbot/client/lib/secret-requests";
+import { Button } from "@dougbot/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";

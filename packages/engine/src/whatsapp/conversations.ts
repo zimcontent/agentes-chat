@@ -6,8 +6,8 @@ import {
   type WhatsAppMessage,
   whatsappFileKind,
   whatsappFileMessage,
-} from "@agenteschat/adapters";
-import { and, desc, eq, inArray, lt, schema, sql } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, desc, eq, inArray, lt, schema, sql } from "@dougbot/db";
 import { sniffImage } from "../avatars";
 import { NotFoundError, ValidationError } from "../errors";
 import {

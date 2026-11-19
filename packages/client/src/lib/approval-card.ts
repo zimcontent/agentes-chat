@@ -263,3 +263,27 @@ export function digestRows(
   const shown = all || !folds ? rows : rows.slice(0, DIGEST_ROWS);
   return { rows: shown, hidden: rows.slice(shown.length).reduce((n, r) => n + r.count, 0), folds };
 }
+
+/**
+ * The approval card a long work's line shows again where the person is talking (ADR 0121): its run's request that
+ * waits on this reader, so they decide it there without opening the thread that holds the card. Once shown, the same
+ * request stays (`shownId`), decided or not, so the click's outcome reads where it was clicked. Null: nothing to show.
+ * The card itself is drawn from the request's `messageId` (its card in the thread), the same requests on both.
+ */
+export function workApproval(
+  list: readonly Approval[] | undefined,
+  runId: string | null,
+  shownId: string | null = null,
+  now = Date.now(),
+): Approval | null {
+  if (!list) return null;
+  if (shownId) {
+    const shown = list.find((a) => a.id === shownId);
+    if (shown) return shown;
+  }
+  if (!runId) return null;
+  const waiting = list
+    .filter((a) => a.runId === runId && a.messageId && a.canDecide && asOfNow(a, now).status === "pending")
+    .sort(byAsked);
+  return waiting[0] ?? null;
+}

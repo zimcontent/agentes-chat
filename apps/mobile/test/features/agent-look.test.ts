@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { agentsByAnyHandle } from "@agenteschat/client/lib/directory";
-import { ROLE_DEFAULTS, ROLE_IDS } from "@agenteschat/client/lib/new-agent";
+import { agentsByAnyHandle } from "@dougbot/client/lib/directory";
+import { ROLE_DEFAULTS, ROLE_IDS } from "@dougbot/client/lib/new-agent";
 import { fullLook } from "../../src/features/agents/edit";
 import { agentLook } from "../../src/features/shared/logic";
 

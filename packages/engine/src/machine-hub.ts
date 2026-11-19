@@ -32,9 +32,9 @@ import {
   type ServerFrame,
   TASKS_PROTOCOL,
   type Unsubscribe,
-} from "@agenteschat/adapters";
-import { and, type Database, eq, inArray, lt, schema } from "@agenteschat/db";
-import type { ToolImage } from "@agenteschat/providers";
+} from "@dougbot/adapters";
+import { and, type Database, eq, inArray, lt, schema } from "@dougbot/db";
+import type { ToolImage } from "@dougbot/providers";
 import { getAgentCached } from "./agents";
 import { UUID } from "./authority";
 import { type MachinePhoneRow, publishDevicesChanged, syncMachinePhones } from "./devices";

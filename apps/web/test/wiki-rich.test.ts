@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { parseMarkdown } from "@agenteschat/client/lib/markdown";
+import { parseMarkdown } from "@dougbot/client/lib/markdown";
 import { markdownFromRich, pastedHtml, retitled, richFromMarkdown } from "@/lib/wiki-rich";
 
 /** The editor as it opens: the page's HTML in a box, each block's HTML kept as it was. */

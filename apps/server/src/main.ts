@@ -7,15 +7,15 @@
  * (`docker compose run --rm agentes telemetry`) prints the next usage report
  * and sends nothing.
  */
-import { loadConfig } from "@agenteschat/config";
-import { createDatabase } from "@agenteschat/db";
-import { passwordLinkByEmail } from "@agenteschat/engine";
+import { loadConfig } from "@dougbot/config";
+import { createDatabase } from "@dougbot/db";
+import { passwordLinkByEmail } from "@dougbot/engine";
 import { createLogger } from "./logger";
 import { prepareDatabase, startServer } from "./start";
 import { printTelemetry } from "./telemetry";
 
 if (process.argv[2] === "setup") {
-  const { main } = await import("@agenteschat/setup/src/cli");
+  const { main } = await import("@dougbot/setup/src/cli");
   const code = await main(process.argv.slice(3), { image: true });
   // Once stdout has drained: a piped `--json` result arrives whole.
   await new Promise((resolve) => process.stdout.write("", resolve));

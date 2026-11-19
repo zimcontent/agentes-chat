@@ -1,4 +1,4 @@
-import type { AgentColorName } from "@agenteschat/ui/agent/engine";
+import type { AgentColorName } from "@dougbot/ui/agent/engine";
 import { type ReactNode, useEffect, useState } from "react";
 import { type LayoutChangeEvent, Platform, StyleSheet, useWindowDimensions, View } from "react-native";
 import Animated, {

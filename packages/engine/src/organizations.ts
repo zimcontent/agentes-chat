@@ -1,4 +1,4 @@
-import type { PubSub } from "@agenteschat/adapters";
+import type { PubSub } from "@dougbot/adapters";
 import {
   and,
   arrayContains,
@@ -16,8 +16,8 @@ import {
   rowsOf,
   schema,
   sql,
-} from "@agenteschat/db";
-import { type AppLocale, appLocale, isAppLocale, LOCALE_CODES } from "@agenteschat/i18n/locale";
+} from "@dougbot/db";
+import { type AppLocale, appLocale, isAppLocale, LOCALE_CODES } from "@dougbot/i18n/locale";
 import { enqueueAccountContact } from "./account-contacts";
 import { type AgentStyle, isAgentStyle, saveAgentStyle } from "./agent-style";
 import { dropAgentRules } from "./approval-rules";

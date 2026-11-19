@@ -1,6 +1,6 @@
 /**
  * The `#channel` reference rules shared by the server (`parseChannelNames`), the apps' renderer
- * (`@agenteschat/client/lib/channel-refs`) and both composers, so what one suggests the others recognise.
+ * (`@dougbot/client/lib/channel-refs`) and both composers, so what one suggests the others recognise.
  */
 
 /**

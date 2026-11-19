@@ -1,5 +1,5 @@
 /**
- * agentes-runner: connects this computer to an agentes.chat organization
+ * agentes-runner: connects this computer to a DougBot organization
  * (ADR 0025). Bundled to one file for Node.js 22+ and Bun:
  *   bun build apps/server/runner/main.ts --target=node --banner '#!/usr/bin/env node' --outfile apps/web/dist/runner/agentes-runner.mjs
  * or compiled to one executable for the desktop app (ADR 0036), no runtime needed:
@@ -15,8 +15,8 @@ import {
   browserNeeded,
   MACHINE_PROTOCOL_VERSION,
   type RunnerTools,
-} from "@agenteschat/adapters/machine-protocol";
-import { createTerm, type Spinner, type Term } from "@agenteschat/setup/src/term";
+} from "@dougbot/adapters/machine-protocol";
+import { createTerm, type Spinner, type Term } from "@dougbot/setup/src/term";
 import {
   addFolder,
   ControlError,

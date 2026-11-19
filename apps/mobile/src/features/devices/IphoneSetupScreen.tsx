@@ -1,8 +1,8 @@
-import { type ComputerDevice, type PhoneDevice, useIphoneDevMode, useWifiIphones } from "@agenteschat/client";
-import { computerName } from "@agenteschat/client/lib/computer";
-import { iosMajor, iphoneOverWifi, tooOldVersion, useIphoneRestart, useStalled } from "@agenteschat/client/lib/devices";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+import { type ComputerDevice, type PhoneDevice, useIphoneDevMode, useWifiIphones } from "@dougbot/client";
+import { computerName } from "@dougbot/client/lib/computer";
+import { iosMajor, iphoneOverWifi, tooOldVersion, useIphoneRestart, useStalled } from "@dougbot/client/lib/devices";
+import { errorText } from "@dougbot/client/lib/errors";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import * as Device from "expo-device";
 import { Fragment, type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";

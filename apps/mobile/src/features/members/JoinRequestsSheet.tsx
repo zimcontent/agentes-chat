@@ -6,19 +6,19 @@ import {
   useJoinRequests,
   useRoles,
   useWorkspaceLimits,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { joinNames } from "@agenteschat/client/lib/format";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { joinNames } from "@dougbot/client/lib/format";
 import {
   approvalCargos,
   changedLists,
   inviteRefusal,
   inviteRefusalText,
   type RefusedPick,
-} from "@agenteschat/client/lib/invite-start";
-import { approvalNews, JOIN_REASON_MAX } from "@agenteschat/client/lib/join-requests";
-import { membersFull } from "@agenteschat/client/lib/limits";
-import { can } from "@agenteschat/client/lib/permissions";
+} from "@dougbot/client/lib/invite-start";
+import { approvalNews, JOIN_REASON_MAX } from "@dougbot/client/lib/join-requests";
+import { membersFull } from "@dougbot/client/lib/limits";
+import { can } from "@dougbot/client/lib/permissions";
 import { Fragment, type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Share, type StyleProp, StyleSheet, View, type ViewStyle } from "react-native";

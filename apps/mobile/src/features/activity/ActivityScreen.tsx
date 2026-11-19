@@ -11,16 +11,16 @@ import {
   useNotificationBulkPending,
   useNotifications,
   useRoutines,
-} from "@agenteschat/client";
-import { approvalDetail, approvalSummary, approvalTitle } from "@agenteschat/client/lib/approval-words";
-import { errorText, restrictionLine } from "@agenteschat/client/lib/errors";
-import { timeLeft, upperFirst } from "@agenteschat/client/lib/format";
-import { mediaWord } from "@agenteschat/client/lib/media";
-import { latestText } from "@agenteschat/client/lib/message-body";
-import { canClearAll, teamWatchOf } from "@agenteschat/client/lib/notifications";
-import { usageLimitLine } from "@agenteschat/client/lib/person-usage";
-import { portalClientName } from "@agenteschat/client/lib/portal";
-import type { WorkItem } from "@agenteschat/client/lib/working";
+} from "@dougbot/client";
+import { approvalDetail, approvalSummary, approvalTitle } from "@dougbot/client/lib/approval-words";
+import { errorText, restrictionLine } from "@dougbot/client/lib/errors";
+import { timeLeft, upperFirst } from "@dougbot/client/lib/format";
+import { mediaWord } from "@dougbot/client/lib/media";
+import { latestText } from "@dougbot/client/lib/message-body";
+import { canClearAll, teamWatchOf } from "@dougbot/client/lib/notifications";
+import { usageLimitLine } from "@dougbot/client/lib/person-usage";
+import { portalClientName } from "@dougbot/client/lib/portal";
+import type { WorkItem } from "@dougbot/client/lib/working";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import type { TFunction } from "i18next";

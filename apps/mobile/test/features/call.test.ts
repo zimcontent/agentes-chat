@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { LiveRoom } from "@agenteschat/client";
+import type { LiveRoom } from "@dougbot/client";
 import { callPress, elapsedText, levelsFromStats, phoneHostsOthers, tilesOf } from "../../src/features/call/logic";
 
 /** Voice calls in the phone app (docs/adr/doug-0006-live-voice.md, the phone app): the rules apart from WebRTC. */

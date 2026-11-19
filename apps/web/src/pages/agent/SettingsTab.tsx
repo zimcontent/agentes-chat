@@ -1,29 +1,11 @@
-import {
-  type AgentAudience,
-  useAgentDetail,
-  useAgentGroups,
-  useModels,
-  useSettings,
-  useUsage,
-} from "@agenteschat/client";
-import { groupOf, NO_GROUP } from "@agenteschat/client/lib/agent-groups";
-import { audienceSummary } from "@agenteschat/client/lib/audience";
-import { engineOfBrain } from "@agenteschat/client/lib/brain";
-import { modelUnpriced } from "@agenteschat/client/lib/endpoints";
-import { formatMonth, formatPercent, formatTokensShort, formatUsd } from "@agenteschat/client/lib/format";
-import { addsAgentsTo } from "@agenteschat/client/lib/permissions";
-import {
-  Button,
-  Card,
-  CheckboxPill,
-  Chip,
-  Field,
-  Icon,
-  type IconName,
-  Meter,
-  Select,
-  SettingNote,
-} from "@agenteschat/ui";
+import { type AgentAudience, useAgentDetail, useAgentGroups, useModels, useSettings, useUsage } from "@dougbot/client";
+import { groupOf, NO_GROUP } from "@dougbot/client/lib/agent-groups";
+import { audienceSummary } from "@dougbot/client/lib/audience";
+import { engineOfBrain } from "@dougbot/client/lib/brain";
+import { modelUnpriced } from "@dougbot/client/lib/endpoints";
+import { formatMonth, formatPercent, formatTokensShort, formatUsd } from "@dougbot/client/lib/format";
+import { addsAgentsTo } from "@dougbot/client/lib/permissions";
+import { Button, Card, CheckboxPill, Chip, Field, Icon, type IconName, Meter, Select, SettingNote } from "@dougbot/ui";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { AudienceChoice } from "@/components/AgentAudience";

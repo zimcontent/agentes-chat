@@ -1,4 +1,4 @@
-import { usdToNanoUsd } from "@agenteschat/providers";
+import { usdToNanoUsd } from "@dougbot/providers";
 import { cutText } from "./format";
 import { callJev, type JevKeySource, JevOffError } from "./jev-key";
 import {

@@ -1,10 +1,10 @@
 import { afterEach, beforeAll, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { type ApiClient, ApiError } from "@agenteschat/client";
-import { fakeMicrophone } from "@agenteschat/ui/testing";
+import { type ApiClient, ApiError } from "@dougbot/client";
+import { fakeMicrophone } from "@dougbot/ui/testing";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { createFakeApi, ENG_ID, ORG_ID, seedState } from "./fake-api";
 import { renderApp, screen, settle } from "./render";

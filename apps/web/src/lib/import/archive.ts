@@ -7,8 +7,8 @@ import {
   isSecretPath,
   normalizePath,
   TEXT_PATH,
-} from "@agenteschat/client/lib/import/shared";
-import { readZip, ZipError } from "@agenteschat/client/lib/zip";
+} from "@dougbot/client/lib/import/shared";
+import { readZip, ZipError } from "@dougbot/client/lib/zip";
 
 /**
  * The async step before `parseImport`: picked or dropped files (a folder keeps

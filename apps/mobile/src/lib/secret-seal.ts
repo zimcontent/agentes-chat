@@ -1,12 +1,12 @@
-import type { SecretBox } from "@agenteschat/client";
-import { MAX_SECRET_BYTES } from "@agenteschat/client/lib/secret-box";
+import type { SecretBox } from "@dougbot/client";
+import { MAX_SECRET_BYTES } from "@dougbot/client/lib/secret-box";
 import { gcm } from "@noble/ciphers/aes.js";
 import { p256 } from "@noble/curves/nist.js";
 import { hkdf } from "@noble/hashes/hkdf.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 
 /**
- * The phone's half of ADR 0027, as the web's `sealSecret` (`@agenteschat/client/lib/secret-box`): a secret
+ * The phone's half of ADR 0027, as the web's `sealSecret` (`@dougbot/client/lib/secret-box`): a secret
  * sealed to the key the agent's computer made for this request, so our server only relays a box it can't open.
  * Same algorithm and bytes (ECDH P-256 → HKDF-SHA256 → AES-256-GCM, the request bound in as AAD); React Native
  * has no WebCrypto, so it runs on the audited pure-JS `@noble` libraries. `random`: secure random bytes (the

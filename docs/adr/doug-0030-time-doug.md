@@ -141,7 +141,7 @@ leave: what a new workspace gets is the craft, never the data.
      app that doesn't draw the step, keeps being asked for it in the DOUG's DM; saving the brand stops it. The two
      predicates never replace one another.
 6. **Words.** The template's name, description, each agent's role, line and hello, the channels and the tones are in
-   `@agenteschat/i18n` (`dougTeam.*`), in every language through `bun run i18n:apply`. The instructions and skills stay
+   `@dougbot/i18n` (`dougTeam.*`), in every language through `bun run i18n:apply`. The instructions and skills stay
    in Brazilian Portuguese, the language the team works in.
 
 ## Consequences

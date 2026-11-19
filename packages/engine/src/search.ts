@@ -5,7 +5,7 @@ import type {
   SearchIndexResolver,
   SearchKind,
   SearchQuery,
-} from "@agenteschat/adapters";
+} from "@dougbot/adapters";
 import {
   and,
   asc,
@@ -20,8 +20,8 @@ import {
   rowsOf,
   schema,
   sql,
-} from "@agenteschat/db";
-import type { EmbeddingResult } from "@agenteschat/providers";
+} from "@dougbot/db";
+import type { EmbeddingResult } from "@dougbot/providers";
 import { agentIdsSeen, isPlaybook } from "./audience";
 import { caches } from "./cache";
 import { ACCESS_WORD, HOW_TO_WORD } from "./context/items";

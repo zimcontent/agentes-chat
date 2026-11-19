@@ -1,7 +1,7 @@
 import { afterAll, afterEach, describe, expect, setDefaultTimeout, spyOn, test } from "bun:test";
-import { MACHINE_PROTOCOL_VERSION, type RealtimeEvent } from "@agenteschat/adapters";
-import { eq, schema, sql } from "@agenteschat/db";
-import { type ModelRequest, systemText, textOf } from "@agenteschat/providers";
+import { MACHINE_PROTOCOL_VERSION, type RealtimeEvent } from "@dougbot/adapters";
+import { eq, schema, sql } from "@dougbot/db";
+import { type ModelRequest, systemText, textOf } from "@dougbot/providers";
 import {
   ANSWER_NUDGE,
   type Brain,

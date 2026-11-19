@@ -1,8 +1,8 @@
-import type { LocaleStrings } from "@agenteschat/i18n/plurals";
+import type { LocaleStrings } from "@dougbot/i18n/plurals";
 
 /**
  * The app's own strings (pt-BR; English, `keys.en.ts`, is the source), under `mobile.*`.
- * They live here until they move into `@agenteschat/i18n` (packages/i18n); `./index.ts` merges them
+ * They live here until they move into `@dougbot/i18n` (packages/i18n); `./index.ts` merges them
  * into the shared resources at runtime. `keys.en.ts` must have exactly the same shape (typed below).
  */
 export const mobilePtBR = {

@@ -9,9 +9,9 @@ import type {
   DatabaseConnectError,
   DatabaseConnection,
   DatabaseTable,
-} from "@agenteschat/client";
-import { ApiError } from "@agenteschat/client";
-import { defaultDatabasePolicy } from "@agenteschat/client/lib/databases";
+} from "@dougbot/client";
+import { ApiError } from "@dougbot/client";
+import { defaultDatabasePolicy } from "@dougbot/client/lib/databases";
 import { clone, MockNotFoundError } from "./context";
 
 export interface FakeDatabases {

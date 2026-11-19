@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { and, eq, inArray, schema, sql } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
+import { and, eq, inArray, schema, sql } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
 import {
   addChannelMember,
   createAgent,

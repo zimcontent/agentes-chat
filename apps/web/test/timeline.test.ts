@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { Approval, Message } from "@agenteschat/client";
-import { buildTimeline, mergeTimeline, upsertMessage } from "@agenteschat/client/lib/timeline";
+import type { Approval, Message } from "@dougbot/client";
+import { buildTimeline, mergeTimeline, upsertMessage } from "@dougbot/client/lib/timeline";
 import { tokenizeBody } from "@/chat/body";
 
 const msg = (id: string, minute: number, author: Message["author"], threadId: string | null = null): Message => ({

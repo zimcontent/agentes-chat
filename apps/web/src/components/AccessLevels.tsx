@@ -1,5 +1,5 @@
-import type { AccessTool, Agent } from "@agenteschat/client";
-import { keys, useAgents, useCatalog, useConnections, useCustomServers } from "@agenteschat/client";
+import type { AccessTool, Agent } from "@dougbot/client";
+import { keys, useAgents, useCatalog, useConnections, useCustomServers } from "@dougbot/client";
 import {
   type AccessResource,
   asksAt,
@@ -10,13 +10,13 @@ import {
   resourcesOf,
   saveLevels,
   toolsAt,
-} from "@agenteschat/client/lib/access-levels";
-import { type ConnectedItem, connectedItems, itemName } from "@agenteschat/client/lib/connected";
-import type { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { addsConnectors, can, makesAgents } from "@agenteschat/client/lib/permissions";
-import { builtinToolText } from "@agenteschat/client/lib/scopes";
-import { labelIsName } from "@agenteschat/client/lib/tool-labels";
-import { partsOf, toolName } from "@agenteschat/client/lib/tool-review";
+} from "@dougbot/client/lib/access-levels";
+import { type ConnectedItem, connectedItems, itemName } from "@dougbot/client/lib/connected";
+import type { agentGrammar } from "@dougbot/client/lib/grammar";
+import { addsConnectors, can, makesAgents } from "@dougbot/client/lib/permissions";
+import { builtinToolText } from "@dougbot/client/lib/scopes";
+import { labelIsName } from "@dougbot/client/lib/tool-labels";
+import { partsOf, toolName } from "@dougbot/client/lib/tool-review";
 import {
   type AgentAppearance,
   Button,
@@ -30,7 +30,7 @@ import {
   type IconName,
   InfoHint,
   Segmented,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { TFunction } from "i18next";

@@ -1,8 +1,8 @@
-import type { PlanCard, PortalCardInput, PortalComment, PortalPlan, PortalType } from "@agenteschat/client";
-import { usePortalComments, usePortalPlan, usePortalTasks, useSavePortalCard } from "@agenteschat/client";
-import { daysBetween, formatFullDate, formatShortDate, relativeTime } from "@agenteschat/client/lib/format";
-import { linkPill } from "@agenteschat/client/lib/link-pills";
-import { can } from "@agenteschat/client/lib/permissions";
+import type { PlanCard, PortalCardInput, PortalComment, PortalPlan, PortalType } from "@dougbot/client";
+import { usePortalComments, usePortalPlan, usePortalTasks, useSavePortalCard } from "@dougbot/client";
+import { daysBetween, formatFullDate, formatShortDate, relativeTime } from "@dougbot/client/lib/format";
+import { linkPill } from "@dougbot/client/lib/link-pills";
+import { can } from "@dougbot/client/lib/permissions";
 import {
   PORTAL_NO_LIST,
   PORTAL_TYPES,
@@ -21,9 +21,9 @@ import {
   portalTimeOf,
   portalWithResponsible,
   portalWriterName,
-} from "@agenteschat/client/lib/portal";
-import { rightHandOf } from "@agenteschat/client/lib/right-hand";
-import { prefixLines, wrapSelection } from "@agenteschat/client/lib/wiki";
+} from "@dougbot/client/lib/portal";
+import { rightHandOf } from "@dougbot/client/lib/right-hand";
+import { prefixLines, wrapSelection } from "@dougbot/client/lib/wiki";
 import {
   Button,
   Checkbox,
@@ -41,7 +41,7 @@ import {
   Textarea,
   TimeSelect,
   useAutoGrow,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { type ReactNode, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

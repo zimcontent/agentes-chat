@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { ConnectedApp, PersonalToken } from "@agenteschat/client";
+import type { ConnectedApp, PersonalToken } from "@dougbot/client";
 import {
   appCreatedLine,
   appFacts,
@@ -9,10 +9,10 @@ import {
   appsSettingsUrl,
   requestedAccess,
   tokenFacts,
-} from "@agenteschat/client/lib/apps";
-import { openTarget } from "@agenteschat/client/lib/notifications";
-import { appVia } from "@agenteschat/client/lib/via";
-import { markOf } from "@agenteschat/ui/brand/marks";
+} from "@dougbot/client/lib/apps";
+import { openTarget } from "@dougbot/client/lib/notifications";
+import { appVia } from "@dougbot/client/lib/via";
+import { markOf } from "@dougbot/ui/brand/marks";
 import { notificationHref } from "../../src/features/links/logic";
 import { visibleSections } from "../../src/features/settings/logic";
 import { notification, translator } from "./fixtures";

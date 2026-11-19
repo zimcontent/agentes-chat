@@ -1,4 +1,4 @@
-import { isRoleTab, type RoleTab } from "@agenteschat/client/lib/roles";
+import { isRoleTab, type RoleTab } from "@dougbot/client/lib/roles";
 import { createFileRoute } from "@tanstack/react-router";
 import { Main } from "@/components/Main";
 import { SettingsPage } from "@/pages/SettingsPage";

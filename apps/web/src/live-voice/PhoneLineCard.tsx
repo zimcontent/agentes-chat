@@ -4,8 +4,8 @@ import {
   useRemovePhoneLine,
   useSavePhoneLine,
   useSetPhoneEngine,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import {
   Button,
   Card,
@@ -19,7 +19,7 @@ import {
   List,
   Locked,
   Segmented,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";

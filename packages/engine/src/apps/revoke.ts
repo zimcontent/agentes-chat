@@ -1,4 +1,4 @@
-import { and, type Executor, eq, inArray, isNull, type SQL, schema } from "@agenteschat/db";
+import { and, type Executor, eq, inArray, isNull, type SQL, schema } from "@dougbot/db";
 import { recordAudit } from "../audit";
 
 const { appGrants, appTokens } = schema;

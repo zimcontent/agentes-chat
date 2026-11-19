@@ -1,6 +1,6 @@
-import { useAuthConfig } from "@agenteschat/client";
-import { rightHandOf, sceneTeam } from "@agenteschat/client/lib/right-hand";
-import { Button, Dialog, DialogBody, DialogFooter, Icon, type IconName } from "@agenteschat/ui";
+import { useAuthConfig } from "@dougbot/client";
+import { rightHandOf, sceneTeam } from "@dougbot/client/lib/right-hand";
+import { Button, Dialog, DialogBody, DialogFooter, Icon, type IconName } from "@dougbot/ui";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

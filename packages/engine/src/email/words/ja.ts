@@ -2,7 +2,7 @@ import type { EmailWords } from "./index";
 
 /**
  * The emails in ja: whatever is here replaces English, word group by word group (`deepMerge`); write a count's
- * forms with `plural("ja", n, { one, few, many, other })` from `@agenteschat/i18n/format`.
+ * forms with `plural("ja", n, { one, few, many, other })` from `@dougbot/i18n/format`.
  * Japanese has no plural forms: `n === 1` only picks the wording English uses for a single item.
  */
 export const words: EmailWords = {

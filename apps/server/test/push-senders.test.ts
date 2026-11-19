@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { createFakePushSender } from "@agenteschat/adapters";
-import { loadConfig } from "@agenteschat/config";
+import { createFakePushSender } from "@dougbot/adapters";
+import { loadConfig } from "@dougbot/config";
 import {
   apnsKeyGaps,
   apnsKeyOf,
@@ -18,7 +18,7 @@ describe("phone push without the Apple key (ADR 0178)", () => {
     const c = config();
     expect(apnsKeyOf(c)).toBeNull();
     expect(apnsKeyGaps(c)).toEqual([]);
-    expect(directPushSenders(c)).toEqual({ android: null, ios: null });
+    expect(directPushSenders(c)).toEqual({ android: null, ios: null, liveActivities: null });
     expect(relayServeSender(directPushSenders(c))).toBeNull();
   });
 

@@ -1,6 +1,6 @@
-import { and, asc, eq, inArray, isNotNull, isNull, rowsOf, schema, sql } from "@agenteschat/db";
-import { appLocale } from "@agenteschat/i18n/locale";
-import type { PlanModel } from "@agenteschat/providers/plans";
+import { and, asc, eq, inArray, isNotNull, isNull, rowsOf, schema, sql } from "@dougbot/db";
+import { appLocale } from "@dougbot/i18n/locale";
+import type { PlanModel } from "@dougbot/providers/plans";
 import { approvalCardThreads, approvalOriginOf, notifiedIds } from "./approvals";
 import { accountablePerson, runAuthorityById } from "./authority";
 import { autonomyNoteFor, proposalCardOf } from "./brakes";

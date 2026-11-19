@@ -1,5 +1,5 @@
-import type { PubSub } from "@agenteschat/adapters";
-import type { Database, schema } from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import type { Database, schema } from "@dougbot/db";
 import type {
   WidgetFormat,
   WidgetKind,
@@ -7,7 +7,7 @@ import type {
   WidgetSize,
   WidgetSpec,
   WidgetStatus,
-} from "@agenteschat/ui/widgets/spec";
+} from "@dougbot/ui/widgets/spec";
 import type { AiStatusDeps } from "../ai-status";
 import type { ModelScope } from "../brains/select";
 import type { ContextDeps } from "../context/summaries";
@@ -15,7 +15,7 @@ import type { ContextDeps } from "../context/summaries";
 /**
  * Dashboards and widgets (ADR 0135): the shapes the engine returns to the HTTP layer (JSON-ready: times as ISO
  * strings) and takes from it. `packages/client/src/dashboards/types.ts` mirrors them for the apps; the spec itself
- * and its rules live in `@agenteschat/ui/widgets/spec`, shared by every package.
+ * and its rules live in `@dougbot/ui/widgets/spec`, shared by every package.
  */
 
 export type { WidgetFormat, WidgetKind, WidgetSchedule, WidgetSize, WidgetSpec, WidgetStatus };

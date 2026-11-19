@@ -1,5 +1,5 @@
-import type { PubSub } from "@agenteschat/adapters";
-import type { Executor } from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import type { Executor } from "@dougbot/db";
 import { createAgentRuns, type RunTrigger } from "./dispatch";
 import { publishChannelEvent, publishMessageCreated } from "./events";
 import { insertMessage, type Message, messageView } from "./messages";

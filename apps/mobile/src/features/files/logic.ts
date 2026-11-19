@@ -1,6 +1,6 @@
-import type { ArtifactDetail, ArtifactKind } from "@agenteschat/client";
-import { fileIcon, previewType } from "@agenteschat/client/lib/files";
-import { filePath } from "@agenteschat/client/lib/message-links";
+import type { ArtifactDetail, ArtifactKind } from "@dougbot/client";
+import { fileIcon, previewType } from "@dougbot/client/lib/files";
+import { filePath } from "@dougbot/client/lib/message-links";
 
 /**
  * Files on a message: which ones show as pictures, the card's tile and

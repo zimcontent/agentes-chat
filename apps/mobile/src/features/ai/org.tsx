@@ -1,4 +1,4 @@
-import type { OrgSummary } from "@agenteschat/client";
+import type { OrgSummary } from "@dougbot/client";
 import { createContext, type ReactNode, useContext } from "react";
 import { useOrgMaybe } from "@/providers/org";
 

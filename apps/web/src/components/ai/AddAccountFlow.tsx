@@ -1,7 +1,7 @@
-import type { AccountLoginStart, AccountLoginStatus, MachineAccount, MachineAccountKind } from "@agenteschat/client";
-import { keys, useAccountLogin, useAiAccounts, useApi } from "@agenteschat/client";
-import { accountTitle, reusableAccount, signInOf } from "@agenteschat/client/lib/ai-accounts";
-import { knownErrorText } from "@agenteschat/client/lib/errors";
+import type { AccountLoginStart, AccountLoginStatus, MachineAccount, MachineAccountKind } from "@dougbot/client";
+import { keys, useAccountLogin, useAiAccounts, useApi } from "@dougbot/client";
+import { accountTitle, reusableAccount, signInOf } from "@dougbot/client/lib/ai-accounts";
+import { knownErrorText } from "@dougbot/client/lib/errors";
 import {
   beginLogin,
   freeDuplicate,
@@ -13,10 +13,10 @@ import {
   loginRead,
   loginReadPasses,
   otherThanHint,
-} from "@agenteschat/client/lib/machines";
-import { GEMINI_ENTERPRISE_PROVIDER, planKeyFits, signInKey } from "@agenteschat/client/lib/plans";
-import { accountCodeAad, INSECURE_CONTEXT, sealSecret } from "@agenteschat/client/lib/secret-box";
-import { AffixInput, Button, cx, Icon, InfoHint, Locked, ProviderLogo, SettingNote, SwapLabel } from "@agenteschat/ui";
+} from "@dougbot/client/lib/machines";
+import { GEMINI_ENTERPRISE_PROVIDER, planKeyFits, signInKey } from "@dougbot/client/lib/plans";
+import { accountCodeAad, INSECURE_CONTEXT, sealSecret } from "@dougbot/client/lib/secret-box";
+import { AffixInput, Button, cx, Icon, InfoHint, Locked, ProviderLogo, SettingNote, SwapLabel } from "@dougbot/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";

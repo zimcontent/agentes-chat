@@ -1,7 +1,7 @@
-import type { ArchivedChannel } from "@agenteschat/client";
-import { useArchivedChannels } from "@agenteschat/client";
-import { formatShortDate } from "@agenteschat/client/lib/format";
-import { Button, Dialog, DialogBody, EmptyState, Icon } from "@agenteschat/ui";
+import type { ArchivedChannel } from "@dougbot/client";
+import { useArchivedChannels } from "@dougbot/client";
+import { formatShortDate } from "@dougbot/client/lib/format";
+import { Button, Dialog, DialogBody, EmptyState, Icon } from "@dougbot/ui";
 import { useTranslation } from "react-i18next";
 import { useRestoreChannel } from "@/components/entity-menus";
 import { useOrg } from "@/components/org-context";

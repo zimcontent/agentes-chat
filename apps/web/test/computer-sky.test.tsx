@@ -1,9 +1,9 @@
 import { expect, spyOn, test } from "bun:test";
-import { canvasPage, setupDom } from "@agenteschat/ui/testing";
+import { canvasPage, setupDom } from "@dougbot/ui/testing";
 
 setupDom();
 
-import { agentTones, EYE, PIXEL_ART, pixelOf, SKY_TONES, softTones, spriteTone } from "@agenteschat/ui";
+import { agentTones, EYE, PIXEL_ART, pixelOf, SKY_TONES, softTones, spriteTone } from "@dougbot/ui";
 import { act, render } from "@testing-library/react";
 import { ComputerSky } from "../src/components/Sky";
 

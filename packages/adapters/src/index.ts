@@ -9,6 +9,7 @@ import type { MailAdapters } from "./mail";
 import type { Presence } from "./presence";
 import type { PubSub } from "./pubsub";
 import type { PushSender } from "./push";
+import type { LiveActivitySender } from "./push-apns";
 import type { RateLimiter } from "./rate-limiter";
 import type { SearchIndexResolver } from "./search";
 import type { VaultSources } from "./vault/source";
@@ -90,6 +91,11 @@ export interface Adapters {
   platformBlobs: BlobStore;
   /** Push to the phone app (`push.send` outbox job, ADR 0035); null/absent = no push. */
   push?: PushSender | null;
+  /**
+   * Live Activities on iPhones (docs/adr/doug-0021-lock-screen.md): only with the server's own APNs key, never
+   * through the push relay; null/absent = none.
+   */
+  liveActivities?: LiveActivitySender | null;
   /** Web Push to browsers (`push.send` outbox job, ADR 0071); null/absent = browsers get no push. */
   webPush?: WebPushSender | null;
   /** People's mailboxes for agents (ADR 0038); absent = no email connectors. */
@@ -99,7 +105,7 @@ export interface Adapters {
   /** A bot check before public forms (ADR 0075): Turnstile when both of its keys are set; null/absent = none. */
   humanCheck?: HumanCheck | null;
   /**
-   * GIF search (ADR 0091): GIPHY with `GIPHY_API_KEY`, or, on a server that isn't agentes.chat's own, the provider
+   * GIF search (ADR 0091): GIPHY with `GIPHY_API_KEY`, or, on a server that isn't DougBot's own, the provider
    * that follows the installation's key (`createKeyedGifs`), whose `available()` says whether it has one now;
    * null/absent = no GIFs.
    */

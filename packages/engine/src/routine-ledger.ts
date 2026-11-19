@@ -1,5 +1,5 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, type Executor, eq, inArray, isNull, lt, schema, sql } from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import { and, type Database, type Executor, eq, inArray, isNull, lt, schema, sql } from "@dougbot/db";
 import { routineBriefOfRun, routineOfRun } from "./background";
 import { widgetRoutineEnded } from "./dashboards/refresh-ledger";
 import { publishDelivery } from "./delivery";

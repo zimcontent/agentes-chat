@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { type AccessInput, type ConnectorDef, keys } from "@agenteschat/client";
-import { connectedSummary } from "@agenteschat/client/lib/connected";
-import { icons } from "@agenteschat/ui";
+import { type AccessInput, type ConnectorDef, keys } from "@dougbot/client";
+import { connectedSummary } from "@dougbot/client/lib/connected";
+import { icons } from "@dougbot/ui";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import type { TFunction } from "i18next";
 import { authKind, searchCatalog } from "@/components/ConnectorCatalog";
@@ -47,7 +47,7 @@ const levels = (inside: HTMLElement, groups: string[]) =>
         .queryAllByRole("radio")
         .find((r) => r.getAttribute("aria-checked") === "true")?.textContent ?? null,
   );
-/** A backend whose catalog also lists Asana as the server does today: its vendor hasn't approved agentes.chat yet. */
+/** A backend whose catalog also lists Asana as the server does today: its vendor hasn't approved DougBot yet. */
 const withSoonAsana = (state: FakeState) => {
   const api = createFakeApi(state);
   const asana: ConnectorDef = {

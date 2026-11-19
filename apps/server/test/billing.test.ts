@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
-import { setOrgLimits } from "@agenteschat/engine";
+import { eq, schema } from "@dougbot/db";
+import { setOrgLimits } from "@dougbot/engine";
 import { type Browser, browser, createTestServer, joinByInvitation, signUp, type TestServer } from "./harness";
 
 let t: TestServer | undefined;

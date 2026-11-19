@@ -1,15 +1,9 @@
-import type { StorageConfig, StorageTestResult } from "@agenteschat/client";
-import {
-  useSaveStorage,
-  useStartMigration,
-  useStorage,
-  useStorageMigration,
-  useTestStorage,
-} from "@agenteschat/client";
-import { settingsFrozen } from "@agenteschat/client/lib/deletion";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { can } from "@agenteschat/client/lib/permissions";
-import { storageUsageLine } from "@agenteschat/client/lib/storage";
+import type { StorageConfig, StorageTestResult } from "@dougbot/client";
+import { useSaveStorage, useStartMigration, useStorage, useStorageMigration, useTestStorage } from "@dougbot/client";
+import { settingsFrozen } from "@dougbot/client/lib/deletion";
+import { errorText } from "@dougbot/client/lib/errors";
+import { can } from "@dougbot/client/lib/permissions";
+import { storageUsageLine } from "@dougbot/client/lib/storage";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";

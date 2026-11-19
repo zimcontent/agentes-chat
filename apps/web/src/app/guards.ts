@@ -1,5 +1,5 @@
-import { authConfigQuery, instanceQuery, type Me, meQuery } from "@agenteschat/client";
-import type { LegalKind } from "@agenteschat/i18n/legal";
+import { authConfigQuery, instanceQuery, type Me, meQuery } from "@dougbot/client";
+import type { LegalKind } from "@dougbot/i18n/legal";
 import { redirect } from "@tanstack/react-router";
 import type { RouterContext } from "./router-context";
 

@@ -657,3 +657,119 @@ html:not([data-pointer]) .spec-block__card:focus-visible {
   background: var(--sunken);
   box-shadow: inset 0 0 0 1px var(--line2);
 }
+
+/*
+ * A sector card's pieces (docs/adr/doug-0020-doug-sector-cards.md). The source: the service's mark, its title and a
+ * quiet count on the right. The agenda: a time column, then each event as the app's calendar draws one (Google
+ * Calendar's look: one tinted block, small corners, no stripe, the words in a shade of its colour).
+ */
+.spec-block__source {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}
+.spec-block__source > b {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+.spec-block__source > small {
+  font-size: 13px;
+  color: var(--faint);
+}
+.spec-block__source > .ac-icon,
+.spec-block__source-mark {
+  flex: none;
+  width: 16px;
+  height: 16px;
+}
+
+.spec-block__agenda {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.spec-block__agenda ol {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.spec-block__agenda li {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+.spec-block__agenda time {
+  padding-top: var(--space-2);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+  font-variant-numeric: tabular-nums;
+}
+.spec-block__event {
+  --cal-accent: #4285f4;
+  --cal-light: var(--cal-accent);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--cal-accent) 14%, var(--raised));
+  color: color-mix(in srgb, var(--cal-accent) 58%, var(--ink));
+  overflow-wrap: anywhere;
+}
+[data-theme="dark"] .spec-block__event {
+  color: color-mix(in srgb, var(--cal-light) 45%, var(--ink));
+}
+.spec-block__event b {
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 18px;
+}
+.spec-block__event small {
+  font-size: 12.5px;
+  line-height: 16px;
+  opacity: 0.85;
+}
+.spec-block__event[data-tone="green"] {
+  --cal-accent: #0b8043;
+  --cal-light: #33b679;
+}
+.spec-block__event[data-tone="orange"] {
+  --cal-accent: #e8710a;
+  --cal-light: #f4a35c;
+}
+.spec-block__event[data-tone="red"] {
+  --cal-accent: #d50000;
+  --cal-light: #f06767;
+}
+.spec-block__event[data-tone="purple"] {
+  --cal-accent: #8e24aa;
+  --cal-light: #b884cf;
+}
+.spec-block__event[data-tone="yellow"] {
+  --cal-accent: #b48600;
+  --cal-light: #f6bf26;
+}
+.spec-block__event[data-tone="teal"] {
+  --cal-accent: #039be5;
+  --cal-light: #4fc3f7;
+}
+.spec-block__event[data-tone="gray"] {
+  --cal-accent: var(--ink2);
+}
+.spec-block__agenda-foot {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 18px;
+}

@@ -1,4 +1,4 @@
-import { SCREEN_KINDS } from "@agenteschat/adapters";
+import { SCREEN_KINDS } from "@dougbot/adapters";
 import {
   askAdmins,
   listNotifications,
@@ -13,7 +13,7 @@ import {
   notificationCounts,
   setNoticePref,
   snoozeNotification,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { ApprovalOrigin } from "./approvals";
 import { type AppDeps, body, createAppRouter, errors, json, OrgParams, requireSession, security } from "./context";

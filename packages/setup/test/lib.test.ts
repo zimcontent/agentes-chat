@@ -809,7 +809,7 @@ describe("the agents' computer", () => {
     expect(appOnThisMachine("HOST_PORT=3001\n")).toBe("http://127.0.0.1:3001");
     expect(appOnThisMachine("BIND_ADDRESS=0.0.0.0\n")).toBe("http://127.0.0.1:3000");
     expect(appOnThisMachine("BIND_ADDRESS=[::]\n")).toBe("http://127.0.0.1:3000");
-    // Published on one address only: loopback isn't it, and whatever answers there isn't agentes.chat.
+    // Published on one address only: loopback isn't it, and whatever answers there isn't DougBot.
     expect(appOnThisMachine("BIND_ADDRESS=10.0.0.5\nHOST_PORT=8080\n")).toBe("http://10.0.0.5:8080");
   });
 
@@ -1371,7 +1371,7 @@ describe("the plan", () => {
     expect(steps[at("agents' computer: curl")]).toBe(
       "agents' computer: curl -fsSL http://127.0.0.1:3000/api/machines/install.sh | runuser -u agentes -- sh -s -- --server http://127.0.0.1:3000 --host-token-file /home/agentes/host-computer-token, then wait up to 90 s for it to answer",
     );
-    // In that order, after agentes.chat is up.
+    // In that order, after DougBot is up.
     expect(at("start: docker compose up -d,")).toBeLessThan(at("install for the agents"));
     expect(at("install for the agents")).toBeLessThan(at("user agentes"));
     expect(at("user agentes")).toBeLessThan(at("agents' computer: curl"));

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, setSystemTime, spyOn, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
@@ -10,8 +10,8 @@ import {
   PICTURE_IDLE_MS,
   PICTURE_WORKING_MS,
   pictureRefreshMs,
-} from "@agenteschat/client";
-import { pictureWhen } from "@agenteschat/client/lib/agent-computer";
+} from "@dougbot/client";
+import { pictureWhen } from "@dougbot/client/lib/agent-computer";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { DM_SIDE_NARROW_QUERY, DM_SIDE_WIDE_QUERY } from "@/hooks/useMembersColumn";
 import { STORAGE_KEYS } from "@/lib/storage";

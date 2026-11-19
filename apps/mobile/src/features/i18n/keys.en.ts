@@ -1,4 +1,4 @@
-import type { Widen } from "@agenteschat/i18n/widen";
+import type { Widen } from "@dougbot/i18n/widen";
 
 /** The screens' strings in English, the source: every other language follows this shape. */
 export const featureKeysEn = {
@@ -26,7 +26,15 @@ export const featureKeysEn = {
     itsChannels: "Groups",
     seeAll: "See all",
   },
+  /** The right hand's sector buttons above the composer (docs/adr/doug-0020-doug-sector-cards.md). */
+  sectorPills: {
+    label: "Shortcuts",
+    failed: "That card didn't come. Try again.",
+  },
   blocks: {
+    /** A card's button that ran on the server (docs/adr/doug-0020-doug-sector-cards.md). */
+    done: "Done",
+    actFailed: "That didn't go through. Try again.",
     send: "Send",
     more: "More",
     thousand: "k",
@@ -49,6 +57,22 @@ export const featureKeysEn = {
     pollAnswered_one: "{{count}} of {{total}} answered",
     pollAnswered_other: "{{count}} of {{total}} answered",
     voteFailed: "Your vote didn't go through.",
+    /** A slide, a static post or a reel's beat opened on the whole screen, with a note for the agent about it. */
+    openPiece: "Open full screen",
+    openSlide: "Open slide {{at}}",
+    pieceAt: "{{at}} of {{count}}",
+    carouselTitle: "Carousel",
+    posterTitle: "Static post",
+    reelTitle: "Reel script",
+    /** Names the piece inside the note sent to the agent and in the field's placeholder. */
+    aboutSlide: "slide {{at}} (“{{title}}”)",
+    aboutPoster: "the static post (“{{title}}”)",
+    aboutBeat: "the {{time}} beat of the reel",
+    /** The message the agent gets, as the person's answer to the block. */
+    noteMessage: "About {{about}}: {{note}}",
+    notePlaceholder: "A note on {{about}}",
+    noteLabel: "Your note",
+    noteSent: "Sent to {{name}}",
   },
   choices: {
     step: "{{step}} of {{total}}",
@@ -2593,6 +2617,19 @@ export const featureKeysEn = {
     week: "Week",
     month: "Month",
     sheet: {
+      nowTitle: "Now",
+      account: "Account",
+      model: "Model",
+      effort: "Effort",
+      context: "Context",
+      /** No context limit chosen: the model reads up to its whole window. */
+      contextFull: "The model's whole window",
+      /** Under "Automatic" in Now. */
+      autoPerTask: "picked for each task",
+      autoLine: "Picks the model and the effort for each task, on the same account.",
+      switchTitle: "Switch to",
+      /** A choice that moves the agent to another account or key: "Haiku 5.5 · on ChatGPT Pro". */
+      on: "on {{place}}",
       title: "Change {{name}}'s AI",
       title_female: "Change {{name}}'s AI",
       smart: "Smartest",

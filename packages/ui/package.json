@@ -1,8 +1,9 @@
 {
-  "name": "@agenteschat/ui",
+  "name": "@dougbot/ui",
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "sideEffects": false,
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
@@ -44,6 +45,7 @@
     "./sky/team": "./src/sky/team.ts",
     "./agent-talk": "./src/agent-talk.ts",
     "./channel-refs": "./src/channel-refs.ts",
+    "./clip": "./src/clip.ts",
     "./diff": "./src/diff.ts",
     "./format": "./src/format.ts",
     "./markdown": "./src/markdown.ts",
@@ -56,6 +58,7 @@
     "./brand/flags": "./src/brand/flags.ts",
     "./blocks/expr": "./src/blocks/expr.ts",
     "./blocks/spec": "./src/blocks/spec.ts",
+    "./blocks/source-marks": "./src/blocks/source-marks.ts",
     "./widgets/spec": "./src/widgets/spec.ts"
   },
   "scripts": {
@@ -68,8 +71,8 @@
   },
   "license": "AGPL-3.0-only",
   "dependencies": {
-    "@agenteschat/i18n": "workspace:*",
-    "@agenteschat/tokens": "workspace:*",
+    "@dougbot/i18n": "workspace:*",
+    "@dougbot/tokens": "workspace:*",
     "radix-ui": "^1.8.1",
     "uqr": "0.1.3"
   },

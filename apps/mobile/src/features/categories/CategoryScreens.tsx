@@ -7,9 +7,9 @@ import {
   usePlaceChannel,
   usePlaceChannelCategory,
   useRenameChannelCategory,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { useHeldWhile } from "@agenteschat/client/lib/hold";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { useHeldWhile } from "@dougbot/client/lib/hold";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, StyleSheet, TextInput } from "react-native";

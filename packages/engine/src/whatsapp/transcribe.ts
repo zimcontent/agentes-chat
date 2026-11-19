@@ -1,5 +1,5 @@
-import { firstWords, type SpeechEngine, whatsappFileMessage } from "@agenteschat/adapters";
-import { and, desc, eq, gt, schema } from "@agenteschat/db";
+import { firstWords, type SpeechEngine, whatsappFileMessage } from "@dougbot/adapters";
+import { and, desc, eq, gt, schema } from "@dougbot/db";
 import { accountToken, type WhatsAppAccountRow, type WhatsAppDeps, whatsappGateway } from "./accounts";
 
 /**

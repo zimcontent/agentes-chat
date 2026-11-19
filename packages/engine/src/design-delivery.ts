@@ -1,5 +1,5 @@
-import type { ApprovalPortal, PortalJob } from "@agenteschat/adapters";
-import { and, type Database, eq, schema } from "@agenteschat/db";
+import type { ApprovalPortal, PortalJob } from "@dougbot/adapters";
+import { and, type Database, eq, schema } from "@dougbot/db";
 import { publishMessageCreated } from "./events";
 import { insertMessage, messageView } from "./messages";
 import { enqueue } from "./outbox";

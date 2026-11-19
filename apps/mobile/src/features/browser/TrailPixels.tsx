@@ -1,5 +1,5 @@
-import type { BrowserTrailKind } from "@agenteschat/client";
-import type { AgentColorName } from "@agenteschat/ui/agent/engine";
+import type { BrowserTrailKind } from "@dougbot/client";
+import type { AgentColorName } from "@dougbot/ui/agent/engine";
 import { Canvas, createPicture, PaintStyle, Picture, Skia, type SkPaint } from "@shopify/react-native-skia";
 import { memo, useMemo } from "react";
 import { View } from "react-native";

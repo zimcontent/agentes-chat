@@ -1,4 +1,4 @@
-import type { ServerCheck } from "@agenteschat/client/lib/server";
+import type { ServerCheck } from "@dougbot/client/lib/server";
 import type { HelloLine } from "../control/client";
 import type { Candidate } from "../control/first-run";
 import type {
@@ -50,7 +50,7 @@ export interface AppInfo {
   arch: string;
   /** The system's own version where the app reads it (macOS: `15.1`). */
   system?: string | null;
-  /** The line to copy: versions, and on Linux how it draws ("agentes.chat 0.8.9 · Linux · Ubuntu 26.04 LTS · …"). */
+  /** The line to copy: versions, and on Linux how it draws ("DougBot 0.8.9 · Linux · Ubuntu 26.04 LTS · …"). */
   details: string;
 }
 
@@ -138,7 +138,7 @@ export interface Host {
   signOutServer(server: string): Promise<void>;
   /** Where a server may be: this computer and the person's Tailscale network, not checked yet. */
   discover(): Promise<Candidate[]>;
-  /** Whether `server` is an agentes.chat server this app can use (`GET /api/instance`). */
+  /** Whether `server` is a DougBot server this app can use (`GET /api/instance`). */
   checkServer(server: string): Promise<ServerCheck>;
   /** The connect link (`agenteschat://connect…`) waiting for an answer, taken once; null when none. */
   takeLink(): Promise<string | null>;
@@ -199,7 +199,7 @@ export interface Host {
   localServer(): Promise<LocalServerStatus>;
   onLocalServer(cb: (status: LocalServerStatus) => void): () => void;
   /**
-   * "Run agentes.chat on this computer": sets it up, starts it, makes the owner, makes this computer its agents'
+   * "Run DougBot on this computer": sets it up, starts it, makes the owner, makes this computer its agents'
    * computer, turns reach on when asked, and opens the main window there, signed in. Rejects with the step that
    * failed, or "cancelled" after `cancelLocalSetup`; each step's progress arrives at `onSetupStep`.
    */

@@ -28,7 +28,7 @@ second (about US$ 0.05 a minute), 15 seconds at least for a WebRTC session.
    `gpt-live-1`, no tokens) and are added to the agent's and the person's month (`recordLiveVoiceUsage`). The sideband
    also closes a session at its limit (60 minutes on a call, 6 for Ouvir, 30 seconds for a sample); sessions this
    process lost track of are settled by the clock (`sweepLiveVoiceSessions`).
-4. **An agent's voice** is `agents.voice`, one of `LIVE_VOICES` (`@agenteschat/providers/live-voice`), picked by its
+4. **An agent's voice** is `agents.voice`, one of `LIVE_VOICES` (`@dougbot/providers/live-voice`), picked by its
    owner or an admin like its look (`setAgentVoice`); with none picked its id gives one (`liveVoiceFor`). A voice OpenAI
    doesn't know refuses a session, so the server tries once more with `marin`.
 5. **Voice rooms.** A conversation has at most one live room (`live_voice_rooms`, unique while live). People join from
@@ -37,7 +37,7 @@ second (about US$ 0.05 a minute), 15 seconds at least for a WebRTC session.
    session per agent (up to 5): each hears every person's microphone and the other agents, mixed in Web Audio, and each
    agent's voice goes on to every person as a track of its own, so every app lights the tile of whoever speaks. When
    the host leaves, the next person in takes the room and opens the voices again with what was said so far.
-6. **Who speaks is code, with one judgment.** The rule is `live-floor` (`@agenteschat/client/lib/live-floor`), applied
+6. **Who speaks is code, with one judgment.** The rule is `live-floor` (`@dougbot/client/lib/live-floor`), applied
    by the host: an agent speaks when someone calls it by name, in a call of one person and one agent, or right after it
    spoke when the person answers. Among agents it is a lively meeting (addendum 2026-11-15): one may bring a colleague
    in by name; when it finishes, the small model may pick a colleague to build on it, push back or add their role's

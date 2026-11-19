@@ -1,14 +1,8 @@
-import type {
-  CommandApproval,
-  Mission,
-  MissionExecutor,
-  MissionFileName,
-  ThreadMissionSummary,
-} from "@agenteschat/client";
-import { engineOfExecutor } from "@agenteschat/client/lib/brain";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { executorOnText, type PlanCell, tickFor } from "@agenteschat/client/lib/missions";
-import { Chip, type IconName, PlanStrip, ProviderLogo, Select } from "@agenteschat/ui";
+import type { CommandApproval, Mission, MissionExecutor, MissionFileName, ThreadMissionSummary } from "@dougbot/client";
+import { engineOfExecutor } from "@dougbot/client/lib/brain";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { executorOnText, type PlanCell, tickFor } from "@dougbot/client/lib/missions";
+import { Chip, type IconName, PlanStrip, ProviderLogo, Select } from "@dougbot/ui";
 import type { TFunction } from "i18next";
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

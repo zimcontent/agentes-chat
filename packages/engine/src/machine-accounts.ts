@@ -40,7 +40,7 @@ import {
   SHARED_GEMINI_PROTOCOL,
   SHARED_GROK_PROTOCOL,
   TOKEN_RECHECK_MS,
-} from "@agenteschat/adapters";
+} from "@dougbot/adapters";
 import {
   and,
   count,
@@ -54,7 +54,7 @@ import {
   or,
   schema,
   sql,
-} from "@agenteschat/db";
+} from "@dougbot/db";
 import {
   GEMINI_ENTERPRISE_PROVIDER,
   isPlanId,
@@ -63,8 +63,8 @@ import {
   planOf,
   SHARED_SIGN_INS,
   sharedSignIn,
-} from "@agenteschat/providers/plans";
-import { PLAN_PAUSE, planCheckedAt, planFull, planState } from "@agenteschat/ui/plan-state";
+} from "@dougbot/providers/plans";
+import { PLAN_PAUSE, planCheckedAt, planFull, planState } from "@dougbot/ui/plan-state";
 import { recordAudit } from "./audit";
 import { liveModelLimits } from "./brains/select";
 import { BRAIN_PLAN_NAMES } from "./brains/types";
@@ -110,7 +110,7 @@ const { machineAccounts, agents, machines, rightHandBrains, users } = schema;
  * of it only when they would show something else (`usageMoved`).
  *
  * Key accounts (protocol 20): a coding plan on Claude Code (`provider`, a plan
- * of `@agenteschat/providers/plans`). The key goes sealed from the browser to
+ * of `@dougbot/providers/plans`). The key goes sealed from the browser to
  * the computer and stays there; we keep its last 4 as the runner says them.
  *
  * One sign-in for all agents (protocol 29, ADR 0059 §2): a login the runner

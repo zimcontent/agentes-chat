@@ -3,10 +3,10 @@
  * an hour after the server first started), and prints it for `agentes telemetry`. What goes in it is
  * `buildTelemetryReport`.
  */
-import { LOAD_SAMPLE_MS } from "@agenteschat/adapters";
-import { inContainer, LoadWindow, machineSize, sampleLoad } from "@agenteschat/adapters/host-stats";
-import type { Config } from "@agenteschat/config";
-import type { Database } from "@agenteschat/db";
+import { LOAD_SAMPLE_MS } from "@dougbot/adapters";
+import { inContainer, LoadWindow, machineSize, sampleLoad } from "@dougbot/adapters/host-stats";
+import type { Config } from "@dougbot/config";
+import type { Database } from "@dougbot/db";
 import {
   buildTelemetryReport,
   isAgentesCloud,
@@ -16,7 +16,7 @@ import {
   type TelemetryFacts,
   telemetrySends,
   telemetryState,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import type { Logger } from "./logger";
 import { version } from "./version";
 

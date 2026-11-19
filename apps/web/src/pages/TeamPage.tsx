@@ -1,17 +1,10 @@
-import type { FormerAgent } from "@agenteschat/client";
-import {
-  useAgentGroups,
-  useAiStatus,
-  useChannels,
-  useFormerAgents,
-  useTeam,
-  useUnarchiveAgent,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { can, makesAgents } from "@agenteschat/client/lib/permissions";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
-import { Button, Card, EmptyState, Icon, PageHeader, Segmented } from "@agenteschat/ui";
+import type { FormerAgent } from "@dougbot/client";
+import { useAgentGroups, useAiStatus, useChannels, useFormerAgents, useTeam, useUnarchiveAgent } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { can, makesAgents } from "@dougbot/client/lib/permissions";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
+import { Button, Card, EmptyState, Icon, PageHeader, Segmented } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

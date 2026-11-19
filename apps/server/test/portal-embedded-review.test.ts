@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
+import { eq, schema } from "@dougbot/db";
 import { type Browser, browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 
 // The review's items on the server's side of the installation's own approval portal (docs/adr/

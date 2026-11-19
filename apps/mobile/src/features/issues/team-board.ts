@@ -1,4 +1,4 @@
-import type { Issue, TeamAgenda } from "@agenteschat/client";
+import type { Issue, TeamAgenda } from "@dougbot/client";
 
 /*
  * Tarefas' "Equipe" view (and "Minhas tarefas" for who doesn't administer): one lane per person or agent with what

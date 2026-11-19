@@ -1,5 +1,5 @@
-import { instanceQuery, meQuery, useApi, useClientLook, useMe } from "@agenteschat/client";
-import { Button, EmptyState, setClientProductName } from "@agenteschat/ui";
+import { instanceQuery, meQuery, useApi, useClientLook, useMe } from "@dougbot/client";
+import { Button, EmptyState, setClientProductName } from "@dougbot/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createRootRouteWithContext, Link, Outlet, useRouter, useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";

@@ -11,9 +11,9 @@ import {
   useMissionReviews,
   useRetryMissionWorktree,
   useThreadMission,
-} from "@agenteschat/client";
-import { plainInline } from "@agenteschat/client/lib/markdown";
-import { lastLines } from "@agenteschat/client/lib/missions";
+} from "@dougbot/client";
+import { plainInline } from "@dougbot/client/lib/markdown";
+import { lastLines } from "@dougbot/client/lib/missions";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text as RNText, StyleSheet, View } from "react-native";
 import {

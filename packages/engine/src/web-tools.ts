@@ -1,4 +1,4 @@
-import { decodeEntities, htmlToText } from "@agenteschat/adapters";
+import { decodeEntities, htmlToText } from "@dougbot/adapters";
 import { cutText } from "./format";
 import { assertPublicHttpsUrl, outboundFetch, type ResolveHost } from "./net-guard";
 import { outboundRefusal } from "./outbound";

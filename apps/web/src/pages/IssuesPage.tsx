@@ -1,4 +1,4 @@
-import type { Actor, Issue, IssueColumn, IssuePriority, IssueStatus, IssuesView } from "@agenteschat/client";
+import type { Actor, Issue, IssueColumn, IssuePriority, IssueStatus, IssuesView } from "@dougbot/client";
 import {
   keys,
   useIssue,
@@ -9,19 +9,19 @@ import {
   useIssuesView,
   useSetIssuesView,
   useTaskUnread,
-} from "@agenteschat/client";
-import { dueLabel, dueTone, namesText, stoppedLine } from "@agenteschat/client/lib/format";
-import { githubLinkLabel } from "@agenteschat/client/lib/github-link";
-import { NO_PROJECT, projectOfFilter } from "@agenteschat/client/lib/issue-projects";
+} from "@dougbot/client";
+import { dueLabel, dueTone, namesText, stoppedLine } from "@dougbot/client/lib/format";
+import { githubLinkLabel } from "@dougbot/client/lib/github-link";
+import { NO_PROJECT, projectOfFilter } from "@dougbot/client/lib/issue-projects";
 import {
   ISSUES_VIEW_DEFAULT,
   type IssuesViewChange,
   issueInView,
   PRIORITY_ORDER,
   sortIssues,
-} from "@agenteschat/client/lib/issues-view";
-import { can } from "@agenteschat/client/lib/permissions";
-import { shownSteps } from "@agenteschat/client/lib/work";
+} from "@dougbot/client/lib/issues-view";
+import { can } from "@dougbot/client/lib/permissions";
+import { shownSteps } from "@dougbot/client/lib/work";
 import {
   AvatarStack,
   Button,
@@ -44,7 +44,7 @@ import {
   SearchField,
   Toolbar,
   WorkSweep,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { type ReactNode, useDeferredValue, useEffect, useId, useRef, useState } from "react";

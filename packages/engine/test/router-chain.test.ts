@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, setDefaultTimeout, test } from "bun:test";
-import { type MachineReplies, type MachineRequest, type RealtimeEvent, ROUTE_PROTOCOL } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { type MachineReplies, type MachineRequest, type RealtimeEvent, ROUTE_PROTOCOL } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   createAgent,
   createCredential,

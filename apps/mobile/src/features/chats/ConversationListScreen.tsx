@@ -1,6 +1,6 @@
-import { useChannelCategories } from "@agenteschat/client";
-import { rightHandOf } from "@agenteschat/client/lib/right-hand";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+import { useChannelCategories } from "@dougbot/client";
+import { rightHandOf } from "@dougbot/client/lib/right-hand";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { parseFirebaseServiceAccount, parsePemKey } from "./pem";
 
 /**
- * Every environment variable agentes.chat reads is declared here, exactly once.
+ * Every environment variable DougBot reads is declared here, exactly once.
  *
  * This list is the single source of truth for:
  * - runtime validation (see `loadConfig`)
@@ -60,7 +60,7 @@ function isOrigin(value: string): boolean {
   }
 }
 
-/** Claude model ids accepted as defaults. Prices live in `@agenteschat/providers` (`MODEL_CATALOG`). */
+/** Claude model ids accepted as defaults. Prices live in `@dougbot/providers` (`MODEL_CATALOG`). */
 const modelId = z.string().regex(/^[a-z0-9][a-z0-9.-]*$/, "must be a model id such as claude-sonnet-5-5");
 
 export const envVars = {
@@ -446,6 +446,12 @@ export const envVars = {
     section: "Agents",
     secret: true,
   },
+  PLATFORM_AI_USD_PER_MONTH: {
+    schema: z.coerce.number().positive().optional(),
+    description:
+      "What the server's own AI keys may cost each workspace in a calendar month (US$), for a workspace the operator set no cap for. Past it the workspace's agents find no platform key and the apps ask it to connect its own. Unset: no cap.",
+    section: "Agents",
+  },
   PLATFORM_ANTHROPIC_WORKSPACE_ID: {
     schema: z.string().optional(),
     description:
@@ -617,6 +623,13 @@ export const envVars = {
     schema: z.string().min(32, "must be at least 32 characters").optional(),
     description:
       "The secret this server signs its Zim Mídia calls with (HMAC, client `dougbot`). Goes with `ZIM_MEDIA_URL`; it never leaves this server.",
+    section: "Connectors",
+    secret: true,
+  },
+  EMPIRIO_API_KEY: {
+    schema: z.string().optional(),
+    description:
+      "Empirio Labs key for the house voice, optional (docs/adr/doug-0036-house-voice.md): Qwen Audio 3.1 Realtime Flash on calls, Ouvir and voice samples, paid by each workspace in Zim Mídia credits by the minute. Needs `ZIM_MEDIA_URL` and `ZIM_MEDIA_SECRET`. The apps' audio goes through this server to Empirio Labs; the key never leaves this server. Unset (default): calls use the workspace's own GPT-Live key.",
     section: "Connectors",
     secret: true,
   },
@@ -1265,7 +1278,7 @@ export const envVars = {
       .regex(/^\d{3}$/, "must be a three-digit client code such as 064")
       .optional(),
     description:
-      "This installation's client code, on a server a team runs for one client. The apps show it in Support, and an agent's `contact_support` and its email carry it, so whoever answers knows which installation to look at. It also names the client's folder under `clients/` of the source it was built from (`clients/064/`, ADR doug-0032): its `config.json` (today the product's name and the color the apps highlight; a color under 3:1 on either of the identity's stages is refused) and its `client.ts` (an `AgentesModule`) load at boot. A code with no such folder boots without overrides. Unset (default): no folder loads, and every server behaves the same.",
+      "This installation's client code, on a server a team runs for one client. The apps show it in Support, and an agent's `contact_support` and its email carry it, so whoever answers knows which installation to look at. It also names the client's folder under `clients/` of the source it was built from (`clients/064/`, ADR doug-0032): its `config.json` (today the product's name and the color the apps highlight; a color under 3:1 on either of the identity's stages is refused) and its `client.ts` (an `DougBotModule`) load at boot. A code with no such folder boots without overrides. Unset (default): no folder loads, and every server behaves the same.",
     section: "Operator",
     example: "064",
   },

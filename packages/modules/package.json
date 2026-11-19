@@ -1,5 +1,5 @@
 {
-  "name": "@agenteschat/modules",
+  "name": "@dougbot/modules",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -12,10 +12,10 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@agenteschat/adapters": "workspace:*",
-    "@agenteschat/config": "workspace:*",
-    "@agenteschat/db": "workspace:*",
-    "@agenteschat/providers": "workspace:*",
+    "@dougbot/adapters": "workspace:*",
+    "@dougbot/config": "workspace:*",
+    "@dougbot/db": "workspace:*",
+    "@dougbot/providers": "workspace:*",
     "@hono/zod-openapi": "^1.6.3",
     "zod": "^4.6.5"
   },

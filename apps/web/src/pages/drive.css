@@ -574,3 +574,147 @@ html:not([data-pointer]) .drive-row:has(.drive-hit:focus-visible) {
     max-width: none;
   }
 }
+
+/* ---------- Folders (docs/adr/doug-0036-drive-folders.md) ----------
+ * The way down to the folder open, the folders in it as tiles (Google Drive's look: an icon, the name, how many files),
+ * each a drop target for files dragged onto it, and a draft's quiet mark. */
+.drive-path {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  margin-top: calc(-1 * var(--space-1));
+}
+.drive-path__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.drive-path__step {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+.drive-path__step + .drive-path__step::before {
+  content: "›";
+  padding: 0 var(--space-1);
+  color: var(--faint);
+}
+.drive-path__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 32px;
+  padding: 0 var(--space-2);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  color: var(--muted);
+  cursor: pointer;
+  min-width: 0;
+}
+.drive-path__btn > span {
+  overflow-wrap: anywhere;
+}
+.drive-path__btn:hover,
+.drive-path__btn--over {
+  background: var(--sunken);
+  color: var(--text);
+}
+.drive-path__btn[aria-current="page"] {
+  color: var(--text);
+  font-weight: 650;
+}
+.drive-path__btn--over {
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+.drive-folders {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(212px, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.drive-folder {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  border-radius: var(--radius-lg);
+  background: var(--raised);
+  box-shadow: var(--e1), var(--top);
+  transition: box-shadow 0.2s var(--out);
+}
+.drive-folder:hover {
+  box-shadow: var(--e2), var(--top);
+}
+.drive-folder--over {
+  background: var(--chosen-bg);
+  box-shadow:
+    inset 0 0 0 1.5px var(--accent),
+    var(--e2);
+}
+html:not([data-pointer]) .drive-folder:has(.drive-hit:focus-visible) {
+  box-shadow: var(--focus-ring);
+}
+.drive-folder__open {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--space-3);
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  min-height: 56px;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  border-radius: inherit;
+}
+.drive-folder__open .ac-icon {
+  grid-row: span 2;
+  color: var(--muted);
+}
+.drive-folder__name {
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+.drive-folder__count {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.drive-folder__more {
+  position: relative;
+  z-index: var(--z-lifted);
+  flex: none;
+  margin-right: var(--space-2);
+}
+
+.drive-draft {
+  display: inline-flex;
+  align-items: center;
+  margin-top: var(--space-1);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.drive-row__sub .drive-draft {
+  margin: 0 0 0 var(--space-2);
+}
+
+.drive-move .ac-optrow__title .drive-move__name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.drive-card[draggable="true"],
+.drive-row[draggable="true"] {
+  -webkit-user-drag: element;
+}

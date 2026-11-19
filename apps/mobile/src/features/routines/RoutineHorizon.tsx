@@ -1,6 +1,6 @@
-import { type Routine, useCalendar } from "@agenteschat/client";
-import { clockHour, whenAt } from "@agenteschat/client/lib/format";
-import { runPixels } from "@agenteschat/client/lib/routine-view";
+import { type Routine, useCalendar } from "@dougbot/client";
+import { clockHour, whenAt } from "@dougbot/client/lib/format";
+import { runPixels } from "@dougbot/client/lib/routine-view";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";

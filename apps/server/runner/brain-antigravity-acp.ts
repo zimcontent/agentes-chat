@@ -1,10 +1,12 @@
 import { type ChildProcess, spawn } from "node:child_process";
 import type { EventEmitter } from "node:events";
-import type { CommandProfile } from "@agenteschat/adapters/command-policy";
-import type { BrainSteerReply } from "@agenteschat/adapters/machine-protocol";
+import type { CommandProfile } from "@dougbot/adapters/command-policy";
+import type { BrainSteerReply } from "@dougbot/adapters/machine-protocol";
 import { ACP_METHOD_NOT_FOUND, ACP_PROTOCOL_VERSION, AcpConnection, AcpError } from "./acp";
 import { AGY_NETWORK_COMMANDS } from "./agy-home";
 import {
+  AGY_VERIFY,
+  AGY_VERIFY_MESSAGE,
   type AntigravityTurnInput,
   type AntigravityTurnOptions,
   agyDenied,
@@ -562,6 +564,11 @@ export async function runAntigravityAcpTurn(t: AgyAcpSetup): Promise<"fallback" 
       });
     }
     const said = text.trimEnd();
+    // Google holds the account until a person verifies it: its card's title came as the answer.
+    if (AGY_VERIFY.test(said) && !worked) {
+      fail("not_logged_in", AGY_VERIFY_MESSAGE, true);
+      return "ended";
+    }
     const closedEarly = exit !== null && sent > answered;
     if ((promptError || closedEarly) && !said) {
       const agyError = parseAgyError(stderr);

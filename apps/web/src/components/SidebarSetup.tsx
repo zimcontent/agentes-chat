@@ -1,11 +1,11 @@
-import type { SidebarItem, SidebarPlace } from "@agenteschat/client";
+import type { SidebarItem, SidebarPlace } from "@dougbot/client";
 import {
   useAuthConfig,
   useSetSidebarItem,
   useSetSidebarToolOrder,
   useSidebarItems,
   useSidebarToolOrder,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   moveSection,
   moveShownTool,
@@ -16,8 +16,8 @@ import {
   sidebarItemOrder,
   sidebarPlace,
   sidebarSections,
-} from "@agenteschat/client/lib/sidebar-items";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/sidebar-items";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import {
   Button,
   Dialog,
@@ -27,7 +27,7 @@ import {
   type IconName,
   Segmented,
   type SegmentedOption,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import {
   cloneElement,
   type DragEvent,

@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { ApiError, type WikiGraph } from "@agenteschat/client";
+import { ApiError, type WikiGraph } from "@dougbot/client";
 import {
   outlineOf,
   prefixLines,
@@ -14,9 +14,9 @@ import {
   wikiSlug,
   wikiTree,
   wrapSelection,
-} from "@agenteschat/client/lib/wiki";
-import { readZip } from "@agenteschat/client/lib/zip";
-import { HOVER_CLOSE_MS, trackInput } from "@agenteschat/ui";
+} from "@dougbot/client/lib/wiki";
+import { readZip } from "@dougbot/client/lib/zip";
+import { HOVER_CLOSE_MS, trackInput } from "@dougbot/ui";
 import { act, cleanup, fireEvent, render, within } from "@testing-library/react";
 import { setMermaidRenderer } from "@/components/artifacts/Mermaid";
 import { graphWidth, layoutGraph, neighborsOf } from "@/components/WikiGraph";

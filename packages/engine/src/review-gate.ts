@@ -1,5 +1,5 @@
-import type { ApprovalPortal } from "@agenteschat/adapters";
-import { and, type Database, eq, inArray, or, schema, sql } from "@agenteschat/db";
+import type { ApprovalPortal } from "@dougbot/adapters";
+import { and, type Database, eq, inArray, or, schema, sql } from "@dougbot/db";
 
 const { artifacts, issues, videoReviews, videoReviewVersions } = schema;
 

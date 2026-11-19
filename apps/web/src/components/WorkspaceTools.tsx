@@ -1,7 +1,7 @@
-import { useSettings, useUpdateSettings, useWhatsApp } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
-import { WORKSPACE_TOOLS, type WorkspaceTool } from "@agenteschat/client/lib/sidebar-items";
-import { Card, CardHeader, Icon, Switch } from "@agenteschat/ui";
+import { useSettings, useUpdateSettings, useWhatsApp } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
+import { WORKSPACE_TOOLS, type WorkspaceTool } from "@dougbot/client/lib/sidebar-items";
+import { Card, CardHeader, Icon, Switch } from "@dougbot/ui";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "./org-context";
 import { SIDEBAR_TOOLS, useMediaOn, usePortalOn } from "./SidebarSetup";

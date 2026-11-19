@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeApprovalPortal } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { createFakeApprovalPortal } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   cardReviews,
   myPortalWork,

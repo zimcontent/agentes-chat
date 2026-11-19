@@ -4,11 +4,11 @@ import {
   PICTURE_IDLE_MS,
   useBrowserHandoffActions,
   useDesktopPicture,
-} from "@agenteschat/client";
-import { entryLine, entryState, pictureWhen } from "@agenteschat/client/lib/agent-computer";
-import { computerName } from "@agenteschat/client/lib/computer";
-import type { Seat } from "@agenteschat/client/lib/seat";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client";
+import { entryLine, entryState, pictureWhen } from "@dougbot/client/lib/agent-computer";
+import { computerName } from "@dougbot/client/lib/computer";
+import type { Seat } from "@dougbot/client/lib/seat";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import { Image } from "expo-image";
 import { useIsFocused } from "expo-router";
 import { useTranslation } from "react-i18next";

@@ -1,4 +1,4 @@
-import { type AgentColorName, mixHex } from "@agenteschat/ui/agent/engine";
+import { type AgentColorName, mixHex } from "@dougbot/ui/agent/engine";
 import { memo, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { Animated, usePulse } from "@/sky/Dither";

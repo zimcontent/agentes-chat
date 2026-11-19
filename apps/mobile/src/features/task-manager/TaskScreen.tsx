@@ -1,6 +1,6 @@
-import type { EndedTask, ManagedTask } from "@agenteschat/client";
-import { endedState, endedText, linePlace, taskState, taskTitle } from "@agenteschat/client/lib/task-manager";
-import { formatDuration } from "@agenteschat/client/lib/work";
+import type { EndedTask, ManagedTask } from "@dougbot/client";
+import { endedState, endedText, linePlace, taskState, taskTitle } from "@dougbot/client/lib/task-manager";
+import { formatDuration } from "@dougbot/client/lib/work";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";

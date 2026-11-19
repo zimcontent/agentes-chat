@@ -6,7 +6,7 @@ import {
   useAddChannelMember,
   useChannels,
   useWidenAudience,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   audienceWith,
   audienceWithMe,
@@ -14,11 +14,11 @@ import {
   modeOf,
   opensOthersPlan,
   widenQuestion,
-} from "@agenteschat/client/lib/audience";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { can } from "@agenteschat/client/lib/permissions";
-import { type ReachEntry, reachKey, reachOf, reachOpens } from "@agenteschat/client/lib/reach";
-import { Button, Dialog, DialogFooter, Icon } from "@agenteschat/ui";
+} from "@dougbot/client/lib/audience";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { can } from "@dougbot/client/lib/permissions";
+import { type ReachEntry, reachKey, reachOf, reachOpens } from "@dougbot/client/lib/reach";
+import { Button, Dialog, DialogFooter, Icon } from "@dougbot/ui";
 import { type SyntheticEvent, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { ConsultPairRow, useConsultById } from "@/components/ConsultGroup";

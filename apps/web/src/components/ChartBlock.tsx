@@ -1,4 +1,4 @@
-import { type ChartSpec, chartShares, chartTable, formatChartValue, parseChart } from "@agenteschat/client/lib/chart";
+import { type ChartSpec, chartShares, chartTable, formatChartValue, parseChart } from "@dougbot/client/lib/chart";
 import {
   type AgentColor,
   Button,
@@ -10,7 +10,7 @@ import {
   paintLineArea,
   useElementWidth,
   widgetTones,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import {
   barCells,
   CHART_CELL,
@@ -20,8 +20,8 @@ import {
   linePoints,
   ringCells,
   smoothPath,
-} from "@agenteschat/ui/sky/chart";
-import { chartBlockToWidgetSpec } from "@agenteschat/ui/widgets/spec";
+} from "@dougbot/ui/sky/chart";
+import { chartBlockToWidgetSpec } from "@dougbot/ui/widgets/spec";
 import {
   type CSSProperties,
   createContext,

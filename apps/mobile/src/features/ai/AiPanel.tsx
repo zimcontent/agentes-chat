@@ -1,12 +1,12 @@
-import type { Agent, Model } from "@agenteschat/client";
+import type { Agent, Model } from "@dougbot/client";
 import {
   type AccountBar,
   type AccountCard,
   type AccountStanding,
   agentModelChip,
   renewsWhen,
-} from "@agenteschat/client/lib/ai-panel";
-import { agentThinks } from "@agenteschat/client/lib/brain";
+} from "@dougbot/client/lib/ai-panel";
+import { agentThinks } from "@dougbot/client/lib/brain";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

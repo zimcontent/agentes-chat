@@ -1,5 +1,5 @@
-import { instanceQuery, useApi } from "@agenteschat/client";
-import { CLOUD_SERVER, serverHost } from "@agenteschat/client/lib/server";
+import { instanceQuery, useApi } from "@dougbot/client";
+import { CLOUD_SERVER, serverHost } from "@dougbot/client/lib/server";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";

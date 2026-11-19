@@ -1,4 +1,4 @@
-import type { ConnectorDef } from "@agenteschat/client";
+import type { ConnectorDef } from "@dougbot/client";
 import {
   keys,
   useAgents,
@@ -9,16 +9,16 @@ import {
   useMembers,
   useSkill,
   useSkills,
-} from "@agenteschat/client";
-import { type Level, saveLevels } from "@agenteschat/client/lib/access-levels";
-import { errorText as failureText } from "@agenteschat/client/lib/errors";
-import { FIELD_LIMITS } from "@agenteschat/client/lib/field-limits";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { useHeldWhile } from "@agenteschat/client/lib/hold";
-import { addsAgentsTo, can } from "@agenteschat/client/lib/permissions";
-import { connectorName, scopeText } from "@agenteschat/client/lib/scopes";
-import { skillsToGive } from "@agenteschat/client/lib/skills";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client";
+import { type Level, saveLevels } from "@dougbot/client/lib/access-levels";
+import { errorText as failureText } from "@dougbot/client/lib/errors";
+import { FIELD_LIMITS } from "@dougbot/client/lib/field-limits";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { useHeldWhile } from "@dougbot/client/lib/hold";
+import { addsAgentsTo, can } from "@dougbot/client/lib/permissions";
+import { connectorName, scopeText } from "@dougbot/client/lib/scopes";
+import { skillsToGive } from "@dougbot/client/lib/skills";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import {
   type AgentColor,
   type AgentFullLook,
@@ -40,7 +40,7 @@ import {
   randomAppearance,
   setGaze,
   spriteTone,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -72,6 +72,7 @@ import { useMediaQuery } from "@/components/NavDrawer";
 import { useOrg } from "@/components/org-context";
 import { ImageCropDialog } from "@/components/ProfilePhoto";
 import { agentCoverOptions, facePool } from "@/components/Sky";
+import { useStillBusy } from "@/hooks/useStillBusy";
 import { useTextLimit } from "@/hooks/useTextLimit";
 import {
   BLANK_LOOK,
@@ -95,6 +96,7 @@ import { AppsPickerDialog } from "./AppsPicker";
 import { useNewAgentBrain } from "./useNewAgentBrain";
 import "../team-plan.css";
 import "./new-agent-card.css";
+import { NEW_AGENT_EVENT } from "@/components/shell-events";
 
 /** "Trazer agentes de outro app", loaded when it opens: every app's reader stays out of the app's first load. */
 const ImportAgentsDialog = lazy(() => import("./ImportAgentsDialog").then((m) => ({ default: m.ImportAgentsDialog })));
@@ -287,11 +289,8 @@ export function CreateAgentLink() {
   );
 }
 
-/**
- * Who sits outside the dialog's provider asks through this event: the Mac menu bar's New agent (`MenuBarActions`), and
- * Connect AI's "Criar um agente com este plano" (a `CustomEvent` whose `detail` is the request).
- */
-export const NEW_AGENT_EVENT = "agentes:new-agent";
+// Doug: NEW_AGENT_EVENT lives in shell-events.ts, so the menu bar can ask without loading this dialog (see there).
+export { NEW_AGENT_EVENT };
 
 /** The ready-made words of a starting point: a personal starter's (`teamTemplates.agents`) or a role's. */
 const isStarter = (pick: Pick): pick is PersonalStarter["id"] => PERSONAL_STARTERS.some((s) => s.id === pick);
@@ -414,6 +413,8 @@ function NewAgentDialog({
   const [pending, setPending] = useState<string | null>(null);
   const [appOpen, setAppOpen] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Doug: after a while the dialog says it is still creating, so a slow create does not look stuck.
+  const slow = useStillBusy(busy);
   const [addingSkills, setAddingSkills] = useState(false);
   const [skillOpen, setSkillOpen] = useState<string | null>(null);
   // Name ideas for an agent from scratch: which three show, and the one pointed at (tried on in the bubble).
@@ -1228,6 +1229,11 @@ function NewAgentDialog({
         {steps && step === "card" ? (
           // Narrow, the card's step ends on Create alone, the width of the sheet.
           <DialogFooter className="nac__foot nac__foot--create">
+            {slow && (
+              <span className="nac__slow" role="status">
+                {t("newAgentCard.stillCreating")}
+              </span>
+            )}
             <Button variant="primary" block loading={busy} disabled={!ready} onClick={() => void submit()}>
               {name ? t("newAgentCard.create", { name }) : t("newAgentCard.createBlank")}
             </Button>
@@ -1243,6 +1249,11 @@ function NewAgentDialog({
                   <Icon name="download" size={16} />
                   {t("newAgentCard.import")}
                 </button>
+                {slow && (
+                  <span className="nac__slow" role="status">
+                    {t("newAgentCard.stillCreating")}
+                  </span>
+                )}
                 {!brain.hasAi && connectAi && (
                   <Button size="sm" icon="bolt" onClick={() => connectAi.open({ forNewAgent: true })}>
                     {t("noAi.banner.orgAction")}

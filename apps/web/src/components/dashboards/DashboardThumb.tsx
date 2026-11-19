@@ -1,6 +1,6 @@
-import type { DashboardSummary } from "@agenteschat/client";
-import { useDarkTheme, widgetTileVars } from "@agenteschat/ui";
-import { BOARD_COLUMNS } from "@agenteschat/ui/widgets/spec";
+import type { DashboardSummary } from "@dougbot/client";
+import { useDarkTheme, widgetTileVars } from "@dougbot/ui";
+import { BOARD_COLUMNS } from "@dougbot/ui/widgets/spec";
 import { useOrg } from "@/components/org-context";
 import { botColorOf } from "@/components/Sky";
 import { useDirectory } from "@/hooks/useDirectory";

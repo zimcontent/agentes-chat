@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
-import { systemText } from "@agenteschat/providers";
+import { eq, schema } from "@dougbot/db";
+import { systemText } from "@dougbot/providers";
 import {
   buildRunContext,
   CONTINUE_THE_CONVERSATION,

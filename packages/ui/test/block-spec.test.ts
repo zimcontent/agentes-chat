@@ -9,6 +9,7 @@ import {
   formatBlockValue,
   inputValue,
   parseBlockSpec,
+  specActs,
   viewBlock,
 } from "../src/blocks/spec";
 
@@ -119,7 +120,7 @@ describe("a block's spec", () => {
       'compute.b: there is no value "a"',
     );
     wrong({ parts: [{ type: "slider", name: "a", label: "A", min: 5, max: 1 }] }, "max must be more than min");
-    wrong({ parts: [{ type: "actions", buttons: [{ label: "Nada" }] }] }, "needs set, draw or say");
+    wrong({ parts: [{ type: "actions", buttons: [{ label: "Nada" }] }] }, "needs set, draw, say, act or open");
     expect(() => parseBlockSpec({ parts: [{ type: "stat", label: "X", value: "a +" }] })).toThrow(BlockSpecError);
   });
 
@@ -290,7 +291,7 @@ describe("copy parts: a carousel, a static post, a reel", () => {
       BlockSpecError,
     );
     expect(() => parseBlockSpec({ parts: [{ type: "actions", buttons: [{ label: "Nada" }] }] })).toThrow(
-      /set, draw or say/,
+      /set, draw, say, act or open/,
     );
     expect(() => parseBlockSpec({ parts: [{ type: "slides", items: [] }] })).toThrow(/1 to 20 slides/);
     expect(() => parseBlockSpec({ parts: [{ type: "copy", text: "{nada}" }] })).toThrow(/no value "nada"/);
@@ -300,5 +301,94 @@ describe("copy parts: a carousel, a static post, a reel", () => {
     const text = blockSpecText(parseBlockSpec(CAROUSEL));
     for (const w of ["Carrossel", "Comenta PREÇO", "Editado em 48h.", "O CORTE", "#edicao", "Aprovar"])
       expect(text).toContain(w);
+  });
+});
+
+describe("sector cards' parts (docs/adr/doug-0020-doug-sector-cards.md)", () => {
+  const card = {
+    parts: [
+      { type: "source", service: "whatsapp", title: "WhatsApp", count: "4 novas" },
+      { type: "text", text: "Um lead novo perguntou preço. Eu respondo?" },
+      {
+        type: "actions",
+        align: "start",
+        buttons: [
+          { label: "Responder", act: "reply", primary: true },
+          { label: "Eu respondo", act: "mine" },
+          { label: "Ver conversa", open: { place: "whatsapp", id: "a1", sub: "c1" } },
+        ],
+      },
+    ],
+  };
+
+  test("a source, buttons with an action, a place and a primary one", () => {
+    const spec = parseBlockSpec(card);
+    expect(specActs(spec)).toEqual(["reply", "mine"]);
+    const view = viewBlock(compileBlock(spec), {}, words);
+    expect(view.errors).toEqual([]);
+    expect(view.parts[0]).toEqual({
+      key: "parts.0",
+      kind: "source",
+      service: "whatsapp",
+      title: "WhatsApp",
+      count: "4 novas",
+    });
+    const row = view.parts[2];
+    if (row?.kind !== "actions") throw new Error("no row");
+    expect(row.chosen).toBe(true);
+    expect(row.buttons.map((b) => [b.label, b.lead, b.act, b.done, b.open?.place ?? null])).toEqual([
+      ["Responder", true, "reply", false, null],
+      ["Eu respondo", false, "mine", false, null],
+      ["Ver conversa", false, null, false, "whatsapp"],
+    ]);
+  });
+
+  test("what the server ran shows on its button, for everyone", () => {
+    const view = viewBlock(compileBlock(parseBlockSpec(card)), { _acted: { mine: "done" } }, words);
+    const row = view.parts[2];
+    if (row?.kind !== "actions") throw new Error("no row");
+    expect(row.buttons.map((b) => b.done)).toEqual([false, true, false]);
+  });
+
+  test("a day's agenda, with its colors and a link", () => {
+    const spec = parseBlockSpec({
+      parts: [
+        { type: "source", service: "calendar", title: "Agenda · quarta, 19" },
+        {
+          type: "agenda",
+          items: [
+            { time: "10:00", title: "Call", sub: "10:00 – 10:30 · Google Meet", tone: "blue" },
+            { time: "17:00", title: "Entrega" },
+          ],
+          note: "A pauta da call das 10h está pronta.",
+          link: { label: "Abrir pauta", open: { place: "link", href: "https://example.com/pauta" } },
+        },
+      ],
+    });
+    const agenda = viewBlock(compileBlock(spec), {}, words).parts[1];
+    expect(agenda).toEqual({
+      key: "parts.1",
+      kind: "agenda",
+      items: [
+        { time: "10:00", title: "Call", sub: "10:00 – 10:30 · Google Meet", tone: "blue" },
+        { time: "17:00", title: "Entrega", sub: "", tone: "blue" },
+      ],
+      note: "A pauta da call das 10h está pronta.",
+      link: { label: "Abrir pauta", open: { place: "link", href: "https://example.com/pauta" } },
+    });
+    expect(blockSpecText(spec)).toContain("Entrega");
+  });
+
+  test("refused: an unknown service, a tone, a place, an address that isn't https, the server's own name", () => {
+    const bad = [
+      { parts: [{ type: "source", service: "fax", title: "x" }] },
+      { parts: [{ type: "agenda", items: [{ time: "1", title: "x", tone: "pink" }] }] },
+      { parts: [{ type: "actions", buttons: [{ label: "x", open: { place: "settings" } }] }] },
+      { parts: [{ type: "actions", buttons: [{ label: "x", open: { place: "link", href: "javascript:alert(1)" } }] }] },
+      { parts: [{ type: "actions", buttons: [{ label: "x", open: { place: "whatsapp", id: "a/b" } }] }] },
+      { parts: [{ type: "actions", buttons: [{ label: "x", act: "no way" }] }] },
+      { state: { _acted: {} }, parts: [{ type: "actions", buttons: [{ label: "x", act: "go" }] }] },
+    ];
+    for (const raw of bad) expect(() => parseBlockSpec(raw)).toThrow(BlockSpecError);
   });
 });

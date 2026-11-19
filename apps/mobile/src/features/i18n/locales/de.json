@@ -23,7 +23,13 @@
     "itsChannels": "Gruppen",
     "seeAll": "Alle ansehen"
   },
+  "sectorPills": {
+    "label": "Kurzbefehle",
+    "failed": "Die Karte kam nicht an. Versuch es noch einmal."
+  },
   "blocks": {
+    "done": "Erledigt",
+    "actFailed": "Das hat nicht geklappt. Versuch es noch einmal.",
     "send": "Senden",
     "more": "Mehr",
     "thousand": "Tsd.",
@@ -44,7 +50,20 @@
     "pollMultiple": "Du kannst mehrere auswählen.",
     "pollAnswered_one": "{{count}} von {{total}} hat geantwortet",
     "pollAnswered_other": "{{count}} von {{total}} haben geantwortet",
-    "voteFailed": "Deine Stimme wurde nicht gezählt."
+    "voteFailed": "Deine Stimme wurde nicht gezählt.",
+    "openPiece": "Groß öffnen",
+    "openSlide": "Folie {{at}} öffnen",
+    "pieceAt": "{{at}} von {{count}}",
+    "carouselTitle": "Karussell",
+    "posterTitle": "Statischer Post",
+    "reelTitle": "Reel-Skript",
+    "aboutSlide": "Folie {{at}} („{{title}}“)",
+    "aboutPoster": "den statischen Post („{{title}}“)",
+    "aboutBeat": "den Abschnitt {{time}} des Reels",
+    "noteMessage": "Zu {{about}}: {{note}}",
+    "notePlaceholder": "Notiz zu {{about}}",
+    "noteLabel": "Deine Notiz",
+    "noteSent": "An {{name}} gesendet"
   },
   "choices": {
     "step": "{{step}} von {{total}}",
@@ -2469,6 +2488,16 @@
     "week": "Woche",
     "month": "Monat",
     "sheet": {
+      "nowTitle": "Jetzt",
+      "account": "Konto",
+      "model": "Modell",
+      "effort": "Aufwand",
+      "context": "Kontext",
+      "contextFull": "Das ganze Fenster des Modells",
+      "autoPerTask": "für jede Aufgabe gewählt",
+      "autoLine": "Wählt Modell und Aufwand für jede Aufgabe, im selben Konto.",
+      "switchTitle": "Wechseln zu",
+      "on": "auf {{place}}",
       "title": "KI von {{name}} wechseln",
       "title_female": "KI von {{name}} wechseln",
       "smart": "Am klügsten",

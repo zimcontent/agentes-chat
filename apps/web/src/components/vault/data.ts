@@ -9,7 +9,7 @@ import type {
   VaultKeysImportInput,
   VaultKeysImportResult,
   VaultScope,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   useConnectVault,
   useCreateVaultItem,
@@ -21,8 +21,8 @@ import {
   useSyncVaultConnection,
   useUpdateVaultConnection,
   useUpdateVaultItem,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/lib/toast";
 

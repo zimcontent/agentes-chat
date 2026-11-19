@@ -1,5 +1,5 @@
-import { useRemoveAgentPhoto, useSetAgentPhoto } from "@agenteschat/client";
-import { Button } from "@agenteschat/ui";
+import { useRemoveAgentPhoto, useSetAgentPhoto } from "@dougbot/client";
+import { Button } from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";

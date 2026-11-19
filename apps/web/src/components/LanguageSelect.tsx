@@ -1,5 +1,5 @@
-import { type AppLocale, isAppLocale } from "@agenteschat/i18n/locale";
-import { Select } from "@agenteschat/ui";
+import { type AppLocale, isAppLocale } from "@dougbot/i18n/locale";
+import { Select } from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { chooseLocale, detectedLocale, locales, readLocaleState } from "@/i18n";

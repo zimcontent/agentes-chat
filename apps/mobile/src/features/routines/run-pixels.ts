@@ -1,9 +1,9 @@
-import type { RunStatus } from "@agenteschat/client/lib/calendar";
-import { AGENT_GRADIENTS, type AgentColorName, bodyTones, mixHex, spriteGrid } from "@agenteschat/ui/agent/engine";
+import type { RunStatus } from "@dougbot/client/lib/calendar";
+import { AGENT_GRADIENTS, type AgentColorName, bodyTones, mixHex, spriteGrid } from "@dougbot/ui/agent/engine";
 import { CellGrid, type CellRun, column } from "../browser/trail-pixels";
 
 /**
- * A routine's runs in pixels on the phone, the web's drawings (`RunStrip` and `RunLane` in `@agenteschat/ui`
+ * A routine's runs in pixels on the phone, the web's drawings (`RunStrip` and `RunLane` in `@dougbot/ui`
  * `RunPixels.tsx`) as cell lists a Skia canvas replays (./RunPixels.tsx): each run a dithered column in the
  * agent's tones as tall as its cost (`weight`), nothing new a stub, a failure in the danger tone, a skip a short
  * warm one; a run at work flickers in the sky's light. On the horizon, a lane per routine: a dotted line, the

@@ -1,4 +1,4 @@
-import { and, type Database, desc, type Executor, eq, gt, gte, inArray, ne, schema } from "@agenteschat/db";
+import { and, type Database, desc, type Executor, eq, gt, gte, inArray, ne, schema } from "@dougbot/db";
 import { RULE_REMOVED_AUDIT } from "../approval-rules";
 import { connectorScope } from "../connectors/catalog";
 import { type ConnectorConnection, type ConnectorDeps, connectionHeaders } from "../connectors/connections";

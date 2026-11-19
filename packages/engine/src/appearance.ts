@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
-import type { BlobStore, PubSub } from "@agenteschat/adapters";
-import { and, type Database, eq, schema } from "@agenteschat/db";
-import { isLiveVoice, LIVE_VOICES } from "@agenteschat/providers/live-voice";
+import type { BlobStore, PubSub } from "@dougbot/adapters";
+import { and, type Database, eq, schema } from "@dougbot/db";
+import { HOUSE_VOICES, isHouseVoice, isLiveVoice, LIVE_VOICES } from "@dougbot/providers/live-voice";
 import { type Agent, getAgent } from "./agents";
 import { recordAudit } from "./audit";
 import { sniffImage, stripImageMetadata } from "./avatars";
@@ -244,7 +244,8 @@ export async function agentPhotoFile(
 
 /**
  * Its voice on calls and when it tells a message (ADR doug-0006): like its look, its owner or an admin picks it. Null
- * goes back to the one its id gives.
+ * goes back to the one its id gives. `engine: "house"` sets its house voice instead (docs/adr/doug-0036-house-voice.md):
+ * the two engines' voices are their own, and an agent keeps one of each.
  */
 export async function setAgentVoice(
   db: Database,
@@ -252,7 +253,7 @@ export async function setAgentVoice(
   orgId: string,
   agentId: string,
   voice: string | null,
-  options: { pubsub?: PubSub } = {},
+  options: { pubsub?: PubSub; engine?: "gpt-live" | "house" } = {},
 ): Promise<Agent> {
   const membership = await requirePermission(db, actorId, orgId, "read");
   const agent = await getAgent(db, orgId, agentId);
@@ -260,11 +261,12 @@ export async function setAgentVoice(
   if (!can(membership, "manage_agents") && !(agent.ownerUserId && agent.ownerUserId === actorId)) {
     throw new ForbiddenError("Only the agent's owner or an admin can change its voice");
   }
-  if (voice !== null && !isLiveVoice(voice))
-    throw new ValidationError(`voice must be one of: ${LIVE_VOICES.join(", ")}`);
+  const house = options.engine === "house";
+  if (voice !== null && (house ? !isHouseVoice(voice) : !isLiveVoice(voice)))
+    throw new ValidationError(`voice must be one of: ${(house ? HOUSE_VOICES : LIVE_VOICES).join(", ")}`);
   const [updated] = await db
     .update(agents)
-    .set({ voice, updatedAt: new Date() })
+    .set({ ...(house ? { houseVoice: voice } : { voice }), updatedAt: new Date() })
     .where(and(eq(agents.id, agentId), eq(agents.orgId, orgId)))
     .returning();
   if (!updated) throw new NotFoundError("Agent not found");
@@ -275,7 +277,7 @@ export async function setAgentVoice(
     actor: { type: "person", id: actorId },
     action: "agent.voice_changed",
     target: { type: "agent", id: agentId },
-    details: { from: agent.voice, to: voice },
+    details: { from: house ? agent.houseVoice : agent.voice, to: voice, engine: house ? "house" : "gpt-live" },
   });
   await publishAgentsChanged(options.pubsub, orgId);
   return updated;

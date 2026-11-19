@@ -8,17 +8,18 @@
  * their own for a person who owns several workspaces: their agents of the same handle there (`autoLinkTwins`).
  */
 import { createHash } from "node:crypto";
-import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, eq, inArray, isNull, lt, or, rowsOf, schema, sql } from "@agenteschat/db";
-import { joinInstructions, mergeInstructions } from "./agent-twins-merge";
+import type { PubSub } from "@dougbot/adapters";
+import { and, type Database, eq, inArray, isNull, lt, or, rowsOf, schema, sql } from "@dougbot/db";
+import { insertAnchored, joinInstructions, mergeInstructions } from "./agent-twins-merge";
 import { recordAudit } from "./audit";
 import { invalidateOrg } from "./cache";
 import { type CarryDeps, carrySkill, connectionIn } from "./carry";
-import { insertContextItem, isAccess, normalizeSubject } from "./context/items";
+import { insertContextItem, isAccess, memoryReach, normalizeSubject } from "./context/items";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "./errors";
 import { publishAgentsChanged } from "./events";
 import { can, getMembership, listMemberships } from "./organizations";
 import { enqueueIndex } from "./search";
+import { CRAFT_SET, type Fence, fenceFor, separateOrgs } from "./separate-operation";
 import { openOrg } from "./standing";
 import { grantScopes } from "./tools/scopes";
 
@@ -43,9 +44,10 @@ export const TWIN_PROFILE = [
 type ProfileField = (typeof TWIN_PROFILE)[number];
 
 /**
- * The memory that travels: what the agent knows and was taught, about its work or a person. Summaries of one
+ * The memory that may travel: what the agent knows and was taught, about its work or a person. Summaries of one
  * workspace's conversations, open questions and who holds what there stay, and so does anything read from a channel
- * (`channel_ids`): only that workspace's members may read it, and the channel isn't in the others.
+ * (`channel_ids`): only that workspace's members may read it, and the channel isn't in the others. Of these, only the
+ * craft goes (`memoryReach`, addendum 2026-11-19): a workspace's facts, decisions and people stay in it.
  */
 export const TWIN_MEMORY_KINDS = [
   "fact",
@@ -56,6 +58,17 @@ export const TWIN_MEMORY_KINDS = [
   "rule",
   "entity_profile",
 ] as const;
+
+/**
+ * How far a memory goes among the agent's copies, for the agent's page: `all` or `here`, or null for one that never
+ * leaves its workspace whatever it says (read from a channel, a summary, the team's, who holds what).
+ */
+export function twinReachOf(item: ItemRow): "all" | "here" | null {
+  const kinds: readonly string[] = TWIN_MEMORY_KINDS;
+  if (!item.agentId || !kinds.includes(item.kind) || item.channelIds.length > 0) return null;
+  if (item.scopeType !== "agent" && item.scopeType !== "person") return null;
+  return isAccess(item) ? null : memoryReach(item);
+}
 
 /** How many memories one sync copies at most: the rest come with the next one. */
 const COPIES_PER_SYNC = 2000;
@@ -268,6 +281,8 @@ export interface TwinView {
   off: boolean;
   syncedAt: Date | null;
   missing: { orgName: string; kind: "connection" | "skill"; label: string }[];
+  /** A separate operation among its workspaces (docs/adr/doug-0035): only the craft crosses. */
+  craftOnly: boolean;
 }
 
 const mayManage = (m: Awaited<ReturnType<typeof getMembership>>, a: Pick<AgentRow, "ownerUserId">, userId: string) =>
@@ -341,6 +356,7 @@ export async function agentTwinView(db: Database, userId: string, orgId: string,
     missing: missing
       .filter((m) => orgOfAgent.has(m.agentId))
       .map((m) => ({ orgName: orgOfAgent.get(m.agentId) as string, kind: m.kind, label: m.label })),
+    craftOnly: group.length > 1 && (await separateOrgs(db, [...new Set(group.map((g) => g.agent.orgId))])).size > 0,
   };
 }
 
@@ -402,6 +418,9 @@ async function fingerprintOf(db: Database, ids: string[]): Promise<string> {
   const rows = rowsOf<{ f: string }>(
     await db.execute(sql`
     select md5(coalesce(string_agg(x, ',' order by x), '')) as f from (
+      -- The rules' version: a group syncs once again when what travels changes (addendum 2026-11-19).
+      select 'v2' as x
+      union all
       select a.id::text || md5(a.name || '|' || a.role || '|' || a.instructions || '|' || coalesce(a.appearance::text, '')
         || '|' || coalesce(a.voice, '') || '|' || coalesce(a.live_call_notes, '') || '|' || a.media_replies::text) as x
         from agents a where a.id in (${list})
@@ -458,11 +477,23 @@ export async function syncTwins(deps: TwinDeps, twinId: string): Promise<TwinSyn
     const touched = new Set<string>();
     const missing: TwinBase["missing"] = [];
 
+    // A separate operation among the copies: only the craft crosses, both ways (docs/adr/doug-0035).
+    const fence = await fenceFor(
+      db,
+      members.map((m) => m.agent.orgId),
+    );
+
     // 1. The profile.
-    const profile = syncedProfile(base.profile, members);
+    const profile = syncedProfile(base.profile, members, fence);
     for (const m of members) {
       const patch: Partial<Record<ProfileField, unknown>> = {};
-      for (const field of TWIN_PROFILE) if (!same(m.agent[field], profile[field])) patch[field] = profile[field];
+      for (const field of profileFields(fence)) {
+        const want =
+          field === "instructions" && fence.on
+            ? fencedInstructions(String(profile.instructions ?? ""), m, members, fence)
+            : profile[field];
+        if (!same(m.agent[field], want)) patch[field] = want;
+      }
       if (Object.keys(patch).length === 0) continue;
       await db
         .update(agents)
@@ -474,19 +505,19 @@ export async function syncTwins(deps: TwinDeps, twinId: string): Promise<TwinSyn
     base.profile = profile;
 
     // 2. Memory.
-    const memory = await syncMemory(db, members);
+    const memory = await syncMemory(db, members, fence, twin.createdAt);
     result.memories = memory.changed;
     if (memory.changed > 0) for (const m of members) touched.add(m.agent.orgId);
 
     // 3. Skills.
-    const skillSync = await syncSkills(deps, actor, members, base, missing);
+    const skillSync = await syncSkills(deps, actor, members, base, missing, fence);
     result.skills = skillSync.changed;
     base.skills = skillSync.sets;
     base.skillText = skillSync.text;
     if (skillSync.changed > 0) for (const m of members) touched.add(m.agent.orgId);
 
     // 4. What it may use.
-    const scopeSync = await syncScopes(deps, actor, members, base, missing);
+    const scopeSync = await syncScopes(deps, actor, members, base, missing, fence);
     result.scopes = scopeSync.changed;
     base.scopes = scopeSync.sets;
     if (scopeSync.changed > 0) for (const m of members) touched.add(m.agent.orgId);
@@ -511,13 +542,27 @@ export async function syncTwins(deps: TwinDeps, twinId: string): Promise<TwinSyn
 
 type Member = Awaited<ReturnType<typeof membersOf>>[number];
 
-/** The profile every copy gets: one change is everyone's; several, the newest (the instructions merged by line). */
-function syncedProfile(base: TwinBase["profile"], members: Member[]): Record<ProfileField, unknown> {
+/** The profile fields that cross: with a separate operation, an agent's notes for calls stay each company's. */
+const profileFields = (fence: Fence) => (fence.on ? TWIN_PROFILE.filter((f) => f !== "liveCallNotes") : TWIN_PROFILE);
+
+/**
+ * The profile every copy gets: one change is everyone's; several, the newest (the instructions merged by line). With
+ * a separate operation the instructions here are only the lines that cross (`craftLines`); each copy keeps its own
+ * on top (`fencedInstructions`).
+ */
+function syncedProfile(base: TwinBase["profile"], members: Member[], fence: Fence): Record<ProfileField, unknown> {
   const out = {} as Record<ProfileField, unknown>;
   const at = (m: Member) => m.agent.updatedAt.getTime();
   for (const field of TWIN_PROFILE) {
+    if (field === "liveCallNotes" && fence.on) {
+      out[field] = base?.[field];
+      continue;
+    }
     if (field === "instructions") {
-      const versions = members.map((m) => ({ text: m.agent.instructions, at: at(m) }));
+      const versions = members.map((m) => ({
+        text: fence.on ? craftLines(m, members, fence).join("\n") : m.agent.instructions,
+        at: at(m),
+      }));
       out.instructions =
         base && typeof base.instructions === "string"
           ? mergeInstructions(base.instructions, versions)
@@ -533,6 +578,33 @@ function syncedProfile(base: TwinBase["profile"], members: Member[]): Record<Pro
     out[field] = newest.agent[field];
   }
   return out;
+}
+
+/** Whether a line of a copy's instructions names something another copy's workspace doesn't know: it stays here. */
+const staysIn = (line: string, m: Member, members: Member[], fence: Fence) =>
+  members.some((o) => o.agent.orgId !== m.agent.orgId && fence.foreignTo(line, o.agent.orgId));
+
+/** A copy's lines that cross to every other copy (what names another company's, that came here before, is left out). */
+function craftLines(m: Member, members: Member[], fence: Fence): string[] {
+  return m.agent.instructions
+    .split("\n")
+    .filter((line) => !fence.foreignTo(line, m.agent.orgId) && !staysIn(line, m, members, fence));
+}
+
+/**
+ * A copy's instructions under a separate operation: the lines every copy shares, plus its own lines that name its
+ * company, each back after the line it followed. A line naming another company that came here before is dropped.
+ */
+function fencedInstructions(shared: string, m: Member, members: Member[], fence: Fence): string {
+  const mine = m.agent.instructions.split("\n").filter((line) => !fence.foreignTo(line, m.agent.orgId));
+  const out = shared.split("\n");
+  mine.forEach((line, i) => {
+    const key = line.trim();
+    if (!key || !staysIn(line, m, members, fence)) return;
+    if (out.some((l) => l.trim() === key)) return;
+    insertAnchored(out, mine, i, line);
+  });
+  return out.join("\n");
 }
 
 /** A memory as another copy's: its own agent and workspace, without the sources and links only its workspace has. */
@@ -553,6 +625,7 @@ async function copyMemory(db: Database, item: ItemRow, to: AgentRow, twinKey: st
     createdByKind: item.createdByKind as "job" | "agent" | "person",
     createdById: item.createdById,
     disputed: item.disputed,
+    reach: item.reach,
   });
   await db
     .update(contextItems)
@@ -564,10 +637,21 @@ async function copyMemory(db: Database, item: ItemRow, to: AgentRow, twinKey: st
  * Every copy holds the same memories: one learned in one copy is copied to the others (`twin_key` ties them), and one
  * archived (forgotten, replaced by a newer version) or brought back in one is so in all. Memories the copies already
  * shared before they were joined are tied, not copied again.
+ *
+ * With a separate operation among them (docs/adr/doug-0035) only the craft crosses: a lesson, rule or preference that
+ * names nothing the other company doesn't know, about a person who is there. The copies of anything else already made
+ * since the group was joined are taken back (the original stays where it was learned), and what each copy knew on its
+ * own is untied, so forgetting it in one company doesn't touch the other.
  */
-async function syncMemory(db: Database, members: Member[]): Promise<{ changed: number; more: boolean }> {
+async function syncMemory(
+  db: Database,
+  members: Member[],
+  fence: Fence,
+  since: Date,
+): Promise<{ changed: number; more: boolean }> {
   const ids = members.map((m) => m.agent.id);
-  const rows = (
+  const copyOf = new Map(members.map((m) => [m.agent.id, m]));
+  let rows = (
     await db
       .select()
       .from(contextItems)
@@ -580,12 +664,69 @@ async function syncMemory(db: Database, members: Member[]): Promise<{ changed: n
         ),
       )
   ).filter((r) => !isAccess(r));
+  const textOf = (r: ItemRow) => `${r.title}\n${r.content}`;
+  /** Whether `r` may be held by copy `to`: always, unless a separate operation keeps it in its company. */
+  const mayCross = (r: ItemRow, to: Member | undefined) =>
+    !fence.on ||
+    (to !== undefined &&
+      CRAFT_SET.has(r.kind) &&
+      !fence.foreignTo(textOf(r), to.agent.orgId) &&
+      (r.scopeType !== "person" || !r.scopeId || fence.memberOf(r.scopeId, to.agent.orgId)));
+  let changed = 0;
+
+  if (fence.on) {
+    const families = new Map<string, ItemRow[]>();
+    for (const r of rows) if (r.twinKey) families.set(r.twinKey, [...(families.get(r.twinKey) ?? []), r]);
+    const takeBack: ItemRow[] = [];
+    const untie: ItemRow[] = [];
+    for (const list of families.values()) {
+      const first = [...list].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())[0] as ItemRow;
+      for (const r of list) {
+        if (r.id === first.id) continue;
+        const copied = r.orgId !== first.orgId && r.createdAt.getTime() >= since.getTime();
+        if (copied && !mayCross(first, copyOf.get(r.agentId ?? ""))) takeBack.push(r);
+      }
+      if (!CRAFT_SET.has(first.kind)) for (const r of list) if (!takeBack.includes(r)) untie.push(r);
+    }
+    if (takeBack.length > 0) {
+      await db.delete(contextItems).where(
+        inArray(
+          contextItems.id,
+          takeBack.map((r) => r.id),
+        ),
+      );
+      for (const r of takeBack) await enqueueIndex(db, { orgId: r.orgId, kind: "context_item", sourceId: r.id });
+      changed += takeBack.length;
+    }
+    if (untie.length > 0) {
+      await db
+        .update(contextItems)
+        .set({ twinKey: null })
+        .where(
+          inArray(
+            contextItems.id,
+            untie.map((r) => r.id),
+          ),
+        );
+    }
+    const gone = new Set(takeBack.map((r) => r.id));
+    const loose = new Set(untie.map((r) => r.id));
+    rows = rows
+      .filter((r) => !gone.has(r.id))
+      .map((r) => (loose.has(r.id) ? { ...r, twinKey: null } : r))
+      // What a company keeps is neither tied nor copied; an archived memory is never tied again.
+      .filter((r) => CRAFT_SET.has(r.kind) && (r.twinKey !== null || r.status === "active"));
+  }
+
   // Tie the untied ones that say what a row of another copy says.
   const sayKey = (r: ItemRow) => `${r.kind}|${r.scopeType}|${normalizeSubject(r.content)}`;
   const bySaying = new Map<string, ItemRow[]>();
-  for (const r of rows) bySaying.set(sayKey(r), [...(bySaying.get(sayKey(r)) ?? []), r]);
+  for (const r of rows) {
+    if (memoryReach(r) === "all") bySaying.set(sayKey(r), [...(bySaying.get(sayKey(r)) ?? []), r]);
+  }
   for (const list of bySaying.values()) {
     if (new Set(list.map((r) => r.agentId)).size < 2) continue;
+    if (fence.on && list.some((r) => list.some((o) => !mayCross(o, copyOf.get(r.agentId ?? ""))))) continue;
     const key = list.find((r) => r.twinKey)?.twinKey ?? list[0]?.id;
     if (!key) continue;
     const untied = list.filter((r) => !r.twinKey);
@@ -606,24 +747,29 @@ async function syncMemory(db: Database, members: Member[]): Promise<{ changed: n
     const key = r.twinKey ?? r.id;
     families.set(key, [...(families.get(key) ?? []), r]);
   }
-  let changed = 0;
   let copies = 0;
   let more = false;
   for (const [key, list] of families) {
     const newest = [...list].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0] as ItemRow;
-    // Archived or brought back, pinned or not: as the copy that changed last.
+    if (memoryReach(newest) === "here") {
+      changed += await keepHere(db, key, list, newest);
+      continue;
+    }
+    // Archived or brought back, pinned or not, kept here or for all: as the copy that changed last.
     for (const r of list) {
-      if (r.status === newest.status && r.pinned === newest.pinned) continue;
+      const reach = memoryReach(r) === "all" ? r.reach : newest.reach;
+      if (r.status === newest.status && r.pinned === newest.pinned && reach === r.reach) continue;
+      if (!mayCross(newest, copyOf.get(r.agentId ?? ""))) continue;
       await db
         .update(contextItems)
-        .set({ status: newest.status, pinned: newest.pinned })
+        .set({ status: newest.status, pinned: newest.pinned, reach })
         .where(eq(contextItems.id, r.id));
       await enqueueIndex(db, { orgId: r.orgId, kind: "context_item", sourceId: r.id });
       changed++;
     }
     if (newest.status !== "active") continue;
     const holders = new Set(list.map((r) => r.agentId));
-    const lacking = members.filter((m) => !holders.has(m.agent.id));
+    const lacking = members.filter((m) => !holders.has(m.agent.id) && mayCross(newest, m));
     if (lacking.length === 0) continue;
     if (copies >= COPIES_PER_SYNC) {
       more = true;
@@ -655,6 +801,34 @@ async function syncMemory(db: Database, members: Member[]): Promise<{ changed: n
   return { changed, more };
 }
 
+/**
+ * A memory that is one workspace's business (addendum 2026-11-19): it stays with the copy that holds it, the one a
+ * person just kept here or, by its kind, the one that learned it, and the copies the sync made elsewhere are archived
+ * (a person can bring one back on the agent's page). A row that was learned in its own workspace (it has sources) and
+ * was only tied by saying the same is untied and stays, kept in that workspace too, so it doesn't travel back on its
+ * own. Neither keeps a new `updated_at`, so the copy that holds it stays the newest.
+ */
+async function keepHere(db: Database, key: string, list: ItemRow[], newest: ItemRow): Promise<number> {
+  const active = list.filter((r) => r.status === "active");
+  const keeper =
+    newest.reach === "here" && newest.status === "active"
+      ? newest
+      : (active.find((r) => r.id === key) ??
+        [...active].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())[0]);
+  let changed = 0;
+  for (const r of active) {
+    if (r.id === keeper?.id) continue;
+    const own = r.sourceIds.length > 0;
+    await db
+      .update(contextItems)
+      .set(own ? { twinKey: null, reach: "here" } : { status: "archived" })
+      .where(eq(contextItems.id, r.id));
+    await enqueueIndex(db, { orgId: r.orgId, kind: "context_item", sourceId: r.id });
+    changed++;
+  }
+  return changed;
+}
+
 /** Each copy's set, the base's set for it, and what every copy added and removed since. */
 function setChanges(current: Map<string, Set<string>>, base: Record<string, string[]> | undefined) {
   const changes = new Map<string, { added: string[]; removed: string[] }>();
@@ -678,6 +852,10 @@ function setChanges(current: Map<string, Set<string>>, base: Record<string, stri
  * same text: one copy's edit of a skill (by a person, or the agent improving it) is written to the others'. A skill
  * another workspace lacks is copied there with its files, as bringing an agent does. Personal skills stay their
  * person's.
+ *
+ * With a separate operation (docs/adr/doug-0035) a skill crosses only when its text names nothing another company
+ * doesn't know; one that names a company's own stays there, apart from the others' sets. One that came from
+ * another company before is turned off for that copy, and leaves the workspace's library when no agent there uses it.
  */
 async function syncSkills(
   deps: TwinDeps,
@@ -685,6 +863,7 @@ async function syncSkills(
   members: Member[],
   base: TwinBase,
   missing: NonNullable<TwinBase["missing"]>,
+  fence: Fence,
 ) {
   const { db } = deps;
   const ids = members.map((m) => m.agent.id);
@@ -700,17 +879,57 @@ async function syncSkills(
         isNull(skills.ownerUserId),
       ),
     );
+  const copyOf = new Map(members.map((m) => [m.agent.id, m]));
+  const textOf = (k: SkillRow) => `${k.name}\n${k.description}\n${k.body}`;
+  let kept = rows;
+  let changed = 0;
+  if (fence.on) {
+    // Came from another company: off for this copy (its own company's skills it keeps).
+    const foreign = rows.filter((r) => {
+      const m = copyOf.get(r.agentId);
+      return m !== undefined && fence.foreignTo(textOf(r.skill), m.agent.orgId);
+    });
+    for (const r of foreign) {
+      await db
+        .update(agentSkills)
+        .set({ enabled: false })
+        .where(and(eq(agentSkills.agentId, r.agentId), eq(agentSkills.skillId, r.skill.id)));
+      changed++;
+      const [used] = await db
+        .select({ id: agentSkills.agentId })
+        .from(agentSkills)
+        .where(and(eq(agentSkills.skillId, r.skill.id), eq(agentSkills.enabled, true)))
+        .limit(1);
+      if (!used) await db.update(skills).set({ deletedAt: new Date() }).where(eq(skills.id, r.skill.id));
+    }
+    // What crosses: a skill whose text every other copy's company may read, in every copy that has it.
+    const staying = new Set(
+      rows
+        .filter((r) => members.some((o) => o.agent.id !== r.agentId && fence.foreignTo(textOf(r.skill), o.agent.orgId)))
+        .map((r) => r.skill.slug),
+    );
+    kept = rows.filter((r) => !foreign.includes(r) && !staying.has(r.skill.slug));
+  }
+  const crosses = new Set(kept.map((r) => r.skill.slug));
   const current = new Map<string, Set<string>>(ids.map((id) => [id, new Set<string>()]));
   const bySlug = new Map<string, { agentId: string; skill: SkillRow }[]>();
-  for (const r of rows) {
+  for (const r of kept) {
     current.get(r.agentId)?.add(r.skill.slug);
     bySlug.set(r.skill.slug, [...(bySlug.get(r.skill.slug) ?? []), r]);
   }
-  const changes = setChanges(current, base.skills);
+  // A company's own skill is outside the sets: off or on in one copy, it never reads as a change for the others.
+  const known = fence.on
+    ? Object.fromEntries(
+        Object.entries(base.skills ?? {}).map(([id, slugs]) => [
+          id,
+          slugs.filter((slug) => crosses.has(slug) || !rows.some((r) => r.skill.slug === slug)),
+        ]),
+      )
+    : base.skills;
+  const changes = setChanges(current, known);
   const added = new Set([...changes.values()].flatMap((c) => c.added));
   const removed = new Set([...changes.values()].flatMap((c) => c.removed));
   for (const slug of added) removed.delete(slug);
-  let changed = 0;
   const text: Record<string, string> = {};
   // Each skill's text: one copy changed it since the last sync (or, at a join, the newest), the others take it.
   for (const [slug, list] of bySlug) {
@@ -805,8 +1024,9 @@ const isRefusal = (error: unknown) =>
 /**
  * The same access in every copy: a tool or a connection's scope given or taken in one copy is in all (on a join,
  * every copy's). A connection's scope names that connection in its workspace: in another it names the same
- * connection there, brought by the person who joined them when that workspace has none. Mailboxes and databases keep
- * their own per-agent rules (ADR 9002 §6).
+ * account's connection there; a workspace without one gets none (addendum 2026-11-19) and the agent's page lists it.
+ * Mailboxes and databases keep their own per-agent rules (ADR 9002 §6). With a separate operation (docs/adr/doug-0035)
+ * only the built-in tools cross: each company gives its connections, never brought from another.
  */
 async function syncScopes(
   deps: TwinDeps,
@@ -814,6 +1034,7 @@ async function syncScopes(
   members: Member[],
   base: TwinBase,
   missing: NonNullable<TwinBase["missing"]>,
+  fence: Fence,
 ) {
   const { db } = deps;
   const ids = members.map((m) => m.agent.id);
@@ -822,8 +1043,10 @@ async function syncScopes(
     .from(agentScopes)
     .leftJoin(connectorConnections, eq(connectorConnections.id, agentScopes.connectionId))
     .where(inArray(agentScopes.agentId, ids));
-  const usable = grants.filter(
-    (g) => g.grant.connectionId === null || (g.connection !== null && g.connection.revokedAt === null),
+  const usable = grants.filter((g) =>
+    fence.on
+      ? g.grant.connectionId === null
+      : g.grant.connectionId === null || (g.connection !== null && g.connection.revokedAt === null),
   );
   const keyOf = (connectionId: string | null, scope: string) => `${connectionId ?? ""}|${scope}`;
   const current = new Map<string, Set<string>>(ids.map((id) => [id, new Set<string>()]));
@@ -832,7 +1055,13 @@ async function syncScopes(
     current.get(g.grant.agentId)?.add(keyOf(g.grant.connectionId, g.grant.scope));
     if (g.connection) connections.set(g.connection.id, g.connection);
   }
-  const changes = setChanges(current, base.scopes);
+  const builtIn = (keys: string[]) => keys.filter((k) => k.startsWith("|"));
+  const changes = setChanges(
+    current,
+    fence.on && base.scopes
+      ? Object.fromEntries(Object.entries(base.scopes).map(([id, keys]) => [id, builtIn(keys)]))
+      : base.scopes,
+  );
   let changed = 0;
   // A connection of one workspace as another's (null: it can't come), asked once per sync.
   const mapped = new Map<string, string | null>();
@@ -840,7 +1069,9 @@ async function syncScopes(
     const k = `${connectionId}|${orgId}`;
     if (!mapped.has(k)) {
       const c = connections.get(connectionId);
-      mapped.set(k, c && deps.carry ? await connectionIn(deps.carry, actor, orgId, c) : null);
+      // Only the same account's connection already there: a workspace's connections never go to another on their own
+      // (addendum 2026-11-19); a person brings one with "Trazer de outro workspace".
+      mapped.set(k, c && deps.carry ? await connectionIn(deps.carry, null, orgId, c) : null);
     }
     return mapped.get(k) ?? null;
   };
@@ -905,7 +1136,8 @@ async function syncScopes(
     );
   const sets: Record<string, string[]> = {};
   for (const id of ids) sets[id] = [];
-  for (const r of after) sets[r.agentId]?.push(keyOf(r.connectionId, r.scope));
+  for (const r of after)
+    if (!fence.on || r.connectionId === null) sets[r.agentId]?.push(keyOf(r.connectionId, r.scope));
   for (const id of ids) sets[id]?.sort();
   return { changed, sets };
 }

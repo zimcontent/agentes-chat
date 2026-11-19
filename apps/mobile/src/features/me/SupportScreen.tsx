@@ -1,13 +1,13 @@
-import { instanceQuery, useApi, useAuthConfig, useMe } from "@agenteschat/client";
-import { mayAsk } from "@agenteschat/client/lib/audience";
-import { rightHandOf } from "@agenteschat/client/lib/right-hand";
+import { instanceQuery, useApi, useAuthConfig, useMe } from "@dougbot/client";
+import { mayAsk } from "@dougbot/client/lib/audience";
+import { rightHandOf } from "@dougbot/client/lib/right-hand";
 import {
   type SupportDraftWords,
   supportCameFrom,
   supportContactOf,
   supportDraft,
   whatsAppHref,
-} from "@agenteschat/client/lib/support";
+} from "@dougbot/client/lib/support";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Linking, StyleSheet, View } from "react-native";

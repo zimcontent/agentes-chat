@@ -1,5 +1,5 @@
-import type { PlanUsage } from "@agenteschat/adapters";
-import { and, type Database, eq, inArray, schema } from "@agenteschat/db";
+import type { PlanUsage } from "@dougbot/adapters";
+import { and, type Database, eq, inArray, schema } from "@dougbot/db";
 import type { Agent } from "./agents";
 import { brainOf } from "./brain-settings";
 import { planLimitOf } from "./brains/select";

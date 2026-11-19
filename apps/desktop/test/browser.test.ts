@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { ControlBrowser, ControlJob, ControlStatus } from "@agenteschat/adapters/runner-control";
+import type { ControlBrowser, ControlJob, ControlStatus } from "@dougbot/adapters/runner-control";
 import {
   browserBadgeOf,
   browserRowState,

@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeAll, expect, test } from "bun:test";
 import { execFileSync, spawnSync } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import type { MachineReplies, MachineRequest } from "@agenteschat/adapters/machine-protocol";
+import type { MachineReplies, MachineRequest } from "@dougbot/adapters/machine-protocol";
 import { credentialHelper } from "../../runner/git";
 import {
   describeRequest,

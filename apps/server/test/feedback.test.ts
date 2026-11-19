@@ -2,7 +2,7 @@ import { afterEach, expect, test } from "bun:test";
 import { browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 
 let t: TestServer;
-/** agentes.chat's side in the relay tests: the server that is the inbox. */
+/** DougBot's side in the relay tests: the server that is the inbox. */
 let inbox: TestServer | undefined;
 afterEach(async () => {
   const current = t;
@@ -27,7 +27,7 @@ test("feedback: one email to the server's address, through the outbox, answered 
   t = await createTestServer({ env: { FEEDBACK_EMAIL: "feedback@example.com" } });
   const ana = browser(t);
   expect(await (await ana("/api/app/auth-config")).json()).toMatchObject({ feedback: true, feedbackRelay: false });
-  // Only agentes.chat's own servers take other servers' feedback.
+  // Only DougBot's own servers take other servers' feedback.
   expect((await browser(t)("/api/feedback/inbox", { json: {}, origin: null })).status).toBe(404);
   expect((await browser(t)("/api/app/feedback", { json: { id: ID, text: "hi" } })).status).toBe(401);
   await signUp(ana, "ana@example.com");

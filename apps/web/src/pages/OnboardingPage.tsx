@@ -1,4 +1,4 @@
-import type { Agent } from "@agenteschat/client";
+import type { Agent } from "@dougbot/client";
 import {
   ApiError,
   keys,
@@ -10,26 +10,20 @@ import {
   useAuthConfig,
   useBrand,
   type WorkspaceMode,
-} from "@agenteschat/client";
-import { billingHoldOf } from "@agenteschat/client/lib/billing";
-import { accountOutOfReach } from "@agenteschat/client/lib/deletion";
-import { errorCode, errorText } from "@agenteschat/client/lib/errors";
-import { firstName, joinNames } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { settingUp } from "@agenteschat/client/lib/guards";
-import { sendsEmail } from "@agenteschat/client/lib/join-requests";
-import { type AiChoice, planLabel, teamThinks } from "@agenteschat/client/lib/no-ai";
-import {
-  landingOf,
-  type OnboardingStepId,
-  type RailStep,
-  railState,
-  stepIndex,
-} from "@agenteschat/client/lib/onboarding";
-import { finishOnboarding, isRightHand, RIGHT_HAND_DEFAULT } from "@agenteschat/client/lib/right-hand";
-import { browserTimezone, timezoneName } from "@agenteschat/client/lib/routines";
-import { aboutOf, type BusinessType, teamFailureText } from "@agenteschat/client/lib/team-plan";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client";
+import { billingHoldOf } from "@dougbot/client/lib/billing";
+import { accountOutOfReach } from "@dougbot/client/lib/deletion";
+import { errorCode, errorText } from "@dougbot/client/lib/errors";
+import { firstName, joinNames } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { settingUp } from "@dougbot/client/lib/guards";
+import { sendsEmail } from "@dougbot/client/lib/join-requests";
+import { type AiChoice, planLabel, teamThinks } from "@dougbot/client/lib/no-ai";
+import { landingOf, type OnboardingStepId, type RailStep, railState, stepIndex } from "@dougbot/client/lib/onboarding";
+import { finishOnboarding, isRightHand, RIGHT_HAND_DEFAULT } from "@dougbot/client/lib/right-hand";
+import { browserTimezone, timezoneName } from "@dougbot/client/lib/routines";
+import { aboutOf, type BusinessType, teamFailureText } from "@dougbot/client/lib/team-plan";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import {
   AgentSticker,
   Avatar,
@@ -43,7 +37,7 @@ import {
   Menu,
   MenuItem,
   setGaze,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
@@ -1254,7 +1248,7 @@ export function OnboardingPage() {
   );
 }
 
-/** The two answers to "What will you use agentes.chat for?" (ADR 0159), in this order. */
+/** The two answers to "What will you use DougBot for?" (ADR 0159), in this order. */
 
 /**
  * The AI step and its stage inside the workspace's context and Connect an AI (ADR 0160), which the onboarding has

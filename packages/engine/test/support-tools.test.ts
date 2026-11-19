@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { createMemoryRateLimiter } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import { createMemoryRateLimiter } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   type AgentRun,
   addChannelMember,

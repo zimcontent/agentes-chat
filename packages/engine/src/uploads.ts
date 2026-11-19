@@ -1,5 +1,5 @@
-import { type PubSub, uploadTopic } from "@agenteschat/adapters";
-import { and, type Database, eq, inArray, schema } from "@agenteschat/db";
+import { type PubSub, uploadTopic } from "@dougbot/adapters";
+import { and, type Database, eq, inArray, schema } from "@dougbot/db";
 import { getAgentCached } from "./agents";
 import {
   ARTIFACT_LIMITS,

@@ -1,17 +1,10 @@
-import type { ArtifactAuthor, ArtifactContent, ArtifactDetail, ArtifactRef } from "@agenteschat/client";
-import {
-  keys,
-  useArtifact,
-  useArtifactBlob,
-  useArtifactVersions,
-  useChannels,
-  useSaveArtifact,
-} from "@agenteschat/client";
-import { artifactText, KIND_ICON } from "@agenteschat/client/lib/artifacts";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { fileIcon, formatBytes, isPreviewImage, previewKind } from "@agenteschat/client/lib/files";
-import { keepWhole, relativeTime } from "@agenteschat/client/lib/format";
-import { filePath } from "@agenteschat/client/lib/message-links";
+import type { ArtifactAuthor, ArtifactContent, ArtifactDetail, ArtifactRef } from "@dougbot/client";
+import { keys, useArtifact, useArtifactBlob, useArtifactVersions, useChannels, useSaveArtifact } from "@dougbot/client";
+import { artifactText, KIND_ICON } from "@dougbot/client/lib/artifacts";
+import { errorText } from "@dougbot/client/lib/errors";
+import { fileIcon, formatBytes, isPreviewImage, previewKind } from "@dougbot/client/lib/files";
+import { keepWhole, relativeTime } from "@dougbot/client/lib/format";
+import { filePath } from "@dougbot/client/lib/message-links";
 import {
   Alert,
   Button,
@@ -26,7 +19,7 @@ import {
   Menu,
   MenuItem,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";

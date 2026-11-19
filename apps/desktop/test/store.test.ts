@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import type { ControlEvent, ControlStatus } from "@agenteschat/adapters/runner-control";
+import type { ControlEvent, ControlStatus } from "@dougbot/adapters/runner-control";
 import type { ControlError } from "../src/control/client";
 import { DesktopStore } from "../src/control/store";
 import type { Host } from "../src/host/types";

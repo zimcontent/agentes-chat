@@ -2,7 +2,7 @@ import { afterEach, expect, test } from "bun:test";
 import { readFileSync, statSync } from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { isStartPage, START_FILE } from "@agenteschat/adapters/browser-start";
+import { isStartPage, START_FILE } from "@dougbot/adapters/browser-start";
 import { chromeLaunchArgs, domainAllowed, isWebPage } from "../../runner/browser";
 import { START_WORDS } from "../../runner/page-words";
 import { prepareStartPage, startPageHtml, unsafeStartFolder } from "../../runner/start-page";

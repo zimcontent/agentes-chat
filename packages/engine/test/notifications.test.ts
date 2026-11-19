@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { type RealtimeEvent, userTopic } from "@agenteschat/adapters";
-import { and, eq, schema, sql } from "@agenteschat/db";
+import { type RealtimeEvent, userTopic } from "@dougbot/adapters";
+import { and, eq, schema, sql } from "@dougbot/db";
 import {
   addAgentReaction,
   addChannelMember,

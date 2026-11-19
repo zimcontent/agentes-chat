@@ -8,12 +8,12 @@ import {
   browserTrailSpanMs,
   type ScreenKind,
   trailProfile,
-} from "@agenteschat/client";
-import { formatTime, lowerFirst } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { stopperName, stopperOf } from "@agenteschat/client/lib/notices";
-import { formatDuration } from "@agenteschat/client/lib/work";
-import { agentGradient, BrowserMark, BrowserStrip, Chip, Icon } from "@agenteschat/ui";
+} from "@dougbot/client";
+import { formatTime, lowerFirst } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { stopperName, stopperOf } from "@dougbot/client/lib/notices";
+import { formatDuration } from "@dougbot/client/lib/work";
+import { agentGradient, BrowserMark, BrowserStrip, Chip, Icon } from "@dougbot/ui";
 import type { TFunction } from "i18next";
 import { type CSSProperties, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,7 +1,7 @@
-import { busyWidgets, type Dashboard, dashboardGroups, useDashboards, type Widget } from "@agenteschat/client";
-import { mayAsk } from "@agenteschat/client/lib/audience";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { rightHandOf } from "@agenteschat/client/lib/right-hand";
+import { busyWidgets, type Dashboard, dashboardGroups, useDashboards, type Widget } from "@dougbot/client";
+import { mayAsk } from "@dougbot/client/lib/audience";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { rightHandOf } from "@dougbot/client/lib/right-hand";
 import { Stack } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

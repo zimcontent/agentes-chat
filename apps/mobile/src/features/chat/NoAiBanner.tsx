@@ -1,6 +1,6 @@
-import { useAiStatus } from "@agenteschat/client";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { mayConnectAi, noAiStatusKey } from "@agenteschat/client/lib/no-ai";
+import { useAiStatus } from "@dougbot/client";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { mayConnectAi, noAiStatusKey } from "@dougbot/client/lib/no-ai";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import Animated, { FadeInDown, FadeOut } from "react-native-reanimated";

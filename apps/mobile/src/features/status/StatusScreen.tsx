@@ -1,11 +1,11 @@
-import { useSetMyStatus } from "@agenteschat/client";
+import { useSetMyStatus } from "@dougbot/client";
 import {
   AVAILABILITIES,
   clearsText,
   presenceOfAvailability,
   STATUS_SUGGESTIONS,
   UNTIL_CHOICES,
-} from "@agenteschat/client/lib/presence";
+} from "@dougbot/client/lib/presence";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";

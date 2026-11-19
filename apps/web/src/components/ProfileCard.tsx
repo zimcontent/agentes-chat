@@ -1,4 +1,4 @@
-import type { Actor, Agent, AgentAudience, DmTarget } from "@agenteschat/client";
+import type { Actor, Agent, AgentAudience, DmTarget } from "@dougbot/client";
 import {
   agentWorkingIn,
   useAgentDetail,
@@ -11,8 +11,8 @@ import {
   useSetMemberRoles,
   useSettings,
   useUpdateAgent,
-} from "@agenteschat/client";
-import { type WorkPlaceNames, workDetail } from "@agenteschat/client/lib/agent-work";
+} from "@dougbot/client";
+import { type WorkPlaceNames, workDetail } from "@dougbot/client/lib/agent-work";
 import {
   audienceLines,
   audienceNotice,
@@ -23,18 +23,18 @@ import {
   canTalk,
   modeOf,
   seesDetails,
-} from "@agenteschat/client/lib/audience";
-import { brainLine, engineOfBrain } from "@agenteschat/client/lib/brain";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { clockHour, formatMonthYear, formatPercent, relativeTime, shortModel } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { can } from "@agenteschat/client/lib/permissions";
-import { agentFaceWord, agentWhyKey, isOutOfOffice, statusEndNote } from "@agenteschat/client/lib/presence";
-import { apiModelName, autoMakerOf } from "@agenteschat/client/lib/providers";
-import { isRightHand, tellsNameStory } from "@agenteschat/client/lib/right-hand";
-import { rolesOf } from "@agenteschat/client/lib/roles";
-import { timezoneName } from "@agenteschat/client/lib/routines";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/audience";
+import { brainLine, engineOfBrain } from "@dougbot/client/lib/brain";
+import { errorText } from "@dougbot/client/lib/errors";
+import { clockHour, formatMonthYear, formatPercent, relativeTime, shortModel } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { can } from "@dougbot/client/lib/permissions";
+import { agentFaceWord, agentWhyKey, isOutOfOffice, statusEndNote } from "@dougbot/client/lib/presence";
+import { apiModelName, autoMakerOf } from "@dougbot/client/lib/providers";
+import { isRightHand, tellsNameStory } from "@dougbot/client/lib/right-hand";
+import { rolesOf } from "@dougbot/client/lib/roles";
+import { timezoneName } from "@dougbot/client/lib/routines";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import {
   Avatar,
   Button,
@@ -49,7 +49,7 @@ import {
   RoleMark,
   Token,
   useHoverCard,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useNavigate } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
 import { type ReactNode, useRef, useState } from "react";

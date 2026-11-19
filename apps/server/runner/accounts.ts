@@ -15,7 +15,7 @@ import {
 import { chmod, lchown, lstat, mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
-import { AGENT_WORKER_HOMES, GROK_ACCOUNT_HOMES } from "@agenteschat/adapters/command-policy";
+import { AGENT_WORKER_HOMES, GROK_ACCOUNT_HOMES } from "@dougbot/adapters/command-policy";
 import {
   ACCOUNT_KINDS,
   ACCOUNT_LOGIN_TTL_MS,
@@ -42,9 +42,9 @@ import {
   type RunnerAccountInfo,
   TOKEN_RECHECK_MS,
   type WireSecretBox,
-} from "@agenteschat/adapters/machine-protocol";
-import { cutAtWord, errorLineOf, redactCommon } from "@agenteschat/adapters/redact";
-import { generateSecretKeyPair, openSecret, redactSecrets } from "@agenteschat/adapters/secret-box";
+} from "@dougbot/adapters/machine-protocol";
+import { cutAtWord, errorLineOf, redactCommon } from "@dougbot/adapters/redact";
+import { generateSecretKeyPair, openSecret, redactSecrets } from "@dougbot/adapters/secret-box";
 import {
   type CodingPlan,
   GEMINI_ENTERPRISE_PROVIDER,
@@ -54,7 +54,7 @@ import {
   planKeyFits,
   planModel,
   planOf,
-} from "@agenteschat/providers/plans";
+} from "@dougbot/providers/plans";
 import { type Launcher, PROBE_AGENT_UID } from "./agent-users";
 import {
   AGY_SIGN_IN_FILE,

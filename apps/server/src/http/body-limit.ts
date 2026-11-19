@@ -5,8 +5,8 @@ import {
   MEDIA_REF_LIMITS,
   REVIEW_VOICE_BYTES,
   SKILL_LIMITS,
-} from "@agenteschat/engine";
-import { SKILL_ZIP_BASE64_CHARS } from "@agenteschat/tokens/skills";
+} from "@dougbot/engine";
+import { SKILL_ZIP_BASE64_CHARS } from "@dougbot/tokens/skills";
 import type { Context } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { createMiddleware } from "hono/factory";

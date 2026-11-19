@@ -9,9 +9,9 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
-import { START_FILE } from "@agenteschat/adapters/browser-start";
-import type { AgentScope, MachineEgress } from "@agenteschat/adapters/machine-protocol";
-import { countryFlagUrl } from "@agenteschat/ui/brand/flags";
+import { START_FILE } from "@dougbot/adapters/browser-start";
+import type { AgentScope, MachineEgress } from "@dougbot/adapters/machine-protocol";
+import { countryFlagUrl } from "@dougbot/ui/brand/flags";
 import { type AgentUser, agentGid } from "./agent-users";
 import CLOCK from "./assets/start/clock.woff2.b64" with { type: "text" };
 import DOUG from "./assets/start/doug.svg.txt" with { type: "text" };

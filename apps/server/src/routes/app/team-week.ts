@@ -5,7 +5,7 @@ import {
   liveLodiSwitches,
   type RoutineDeps,
   setLodiPrefs,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import {
   type AppDeps,

@@ -1,4 +1,4 @@
-import type { MailSummary } from "@agenteschat/adapters";
+import type { MailSummary } from "@dougbot/adapters";
 import { levelOf, type MailDeps, mailGrants, openAccount, orgMailAccounts } from "./mail/accounts";
 import { agentMailPolicies } from "./mail/policies";
 import { formatAddress, oneLine } from "./mail/text";

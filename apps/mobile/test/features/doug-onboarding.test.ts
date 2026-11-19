@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
-import { ApiError, type DougTeamTemplate, type DougTemplateMember, type TeamTemplate } from "@agenteschat/client";
+import { ApiError, type DougTeamTemplate, type DougTemplateMember, type TeamTemplate } from "@dougbot/client";
 import {
   type BrandForm,
   brandFormOf,

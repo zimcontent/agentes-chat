@@ -26,6 +26,7 @@ import {
 } from "../format";
 import { Icon, type IconName } from "../icons/Icon";
 import { selectionRect } from "../selection-rect";
+import { typedArrow } from "../typed-arrow";
 import { Button } from "./Button";
 import { type EmojiPickerLabels, EmojiPickerPopover, type PickerTab } from "./EmojiPicker";
 import { useAutoGrow, useLocked } from "./Field";
@@ -917,6 +918,13 @@ export function Composer({
       disabled={disabled}
       onChange={(e) => {
         if (dismissed === -1 && !e.target.value.startsWith("/")) setDismissed(null);
+        // Doug: "->" typed becomes "→" (outside code), the caret right after it.
+        const arrow = typedArrow(value, e.target.value, e.target.selectionStart ?? 0);
+        if (arrow) {
+          caretAfter.current = arrow.start;
+          onChange(arrow.value);
+          return;
+        }
         onChange(e.target.value);
         track(e.target.value, e.target.selectionStart ?? e.target.value.length);
         notePicked(e.target.selectionStart ?? 0, e.target.selectionEnd ?? 0);

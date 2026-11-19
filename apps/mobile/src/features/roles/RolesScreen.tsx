@@ -1,9 +1,9 @@
-import type { OrgRole } from "@agenteschat/client";
-import { useReorderRoles } from "@agenteschat/client";
-import { formatInt } from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
-import { isEveryone, peopleWith, roleName, sortRoles } from "@agenteschat/client/lib/roles";
-import { matchesWords } from "@agenteschat/ui/search";
+import type { OrgRole } from "@dougbot/client";
+import { useReorderRoles } from "@dougbot/client";
+import { formatInt } from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
+import { isEveryone, peopleWith, roleName, sortRoles } from "@dougbot/client/lib/roles";
+import { matchesWords } from "@dougbot/ui/search";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";

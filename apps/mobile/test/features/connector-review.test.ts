@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import type { ConnectorDef, CustomServer, CustomTool, ToolAccess } from "@agenteschat/client";
-import { mailActionsChanged, mailActionsFrom, mailReviewTools } from "@agenteschat/client/lib/mail";
-import { type ReviewTool, reviewDecisions, reviewToolsOf } from "@agenteschat/client/lib/tool-review";
+import type { ConnectorDef, CustomServer, CustomTool, ToolAccess } from "@dougbot/client";
+import { mailActionsChanged, mailActionsFrom, mailReviewTools } from "@dougbot/client/lib/mail";
+import { type ReviewTool, reviewDecisions, reviewToolsOf } from "@dougbot/client/lib/tool-review";
 import {
   ADDRESS_STEPS,
   acceptAll,

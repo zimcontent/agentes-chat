@@ -7,7 +7,7 @@ import {
   PORTAL_STATUSES,
   PORTAL_TYPES,
   type PortalCard,
-} from "@agenteschat/adapters";
+} from "@dougbot/adapters";
 import {
   AFTER_APPROVE,
   approveForClient,
@@ -34,6 +34,7 @@ import {
   portalOverview,
   portalPipeline,
   portalPlan,
+  portalQueueOf,
   portalTaskRefs,
   portalToSchedule,
   recordAudit,
@@ -53,7 +54,7 @@ import {
   TEAM_APPROVAL_NOTE,
   USER_LOCALES,
   upsertPortalClient,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
 import { apiError, errorResponse } from "../../http/errors";
@@ -889,7 +890,10 @@ export function portalRoutes(deps: AppDeps) {
       const { orgId } = c.req.valid("param");
       const user = c.get("user");
       await requirePermission(db, user.id, orgId, "read");
-      const out = await guarded(c, (portal) => myPortalWork(portal, user.id, undefined, undefined, reviewsOf(orgId)));
+      const queue = await portalQueueOf(db, orgId, user.id);
+      const out = await guarded(c, (portal) =>
+        myPortalWork(portal, user.id, undefined, undefined, reviewsOf(orgId), queue),
+      );
       if (!out.ok) return out.response;
       const work = out.value;
       const { hidden } = await portalClientNaming(db, orgId);

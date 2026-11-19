@@ -1,4 +1,4 @@
-import type { Credential, OrgSettings } from "@agenteschat/client";
+import type { Credential, OrgSettings } from "@dougbot/client";
 import {
   useAddCredential,
   useAiAccounts,
@@ -17,18 +17,18 @@ import {
   useUpdateSettings,
   useUsageReport,
   useWorkspaceUsesApi,
-} from "@agenteschat/client";
-import { selfHosted, showsAbout } from "@agenteschat/client/lib/about";
-import { keyRemovalText } from "@agenteschat/client/lib/ai-accounts";
-import { composioUsageText, showsComposioUsage } from "@agenteschat/client/lib/composio";
-import { computerEdition } from "@agenteschat/client/lib/computer";
-import { settingsFrozen } from "@agenteschat/client/lib/deletion";
-import { CUSTOM_PROVIDER } from "@agenteschat/client/lib/endpoints";
-import { errorText, keyRefusal } from "@agenteschat/client/lib/errors";
-import { FIELD_LIMITS } from "@agenteschat/client/lib/field-limits";
-import { formatShortDate, formatUsd, relativeTime } from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
-import { settingsSectionNameKey, settingsSectionTextKey } from "@agenteschat/client/lib/personal-view";
+} from "@dougbot/client";
+import { selfHosted, showsAbout } from "@dougbot/client/lib/about";
+import { keyRemovalText } from "@dougbot/client/lib/ai-accounts";
+import { composioUsageText, showsComposioUsage } from "@dougbot/client/lib/composio";
+import { computerEdition } from "@dougbot/client/lib/computer";
+import { settingsFrozen } from "@dougbot/client/lib/deletion";
+import { CUSTOM_PROVIDER } from "@dougbot/client/lib/endpoints";
+import { errorText, keyRefusal } from "@dougbot/client/lib/errors";
+import { FIELD_LIMITS } from "@dougbot/client/lib/field-limits";
+import { formatShortDate, formatUsd, relativeTime } from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
+import { settingsSectionNameKey, settingsSectionTextKey } from "@dougbot/client/lib/personal-view";
 import {
   keyCopiesLine,
   keyLooksValid,
@@ -39,12 +39,12 @@ import {
   providerLabel,
   providerOf,
   shownKeys,
-} from "@agenteschat/client/lib/providers";
-import type { RoleTab } from "@agenteschat/client/lib/roles";
-import { settingsNav, settingsTabs } from "@agenteschat/client/lib/settings-nav";
-import { setSupportCameFrom } from "@agenteschat/client/lib/support";
-import { parseAmount } from "@agenteschat/client/lib/text";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/providers";
+import type { RoleTab } from "@dougbot/client/lib/roles";
+import { settingsNav, settingsTabs } from "@dougbot/client/lib/settings-nav";
+import { setSupportCameFrom } from "@dougbot/client/lib/support";
+import { parseAmount } from "@dougbot/client/lib/text";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
 import {
   Alert,
   Button,
@@ -71,7 +71,7 @@ import {
   TabPanel,
   Tabs,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { type ComponentProps, type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -108,6 +108,7 @@ import { MyFace, OrgLogoDialog, OrgMark } from "@/components/ProfilePhoto";
 import { KeyMismatch, KeyRefused, KeySite, ProviderKeySelect } from "@/components/ProviderKey";
 import { PortalClientsSection } from "@/components/portal/PortalClientsSection";
 import { RolesSection } from "@/components/roles/RolesSection";
+import { SeparateOperationCard } from "@/components/SeparateOperationCard";
 import { SkillsSection } from "@/components/Skills";
 import { StorageSection } from "@/components/StorageSettings";
 import { SupportSection } from "@/components/SupportSettings";
@@ -687,6 +688,7 @@ function GeneralSection() {
       <WorkspaceToolsCard />
 
       <TeamMemoryCard />
+      {!personal && <SeparateOperationCard />}
 
       <UsageStatisticsCard />
       {org.role === "owner" && !org.deletion && <DeleteWorkspaceCard />}
@@ -729,7 +731,7 @@ function DeleteWorkspaceCard() {
 
 /**
  * The usage report's switch (ADR 0060 §5): the title, the switch and "Ver o que é enviado". Only the
- * installation's owner gets it (the API answers `null` to everyone else, and on agentes.chat itself).
+ * installation's owner gets it (the API answers `null` to everyone else, and on DougBot itself).
  */
 function UsageStatisticsCard() {
   const { t } = useTranslation();

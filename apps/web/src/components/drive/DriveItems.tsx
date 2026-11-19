@@ -1,9 +1,9 @@
-import type { Artifact, ArtifactKind } from "@agenteschat/client";
-import { KIND_ICON } from "@agenteschat/client/lib/artifacts";
-import { fileIcon } from "@agenteschat/client/lib/files";
-import { relativeTime } from "@agenteschat/client/lib/format";
-import { Checkbox, cx, Icon, type IconName } from "@agenteschat/ui";
-import type { MouseEvent } from "react";
+import type { Artifact, ArtifactKind } from "@dougbot/client";
+import { KIND_ICON } from "@dougbot/client/lib/artifacts";
+import { fileIcon } from "@dougbot/client/lib/files";
+import { relativeTime } from "@dougbot/client/lib/format";
+import { Checkbox, cx, Icon, type IconName } from "@dougbot/ui";
+import type { DragEvent, MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { ActorAvatar } from "@/components/AgentAvatar";
 import { ArtifactMoreMenu, useArtifactEntries } from "@/components/artifacts/ArtifactActions";
@@ -32,6 +32,24 @@ export interface ItemProps {
   onToggle: (a: Artifact) => void;
   /** The viewer, from the menu's "Abrir". */
   onOpen: (a: Artifact) => void;
+  /** "Mover para…" a folder; absent: the viewer can't file files. */
+  onMove?: (a: Artifact) => void;
+  /** "Manter" a draft. */
+  onKeep?: (a: Artifact) => void;
+  /** A drag starts: the page says what it carries (this file, or the selection it is in). */
+  onDragStart?: (a: Artifact, e: DragEvent) => void;
+}
+
+/** "Rascunho": it goes to the trash on its own unless worked on again or kept. */
+function DraftMark({ a }: { a: Artifact }) {
+  const { t, i18n } = useTranslation();
+  if (!a.expiresAt) return null;
+  const day = new Date(a.expiresAt).toLocaleDateString(i18n.language, { day: "numeric", month: "short" });
+  return (
+    <span className="drive-draft" title={t("drive.draftUntil", { date: day })}>
+      {t("drive.draft")}
+    </span>
+  );
 }
 
 /**
@@ -47,14 +65,23 @@ export function DriveCard({
   onToggle,
   onOpen,
   onDelete,
+  onMove,
+  onKeep,
+  onDragStart,
 }: ItemProps & { onDelete: (a: Artifact) => void }) {
   const { t, i18n } = useTranslation();
   const authorName = useAuthorName();
   const name = authorName(a.createdBy);
-  const menu = useItemMenu(a, onOpen, onDelete);
+  const menu = useItemMenu(a, onOpen, onDelete, onMove, onKeep);
   return (
     <>
-      <article className={cx("drive-card", selected && "drive-card--selected")} data-kind={a.kind} {...menu.props}>
+      <article
+        className={cx("drive-card", selected && "drive-card--selected")}
+        data-kind={a.kind}
+        draggable={Boolean(onDragStart)}
+        onDragStart={onDragStart && ((e) => onDragStart(a, e))}
+        {...menu.props}
+      >
         <DrivePreview artifact={a} />
         <span className="drive-card__kind">
           <Icon name={itemIcon(a)} size={14} />
@@ -72,6 +99,7 @@ export function DriveCard({
           >
             {a.title}
           </button>
+          <DraftMark a={a} />
           <span className="drive-card__meta">
             <ActorAvatar size="xs" actor={a.createdBy} name={name} />
             <span className="drive-card__name">{name}</span>
@@ -98,11 +126,23 @@ export function DriveCard({
  * A card's or row's right click and menu key: the same actions as its "…", with open and download first. `dialog`
  * (its share dialog) goes beside the item, so the dialog's keys never reach the item's own.
  */
-function useItemMenu(a: Artifact, onOpen: (a: Artifact) => void, onDelete: (a: Artifact) => void) {
+function useItemMenu(
+  a: Artifact,
+  onOpen: (a: Artifact) => void,
+  onDelete: (a: Artifact) => void,
+  onMove?: (a: Artifact) => void,
+  onKeep?: (a: Artifact) => void,
+) {
   const entries = useArtifactEntries();
   const props = entityMenu(() => [
     { kind: "header", label: a.title },
-    ...entries(a, { onOpen: () => onOpen(a), onDelete: () => onDelete(a), download: true }),
+    ...entries(a, {
+      onOpen: () => onOpen(a),
+      onDelete: () => onDelete(a),
+      download: true,
+      onMove: onMove && (() => onMove(a)),
+      onKeep: onKeep && (() => onKeep(a)),
+    }),
   ]);
   return { props, dialog: entries.dialog };
 }
@@ -116,15 +156,24 @@ export function DriveRow({
   onToggle,
   onOpen,
   onDelete,
+  onMove,
+  onKeep,
+  onDragStart,
 }: ItemProps & { onDelete: (a: Artifact) => void }) {
   const { t, i18n } = useTranslation();
   const authorName = useAuthorName();
   const name = authorName(a.createdBy);
   const when = relativeTime(t, i18n.language, a.updatedAt);
-  const menu = useItemMenu(a, onOpen, onDelete);
+  const menu = useItemMenu(a, onOpen, onDelete, onMove, onKeep);
   return (
     <>
-      <li className={cx("drive-row", selected && "drive-row--selected")} data-kind={a.kind} {...menu.props}>
+      <li
+        className={cx("drive-row", selected && "drive-row--selected")}
+        data-kind={a.kind}
+        draggable={Boolean(onDragStart)}
+        onDragStart={onDragStart && ((e) => onDragStart(a, e))}
+        {...menu.props}
+      >
         <Checkbox
           className="drive-check"
           checked={selected}
@@ -150,6 +199,7 @@ export function DriveRow({
                 {a.version > 1 && ` · ${t("artifacts.version", { version: a.version })}`}
                 <span className="drive-row__mobile">{` · ${name} · ${when}`}</span>
               </span>
+              <DraftMark a={a} />
             </span>
           </span>
         </span>
@@ -162,7 +212,13 @@ export function DriveRow({
           {when}
         </time>
         <span className="drive-row__more">
-          <ArtifactMoreMenu artifact={a} onOpen={() => onOpen(a)} onDelete={() => onDelete(a)} />
+          <ArtifactMoreMenu
+            artifact={a}
+            onOpen={() => onOpen(a)}
+            onDelete={() => onDelete(a)}
+            onMove={onMove && (() => onMove(a))}
+            onKeep={onKeep && (() => onKeep(a))}
+          />
         </span>
       </li>
       {menu.dialog}

@@ -1,4 +1,4 @@
-import type { VideoReview, VideoReviewNote, VideoReviewStatus } from "@agenteschat/client";
+import type { VideoReview, VideoReviewNote, VideoReviewStatus } from "@dougbot/client";
 
 /*
  * The phone's Revisor (docs/adr/doug-0007-video-review.md): the rules its screens share, with no React in them.

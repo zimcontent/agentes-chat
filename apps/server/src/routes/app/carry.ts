@@ -1,4 +1,4 @@
-import { connectorOAuthApps } from "@agenteschat/config";
+import { connectorOAuthApps } from "@dougbot/config";
 import {
   agentTwinView,
   CARRY_LIMITS,
@@ -8,10 +8,13 @@ import {
   composioConnectorsOf,
   connectOverHttp,
   type EndpointNet,
+  getSeparateOperation,
   joinTwin,
+  KEPT_NAMES_MAX,
   leaveTwin,
+  setSeparateOperation,
   withComposio,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { endpointNet } from "./agents";
 import { type AppDeps, body, createAppRouter, errors, json, OrgParams, requireSession, security } from "./context";
@@ -193,6 +196,10 @@ export function carryRoutes(deps: AppDeps) {
       off: z.boolean().openapi({ description: "Taken out on purpose: it isn't joined on its own again." }),
       syncedAt: z.date().nullable(),
       missing: z.array(z.object({ orgName: z.string(), kind: z.enum(["connection", "skill"]), label: z.string() })),
+      craftOnly: z.boolean().openapi({
+        description:
+          "A separate operation among its workspaces (ADR doug-0035): only its craft crosses (instructions, skills, lessons, rules, preferences that name nothing of the other company).",
+      }),
     })
     .openapi("AgentTwins");
   const TwinParams = OrgParams.extend({ agentId: z.uuid() });
@@ -250,6 +257,65 @@ export function carryRoutes(deps: AppDeps) {
     async (c) => {
       const { orgId, agentId } = c.req.valid("param");
       return c.json(await leaveTwin(db, c.get("user").id, orgId, agentId), 200);
+    },
+  );
+
+  const SeparateOperation = z
+    .object({
+      on: z.boolean(),
+      names: z.array(z.string()).openapi({ description: "Names kept here by hand: clients, projects, people." }),
+      canEdit: z.boolean().openapi({ description: "Whether you may change it: the workspace's owners." }),
+      sharedSignIns: z.array(z.object({ id: z.uuid(), label: z.string(), workspaces: z.array(z.string()) })).openapi({
+        description:
+          "Connections here signed in with an account another workspace also uses: they reach what that account reaches, whatever this setting says.",
+      }),
+    })
+    .openapi("SeparateOperation");
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/separate-operation",
+      tags: ["Agents"],
+      security,
+      summary: "Whether this workspace is a separate operation",
+      description:
+        "A separate operation (ADR doug-0035): the copies of its agents in your other workspaces carry only their craft (instructions, skills, lessons, rules, preferences that name nothing of the other company), both ways; facts, decisions, notes, clients and connections stay in each. Needs `configure`.",
+      request: { params: OrgParams },
+      responses: { 200: json(SeparateOperation), ...errors },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      return c.json(await getSeparateOperation(db, c.get("user").id, orgId), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/separate-operation",
+      tags: ["Agents"],
+      security,
+      summary: "Make this workspace a separate operation, or change the names it keeps",
+      description:
+        "Owners only. Turned on, what already crossed from the other companies since the copies were joined goes back within a minute (the originals stay where they were learned).",
+      request: {
+        params: OrgParams,
+        body: body(
+          z.object({
+            on: z.boolean().optional(),
+            names: z
+              .array(z.string().max(200))
+              .max(KEPT_NAMES_MAX * 2)
+              .optional(),
+          }),
+        ),
+      },
+      responses: { 200: json(SeparateOperation), ...errors },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      return c.json(await setSeparateOperation(db, c.get("user").id, orgId, c.req.valid("json")), 200);
     },
   );
 

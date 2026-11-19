@@ -1,4 +1,4 @@
-import { useChannels, useConsultations, useExchangeConversation } from "@agenteschat/client";
+import { useChannels, useConsultations, useExchangeConversation } from "@dougbot/client";
 import {
   consultChoiceKey,
   consultChoiceOf,
@@ -6,11 +6,11 @@ import {
   consultLineState,
   consultOriginKey,
   openableConsultation,
-} from "@agenteschat/client/lib/consult-group";
-import { consultSubject } from "@agenteschat/client/lib/consultations";
-import { namesText } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { groupsWith } from "@agenteschat/client/lib/timeline";
+} from "@dougbot/client/lib/consult-group";
+import { consultSubject } from "@dougbot/client/lib/consultations";
+import { namesText } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { groupsWith } from "@dougbot/client/lib/timeline";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";

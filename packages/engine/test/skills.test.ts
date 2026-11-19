@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { generateKeyPairSync } from "node:crypto";
-import { orgTopic } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
-import { systemText } from "@agenteschat/providers";
+import { orgTopic } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
+import { systemText } from "@dougbot/providers";
 import {
   createApiKeyConnection,
   createOrganization,

@@ -1,4 +1,4 @@
-import type { Actor, Issue, IssuePriority, IssuesView } from "@agenteschat/client";
+import type { Actor, Issue, IssuePriority, IssuesView } from "@dougbot/client";
 import {
   DONE_RECENT_DAYS,
   ISSUE_CARD_FIELDS,
@@ -8,7 +8,7 @@ import {
   type IssuesViewChange,
   isDefaultIssuesView,
   PRIORITY_ORDER,
-} from "@agenteschat/client/lib/issues-view";
+} from "@dougbot/client/lib/issues-view";
 import {
   Button,
   Icon,
@@ -20,7 +20,7 @@ import {
   Popover,
   Segmented,
   Switch,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { type ReactNode, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActorAvatar } from "@/components/AgentAvatar";

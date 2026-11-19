@@ -1,7 +1,7 @@
-import { useAgentSkills } from "@agenteschat/client";
-import { type AccessResource, asksAt, LEVELS, type Level } from "@agenteschat/client/lib/access-levels";
-import { modeKey } from "@agenteschat/client/lib/workspace-mode";
-import { Button, Card, Chip, EmptyState, Icon, Menu, MenuItem, SearchField, Segmented, Toolbar } from "@agenteschat/ui";
+import { useAgentSkills } from "@dougbot/client";
+import { type AccessResource, asksAt, LEVELS, type Level } from "@dougbot/client/lib/access-levels";
+import { modeKey } from "@dougbot/client/lib/workspace-mode";
+import { Button, Card, Chip, EmptyState, Icon, Menu, MenuItem, SearchField, Segmented, Toolbar } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

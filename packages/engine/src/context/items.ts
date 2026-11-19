@@ -13,8 +13,8 @@ import {
   or,
   schema,
   sql,
-} from "@agenteschat/db";
-import { setsCredential } from "@agenteschat/ui/names";
+} from "@dougbot/db";
+import { setsCredential } from "@dougbot/ui/names";
 import { getAgent } from "../agents";
 import { agentIdsSeen, isPlaybook, readsPlaybook, seesAgentDetails } from "../audience";
 import { caches, rulesPresenceKey } from "../cache";
@@ -185,6 +185,15 @@ export const ACCESS_WORD = "whoholds";
 export const accessSubject = (key: string) => `${ACCESS_WORD} ${key}`;
 export const isAccess = (i: Pick<ContextItem, "kind" | "agentId" | "subjectKey">) =>
   i.kind === "fact" && !i.agentId && i.subjectKey.split(" ").includes(ACCESS_WORD);
+/**
+ * The kinds of memory that are the agent's craft (ADR doug-0013 addendum 2026-11-19): how to do the work and how a
+ * person wants things done, true in any workspace the agent works in. Every other kind (facts, decisions, profiles,
+ * notes) is one workspace's business and stays there unless a person or the learning says otherwise.
+ */
+export const CRAFT_KINDS: readonly ContextItem["kind"][] = ["lesson", "preference", "rule"];
+/** How far a memory goes among the agent's copies: its own `reach`, else what its kind is. */
+export const memoryReach = (i: Pick<ContextItem, "kind" | "reach">): "all" | "here" =>
+  i.reach === "all" || i.reach === "here" ? i.reach : CRAFT_KINDS.includes(i.kind) ? "all" : "here";
 export const accessSql = () =>
   sql`(${contextItems.kind} = 'fact' and ${contextItems.agentId} is null and ${ACCESS_WORD} = any(string_to_array(${contextItems.subjectKey}, ' ')))`;
 /**
@@ -314,6 +323,8 @@ export interface NewContextItem {
   relatedIds?: string[];
   /** Contradicted by another item, until a person resolves it. */
   disputed?: boolean;
+  /** How far it goes among the agent's copies in other workspaces; unset: as its kind says (`memoryReach`). */
+  reach?: "all" | "here" | null;
 }
 
 /** Inserts an item (content checked) and enqueues its indexing, in the caller's transaction. */
@@ -346,6 +357,7 @@ export async function insertContextItem(tx: Executor, input: NewContextItem): Pr
       createdById: input.createdById ?? null,
       relatedIds: input.relatedIds ?? [],
       disputed: input.disputed ?? false,
+      reach: input.reach ?? null,
     })
     .returning();
   if (!row) throw new Error("context item insert returned nothing");
@@ -357,7 +369,8 @@ export async function insertContextItem(tx: Executor, input: NewContextItem): Pr
 
 /** Replaces `old` by a new version (history kept: `superseded_by`, archived). */
 export async function supersede(tx: Executor, old: ContextItem, next: NewContextItem): Promise<ContextItem> {
-  const row = await insertContextItem(tx, next);
+  // A new version goes as far as the old one did, unless it says otherwise.
+  const row = await insertContextItem(tx, { ...next, reach: next.reach !== undefined ? next.reach : old.reach });
   await tx
     .update(contextItems)
     .set({ version: old.version + 1 })
@@ -751,7 +764,15 @@ export async function editContextItem(
   actorId: string,
   orgId: string,
   itemId: string,
-  input: { content?: string; title?: string; pinned?: boolean; archived?: boolean; confirmed?: boolean },
+  input: {
+    content?: string;
+    title?: string;
+    pinned?: boolean;
+    archived?: boolean;
+    confirmed?: boolean;
+    /** Kept in this workspace or in every copy of the agent (ADR doug-0013 addendum 2026-11-19). */
+    reach?: "all" | "here";
+  },
   judge?: Judge,
 ): Promise<ContextItem> {
   const item = await loadItem(db, orgId, itemId);
@@ -760,7 +781,8 @@ export async function editContextItem(
     input.confirmed === true &&
     input.content === undefined &&
     input.pinned === undefined &&
-    input.archived === undefined;
+    input.archived === undefined &&
+    input.reach === undefined;
   if (!onlyConfirms || !(await saidBy(db, actorId, item))) await requireEdit(db, actorId, item);
   // A rule passes `requireEdit` only for its giver, the agent's owner or an admin: people who may give it anyway.
   if (input.content !== undefined && input.content !== item.content && item.kind !== "rule") {
@@ -785,6 +807,7 @@ export async function editContextItem(
         evidence: mergeEvidence(item.evidence, [{ type: "human", ref: actorId, at: new Date().toISOString() }]),
         confidence: Math.max(item.confidence, 0.9),
         pinned: input.pinned ?? item.pinned,
+        reach: input.reach ?? item.reach,
         createdByKind: "person",
         // A rule holds by its giver (`rulesForPerson`): an owner's or admin's edit keeps it the giver's.
         createdById: item.kind === "rule" && item.createdByKind === "person" ? (item.createdById ?? actorId) : actorId,
@@ -800,7 +823,8 @@ export async function editContextItem(
         item.trust !== "low" &&
         item.evidence.some((e) => e.type === "app") &&
         !isVerified(item.evidence)));
-  if (confirms || input.pinned !== undefined || input.archived !== undefined) {
+  const reaches = input.reach !== undefined && input.reach !== current.reach;
+  if (confirms || input.pinned !== undefined || input.archived !== undefined || reaches) {
     const evidence = confirms
       ? mergeEvidence(item.evidence, [{ type: "human", ref: actorId, at: new Date().toISOString() }])
       : undefined;
@@ -814,6 +838,7 @@ export async function editContextItem(
         ...(input.archived !== undefined
           ? { status: input.archived ? ("archived" as const) : ("active" as const) }
           : {}),
+        ...(reaches ? { reach: input.reach } : {}),
         updatedAt: new Date(),
       })
       .where(eq(contextItems.id, current.id))

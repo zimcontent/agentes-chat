@@ -4,7 +4,7 @@
  * Menu paths and button names stay in the vendor's English, as its docs write them.
  */
 
-import type { en } from "@agenteschat/i18n/en";
+import type { en } from "@dougbot/i18n/en";
 
 type Dialog = (typeof en)["apps"]["dialog"];
 /** A key under `apps.dialog`, as "claude.step1". */

@@ -1,24 +1,26 @@
-import type { TeamAgendaTask } from "@agenteschat/client";
-import { useTeamAgenda } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
+import type { TeamAgendaTask } from "@dougbot/client";
+import { useMoveInQueue, useTeamAgenda } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
 import {
-  type AgendaDay,
+  type AgendaItem,
   type AgendaPerson,
   addDays,
   agendaByAssignee,
   agendaView,
   daysBetween,
   localDay,
+  queueMoveFor,
   TEAM_AGENDA_DAYS,
   tasksByDay,
-} from "@agenteschat/client/lib/team-agenda";
-import { Button, Chip, GroupHeading, Segmented, Select } from "@agenteschat/ui";
+} from "@dougbot/client/lib/team-agenda";
+import { Button, Chip, GroupHeading, Segmented, Select } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
-import { useState } from "react";
+import { type KeyboardEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActorAvatar } from "@/components/AgentAvatar";
 import { useOrg } from "@/components/org-context";
+import { useQueueDrag } from "@/components/queue-drag";
 import { useDirectory } from "@/hooks/useDirectory";
 import { useNow } from "@/hooks/useNow";
 import "@/pages/portal.css";
@@ -32,10 +34,11 @@ const WEEK = "week";
 const WEEKS_AHEAD = 8;
 
 /**
- * "Agenda da equipe" on Home, for owners and administrators: what each person (then each agent) is doing now and has
- * to do in the week, from the tasks' due dates, late ones first. A strip of days picks one ("Amanhã", "Ter 17") and the
- * arrows go a week at a time. The portal's cards are tasks with their production day as the due date, so a post to
- * make shows on the day it is to be made.
+ * "Agenda da equipe" on Home, for owners and administrators: each person's (then each agent's) queue, the tasks they
+ * have in the order they are to do them (ADR doug-0022). A task joins the end of its assignee's queue when it reaches
+ * them; dragging it by its handle, or its handle's arrow keys, moves it up or down, and that order is the priority.
+ * Each row keeps its date as a chip, late ones marked. A strip of days picks one ("Amanhã", "Ter 17"), still in queue
+ * order, and the arrows go a week at a time. The portal's cards are tasks with their production day as the due date.
  */
 export function TeamAgenda() {
   const { t, i18n } = useTranslation();
@@ -49,6 +52,11 @@ export function TeamAgenda() {
   const from = addDays(today, weeks * TEAM_AGENDA_DAYS);
   const agenda = useTeamAgenda(org.id, from, TEAM_AGENDA_DAYS, admin).data;
   const [picked, setPicked] = useState(ALL);
+  const move = useMoveInQueue(org.id);
+  const [said, setSaid] = useState("");
+  // The drop reads what this render shows: set below, once the lanes are known.
+  const dropTo = useRef<(lane: string, id: string, index: number) => void>(() => {});
+  const drag = useQueueDrag({ enabled: admin, onDrop: (lane, id, index) => dropTo.current(lane, id, index) });
   // Nothing at all to do, this week or late: Home shows nothing here. Another week keeps the strip to come back.
   if (!admin || !agenda || (weeks === 0 && agenda.tasks.length === 0)) return null;
 
@@ -70,6 +78,25 @@ export function TeamAgenda() {
     setWeeks(n);
     setDay(WEEK);
   };
+  /** `id` put at `index` among the other tasks `lane` shows: one move in that assignee's queue. */
+  const moveTo = (lane: string, id: string, index: number) => {
+    const shown = list.find((p) => keyOf(p) === lane);
+    const whole = everyone.find((p) => keyOf(p) === lane);
+    if (!shown || !whole) return;
+    const queue = whole.tasks.map((i) => i.task.id);
+    const at = queueMoveFor(
+      queue,
+      shown.tasks.map((i) => i.task.id),
+      id,
+      index,
+    );
+    if (!at) return;
+    move.mutate({ assignee: shown.assignee, taskId: id, afterId: at.afterId });
+    const others = shown.tasks.filter((i) => i.task.id !== id);
+    const number = shown.tasks.find((i) => i.task.id === id)?.task.number ?? 0;
+    setSaid(t("home.agenda.queue.moved", { number, place: Math.min(index, others.length) + 1, count: shown.count }));
+  };
+  dropTo.current = moveTo;
 
   return (
     <section className="home-sec team-agenda" aria-label={t("home.agenda.title")}>
@@ -134,19 +161,47 @@ export function TeamAgenda() {
       {list.length > 0 ? (
         <div className="team-agenda__people">
           {list.map((p) => (
-            <PersonAgenda key={keyOf(p)} person={p} name={name(p.assignee)} today={today} />
+            <PersonAgenda
+              key={keyOf(p)}
+              lane={keyOf(p)}
+              person={p}
+              name={name(p.assignee)}
+              today={today}
+              drag={drag}
+              onStep={(id, index) => moveTo(keyOf(p), id, index)}
+            />
           ))}
         </div>
       ) : (
         <p className="list-card team-agenda__none">{shownDay ? t("home.agenda.noneDay") : t("home.agenda.noneWeek")}</p>
       )}
+      <p className="ac-visually-hidden" aria-live="polite">
+        {said}
+      </p>
     </section>
   );
 }
 
-function PersonAgenda({ person, name, today }: { person: AgendaPerson; name: string; today: string }) {
+type QueueDrag = ReturnType<typeof useQueueDrag>;
+
+function PersonAgenda({
+  lane,
+  person,
+  name,
+  today,
+  drag,
+  onStep,
+}: {
+  lane: string;
+  person: AgendaPerson;
+  name: string;
+  today: string;
+  drag: QueueDrag;
+  /** The keyboard's move: `id` to `index` among the others. */
+  onStep: (id: string, index: number) => void;
+}) {
   const { t } = useTranslation();
-  const todayCount = person.days.find((d) => d.key === today)?.tasks.length ?? 0;
+  const todayCount = person.tasks.filter((i) => i.task.dueDate === today).length;
   const summary = [
     person.now > 0 ? t("home.agenda.nowCount", { count: person.now }) : "",
     person.late > 0 ? t("home.agenda.lateCount", { count: person.late }) : "",
@@ -162,67 +217,95 @@ function PersonAgenda({ person, name, today }: { person: AgendaPerson; name: str
         <span className="team-agenda__name">{name}</span>
         <span className="team-agenda__sum">{summary}</span>
       </header>
-      {person.days.map((day) => (
-        <DayGroup key={day.key} day={day} today={today} />
-      ))}
-    </section>
-  );
-}
-
-function DayGroup({ day, today }: { day: AgendaDay; today: string }) {
-  const { t, i18n } = useTranslation();
-  const label =
-    day.kind === "now"
-      ? t("home.agenda.now")
-      : day.kind === "late"
-        ? t("home.agenda.late")
-        : dayLabel(t, i18n.language, day.key, today);
-  return (
-    <section className="home-tasks__group" data-group={day.kind === "day" ? undefined : day.kind} aria-label={label}>
-      <h3 className="home-tasks__name">
-        {label}
-        <span className="tabular">{day.tasks.length}</span>
-      </h3>
-      <ul className="home-tasks__list">
-        {day.tasks.map((task) => (
-          <AgendaRow key={task.id} task={task} kind={day.kind} today={today} />
+      <ol className="home-tasks__list team-queue" data-queue={lane} aria-label={t("home.agenda.queue.list", { name })}>
+        {person.tasks.map((item, i) => (
+          <QueueRow
+            key={item.task.id}
+            item={item}
+            place={i + 1}
+            today={today}
+            drag={drag}
+            onKey={(e) => {
+              const step = e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0;
+              if (!step || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+              e.preventDefault();
+              const index = i + step;
+              if (index < 0 || index >= person.tasks.length) return;
+              onStep(item.task.id, index);
+            }}
+          />
         ))}
-      </ul>
+      </ol>
     </section>
   );
 }
 
-function AgendaRow({ task, kind, today }: { task: TeamAgendaTask; kind: AgendaDay["kind"]; today: string }) {
+function QueueRow({
+  item,
+  place,
+  today,
+  drag,
+  onKey,
+}: {
+  item: AgendaItem;
+  place: number;
+  today: string;
+  drag: QueueDrag;
+  onKey: (e: KeyboardEvent<HTMLButtonElement>) => void;
+}) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
+  const { task, kind } = item;
+  const drop = drag.drop?.id === task.id ? drag.drop.where : undefined;
   return (
-    <li>
+    <li
+      className="team-queue__row"
+      data-queue-row={task.id}
+      data-drop={drop}
+      data-lifted={drag.lifted === task.id || undefined}
+      data-kind={kind}
+    >
+      <Button
+        size="sm"
+        variant="ghost"
+        icon="grip"
+        iconOnly
+        className="team-queue__grip"
+        aria-label={t("home.agenda.queue.move", { number: task.number })}
+        onKeyDown={onKey}
+        {...drag.handle(task.id)}
+      />
+      <span className="team-queue__place tabular" aria-hidden="true">
+        {place}
+      </span>
       <Link
-        className="home-tasks__row"
+        className="home-tasks__row team-queue__task"
         to="/org/$orgId/issues/$number"
         params={{ orgId: org.id, number: String(task.number) }}
+        draggable={false}
       >
         <span className="home-tasks__text">
           <span className="home-tasks__title">{task.title}</span>
           <span className="home-tasks__meta">
             <span className="tabular">#{task.number}</span>
             {task.project && <span>{task.project.name}</span>}
-            {task.dueDate && kind !== "day" && (
-              <span>
-                {task.dueDate < today
-                  ? t("home.agenda.wasDue", { when: shortDay(i18n.language, task.dueDate) })
-                  : t("home.agenda.due", { when: dayLabel(t, i18n.language, task.dueDate, today, true) })}
-              </span>
-            )}
           </span>
         </span>
-        {(task.status === "in_review" || task.blocked || task.priority === "high") && (
-          <span className="home-tasks__chips">
-            {task.priority === "high" && <Chip tone="waiting">{t("home.agenda.high")}</Chip>}
-            {task.blocked && <Chip tone="waiting">{t("home.agenda.blocked")}</Chip>}
-            {task.status === "in_review" && <Chip tone="info">{t(`home.agenda.status.${task.status}`)}</Chip>}
-          </span>
-        )}
+        <span className="home-tasks__chips">
+          {kind === "late" && task.dueDate && (
+            <Chip tone="waiting" icon="alert">
+              {t("home.agenda.wasDue", { when: shortDay(i18n.language, task.dueDate) })}
+            </Chip>
+          )}
+          {kind !== "late" && task.dueDate && (
+            <Chip icon="calendar">
+              {t("home.agenda.due", { when: dayLabel(t, i18n.language, task.dueDate, today, true) })}
+            </Chip>
+          )}
+          {kind === "now" && <Chip tone="info">{t(`home.agenda.status.${task.status as "in_progress"}`)}</Chip>}
+          {task.priority === "high" && <Chip tone="waiting">{t("home.agenda.high")}</Chip>}
+          {task.blocked && <Chip tone="waiting">{t("home.agenda.blocked")}</Chip>}
+        </span>
       </Link>
     </li>
   );

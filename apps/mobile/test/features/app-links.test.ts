@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { APP_PAGES, appPagePath } from "@agenteschat/client/lib/app-pages";
+import { APP_PAGES, appPagePath } from "@dougbot/client/lib/app-pages";
 import { APP_LINK_PATHS, APP_LINK_WEB_QUERIES } from "../../../server/src/app-links";
 import { APP_LINK_PATTERNS } from "../../app.config";
 import {

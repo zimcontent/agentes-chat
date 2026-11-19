@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { KeyWrapper } from "@agenteschat/adapters";
-import { type Database, type Executor, eq, schema } from "@agenteschat/db";
+import type { KeyWrapper } from "@dougbot/adapters";
+import { type Database, type Executor, eq, schema } from "@dougbot/db";
 import { type AuditEntry, auditEveryOrg } from "../audit";
 import { deriveSecret, openSecret, sealSecret } from "../crypto";
 import { ConflictError, ValidationError } from "../errors";
@@ -173,7 +173,7 @@ export const githubAppManifestCallbackUri = (publicUrl: string) =>
   `${publicUrl.replace(/\/$/, "")}/api/app/github-app/manifest/callback`;
 
 /**
- * agentes.chat's own app's permissions (ADR 0156), by GitHub's manifest names (Variables is `actions_variables`).
+ * DougBot's own app's permissions (ADR 0156), by GitHub's manifest names (Variables is `actions_variables`).
  * Never Codespaces (agents have their own computers, and Codespaces bill the organization) nor an organization's
  * administration, secrets, variables, runners or webhooks. Each call's token asks only what its tool needs
  * (`github-call.ts`).
@@ -211,7 +211,7 @@ const APP_PERMISSIONS = {
 
 /**
  * What happens on GitHub that agents hear (`github-events.ts`), by GitHub's event names: comments, reviews and new
- * items that name the app, and items being merged or closed. agentes.chat's own app subscribes to the same.
+ * items that name the app, and items being merged or closed. DougBot's own app subscribes to the same.
  */
 export const GITHUB_APP_EVENTS = [
   "issues",
@@ -242,7 +242,7 @@ export async function missingGitHubAppEvents(app: GitHubAppConfig, http: GitHubH
 }
 
 /**
- * The app a server's owner creates on GitHub: the permissions, events and addresses agentes.chat's own app is
+ * The app a server's owner creates on GitHub: the permissions, events and addresses DougBot's own app is
  * registered with, at this server's `PUBLIC_URL`. A webhook GitHub can't deliver to (no https) is left off: reading the
  * GitHub panel reconciles installations instead.
  */

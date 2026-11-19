@@ -1,5 +1,5 @@
-import { noAnswer } from "@agenteschat/client/lib/errors";
-import { Button, EmptyState } from "@agenteschat/ui";
+import { noAnswer } from "@dougbot/client/lib/errors";
+import { Button, EmptyState } from "@dougbot/ui";
 import type { ErrorComponentProps } from "@tanstack/react-router";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";

@@ -14,6 +14,7 @@ import {
   listIssueColumns,
   listIssueProjects,
   listIssues,
+  moveInQueue,
   openTaskConversation,
   PROJECT_NAME_MAX,
   ROLE_COLORS,
@@ -24,7 +25,7 @@ import {
   updateIssue,
   updateIssueColumn,
   updateIssueProject,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import {
   type AppDeps,
@@ -272,6 +273,34 @@ export function issueRoutes(deps: AppDeps) {
       const { orgId } = c.req.valid("param");
       const query = c.req.valid("query");
       return c.json(await teamAgenda(db, c.get("user").id, orgId, query), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/queues/{assigneeType}/{assigneeId}",
+      tags,
+      security,
+      summary: "Move a task in its assignee's queue (owners and admins)",
+      description:
+        "Each person's and agent's open tasks are a queue, in the order they are to be done (ADR doug-0022). The task goes right after `afterId`, or to the top with `null`. Answers the queue's task ids in their new order.",
+      request: {
+        params: OrgParams.extend({ assigneeType: z.enum(["person", "agent"]), assigneeId: z.string().min(1) }),
+        body: body(
+          z.object({
+            taskId: z.uuid(),
+            afterId: z.uuid().nullable().openapi({ description: "The task it goes right after; null: the top." }),
+          }),
+        ),
+      },
+      responses: { 200: json(z.object({ order: z.array(z.uuid()) }).openapi("TaskQueue")), ...errors },
+    }),
+    async (c) => {
+      const { orgId, assigneeType, assigneeId } = c.req.valid("param");
+      const move = c.req.valid("json");
+      const order = await moveInQueue(issues, c.get("user").id, orgId, { type: assigneeType, id: assigneeId }, move);
+      return c.json({ order }, 200);
     },
   );
 

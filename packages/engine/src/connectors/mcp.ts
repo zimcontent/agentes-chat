@@ -1,5 +1,5 @@
-import { type ComposioClient, composioFile, FileTooLargeError } from "@agenteschat/adapters";
-import { BRAND_NAME } from "@agenteschat/i18n/brand";
+import { type ComposioClient, composioFile, FileTooLargeError } from "@dougbot/adapters";
+import { BRAND_NAME } from "@dougbot/i18n/brand";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import type { FetchLike, Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
@@ -134,9 +134,28 @@ export async function mcpSessionOver(transport: Transport): Promise<McpSession> 
       return { content: parts.join("\n"), isError: res.isError === true };
     },
     serverInfo: () => (client.getServerVersion() as McpServerInfo | undefined) ?? null,
-    close: () => client.close(),
+    close: () => {
+      // DougBot: `client.close()` only stops our side; a stateful server keeps the session (and whatever it holds for
+      // it, like a bridge's process or SSH connection) until it times out, or forever. End it on the server first
+      // (streamable HTTP's DELETE), in the background and for at most `END_SESSION_MS`, so no caller waits on it.
+      const end = (transport as { terminateSession?: () => Promise<void> }).terminateSession;
+      const ended = end
+        ? Promise.race([end.call(transport).catch(() => {}), pause(END_SESSION_MS)])
+        : Promise.resolve();
+      void ended.then(() => client.close()).catch(() => {});
+      return Promise.resolve();
+    },
   };
 }
+
+/** DougBot: how long ending a session on the server may take before our side closes anyway. */
+export const END_SESSION_MS = 2000;
+
+const pause = (ms: number) =>
+  new Promise<void>((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    (timer as { unref?: () => void }).unref?.();
+  });
 
 /**
  * The shortest header value masked in what a server says back. A shorter one is a setting (`1`, `v2`), not a key, and

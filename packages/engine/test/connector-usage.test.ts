@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { gt, schema, sql } from "@agenteschat/db";
+import { gt, schema, sql } from "@dougbot/db";
 import {
   analyticsRange,
   composioUsageHook,

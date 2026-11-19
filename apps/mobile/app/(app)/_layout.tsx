@@ -1,5 +1,5 @@
-import { usePrefetchRecent, useSendWaiting } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+import { usePrefetchRecent, useSendWaiting } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import { type ErrorBoundaryProps, Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
@@ -194,7 +194,7 @@ function AppStack() {
       <Stack.Screen name="approval/[id]" options={approvalSheet} />
       <Stack.Screen name="join-requests" options={requestsSheet} />
       <Stack.Screen name="switch-computer/[machineId]" options={switchSheet} />
-      <Stack.Screen name="agent-switch/[id]" options={pushSheet} />
+      <Stack.Screen name="agent-switch/[id]" options={switchSheet} />
       <Stack.Screen name="computer-setup" options={setupSheet} />
       {/* Connect an AI: pushed screens, one question each, on the grouped gray (its bar counts the steps). */}
       <Stack.Screen

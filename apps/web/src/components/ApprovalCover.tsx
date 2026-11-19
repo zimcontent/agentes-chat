@@ -1,4 +1,4 @@
-import type { ApprovalCoverInput, RightHandApprovals, RightHandApprovalsInput } from "@agenteschat/client";
+import type { ApprovalCoverInput, RightHandApprovals, RightHandApprovalsInput } from "@dougbot/client";
 import {
   useApprovalCovers,
   useDeclineApprovalCover,
@@ -6,11 +6,11 @@ import {
   useRightHandApprovals,
   useSetApprovalCover,
   useSetRightHandApprovals,
-} from "@agenteschat/client";
-import { coveringLine } from "@agenteschat/client/lib/approval-words";
-import { FIELD_LIMITS } from "@agenteschat/client/lib/field-limits";
-import { endOfDay, toYmd } from "@agenteschat/client/lib/format";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
+} from "@dougbot/client";
+import { coveringLine } from "@dougbot/client/lib/approval-words";
+import { FIELD_LIMITS } from "@dougbot/client/lib/field-limits";
+import { endOfDay, toYmd } from "@dougbot/client/lib/format";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
 import {
   AffixInput,
   Avatar,
@@ -25,7 +25,7 @@ import {
   Select,
   Switch,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";

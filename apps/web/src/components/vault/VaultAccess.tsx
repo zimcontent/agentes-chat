@@ -1,6 +1,6 @@
-import type { VaultAccess, VaultScope } from "@agenteschat/client";
-import { useRoles } from "@agenteschat/client";
-import { isEveryone, sortRoles } from "@agenteschat/client/lib/roles";
+import type { VaultAccess, VaultScope } from "@dougbot/client";
+import { useRoles } from "@dougbot/client";
+import { isEveryone, sortRoles } from "@dougbot/client/lib/roles";
 import {
   AccessDialog,
   type AccessSubject,
@@ -14,7 +14,7 @@ import {
   type IconName,
   Locked,
   RoleMark,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import type { TFunction } from "i18next";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";

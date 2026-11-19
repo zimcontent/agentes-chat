@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { ServerFrame } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import type { ServerFrame } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   afterMissionRunEnded,
   closeMission,

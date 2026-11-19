@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
-import type { AgentWork } from "@agenteschat/client";
+import type { AgentWork } from "@dougbot/client";
 import { FRONT_MAX, frontOf, toolsHere } from "../../src/features/chats/all-tools";
 import { waitingAgents } from "../../src/features/chats/waiting";
 

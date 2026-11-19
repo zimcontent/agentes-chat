@@ -1,4 +1,4 @@
-import { Button } from "@agenteschat/ui";
+import { Button } from "@dougbot/ui";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 /**

@@ -1,8 +1,8 @@
-import type { OrgSettings, WorkspaceMode } from "@agenteschat/client";
-import { useUpdateSettings } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
-import { modeSwitchLines } from "@agenteschat/client/lib/personal-view";
-import { Button, Dialog, DialogBody, DialogFooter, Field, Input, Locked, OptionList } from "@agenteschat/ui";
+import type { OrgSettings, WorkspaceMode } from "@dougbot/client";
+import { useUpdateSettings } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
+import { modeSwitchLines } from "@dougbot/client/lib/personal-view";
+import { Button, Dialog, DialogBody, DialogFooter, Field, Input, Locked, OptionList } from "@dougbot/ui";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { DeletionLine } from "@/components/DeleteWorkspace";

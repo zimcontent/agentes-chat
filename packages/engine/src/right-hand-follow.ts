@@ -1,4 +1,4 @@
-import type { PubSub } from "@agenteschat/adapters";
+import type { PubSub } from "@dougbot/adapters";
 import {
   and,
   type Database,
@@ -11,8 +11,8 @@ import {
   type SQL,
   schema,
   sql,
-} from "@agenteschat/db";
-import { plainLine } from "@agenteschat/ui/markdown";
+} from "@dougbot/db";
+import { plainLine } from "@dougbot/ui/markdown";
 import { runPerson } from "./authority";
 import { deliverNotice, publishDelivery } from "./delivery";
 import { openPersonAgentDm, personAgentDmKey } from "./dms";

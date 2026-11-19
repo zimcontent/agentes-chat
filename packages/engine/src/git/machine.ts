@@ -10,8 +10,8 @@ import {
   type GitSyncRequest,
   gitCheckoutDir,
   isGitRepoName,
-} from "@agenteschat/adapters";
-import { and, type Database, eq, isNull, schema } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, type Database, eq, isNull, schema } from "@dougbot/db";
 import { getAgentCached } from "../agents";
 import { recordAudit } from "../audit";
 import { activeConnections } from "../connectors/connections";

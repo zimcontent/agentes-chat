@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, setSystemTime, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { connectLink } from "@agenteschat/client/lib/server";
+import { connectLink } from "@dougbot/client/lib/server";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { encode } from "uqr";
 import { createFakeApi, ORG_ID, seedState } from "./fake-api";
@@ -21,9 +21,9 @@ const APP_STEP = "Instale o app agentes no celular.App StoreEm breveGoogle PlayE
 async function openPhoneDialog(state: ReturnType<typeof seedState>) {
   const app = await renderApp(`/org/${ORG_ID}/settings/account`, { api: createFakeApi(state) });
   await settle(6);
-  await click(screen().getByRole("button", { name: /^Abrir no celular/ }));
+  await click(screen().getByRole("button", { name: /^Parear celular/ }));
   await settle(4);
-  return Object.assign(screen().getByRole("dialog", { name: "Abrir no celular" }), { app });
+  return Object.assign(screen().getByRole("dialog", { name: "Parear celular" }), { app });
 }
 
 describe("Abrir no celular", () => {

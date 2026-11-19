@@ -1,4 +1,4 @@
-import type { Widget, WidgetKind, WidgetWait } from "@agenteschat/client";
+import type { Widget, WidgetKind, WidgetWait } from "@dougbot/client";
 import {
   useDesktopStatus,
   useWidgetLacksAi,
@@ -7,11 +7,11 @@ import {
   widgetWaitFix,
   widgetWaiting,
   widgetWaitText,
-} from "@agenteschat/client";
-import { relativeTime } from "@agenteschat/client/lib/format";
-import { maySetAgentAi, noAiLockedLine, planKeyIntent } from "@agenteschat/client/lib/no-ai";
-import { can } from "@agenteschat/client/lib/permissions";
-import { type AgentColor, Icon, PixelSpinner } from "@agenteschat/ui";
+} from "@dougbot/client";
+import { relativeTime } from "@dougbot/client/lib/format";
+import { maySetAgentAi, noAiLockedLine, planKeyIntent } from "@dougbot/client/lib/no-ai";
+import { can } from "@dougbot/client/lib/permissions";
+import { type AgentColor, Icon, PixelSpinner } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
 import type { MouseEvent } from "react";

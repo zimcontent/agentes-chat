@@ -1,1 +1,1 @@
-export * from "@agenteschat/tokens/names";
+export * from "@dougbot/tokens/names";

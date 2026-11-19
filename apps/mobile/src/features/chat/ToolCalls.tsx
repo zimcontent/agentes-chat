@@ -1,7 +1,7 @@
-import { isScreenTool, type ScreenKind, useCatalog, useRun, useTaskSteps } from "@agenteschat/client";
-import type { Activity, ActivityKind } from "@agenteschat/client/lib/activity";
-import { formatBytes } from "@agenteschat/client/lib/files";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
+import { isScreenTool, type ScreenKind, useCatalog, useRun, useTaskSteps } from "@dougbot/client";
+import type { Activity, ActivityKind } from "@dougbot/client/lib/activity";
+import { formatBytes } from "@dougbot/client/lib/files";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
 import {
   appKey,
   callLogo,
@@ -26,8 +26,8 @@ import {
   workFromSteps,
   workMeta,
   workSteps,
-} from "@agenteschat/client/lib/work";
-import type { AgentColorName } from "@agenteschat/ui/agent/engine";
+} from "@dougbot/client/lib/work";
+import type { AgentColorName } from "@dougbot/ui/agent/engine";
 import type { TFunction } from "i18next";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -60,7 +60,7 @@ import { outputTail } from "./turn";
  * flat card that stays one line while the agent works (the apps' logos, what it does now, the pixel mark)
  * and opens on a tap into every call, each opening again into what it ran or was given and answered. What
  * the agent said between calls sits inside, muted; the messages it read stay outside, under the block, so
- * "Leu seu recado" is always in sight. The words come from the shared model (`@agenteschat/client/lib/work`).
+ * "Leu seu recado" is always in sight. The words come from the shared model (`@dougbot/client/lib/work`).
  */
 
 /** Our own tools by what they do: their icon on the tile (a connector's call shows its mark). */

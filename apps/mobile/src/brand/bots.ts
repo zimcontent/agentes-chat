@@ -10,7 +10,7 @@
  *
  * Pure (no React Native): unit-tested.
  */
-import { gradientOf } from "@agenteschat/ui/agent/engine";
+import { gradientOf } from "@dougbot/ui/agent/engine";
 import DougBot, {
   type DougBotAcessorio,
   type DougBotEstado,

@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { AgentStatus, AgentWork, ManagedTask, PendingReturn, TaskManagerView } from "@agenteschat/client";
-import { formatTime } from "@agenteschat/client/lib/format";
+import type { AgentStatus, AgentWork, ManagedTask, PendingReturn, TaskManagerView } from "@dougbot/client";
+import { formatTime } from "@dougbot/client/lib/format";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { colorOf } from "@/components/Sky";
 import { ADA_ID, ATLAS_ID, createFakeApi, ENG_ID, type FakeState, GENERAL_ID, ORG_ID, seedState } from "./fake-api";

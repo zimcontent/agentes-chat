@@ -1,4 +1,4 @@
-import { cx, FactLine, Icon, type IconName, type LineFact, useDragScroll } from "@agenteschat/ui";
+import { cx, FactLine, Icon, type IconName, type LineFact, useDragScroll } from "@dougbot/ui";
 import {
   type HTMLAttributes,
   type MouseEvent as ReactMouseEvent,

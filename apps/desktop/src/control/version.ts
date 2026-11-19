@@ -1,4 +1,4 @@
-import { CLOUD_SERVER } from "@agenteschat/client/lib/server";
+import { CLOUD_SERVER } from "@dougbot/client/lib/server";
 
 /**
  * The "new version" check (ADR 0036 §9): `GET https://dougbot.app/api/desktop/latest?target=…&arch=…`

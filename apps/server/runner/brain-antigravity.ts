@@ -3,9 +3,9 @@ import type { EventEmitter } from "node:events";
 import { mkdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { createInterface } from "node:readline";
-import type { CommandProfile } from "@agenteschat/adapters/command-policy";
-import type { AgentScope, BrainEffort } from "@agenteschat/adapters/machine-protocol";
-import { isAccountId } from "@agenteschat/adapters/machine-protocol";
+import type { CommandProfile } from "@dougbot/adapters/command-policy";
+import type { AgentScope, BrainEffort } from "@dougbot/adapters/machine-protocol";
+import { isAccountId } from "@dougbot/adapters/machine-protocol";
 import {
   ACCOUNT_MISSING_MESSAGE,
   ACCOUNT_SIGNED_OUT,
@@ -202,6 +202,17 @@ export function antigravityProblem(
     return [{ type: "error", code: "not_logged_in", message: problem, retryable: true }];
   return [{ type: "error", code: "antigravity_failed", message: problem, retryable: true }];
 }
+
+/**
+ * Google holding the account until a person verifies it (PERMISSION_DENIED, "Verify your account to continue"): the
+ * CLI answers the turn with its card's title, "Verification Required", as if the model said it (1.5.10, seen
+ * 2026-11-18). That answer is the account's state, never the agent's reply.
+ */
+export const AGY_VERIFY = /^[\s\p{S}\p{P}]*verification required[\s\p{S}\p{P}]*$|verify your account to continue/iu;
+
+/** What a person reads when Google wants the account verified. */
+export const AGY_VERIFY_MESSAGE =
+  "Google is asking to verify this Gemini account before it thinks again (Verify your account to continue). Open Gemini or Antigravity signed in to that Google account, finish the verification, then try again.";
 
 /**
  * A turn that "succeeded" with nothing to say because the CLI denied its tools without asking (`result.denied_actions`,
@@ -521,6 +532,10 @@ export async function runAntigravityTurn(input: AntigravityTurnInput, opts: Anti
     const response = typeof r.response === "string" ? r.response : "";
     if (r.status === "SUCCESS" && exit.code === 0) {
       const text = clean(response.trimEnd());
+      if (AGY_VERIFY.test(text) && !worked) {
+        opts.emit({ type: "error", code: "not_logged_in", message: AGY_VERIFY_MESSAGE, retryable: true });
+        return;
+      }
       // Nothing said because the CLI refused what the turn needed: never an empty answer, which reads as "Done.".
       const denied = text || streamed ? null : agyDenied(r);
       if (denied && !nudge && !input.chat && opts.chats.get(chatKey)) {

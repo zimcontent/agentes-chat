@@ -1,4 +1,4 @@
-import type { Agent, AgentBrain, AgentBrainInput, RondaSchedule } from "@agenteschat/client";
+import type { Agent, AgentBrain, AgentBrainInput, RondaSchedule } from "@dougbot/client";
 import {
   keys,
   useAgentBrain,
@@ -12,24 +12,24 @@ import {
   useUpdateAgent,
   useUpdateSettings,
   useWorkspaceUsesApi,
-} from "@agenteschat/client";
-import { accountAbout, accountChoices, accountTitle } from "@agenteschat/client/lib/ai-accounts";
-import { audienceOf, audiencePatch } from "@agenteschat/client/lib/audience";
-import { modelInput, modelRows } from "@agenteschat/client/lib/brain-picker";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { handleAfterRename } from "@agenteschat/client/lib/new-agent";
-import { can } from "@agenteschat/client/lib/permissions";
-import { brainPlan } from "@agenteschat/client/lib/plans";
-import { AUTO, modelChoices } from "@agenteschat/client/lib/providers";
-import { mineStatus, RIGHT_HAND_POWERS, rightHandNoComputer } from "@agenteschat/client/lib/right-hand";
+} from "@dougbot/client";
+import { accountAbout, accountChoices, accountTitle } from "@dougbot/client/lib/ai-accounts";
+import { audienceOf, audiencePatch } from "@dougbot/client/lib/audience";
+import { modelInput, modelRows } from "@dougbot/client/lib/brain-picker";
+import { errorText } from "@dougbot/client/lib/errors";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { handleAfterRename } from "@dougbot/client/lib/new-agent";
+import { can } from "@dougbot/client/lib/permissions";
+import { brainPlan } from "@dougbot/client/lib/plans";
+import { AUTO, modelChoices } from "@dougbot/client/lib/providers";
+import { mineStatus, RIGHT_HAND_POWERS, rightHandNoComputer } from "@dougbot/client/lib/right-hand";
 import {
   type LodiPrefs,
   type LodiPrefsPatch,
   type LodiSwitch,
   type TeamWeekPeriod,
   teamWeekOn,
-} from "@agenteschat/client/lib/right-hand-prefs";
+} from "@dougbot/client/lib/right-hand-prefs";
 import {
   AffixInput,
   BrainLogo,
@@ -46,7 +46,7 @@ import {
   ProviderLogo,
   Select,
   Switch,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { TFunction } from "i18next";

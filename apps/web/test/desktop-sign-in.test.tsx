@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { SignInOptions } from "@agenteschat/client";
+import type { SignInOptions } from "@dougbot/client";
 import { act, cleanup, fireEvent } from "@testing-library/react";
 import { createFakeApi, seedState } from "./fake-api";
 import { createFakeAuth } from "./fake-auth";

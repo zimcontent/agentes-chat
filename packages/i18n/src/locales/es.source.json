@@ -8992,6 +8992,39 @@
   "agentTwins.failed": {
     "value": "Couldn't change it. Try again."
   },
+  "agentTwins.craftOnly": {
+    "value": "Separate operation: only the craft goes back and forth."
+  },
+  "separateOperation.title": {
+    "value": "Separate operation"
+  },
+  "separateOperation.help": {
+    "value": "The agents here also work in your other workspaces, like people employed by two companies. Only the craft goes back and forth: instructions, skills, lessons, rules and preferences that name nothing of the other company. Facts, decisions, notes, clients and connections stay in each."
+  },
+  "separateOperation.switch": {
+    "value": "Only the craft goes back and forth"
+  },
+  "separateOperation.switchHelp": {
+    "value": "Once on, what already came from another company goes back to it within a minute. The original stays where it was learned."
+  },
+  "separateOperation.ownersOnly": {
+    "value": "Only owners change it."
+  },
+  "separateOperation.names": {
+    "value": "This operation's names"
+  },
+  "separateOperation.namesHelp": {
+    "value": "Clients, projects and people of this operation, separated by commas. Nothing that names one of them reaches a copy in another workspace. The workspace's name and the clients its agents already know count on their own."
+  },
+  "separateOperation.namesExample": {
+    "value": "E.g. Aurora Bakery, North Tower"
+  },
+  "separateOperation.sharedSignIn": {
+    "value": "{{label}} uses the same sign-in as {{workspaces}}. Connect it again with this operation's own account."
+  },
+  "separateOperation.failed": {
+    "value": "Couldn't save. Try again."
+  },
   "ronda.title": {
     "value": "Ronda"
   },
@@ -12768,6 +12801,15 @@
   "home.agenda.status.in_review": {
     "value": "In review"
   },
+  "home.agenda.queue.list": {
+    "value": "{{name}}'s queue"
+  },
+  "home.agenda.queue.move": {
+    "value": "Move task #{{number}} in the queue. Drag it, or use the up and down arrow keys."
+  },
+  "home.agenda.queue.moved": {
+    "value": "Task #{{number}} is now {{place}} of {{count}}."
+  },
   "home.mission": {
     "value": "<b>{{name}}</b> needs you in a mission"
   },
@@ -15681,6 +15723,24 @@
   },
   "agentPage.memory.saved": {
     "value": "Saved. It counts as verified now."
+  },
+  "agentPage.memory.reachAll": {
+    "value": "In all workspaces"
+  },
+  "agentPage.memory.reachHere": {
+    "value": "Only in this workspace"
+  },
+  "agentPage.memory.keepHere": {
+    "value": "Keep only here"
+  },
+  "agentPage.memory.sendAll": {
+    "value": "Take to all"
+  },
+  "agentPage.memory.keptHere": {
+    "value": "It stays in this workspace. Copies the other workspaces got are archived within a minute."
+  },
+  "agentPage.memory.sentAll": {
+    "value": "It goes to the agent in your other workspaces within a minute."
   },
   "agentPage.memory.rules": {
     "value": "Rules people gave"
@@ -27133,7 +27193,7 @@
     "value": "E.g.: Brings numbers before opinions. Pushes back when the budget doesn't fit."
   },
   "liveVoice.settings.title": {
-    "value": "Live voice (GPT-Live)"
+    "value": "Live voice"
   },
   "liveVoice.settings.lead": {
     "value": "Voice calls with your agents and Listen on any message, each agent in its own voice."
@@ -27206,6 +27266,42 @@
   },
   "liveVoice.settings.refused": {
     "value": "This key doesn't have this voice: {{voice}} spoke instead."
+  },
+  "liveVoice.settings.engine": {
+    "value": "The calls' voice"
+  },
+  "liveVoice.settings.house": {
+    "value": "House voice (Qwen)"
+  },
+  "liveVoice.settings.gptLive": {
+    "value": "GPT-Live (your key)"
+  },
+  "liveVoice.settings.houseCredits": {
+    "value": "Paid from this workspace's credits: {{perMinute}} credits a minute. Balance: {{balance}} credits, about {{minutes}} min."
+  },
+  "liveVoice.settings.houseNoWallet": {
+    "value": "Paid in credits, {{perMinute}} a minute. The balance can't be read now."
+  },
+  "liveVoice.settings.gptLiveHint": {
+    "value": "OpenAI's voice, on this workspace's own key. About US$ 0.05 a minute per agent."
+  },
+  "liveVoice.settings.addCredits": {
+    "value": "Buy credits"
+  },
+  "liveVoice.settings.monthly": {
+    "value": "Monthly limit in credits"
+  },
+  "liveVoice.settings.monthlyNone": {
+    "value": "No limit"
+  },
+  "liveVoice.settings.spent": {
+    "value": "Used this month: {{spent}} of {{limit}} credits."
+  },
+  "liveVoice.settings.spentNoLimit": {
+    "value": "Used this month: {{spent}} credits. Calls stop only when the balance runs out."
+  },
+  "liveVoice.settings.pickerLeadHouse": {
+    "value": "Hear each voice as {{name}} and pick one. Each sample uses a credit or two."
   },
   "liveVoice.phoneLine.title": {
     "value": "Phone calls"
@@ -27344,6 +27440,21 @@
   },
   "liveVoice.errors.notIn": {
     "value": "You're not in this call anymore."
+  },
+  "liveVoice.errors.noCredits": {
+    "value": "Not enough credits for a minute of call. Buy credits on the Media page."
+  },
+  "liveVoice.errors.monthLimit": {
+    "value": "The calls reached this month's credit limit. Whoever configures the workspace can raise it in Settings › Voice."
+  },
+  "liveVoice.errors.updateApp": {
+    "value": "Calls here use the house voice. Update the app to call."
+  },
+  "liveVoice.errors.noHouse": {
+    "value": "The house voice isn't available here."
+  },
+  "liveVoice.errors.badLimit": {
+    "value": "A limit is a whole number of credits."
   },
   "media.word.gif": {
     "value": "GIF"
@@ -30877,6 +30988,33 @@
   "artifacts.markdownSource": {
     "value": "Markdown text"
   },
+  "sectorPills.label": {
+    "value": "Shortcuts"
+  },
+  "sectorPills.failed": {
+    "value": "That card didn't come. Try again."
+  },
+  "sectorPills.whatsapp": {
+    "value": "WhatsApp"
+  },
+  "sectorPills.calendar": {
+    "value": "Calendar"
+  },
+  "sectorPills.approvals": {
+    "value": "Approvals"
+  },
+  "sectorPills.proposals": {
+    "value": "Proposals"
+  },
+  "sectorPills.tasks": {
+    "value": "Tasks"
+  },
+  "sectorPills.review": {
+    "value": "Review"
+  },
+  "sectorPills.portal": {
+    "value": "Portal"
+  },
   "blocks.send": {
     "value": "Send"
   },
@@ -30961,6 +31099,12 @@
   "blocks.voteFailed": {
     "value": "Your vote didn't go through."
   },
+  "blocks.done": {
+    "value": "Done"
+  },
+  "blocks.actFailed": {
+    "value": "That didn't go through. Try again."
+  },
   "choices.step": {
     "value": "{{step}} of {{total}}"
   },
@@ -30987,6 +31131,117 @@
   },
   "choices.tooLongFix": {
     "value": "Shorten the answer."
+  },
+  "drive.draft": {
+    "value": "Draft"
+  },
+  "drive.draftUntil": {
+    "value": "Goes to the trash on its own on {{date}}, unless it changes or someone keeps it."
+  },
+  "drive.keepDraft": {
+    "value": "Keep it"
+  },
+  "drive.kept": {
+    "value": "{{title}} is kept."
+  },
+  "drive.folders.title": {
+    "value": "Folders"
+  },
+  "drive.folders.path": {
+    "value": "Folder path"
+  },
+  "drive.folders.new": {
+    "value": "New folder"
+  },
+  "drive.folders.newTitle": {
+    "value": "New folder"
+  },
+  "drive.folders.newInside": {
+    "value": "New folder inside"
+  },
+  "drive.folders.create": {
+    "value": "Create"
+  },
+  "drive.folders.created": {
+    "value": "Folder {{name}} created."
+  },
+  "drive.folders.name": {
+    "value": "Name"
+  },
+  "drive.folders.namePlaceholder": {
+    "value": "Client or project"
+  },
+  "drive.folders.menu": {
+    "value": "Folder {{name}}: more"
+  },
+  "drive.folders.menuShort": {
+    "value": "More"
+  },
+  "drive.folders.rename": {
+    "value": "Rename"
+  },
+  "drive.folders.renameTitle": {
+    "value": "Rename folder"
+  },
+  "drive.folders.renameConfirm": {
+    "value": "Rename"
+  },
+  "drive.folders.move": {
+    "value": "Move"
+  },
+  "drive.folders.moveTo": {
+    "value": "Move to…"
+  },
+  "drive.folders.moveHere": {
+    "value": "Move here"
+  },
+  "drive.folders.here": {
+    "value": "Here now"
+  },
+  "drive.folders.moveFolderTitle": {
+    "value": "Move {{name}}"
+  },
+  "drive.folders.moveFilesTitle": {
+    "value": {
+      "one": "Move {{count}} file",
+      "other": "Move {{count}} files"
+    }
+  },
+  "drive.folders.moved": {
+    "value": "{{name}} moved to {{folder}}."
+  },
+  "drive.folders.filed": {
+    "value": {
+      "one": "{{count}} file moved to {{folder}}.",
+      "other": "{{count}} files moved to {{folder}}."
+    }
+  },
+  "drive.folders.files": {
+    "value": {
+      "one": "{{count}} file",
+      "other": "{{count}} files"
+    }
+  },
+  "drive.folders.remove": {
+    "value": "Remove folder"
+  },
+  "drive.folders.removeTitle": {
+    "value": "Remove {{name}}?"
+  },
+  "drive.folders.removeBody": {
+    "value": "No file is deleted. What is inside goes up one level."
+  },
+  "drive.folders.removeConfirm": {
+    "value": "Remove folder"
+  },
+  "drive.folders.removed": {
+    "value": "Folder {{name}} removed."
+  },
+  "drive.folders.emptyTitle": {
+    "value": "This folder is empty"
+  },
+  "drive.folders.emptyText": {
+    "value": "Drag files here, upload them, or ask an agent to file its work in this folder."
   },
   "drive.title": {
     "value": "Drive"
@@ -35639,6 +35894,18 @@
   "toolNames.label.update_artifact": {
     "value": "Change file in Drive"
   },
+  "toolNames.label.drive_folders": {
+    "value": "See the Drive's folders"
+  },
+  "toolNames.label.file_artifacts": {
+    "value": "File in a Drive folder"
+  },
+  "toolNames.label.drive_folder": {
+    "value": "Arrange a Drive folder"
+  },
+  "toolNames.label.trash_artifacts": {
+    "value": "Clear out files"
+  },
   "toolNames.label.read_artifact": {
     "value": "Read file in Drive"
   },
@@ -38426,6 +38693,24 @@
   },
   "errors.artifact.notInDrive": {
     "value": "This lives only in its conversation, so it can't be shared."
+  },
+  "errors.drive.folderExists": {
+    "value": "There's a folder with that name here already."
+  },
+  "errors.drive.folderNotFound": {
+    "value": "This folder no longer exists."
+  },
+  "errors.drive.folderCycle": {
+    "value": "A folder can't go inside itself."
+  },
+  "errors.drive.folderTooDeep": {
+    "value": "Folders go at most {{max}} levels deep."
+  },
+  "errors.drive.foldersFull": {
+    "value": "This workspace has {{max}} folders already."
+  },
+  "errors.drive.folderName": {
+    "value": "Give the folder a name."
   },
   "errors.device.notLinkMaker": {
     "value": "Only the person who made the link can let this computer join."
@@ -43818,7 +44103,7 @@
     "value": "Component gallery"
   },
   "gallery.subtitle": {
-    "value": "Development only: the @agenteschat/ui components."
+    "value": "Development only: the @dougbot/ui components."
   },
   "format.list": {
     "value": "{{names, list}}"
@@ -45822,6 +46107,30 @@
   },
   "builtinTools.update_artifact.description": {
     "value": "Saves a new version of a file."
+  },
+  "builtinTools.drive_folders.label": {
+    "value": "See folders"
+  },
+  "builtinTools.drive_folders.description": {
+    "value": "Sees the Drive's folders."
+  },
+  "builtinTools.file_artifacts.label": {
+    "value": "File in folders"
+  },
+  "builtinTools.file_artifacts.description": {
+    "value": "Puts Drive files in project folders."
+  },
+  "builtinTools.drive_folder.label": {
+    "value": "Arrange folders"
+  },
+  "builtinTools.drive_folder.description": {
+    "value": "Renames, moves or removes Drive folders (never files)."
+  },
+  "builtinTools.trash_artifacts.label": {
+    "value": "Clear out its files"
+  },
+  "builtinTools.trash_artifacts.description": {
+    "value": "Moves files it made and nobody needs to the trash (30 days to restore)."
   },
   "builtinTools.list_issues.label": {
     "value": "View tasks"

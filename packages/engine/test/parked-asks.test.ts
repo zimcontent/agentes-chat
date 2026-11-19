@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, setSystemTime, test } from "bun:test";
-import { MACHINE_PROTOCOL_VERSION } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
+import { MACHINE_PROTOCOL_VERSION } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
 import {
   addChannelMember,
   type Brain,

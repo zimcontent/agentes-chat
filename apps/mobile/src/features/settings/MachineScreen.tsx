@@ -1,4 +1,4 @@
-import type { Machine, ScopeGrant } from "@agenteschat/client";
+import type { Machine, ScopeGrant } from "@dougbot/client";
 import {
   BROWSER_TOOL_SCOPE,
   isOpenHandoff,
@@ -16,11 +16,11 @@ import {
   useMachinePause,
   useMachines,
   useReduceMachineAccess,
-} from "@agenteschat/client";
-import { computerName, setupView } from "@agenteschat/client/lib/computer";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { firstName, formatTime, joinNames } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
+} from "@dougbot/client";
+import { computerName, setupView } from "@dougbot/client/lib/computer";
+import { errorText } from "@dougbot/client/lib/errors";
+import { firstName, formatTime, joinNames } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
 import {
   allowedFolders,
   allowsInApp,
@@ -45,12 +45,12 @@ import {
   sharedFolderOf,
   toolOnCommand,
   toolOneClick,
-} from "@agenteschat/client/lib/machines";
-import { can } from "@agenteschat/client/lib/permissions";
-import { SHARED_SEAT, screenId } from "@agenteschat/client/lib/seat";
-import { helpUrl } from "@agenteschat/client/lib/server";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
-import { countryFlagSvg } from "@agenteschat/ui/brand/flags";
+} from "@dougbot/client/lib/machines";
+import { can } from "@dougbot/client/lib/permissions";
+import { SHARED_SEAT, screenId } from "@dougbot/client/lib/seat";
+import { helpUrl } from "@dougbot/client/lib/server";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
+import { countryFlagSvg } from "@dougbot/ui/brand/flags";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

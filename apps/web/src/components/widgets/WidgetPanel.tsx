@@ -1,4 +1,4 @@
-import type { WidgetDetail, WidgetSchedule, WidgetUpdate } from "@agenteschat/client";
+import type { WidgetDetail, WidgetSchedule, WidgetUpdate } from "@dougbot/client";
 import {
   useAskWidgetChange,
   useBuildOnceAi,
@@ -6,10 +6,10 @@ import {
   useUpdateWidget,
   useWidget,
   widgetCardStatus,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { upcomingAt, whenAt } from "@agenteschat/client/lib/format";
-import { plainInline } from "@agenteschat/client/lib/markdown";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { upcomingAt, whenAt } from "@dougbot/client/lib/format";
+import { plainInline } from "@dougbot/client/lib/markdown";
 import {
   Button,
   Composer,
@@ -22,8 +22,8 @@ import {
   Spinner,
   Switch,
   WidgetCard,
-} from "@agenteschat/ui";
-import { WIDGET_SCHEDULES } from "@agenteschat/ui/widgets/spec";
+} from "@dougbot/ui";
+import { WIDGET_SCHEDULES } from "@dougbot/ui/widgets/spec";
 import type { TFunction } from "i18next";
 import { type ReactNode, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

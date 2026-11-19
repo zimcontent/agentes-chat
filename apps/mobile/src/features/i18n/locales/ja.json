@@ -22,7 +22,13 @@
     "itsChannels": "グループ",
     "seeAll": "すべて表示"
   },
+  "sectorPills": {
+    "label": "ショートカット",
+    "failed": "カードを表示できませんでした。もう一度お試しください。"
+  },
   "blocks": {
+    "done": "完了",
+    "actFailed": "うまくいきませんでした。もう一度お試しください。",
     "send": "送信",
     "more": "その他",
     "thousand": "千",
@@ -42,7 +48,20 @@
     "pollClosed": "投票は締め切られました",
     "pollMultiple": "複数選択できます。",
     "pollAnswered_other": "{{total}}人中{{count}}人が回答",
-    "voteFailed": "投票できませんでした。"
+    "voteFailed": "投票できませんでした。",
+    "openPiece": "大きく開く",
+    "openSlide": "スライド{{at}}を開く",
+    "pieceAt": "{{at}} / {{count}}",
+    "carouselTitle": "カルーセル",
+    "posterTitle": "静止画投稿",
+    "reelTitle": "リール台本",
+    "aboutSlide": "スライド{{at}}（「{{title}}」）",
+    "aboutPoster": "静止画投稿（「{{title}}」）",
+    "aboutBeat": "リールの{{time}}の部分",
+    "noteMessage": "{{about}}について：{{note}}",
+    "notePlaceholder": "{{about}}にコメント",
+    "noteLabel": "あなたのコメント",
+    "noteSent": "{{name}}に送信しました"
   },
   "choices": {
     "step": "{{step}} / {{total}}",
@@ -2349,6 +2368,16 @@
     "week": "週",
     "month": "月",
     "sheet": {
+      "nowTitle": "現在",
+      "account": "アカウント",
+      "model": "モデル",
+      "effort": "思考量",
+      "context": "コンテキスト",
+      "contextFull": "モデルの全ウィンドウ",
+      "autoPerTask": "タスクごとに選択",
+      "autoLine": "同じアカウントで、タスクごとにモデルと思考量を選びます。",
+      "switchTitle": "切り替え先",
+      "on": "{{place}}で",
       "title": "{{name}}のAIを変更",
       "title_female": "{{name}}のAIを変更",
       "smart": "最も賢い",

@@ -1,8 +1,9 @@
 {
-  "name": "@agenteschat/client",
+  "name": "@dougbot/client",
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "sideEffects": false,
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
@@ -14,10 +15,10 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@agenteschat/i18n": "workspace:*",
-    "@agenteschat/providers": "workspace:*",
-    "@agenteschat/tokens": "workspace:*",
-    "@agenteschat/ui": "workspace:*",
+    "@dougbot/i18n": "workspace:*",
+    "@dougbot/providers": "workspace:*",
+    "@dougbot/tokens": "workspace:*",
+    "@dougbot/ui": "workspace:*",
     "yaml": "^2.9.1"
   },
   "peerDependencies": {

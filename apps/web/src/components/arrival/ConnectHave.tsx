@@ -1,9 +1,9 @@
-import type { PlanUsage } from "@agenteschat/client";
-import { accountAbout, accountTitle, type ExistingAi } from "@agenteschat/client/lib/ai-accounts";
-import { namesText } from "@agenteschat/client/lib/format";
-import { type PlanChoice, planOfAccount } from "@agenteschat/client/lib/no-ai";
-import { keyLine } from "@agenteschat/client/lib/providers";
-import { Icon, ProviderLogo, planState, Radio, RadioGroup } from "@agenteschat/ui";
+import type { PlanUsage } from "@dougbot/client";
+import { accountAbout, accountTitle, type ExistingAi } from "@dougbot/client/lib/ai-accounts";
+import { namesText } from "@dougbot/client/lib/format";
+import { type PlanChoice, planOfAccount } from "@dougbot/client/lib/no-ai";
+import { keyLine } from "@dougbot/client/lib/providers";
+import { Icon, ProviderLogo, planState, Radio, RadioGroup } from "@dougbot/ui";
 import type { TFunction } from "i18next";
 import { type CSSProperties, Fragment, type ReactNode, useId, useState } from "react";
 import { useTranslation } from "react-i18next";

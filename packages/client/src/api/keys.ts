@@ -74,6 +74,7 @@ export const keys = {
   connections: (orgId: string) => ["org", orgId, "connections"] as const,
   carrySources: (orgId: string) => ["org", orgId, "carry-sources"] as const,
   agentTwins: (orgId: string, agentId: string) => ["org", orgId, "agent-twins", agentId] as const,
+  separateOperation: (orgId: string) => ["org", orgId, "separate-operation"] as const,
   githubApp: (orgId: string) => ["org", orgId, "github-app"] as const,
   githubRepos: (orgId: string) => ["org", orgId, "github-repositories"] as const,
   githubAccess: (orgId: string) => ["org", orgId, "github-access"] as const,
@@ -109,6 +110,7 @@ export const keys = {
   /** Under `agentStatus`: an `agent.status` event refetches it too. */
   usageQueue: (orgId: string, agentId: string) => ["org", orgId, "agent-status", "usage-queue", agentId] as const,
   ronda: (orgId: string, agentId: string) => ["org", orgId, "routines", "ronda", agentId] as const,
+  sectorPills: (orgId: string, agentId: string) => ["org", orgId, "sector-pills", agentId] as const,
   allInvitations: (orgId: string) => ["org", orgId, "invitations", "all"] as const,
   /** Under `invitations`: an approval (which may invite) refreshes the pending list too. */
   joinRequests: (orgId: string) => ["org", orgId, "invitations", "join-requests"] as const,
@@ -220,6 +222,8 @@ export const keys = {
   calendar: (orgId: string) => ["org", orgId, "calendar"] as const,
   calendarRange: (orgId: string, from: string) => ["org", orgId, "calendar", from] as const,
   artifactList: (orgId: string, filters: object) => ["org", orgId, "artifacts", "list", filters] as const,
+  /** Under the lists: `artifacts.changed` reads it again (docs/adr/doug-0036-drive-folders.md). */
+  driveFolders: (orgId: string) => ["org", orgId, "artifacts", "list", "folders"] as const,
   artifact: (orgId: string, id: string, version?: number) =>
     ["org", orgId, "artifacts", "one", id, version ?? "latest"] as const,
   artifactVersions: (orgId: string, id: string) => ["org", orgId, "artifacts", "versions", id] as const,

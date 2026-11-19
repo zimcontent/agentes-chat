@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { CONNECTOR_CATALOG } from "@agenteschat/engine";
-import { en, ptBR } from "@agenteschat/i18n";
+import { CONNECTOR_CATALOG } from "@dougbot/engine";
+import { en, ptBR } from "@dougbot/i18n";
 import { toolKey } from "../../../packages/client/src/lib/tool-labels";
 
 type ScopeWords = Record<string, { label?: string; description?: string } | undefined>;

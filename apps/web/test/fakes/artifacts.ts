@@ -19,8 +19,9 @@ import type {
   ArtifactFilters,
   ArtifactKind,
   ArtifactVersion,
-} from "@agenteschat/client";
-import { ApiError } from "@agenteschat/client";
+  DriveFolder,
+} from "@dougbot/client";
+import { ApiError } from "@dougbot/client";
 import { clone, type MockContext, MockNotFoundError, minutesAgo, mockId, perOrg } from "./context";
 
 interface Stored {
@@ -120,6 +121,31 @@ export function createMockArtifacts(
   /** Files whose name contains this fail to upload (the server's own refusal, said in `brand.failed`). */
   uploadFails?: () => string | undefined,
 ): ApiClient["artifacts"] {
+  /** The Drive's folders (docs/adr/doug-0036-drive-folders.md), per org. */
+  const folderStore = new Map<string, DriveFolder[]>();
+  const foldersOf = (orgId: string) => {
+    const list = folderStore.get(orgId) ?? [];
+    folderStore.set(orgId, list);
+    return list;
+  };
+  const under = (orgId: string, id: string) => {
+    const out = new Set([id]);
+    for (let grew = true; grew; ) {
+      grew = false;
+      for (const f of foldersOf(orgId))
+        if (f.parentId && out.has(f.parentId) && !out.has(f.id)) {
+          out.add(f.id);
+          grew = true;
+        }
+    }
+    return out;
+  };
+  const inFolder = (orgId: string, s: Stored, folder: ArtifactFilters["folder"]) => {
+    if (!folder) return true;
+    const at = s.meta.folderId ?? null;
+    if (folder.id === null) return folder.deep || at === null;
+    return folder.deep ? at !== null && under(orgId, folder.id).has(at) : at === folder.id;
+  };
   const store = perOrg(async (orgId) => {
     const list: Stored[] = [];
     if (!ctx.seed) return list;
@@ -206,6 +232,7 @@ export function createMockArtifacts(
       .filter((s) => allKinds || !filters.kind || s.meta.kind === filters.kind)
       .filter((s) => allKinds || !filters.kinds?.length || filters.kinds.includes(s.meta.kind))
       .filter((s) => !filters.channelId || s.meta.channelId === filters.channelId)
+      .filter((s) => inFolder(orgId, s, filters.folder))
       .filter((s) => !filters.channelIds?.length || filters.channelIds.includes(s.meta.channelId ?? ""))
       .filter((s) => !filters.author || s.versions.some((v) => same(v.author, filters.author)))
       .filter(
@@ -247,6 +274,7 @@ export function createMockArtifacts(
       return view(orgId, s);
     },
     reply: async () => ({ id: mockId("msg") }),
+    blockAct: async (_orgId, _id, act) => ({ act, done: true as const, messageId: null }),
     blockState: async (_orgId, id, version) => ({ id, version, state: {}, changes: {}, rev: 0 }),
     setBlockState: async (_orgId, id, version, values) => ({ id, version, state: values, changes: {}, rev: 1 }),
     drawBlock: async (_orgId, id, version, name, options) => ({
@@ -256,6 +284,7 @@ export function createMockArtifacts(
       changes: { [name]: { by: "me", name: "", at: new Date().toISOString(), drawn: options.length } },
       rev: 1,
     }),
+    pressBlock: async () => ({ messageId: mockId("msg"), changed: false }),
     poll: async (_orgId, id) => openPoll(id),
     vote: async (_orgId, id) => openPoll(id),
     choices: async (_orgId, id) => ({ id, answer: null }),
@@ -411,6 +440,66 @@ export function createMockArtifacts(
       const s = await find(orgId, id);
       if (!s.deletedAt) throw new MockNotFoundError("Arquivo não encontrado.");
       s.purged = true;
+    },
+    folders: async (orgId) => {
+      const live = (await store(orgId)).filter((s) => !s.deletedAt && s.meta.inDrive !== false);
+      return {
+        folders: foldersOf(orgId).map((f) => ({ ...f, files: live.filter((s) => s.meta.folderId === f.id).length })),
+        loose: live.filter((s) => !s.meta.folderId).length,
+      };
+    },
+    createFolder: async (orgId, input) => {
+      record("artifacts.createFolder", input);
+      const parentId = input.parentId ?? null;
+      if (foldersOf(orgId).some((f) => f.parentId === parentId && f.name.toLowerCase() === input.name.toLowerCase()))
+        throw new ApiError(409, "drive.folder_exists", "A folder with that name is already there");
+      const at = ctx.now().toISOString();
+      const f: DriveFolder = {
+        id: mockId("fld"),
+        parentId,
+        name: input.name,
+        createdBy: await me(),
+        createdAt: at,
+        updatedAt: at,
+      };
+      foldersOf(orgId).push(f);
+      return clone(f);
+    },
+    updateFolder: async (orgId, id, patch) => {
+      record("artifacts.updateFolder", id, patch);
+      const f = foldersOf(orgId).find((x) => x.id === id);
+      if (!f) throw new MockNotFoundError("Pasta não encontrada.");
+      if (patch.name !== undefined) f.name = patch.name;
+      if (patch.parentId !== undefined) f.parentId = patch.parentId;
+      return clone(f);
+    },
+    removeFolder: async (orgId, id) => {
+      record("artifacts.removeFolder", id);
+      const list = foldersOf(orgId);
+      const f = list.find((x) => x.id === id);
+      if (!f) throw new MockNotFoundError("Pasta não encontrada.");
+      const files = (await store(orgId)).filter((s) => s.meta.folderId === id);
+      for (const s of files) s.meta.folderId = f.parentId;
+      const children = list.filter((x) => x.parentId === id);
+      for (const c of children) c.parentId = f.parentId;
+      list.splice(list.indexOf(f), 1);
+      return { files: files.length, folders: children.length };
+    },
+    file: async (orgId, ids, folderId) => {
+      record("artifacts.file", ids, folderId);
+      const out: Artifact[] = [];
+      for (const id of ids) {
+        const s = await find(orgId, id);
+        s.meta.folderId = folderId;
+        out.push(await view(orgId, s));
+      }
+      return out;
+    },
+    keepDraft: async (orgId, id) => {
+      record("artifacts.keepDraft", id);
+      const s = await find(orgId, id);
+      s.meta.expiresAt = null;
+      return view(orgId, s);
     },
     restore: async (orgId, id) => {
       record("artifacts.restore", id);

@@ -5,8 +5,8 @@ import {
   type RunConsultation,
   useConsultationConversation,
   useConsultations,
-} from "@agenteschat/client";
-import { handoffAsk } from "@agenteschat/client/lib/agent-work";
+} from "@dougbot/client";
+import { handoffAsk } from "@dougbot/client/lib/agent-work";
 import {
   asExchanges,
   type ConsultLineState,
@@ -17,10 +17,10 @@ import {
   groupsByRun,
   openableConsultation,
   pairItemOf,
-} from "@agenteschat/client/lib/consult-group";
-import { consultSubject, consultTimeText, withoutRelayLine } from "@agenteschat/client/lib/consultations";
-import { joinNames, namesText } from "@agenteschat/client/lib/format";
-import type { agentGrammar } from "@agenteschat/client/lib/grammar";
+} from "@dougbot/client/lib/consult-group";
+import { consultSubject, consultTimeText, withoutRelayLine } from "@dougbot/client/lib/consultations";
+import { joinNames, namesText } from "@dougbot/client/lib/format";
+import type { agentGrammar } from "@dougbot/client/lib/grammar";
 import { useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
 import { useEffect, useMemo, useState } from "react";

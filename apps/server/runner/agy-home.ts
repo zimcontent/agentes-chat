@@ -1,7 +1,7 @@
 import { mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import type { CommandProfile } from "@agenteschat/adapters/command-policy";
-import { isObject } from "@agenteschat/adapters/machine-protocol";
+import type { CommandProfile } from "@dougbot/adapters/command-policy";
+import { isObject } from "@dougbot/adapters/machine-protocol";
 import { readSmallJson } from "./json-file";
 import { CODEX_MCP_SERVER } from "./mcp";
 

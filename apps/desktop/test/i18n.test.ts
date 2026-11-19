@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { join, relative } from "node:path";
-import { LOCALES } from "@agenteschat/i18n/locale";
-import { checkLocale } from "@agenteschat/i18n/testing";
+import { LOCALES } from "@dougbot/i18n/locale";
+import { checkLocale } from "@dougbot/i18n/testing";
 import identical from "../../../packages/i18n/test/identical.json";
 import { leaves as entries } from "../../../packages/i18n/test/leaves";
 import { filesNamingMakers } from "../../../packages/i18n/test/maker-words";

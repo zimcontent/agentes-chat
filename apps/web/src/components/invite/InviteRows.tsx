@@ -1,7 +1,7 @@
-import type { Channel, OrgRole } from "@agenteschat/client";
-import { daysBetween, formatShortDate, heldWhole, joinNames, relativeTime } from "@agenteschat/client/lib/format";
-import { sortRoles } from "@agenteschat/client/lib/roles";
-import { Icon, type IconName } from "@agenteschat/ui";
+import type { Channel, OrgRole } from "@dougbot/client";
+import { daysBetween, formatShortDate, heldWhole, joinNames, relativeTime } from "@dougbot/client/lib/format";
+import { sortRoles } from "@dougbot/client/lib/roles";
+import { Icon, type IconName } from "@dougbot/ui";
 import type { TFunction } from "i18next";
 import type { ReactNode } from "react";
 

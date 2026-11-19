@@ -7,7 +7,7 @@ import {
   useDms,
   useMachineQueue,
   useMachines,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   durationText,
   nthText,
@@ -22,9 +22,9 @@ import {
   queueStatusText,
   queueView,
   queueWhereText,
-} from "@agenteschat/client/lib/computer-queue";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { devicePlanName } from "@agenteschat/client/lib/no-ai";
+} from "@dougbot/client/lib/computer-queue";
+import { errorText } from "@dougbot/client/lib/errors";
+import { devicePlanName } from "@dougbot/client/lib/no-ai";
 import { type ReactNode, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";

@@ -50,7 +50,7 @@ export interface VoicePlayerProps {
   className?: string;
 }
 
-/** Mirrors `VOICE_SPEEDS` in @agenteschat/client/lib/voice (the kit doesn't depend on it). */
+/** Mirrors `VOICE_SPEEDS` in @dougbot/client/lib/voice (the kit doesn't depend on it). */
 const SPEEDS = [1, 1.5, 2];
 const clock = (ms: number) => {
   const s = Math.max(0, Math.round(ms / 1000));

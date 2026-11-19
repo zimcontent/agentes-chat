@@ -2,7 +2,7 @@ import { afterEach, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, realpathSync } from "node:fs";
 import path from "node:path";
-import { createDiskBlobStore } from "@agenteschat/adapters";
+import { createDiskBlobStore } from "@dougbot/adapters";
 import {
   ACCESS_ALLOW_PROTOCOL,
   CLI_GIT_MISSING,
@@ -11,11 +11,11 @@ import {
   type MachineRequest,
   type RunnerPause,
   type ServerFrame,
-} from "@agenteschat/adapters/machine-protocol";
-import { testConfig } from "@agenteschat/config";
-import { eq, schema } from "@agenteschat/db";
-import { ARTIFACT_LIMITS, createUpload, issueManagedMachine, setProvisioning } from "@agenteschat/engine";
-import { type ModelRequest, systemText } from "@agenteschat/providers";
+} from "@dougbot/adapters/machine-protocol";
+import { testConfig } from "@dougbot/config";
+import { eq, schema } from "@dougbot/db";
+import { ARTIFACT_LIMITS, createUpload, issueManagedMachine, setProvisioning } from "@dougbot/engine";
+import { type ModelRequest, systemText } from "@dougbot/providers";
 import { handleRequest } from "../runner/handlers";
 import { applyBootSwitches } from "../src/start";
 import {

@@ -1,9 +1,10 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { randomBytes, sign as signWithKey } from "node:crypto";
-import type { HumanAction, HumanCheck, PubSub, RateLimiter } from "@agenteschat/adapters";
-import { jwtClaims, nameIsPassword } from "@agenteschat/client/lib/text";
-import type { Config } from "@agenteschat/config";
-import { and, type Database, eq, ne, schema } from "@agenteschat/db";
+import { expo } from "@better-auth/expo";
+import type { HumanAction, HumanCheck, PubSub, RateLimiter } from "@dougbot/adapters";
+import { jwtClaims, nameIsPassword } from "@dougbot/client/lib/text";
+import type { Config } from "@dougbot/config";
+import { and, type Database, eq, ne, schema } from "@dougbot/db";
 import {
   accountBlock,
   addressHeld,
@@ -48,9 +49,8 @@ import {
   useEarlyAccess,
   ValidationError,
   type WorkspacePolicy,
-} from "@agenteschat/engine";
-import { BRAND_NAME } from "@agenteschat/i18n/brand";
-import { expo } from "@better-auth/expo";
+} from "@dougbot/engine";
+import { BRAND_NAME } from "@dougbot/i18n/brand";
 import { type BetterAuthPlugin, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import {
@@ -75,9 +75,9 @@ import { phoneBrowserSignIn, phoneFlowStarted } from "./phone-browser-sign-in";
 
 /**
  * Sign-in for people, built on Better Auth (ADR 0006):
- * Better Auth owns users, sessions, passwords and social sign-in; agentes.chat
+ * Better Auth owns users, sessions, passwords and social sign-in; DougBot
  * owns organizations, memberships, roles and invitations
- * (`@agenteschat/engine` organizations). Agents are not users.
+ * (`@dougbot/engine` organizations). Agents are not users.
  * See docs/adr/0006-auth-and-tenancy.md.
  *
  * Mounted at `/api/auth/*`. The web app is served from the same origin, so

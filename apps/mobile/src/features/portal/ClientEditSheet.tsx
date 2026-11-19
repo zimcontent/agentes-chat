@@ -1,4 +1,4 @@
-import type { PortalClientColor } from "@agenteschat/client";
+import type { PortalClientColor } from "@dougbot/client";
 import {
   ApiError,
   usePortalOverview,
@@ -6,14 +6,14 @@ import {
   useSetPortalClientHidden,
   useSetPortalClientLogo,
   useSetPortalClientName,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   PORTAL_CLIENT_COLORS,
   portalClientColors,
   portalClientLogos,
   portalClientName,
   portalClientSlugName,
-} from "@agenteschat/client/lib/portal";
+} from "@dougbot/client/lib/portal";
 import * as ImagePicker from "expo-image-picker";
 import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { GroupedList, GroupedRow, Icon, Text, useTheme, useToast } from "@/ui";

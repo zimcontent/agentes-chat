@@ -1,4 +1,4 @@
-import type { Agent, MailAccount, MailConnectError, MailPolicy, MailProviders } from "@agenteschat/client";
+import type { Agent, MailAccount, MailConnectError, MailPolicy, MailProviders } from "@dougbot/client";
 import {
   keys,
   useAgentMail,
@@ -6,11 +6,11 @@ import {
   useMailAction,
   useMailProviders,
   useMailSuggestedAddresses,
-} from "@agenteschat/client";
-import { LEVELS, type Level } from "@agenteschat/client/lib/access-levels";
-import { canTalk } from "@agenteschat/client/lib/audience";
-import { errorText, knownErrorText } from "@agenteschat/client/lib/errors";
-import { relativeTime } from "@agenteschat/client/lib/format";
+} from "@dougbot/client";
+import { LEVELS, type Level } from "@dougbot/client/lib/access-levels";
+import { canTalk } from "@dougbot/client/lib/audience";
+import { errorText, knownErrorText } from "@dougbot/client/lib/errors";
+import { relativeTime } from "@dougbot/client/lib/format";
 import {
   CUSTOM_PRESET,
   choiceOf,
@@ -30,8 +30,8 @@ import {
   onlyForOwner,
   setMailLevel,
   splitEmails,
-} from "@agenteschat/client/lib/mail";
-import { can } from "@agenteschat/client/lib/permissions";
+} from "@dougbot/client/lib/mail";
+import { can } from "@dougbot/client/lib/permissions";
 import {
   Alert,
   Button,
@@ -48,7 +48,7 @@ import {
   Segmented,
   Select,
   useUnsavedInDialog,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
 import { useState } from "react";

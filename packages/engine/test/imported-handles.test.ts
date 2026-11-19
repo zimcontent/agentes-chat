@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
-import { systemText } from "@agenteschat/providers";
+import { eq, schema } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
+import { systemText } from "@dougbot/providers";
 import { addChannelMember, agentsByHandle, createAgent, currentHandles, drainOutbox, postPersonMessage } from "../src";
 import { type Fixture, setup } from "./fixtures";
 

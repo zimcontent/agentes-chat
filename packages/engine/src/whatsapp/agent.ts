@@ -8,9 +8,9 @@ import {
   ROUTE_MODELS,
   ROUTE_TIMEOUT_MAX_MS,
   type WhatsAppMessage,
-} from "@agenteschat/adapters";
-import { and, desc, eq, gt, inArray, isNotNull, schema, sql } from "@agenteschat/db";
-import { isAutoModel } from "@agenteschat/providers";
+} from "@dougbot/adapters";
+import { and, desc, eq, gt, inArray, isNotNull, schema, sql } from "@dougbot/db";
+import { isAutoModel } from "@dougbot/providers";
 import { type Agent, getAgent } from "../agents";
 import type { ArtifactDeps } from "../artifacts";
 import { autoModelFor, autoProvider, orgAutoModels } from "../auto-model";

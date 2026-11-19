@@ -1,6 +1,6 @@
 import { createHmac, randomUUID } from "node:crypto";
-import { type Database, eq, schema, sql } from "@agenteschat/db";
-import { appLocale } from "@agenteschat/i18n/locale";
+import { type Database, eq, schema, sql } from "@dougbot/db";
+import { appLocale } from "@dougbot/i18n/locale";
 import { operatorOrg } from "./operator";
 import { requirePermission, type UserLocale } from "./organizations";
 

@@ -1,13 +1,13 @@
 import { afterEach, expect, jest, mock, test } from "bun:test";
 import path from "node:path";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
 // The face is the avatar kit's own (tested there): here only where the cursor is and how it looks.
 mock.module("@/components/AgentAvatar", () => ({ AgentAvatar: () => <i className="face" /> }));
 
-import { type CountedPointer, CURSOR_IDLE_MS, CURSOR_REST_OPACITY } from "@agenteschat/client";
+import { type CountedPointer, CURSOR_IDLE_MS, CURSOR_REST_OPACITY } from "@dougbot/client";
 import { act, cleanup, render } from "@testing-library/react";
 import { AgentCursor } from "@/components/browser/AgentCursor";
 import { declarations } from "./built-css";

@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { CODEX_WINDOWS_PROTOCOL, orgTopic } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { CODEX_WINDOWS_PROTOCOL, orgTopic } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   agentHoldsFor,
   createAgentRuns,

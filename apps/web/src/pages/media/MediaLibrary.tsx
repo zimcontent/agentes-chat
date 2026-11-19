@@ -1,5 +1,5 @@
-import { type MediaGenerationView, type MediaRefKind, useMediaGenerations } from "@agenteschat/client";
-import { Dialog, DialogBody, EmptyState, Icon } from "@agenteschat/ui";
+import { type MediaGenerationView, type MediaRefKind, useMediaGenerations } from "@dougbot/client";
+import { Dialog, DialogBody, EmptyState, Icon } from "@dougbot/ui";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";
 import { ErrorState, LoadingCards } from "@/components/Loading";

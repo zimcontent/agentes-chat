@@ -1,4 +1,4 @@
-import { ApiError } from "@agenteschat/client";
+import { ApiError } from "@dougbot/client";
 
 /** What `DELETE /api/app/account` answered (pure: tested without React Native). */
 export type DeleteAccountResult =

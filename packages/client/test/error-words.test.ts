@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { en as enStrings, ptBR, resources } from "@agenteschat/i18n";
+import { en as enStrings, ptBR, resources } from "@dougbot/i18n";
 import i18next, { type TFunction } from "i18next";
 import { ApiError, createFileRequester, createRequester, invitationQuery, NetworkError } from "../src/index";
 import {
@@ -389,6 +389,9 @@ test("a provider refused this server's own OAuth app: what's wrong and who fixes
  * hit goes in `KNOWN` instead.
  */
 const PLAIN_LINE = new Set([
+  // A card's button that already ran (docs/adr/doug-0020-doug-sector-cards.md): the button shows "Feito" from the
+  // block's state, and a late second press gets the card's own "didn't go through".
+  "block_act.done",
   // The Revisor (docs/adr/doug-0007-video-review.md, doug-0010-design-review.md) words its own failures in its screens
   // (`reviewWords`), and the rest refuse an agent's tool call, whose message the agent reads.
   "editor_delivery.bad_cover",

@@ -29,6 +29,9 @@ const FIELDS = [
   // A device's notifications: the phone it is about, and the join or access request.
   "phoneId",
   "requestId",
+  // A live block whose buttons the notification carries (docs/adr/doug-0021-lock-screen.md): a press names it.
+  "blockId",
+  "blockVersion",
 ] as const;
 
 export function readPushData(data: unknown): PushData {

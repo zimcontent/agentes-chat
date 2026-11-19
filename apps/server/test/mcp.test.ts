@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { and, eq, schema } from "@agenteschat/db";
-import { APP_TOOL_NAMES, openWaits, sha256 } from "@agenteschat/engine";
+import { and, eq, schema } from "@dougbot/db";
+import { APP_TOOL_NAMES, openWaits, sha256 } from "@dougbot/engine";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { callTool, connectApp, mcp, token } from "./ai-apps";

@@ -1,4 +1,4 @@
-import { and, eq, gt, schema, sql } from "@agenteschat/db";
+import { and, eq, gt, schema, sql } from "@dougbot/db";
 import { approverIds, deciderName, namesLabel, namesOf } from "./approvals";
 import { findMember, plainName } from "./chat-tools";
 import { cutText } from "./format";

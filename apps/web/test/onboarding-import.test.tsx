@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { ApiClient, ImportInput, ImportItemResult, TeamTemplate } from "@agenteschat/client";
-import { keys } from "@agenteschat/client";
+import type { ApiClient, ImportInput, ImportItemResult, TeamTemplate } from "@dougbot/client";
+import { keys } from "@dougbot/client";
 import { act, cleanup, fireEvent } from "@testing-library/react";
 import { WATCH_POLL_MS } from "@/components/ImportFlow";
 import { createFakeApi, type FakeState, GENERAL_ID, ORG_ID, seedState, withRightHand } from "./fake-api";

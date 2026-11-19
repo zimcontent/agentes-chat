@@ -98,9 +98,9 @@ import {
   useDougTeam,
   useTeamTemplate,
   ValidationError,
-} from "@agenteschat/engine";
-import { contextWindowOf, nanoUsdToUsd, pricesAt, usdToNanoUsd } from "@agenteschat/providers";
-import { learnedPlanModels } from "@agenteschat/providers/plans";
+} from "@dougbot/engine";
+import { contextWindowOf, nanoUsdToUsd, pricesAt, usdToNanoUsd } from "@dougbot/providers";
+import { learnedPlanModels } from "@dougbot/providers/plans";
 import { createRoute, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
 import { bodyLimit } from "hono/body-limit";
@@ -246,6 +246,10 @@ const AgentFields = z.object({
   voice: z.string().max(40).nullable().optional().openapi({
     description:
       "Its voice on calls and when it tells a message (ADR doug-0006), one of the GPT-Live voices; null: the one its id gives. Its owner or an admin can change it.",
+  }),
+  houseVoice: z.string().max(40).nullable().optional().openapi({
+    description:
+      "Its house voice (docs/adr/doug-0036-house-voice.md), one of `HOUSE_VOICES`; null: one like its GPT-Live voice. Its owner or an admin can change it.",
   }),
   brakes: AgentBrakes.partial().optional().openapi({
     description: "Its autonomy brakes (ADR 0131); the fields given change, the rest stay. Needs `manage_agents`.",
@@ -463,7 +467,7 @@ export function agentRoutes(deps: AppDeps) {
             defaultModel: z.string().openapi({ description: "What a new agent gets when no model is chosen: `auto`." }),
             planModels: z.record(z.string(), z.array(PlanModelOut)).openapi({
               description:
-                "The coding plans whose makers' public lists this server has read, by plan id: their models now. A plan not here goes by the table in `@agenteschat/providers/plans`.",
+                "The coding plans whose makers' public lists this server has read, by plan id: their models now. A plan not here goes by the table in `@dougbot/providers/plans`.",
             }),
           }),
         ),
@@ -1832,6 +1836,7 @@ export function agentRoutes(deps: AppDeps) {
         mailLossSeen,
         brakes,
         voice,
+        houseVoice,
         liveCallNotes,
         ...rest
       } = c.req.valid("json");
@@ -1839,7 +1844,11 @@ export function agentRoutes(deps: AppDeps) {
       const actor = c.get("user").id;
       // The audience, the look and the voice can be changed by the agent's owner too; everything else needs an admin.
       const other =
-        (!audience && appearance === undefined && voice === undefined && liveCallNotes === undefined) ||
+        (!audience &&
+          appearance === undefined &&
+          voice === undefined &&
+          houseVoice === undefined &&
+          liveCallNotes === undefined) ||
         Object.values(input).some((v) => v !== undefined) ||
         monthlyBudgetUsd !== undefined;
       let agent = other
@@ -1860,6 +1869,11 @@ export function agentRoutes(deps: AppDeps) {
         agent = await setAgentAppearance(db, actor, orgId, agentId, appearance, { pubsub: adapters.pubsub });
       if (voice !== undefined)
         agent = await setAgentVoice(db, actor, orgId, agentId, voice, { pubsub: adapters.pubsub });
+      if (houseVoice !== undefined)
+        agent = await setAgentVoice(db, actor, orgId, agentId, houseVoice, {
+          pubsub: adapters.pubsub,
+          engine: "house",
+        });
       if (liveCallNotes !== undefined)
         agent = await setAgentCallNotes(db, actor, orgId, agentId, liveCallNotes, { pubsub: adapters.pubsub });
       if (!agent) {
@@ -2314,7 +2328,7 @@ export function agentRoutes(deps: AppDeps) {
             brain: BrainKind.optional(),
             model: z.string().max(80).nullable().optional().openapi({
               description:
-                "Claude Code: `opus`, `sonnet`, `haiku`, a Claude model id or one of a coding plan's models by id (`@agenteschat/providers/plans`; another account runs `sonnet` for it); Codex: a model name; `auto` (each run picks the tier). Null = the brain's default; omitted = keep (reset when the brain changes).",
+                "Claude Code: `opus`, `sonnet`, `haiku`, a Claude model id or one of a coding plan's models by id (`@dougbot/providers/plans`; another account runs `sonnet` for it); Codex: a model name; `auto` (each run picks the tier). Null = the brain's default; omitted = keep (reset when the brain changes).",
             }),
             fallback: z.boolean().optional(),
             extraUsage: z.boolean().optional().openapi({

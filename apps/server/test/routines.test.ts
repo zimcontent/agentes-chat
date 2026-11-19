@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { createHmac } from "node:crypto";
-import { schema } from "@agenteschat/db";
+import { schema } from "@dougbot/db";
 import { browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 
 let t: TestServer;

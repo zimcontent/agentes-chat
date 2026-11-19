@@ -1,5 +1,5 @@
-import type { ApprovalPortal, ErrorReporter, PubSub } from "@agenteschat/adapters";
-import { type Database, ensureMessagePartitions, schema } from "@agenteschat/db";
+import type { ApprovalPortal, ErrorReporter, LiveActivitySender, PubSub } from "@dougbot/adapters";
+import { type Database, ensureMessagePartitions, schema } from "@dougbot/db";
 import {
   type ArtifactDeps,
   autoLinkTwins,
@@ -52,6 +52,7 @@ import {
   purgeApps,
   purgeDeletedArtifacts,
   purgeDeletedWikiPages,
+  purgeLiveActivities,
   queueApprovalDigests,
   reapRoutineRuns,
   recheckStuckPlans,
@@ -67,9 +68,11 @@ import {
   sweepFeedbackFiles,
   sweepWidgetDrafts,
   syncAllTwins,
+  syncLiveActivities,
+  trashExpiredDrafts,
   type VoiceDeps,
   wakeSnoozedNotifications,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { isExpectedError } from "./http/errors";
 import type { Logger } from "./logger";
 
@@ -166,6 +169,8 @@ export interface WorkerDeps {
    * copies still sync, and what would need bringing is listed as missing.
    */
   carry?: CarryDeps;
+  /** Live Activities straight to Apple (docs/adr/doug-0021-lock-screen.md); absent: none to keep up. */
+  liveActivities?: LiveActivitySender | null;
   log: Logger;
   workerId?: string;
 }
@@ -195,6 +200,8 @@ export const WORKER_INTERVALS_MS = {
   inboxes: 30_000,
   /** Deleted files past 30 days lose their contents. */
   artifactPurge: 6 * 3600_000,
+  /** Drafts past their time go to the trash (docs/adr/doug-0036-drive-folders.md). */
+  drafts: 3600_000,
   /** Feedback files their purge job missed (it failed for good, or its row went first). */
   feedbackFiles: 6 * 3600_000,
   /** Wiki pages in the trash past 30 days are removed with their history. */
@@ -240,6 +247,9 @@ export const WORKER_INTERVALS_MS = {
   agentTwins: 60_000,
   /** Company requests the team never made a client, past their retention (LGPD, `COMPANY_REQUESTS_RETENTION_DAYS`). */
   companyRequests: 24 * 3600_000,
+  /** Live Activities follow their runs (docs/adr/doug-0021-lock-screen.md): a change is on the lock screen by then. */
+  liveActivities: 5_000,
+  liveActivityPurge: 3600_000,
 };
 
 /**
@@ -455,6 +465,10 @@ export function startWorkers(deps: WorkerDeps) {
       const purged = await purgeDeletedArtifacts(files);
       if (purged > 0) log.info("deleted files purged", { versions: purged });
     });
+    every("drafts", WORKER_INTERVALS_MS.drafts, async () => {
+      const trashed = await trashExpiredDrafts(files);
+      if (trashed > 0) log.info("drafts past their time trashed", { files: trashed });
+    });
   }
 
   const feedbackFiles = deps.feedbackFiles;
@@ -463,6 +477,14 @@ export function startWorkers(deps: WorkerDeps) {
       const swept = await sweepFeedbackFiles(feedbackFiles);
       if (swept > 0) log.info("feedback files past their time swept", { files: swept });
     });
+  }
+
+  const liveSender = deps.liveActivities;
+  if (liveSender) {
+    every("liveActivities", WORKER_INTERVALS_MS.liveActivities, async () => {
+      await syncLiveActivities({ db, sender: liveSender });
+    });
+    every("liveActivityPurge", WORKER_INTERVALS_MS.liveActivityPurge, () => purgeLiveActivities(db));
   }
 
   every("wikiPurge", WORKER_INTERVALS_MS.wikiPurge, async () => {

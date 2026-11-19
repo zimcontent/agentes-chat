@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { channelTopic, orgTopic } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { channelTopic, orgTopic } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   addChannelMember,
   agentStatuses,

@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
@@ -20,7 +20,7 @@ import { until } from "./until";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-// The menu checks agentes.chat for a desktop update: tests stay off the network, so no release yet. And
+// The menu checks DougBot for a desktop update: tests stay off the network, so no release yet. And
 // intersections come by hand (happy-dom reports none), to the observer watching inside a given root.
 const realFetch = globalThis.fetch;
 const realObserver = globalThis.IntersectionObserver;

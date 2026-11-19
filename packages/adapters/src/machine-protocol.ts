@@ -250,7 +250,7 @@ export const PLAN_RECHECK_MS = 5 * 60_000;
 export const TOKEN_RECHECK_MS = 10 * 60_000;
 /**
  * From this protocol on: coding plans as key accounts on Claude Code (ADR
- * 0059). `begin` with `provider` (a plan of `@agenteschat/providers/plans`)
+ * 0059). `begin` with `provider` (a plan of `@dougbot/providers/plans`)
  * starts no CLI: the runner makes the folder and a key the browser seals the
  * plan's key to, and `code` hands it over (kept in the folder,
  * `provider.json`, mode 600). Turns in that folder think through the

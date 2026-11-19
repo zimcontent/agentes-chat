@@ -1,10 +1,10 @@
-import type { ConnectorCategory, ConnectorDef } from "@agenteschat/client";
-import { composioOffText, hiddenWithoutComposio } from "@agenteschat/client/lib/composio";
-import { CONNECTOR_MARK, OWN_MARK, SERVER_ICON } from "@agenteschat/client/lib/connected";
-import type { MailChoice } from "@agenteschat/client/lib/mail";
-import { can } from "@agenteschat/client/lib/permissions";
-import { connectorDescription, connectorName, scopeText } from "@agenteschat/client/lib/scopes";
-import { modeKey } from "@agenteschat/client/lib/workspace-mode";
+import type { ConnectorCategory, ConnectorDef } from "@dougbot/client";
+import { composioOffText, hiddenWithoutComposio } from "@dougbot/client/lib/composio";
+import { CONNECTOR_MARK, OWN_MARK, SERVER_ICON } from "@dougbot/client/lib/connected";
+import type { MailChoice } from "@dougbot/client/lib/mail";
+import { can } from "@dougbot/client/lib/permissions";
+import { connectorDescription, connectorName, scopeText } from "@dougbot/client/lib/scopes";
+import { modeKey } from "@dougbot/client/lib/workspace-mode";
 import {
   AgentSearching,
   Button,
@@ -17,10 +17,11 @@ import {
   initialsOf,
   SearchField,
   Segmented,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import type { TFunction } from "i18next";
 import { type CSSProperties, type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { matchRank } from "@/components/connector-rank";
 import { DatabaseIcon } from "@/components/DatabaseConnect";
 import { LoadingCards } from "@/components/Loading";
 import { MailIcon, mailAuthKind, mailChoiceName } from "@/components/MailConnect";
@@ -111,7 +112,7 @@ interface Entry {
   category: ConnectorCategory | "email";
   connected: boolean;
   available: boolean;
-  /** Not connected, and the vendor hasn't approved agentes.chat yet: greyed out with a lock, its tile opens nothing. */
+  /** Not connected, and the vendor hasn't approved DougBot yet: greyed out with a lock, its tile opens nothing. */
   soon: boolean;
   icon: (size: "md" | "lg") => ReactNode;
   brandColor: string | null;
@@ -277,11 +278,13 @@ export function ConnectorCatalogDialog({
         ? entries.filter((e) => e.connected).length
         : entries.filter((e) => e.category === c).length;
   const needle = q.trim().toLowerCase();
-  const matches = (e: Entry) =>
-    !needle ||
-    `${e.key} ${e.name} ${e.description} ${t(`connectors.category.${e.category}`)} ${e.key === "database" ? "postgres postgresql sql" : ""} ${e.category === "email" ? "email" : ""}`
-      .toLowerCase()
-      .includes(needle);
+  const rankOf = (e: Entry) =>
+    matchRank(
+      e.name,
+      `${e.key} ${e.name} ${e.description} ${t(`connectors.category.${e.category}`)} ${e.key === "database" ? "postgres postgresql sql" : ""} ${e.category === "email" ? "email" : ""}`,
+      needle,
+    );
+  const matches = (e: Entry) => rankOf(e) !== null;
   const inCategory = (e: Entry) =>
     category === "all" || (category === "connected" ? e.connected : e.category === category);
   const showSuggestions = category === "all" && !needle;
@@ -290,7 +293,13 @@ export function ConnectorCatalogDialog({
         .filter((e): e is Entry => !!e && !e.connected && e.available)
         .slice(0, 3)
     : [];
-  const shown = entries.filter((e) => inCategory(e) && matches(e) && !suggested.includes(e));
+  // Doug: while searching, a name that starts with the text comes first, then a name that contains it, then the rest;
+  // ready-to-connect before "Em breve" (the sort above) stays inside each of the three. Not searching: unchanged.
+  const shown = entries
+    .filter((e) => inCategory(e) && matches(e) && !suggested.includes(e))
+    .map((e, i) => ({ e, i, rank: needle ? (rankOf(e) ?? 2) : 0 }))
+    .sort((a, b) => a.rank - b.rank || a.i - b.i)
+    .map(({ e }) => e);
   const current = selected === OTHER ? null : (entries.find((e) => e.key === selected) ?? null);
 
   const close = (next: boolean) => {

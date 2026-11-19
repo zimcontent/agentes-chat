@@ -1,6 +1,6 @@
-import { sameDay } from "@agenteschat/client/lib/calendar";
-import { toYmd } from "@agenteschat/client/lib/format";
-import { Button, monthGrid } from "@agenteschat/ui";
+import { sameDay } from "@dougbot/client/lib/calendar";
+import { toYmd } from "@dougbot/client/lib/format";
+import { Button, monthGrid } from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 

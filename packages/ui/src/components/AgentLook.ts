@@ -1,4 +1,4 @@
-import { AGENT_COLORS, AGENT_SHAPES, type AgentAppearance, type AgentColor } from "@agenteschat/tokens/look";
+import { AGENT_COLORS, AGENT_SHAPES, type AgentAppearance, type AgentColor } from "@dougbot/tokens/look";
 import type { CSSProperties } from "react";
 import { gradientOf } from "../agent/engine.js";
 
@@ -15,7 +15,7 @@ export {
   type AgentFullLook,
   type AgentShape,
   normalizeAppearance,
-} from "@agenteschat/tokens/look";
+} from "@dougbot/tokens/look";
 
 /**
  * A random look ("Sortear") for the DougBot: a form, a color, eyes and an accessory it draws (IDENTIDADE.md §6), different

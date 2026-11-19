@@ -1,6 +1,6 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, desc, eq, gte, inArray, isNull, ne, or, schema, sql } from "@agenteschat/db";
-import { isAutoModel } from "@agenteschat/providers";
+import type { PubSub } from "@dougbot/adapters";
+import { and, type Database, desc, eq, gte, inArray, isNull, ne, or, schema, sql } from "@dougbot/db";
+import { isAutoModel } from "@dougbot/providers";
 import { type AgentProposalCard, agentProposalOf, createProposedAgent } from "./agent-proposals";
 import { type Agent, archiveAgent, getAgent } from "./agents";
 import { recordAudit } from "./audit";

@@ -1,4 +1,5 @@
-import type { LiveSession } from "@agenteschat/client";
+import type { LiveSession, LiveSessionInput, LiveSessionStart } from "@dougbot/client";
+import { HouseLeg } from "./leg-house";
 
 /**
  * One GPT-Live session over WebRTC (ADR doug-0006): the audio goes between this browser and OpenAI, the events on the
@@ -167,4 +168,34 @@ export class LiveLeg {
     })();
     return this.closing;
   }
+}
+
+/** A voice session's leg: GPT-Live over WebRTC, or the house voice through this server (docs/adr/doug-0036-house-voice.md). */
+export type VoiceLeg = LiveLeg | HouseLeg;
+
+/** What the app adds to a session's start: how it can carry the audio, and its offer once GPT-Live asks for it. */
+type StartExtra = Pick<LiveSessionInput, "sdp" | "transports">;
+
+/**
+ * Opens a session on the workspace's engine: the server answers a house voice session at once, or asks for this
+ * browser's WebRTC offer when the workspace is on GPT-Live.
+ */
+export async function openVoiceLeg(
+  input: MediaStreamTrack,
+  start: (extra: StartExtra) => Promise<LiveSessionStart>,
+  handlers: LegHandlers,
+): Promise<VoiceLeg> {
+  const transports: ("webrtc" | "relay")[] = ["relay", "webrtc"];
+  const first = await start({ transports });
+  if (first.transport === "relay") return HouseLeg.open(input, first, handlers);
+  return LiveLeg.open(
+    input,
+    async (sdp) => {
+      const session = await start({ sdp, transports: ["webrtc"] });
+      if (session.transport === "relay" || session.transport === "offer" || !("sdp" in session))
+        throw new Error("the session didn't open on GPT-Live");
+      return session;
+    },
+    handlers,
+  );
 }

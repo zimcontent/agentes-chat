@@ -1,3 +1,4 @@
+import { clipWhole } from "@dougbot/ui/clip";
 import { type MessageMedia, mediaOf } from "./media";
 
 /** `meta.voice` of a message (ADR 0100): all the apps need to draw and play it. */
@@ -44,6 +45,14 @@ export function voiceOf(meta: Record<string, unknown> | null | undefined): Messa
 export const readableBody = (body: string, meta: Record<string, unknown> | null | undefined) => {
   const voice = voiceOf(meta);
   if (voice) return voice.text ?? "";
+  // A review's decision: its body is the agent's instructions; people read the decision and their own words.
+  const review = meta?.videoReview as
+    | { decision?: unknown; title?: unknown; version?: unknown; said?: unknown }
+    | undefined;
+  if (review && typeof review.title === "string" && (review.decision === "approve" || review.decision === "changes")) {
+    const head = `${review.decision === "approve" ? "Aprovado:" : "Ajustes em"} «${review.title}» V${String(review.version)}`;
+    return typeof review.said === "string" && review.said ? `${head}\n\n${review.said}` : head;
+  }
   const notice = meta?.notice as { kind?: unknown; refs?: { answer?: unknown } } | undefined;
   if (!notice || typeof notice !== "object") return body;
   if (notice.kind === "routine_handoff" || notice.kind === "talker_reply" || notice.kind === "github_event")
@@ -56,8 +65,8 @@ const GITHUB_LINE_REFS = ["event", "item", "state", "who", "number", "repo", "ag
 
 /** One line of at most `max` chars (a preview's text). */
 function oneLine(text: string, max = 200): string {
-  const line = text.replace(/\s+/g, " ").trim();
-  return line.length > max ? `${line.slice(0, max - 1).trimEnd()}…` : line;
+  // Doug: cut on a whole character, never half of an emoji.
+  return clipWhole(text.replace(/\s+/g, " ").trim(), max);
 }
 
 /**

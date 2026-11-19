@@ -176,7 +176,7 @@ The terminal and the card stay short, and the full explanation lives in one publ
 - On Linux, the server's computer runs agents' commands on the host. Their isolation is the system mode's OS users, not a container.
 - The server's computer holds the agents of every organization it serves, and so of different people, on one machine. Fixed browser debugging and stream ports are guarded before any worker starts. Other local listeners are still discovered every 2 seconds; their startup and stale-port windows mean arbitrary local ports are not a hard boundary between agents.
 - The first install is longer: the agent browser and the command-line tools come with the computer.
-- The installer needs `@agenteschat/setup` on npm; until then, `AGENTES_INSTALL_SETUP` and locally built images are how it's tested.
+- The installer needs `@dougbot/setup` on npm; until then, `AGENTES_INSTALL_SETUP` and locally built images are how it's tested.
 - The wizard's compose download needs agentes.chat to run a release that serves `/install/docker-compose.yml`, so the wizard ships after agentes.chat does.
 
 ## Alternatives considered

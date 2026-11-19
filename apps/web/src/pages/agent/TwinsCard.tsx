@@ -1,7 +1,7 @@
-import { useAgentTwins, useSetAgentTwin } from "@agenteschat/client";
-import { timeAgo } from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
-import { Button, Card, SettingNote, SettingRow } from "@agenteschat/ui";
+import { useAgentTwins, useSetAgentTwin } from "@dougbot/client";
+import { timeAgo } from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
+import { Button, Card, SettingNote, SettingRow } from "@dougbot/ui";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
 import { useToast } from "@/lib/toast";
@@ -56,6 +56,11 @@ export function TwinsCard() {
           {t("agentTwins.missing", { workspace: m.orgName, what: m.label })}
         </SettingNote>
       ))}
+      {linked && view.craftOnly && (
+        <SettingNote icon="lock" quiet>
+          {t("agentTwins.craftOnly")}
+        </SettingNote>
+      )}
       {linked && (
         <SettingNote icon="repeat" quiet>
           {view.syncedAt ? t("agentTwins.synced", { when: timeAgo(t, view.syncedAt) }) : t("agentTwins.syncing")}

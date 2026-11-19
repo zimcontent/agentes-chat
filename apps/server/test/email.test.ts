@@ -2,8 +2,8 @@ import { afterEach, expect, test } from "bun:test";
 import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { eq, schema } from "@agenteschat/db";
-import { emailArtFor } from "@agenteschat/engine";
+import { eq, schema } from "@dougbot/db";
+import { emailArtFor } from "@dougbot/engine";
 import { createApp } from "../src/app";
 import { browser, createTestServer, ORIGIN, seedOrg, signUp, type TestServer } from "./harness";
 

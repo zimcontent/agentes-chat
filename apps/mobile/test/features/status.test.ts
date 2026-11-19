@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { AgentPresence, AgentStatus } from "@agenteschat/client";
-import { agentPresenceShown, agentWhyKey, STATUS_SUGGESTIONS, statusEndNote } from "@agenteschat/client/lib/presence";
+import type { AgentPresence, AgentStatus } from "@dougbot/client";
+import { agentPresenceShown, agentWhyKey, STATUS_SUGGESTIONS, statusEndNote } from "@dougbot/client/lib/presence";
 import {
   availabilityOf,
   draftOf,

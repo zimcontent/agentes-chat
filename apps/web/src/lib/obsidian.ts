@@ -5,8 +5,8 @@ import {
   type WikiImportResult,
   type WikiImportSource,
   type WikiPageSummary,
-} from "@agenteschat/client";
-import { readZip } from "@agenteschat/client/lib/zip";
+} from "@dougbot/client";
+import { readZip } from "@dougbot/client/lib/zip";
 
 /*
  * Notes to import in the browser: an Obsidian vault or plain Markdown as a

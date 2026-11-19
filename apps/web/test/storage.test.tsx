@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { keys, type StoragePlatform } from "@agenteschat/client";
+import { keys, type StoragePlatform } from "@dougbot/client";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { createFakeApi, type FakeState, fakeMachinesOf, ORG_ID, seedState } from "./fake-api";
 import { createMockStorage } from "./fakes/storage";

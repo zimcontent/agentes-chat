@@ -1,7 +1,7 @@
-import type { Agent, AgentAccess, AgentForYouItem, AgentUsage, Memory, OrgSummary } from "@agenteschat/client";
-import { asksAt, levelOf, resourcesOf } from "@agenteschat/client/lib/access-levels";
-import { can } from "@agenteschat/client/lib/permissions";
-import type { WorkItem } from "@agenteschat/client/lib/working";
+import type { Agent, AgentAccess, AgentForYouItem, AgentUsage, Memory, OrgSummary } from "@dougbot/client";
+import { asksAt, levelOf, resourcesOf } from "@dougbot/client/lib/access-levels";
+import { can } from "@dougbot/client/lib/permissions";
+import type { WorkItem } from "@dougbot/client/lib/working";
 import { daysAgo, previewOf } from "../shared/logic";
 
 /**
@@ -9,7 +9,7 @@ import { daysAgo, previewOf } from "../shared/logic";
  * Início, and what an agent's profile shows about its month.
  */
 
-export { type WorkItem, workByAgent, workingNow } from "@agenteschat/client/lib/working";
+export { type WorkItem, workByAgent, workingNow } from "@dougbot/client/lib/working";
 
 /** Agents with something in progress. */
 export const busyAgents = (work: WorkItem[]) => new Set(work.map((w) => w.agentId));

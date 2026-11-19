@@ -14,8 +14,8 @@ import {
   type SQL,
   schema,
   sql,
-} from "@agenteschat/db";
-import type { ContentBlock, ModelMessage } from "@agenteschat/providers";
+} from "@dougbot/db";
+import type { ContentBlock, ModelMessage } from "@dougbot/providers";
 import { resolveApps } from "../access";
 import { recordAgentActions } from "../agent-actions";
 import { agentsByHandle, handleOf } from "../agents";
@@ -628,6 +628,12 @@ export function createContextToolSource(deps: ContextDeps): ToolSource {
           everywhere: { type: "boolean" },
           basis: { type: "string", enum: ["person_said", "found"] },
           for: { type: "string", enum: ["me", "team"] },
+          reach: {
+            type: "string",
+            enum: ["this_workspace", "all_workspaces"],
+            description:
+              "Where you work as the same agent in other workspaces too (other companies): this_workspace for this company's own business (its clients, people, numbers, files, decisions), all_workspaces for craft that holds anywhere (how to do the work). Left out: facts, decisions and notes stay here; preferences and rules go everywhere.",
+          },
         },
         required: ["content"],
         additionalProperties: false,
@@ -715,6 +721,7 @@ export function createContextToolSource(deps: ContextDeps): ToolSource {
               confidence: said ? 0.95 : trust === "low" ? 0.5 : 0.75,
               createdByKind: said ? "person" : "agent",
               createdById: said ? person : ctx.agentId,
+              reach: input.reach === "this_workspace" ? "here" : input.reach === "all_workspaces" ? "all" : undefined,
             },
             // Only a person's words replace what a person wrote; the agent's own finding stands beside it. A rule
             // replaces only its giver's own.

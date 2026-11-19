@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { en, ptBR } from "@agenteschat/i18n";
-import { nextOccurrences } from "@agenteschat/ui/recurrence";
+import { en, ptBR } from "@dougbot/i18n";
+import { nextOccurrences } from "@dougbot/ui/recurrence";
 import type { TFunction } from "i18next";
 import type { ConnectorDef } from "../src/api/types";
 import type { ConnectedItem } from "../src/lib/connected";

@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from "bun:test";
-import type { RealtimeEvent } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import { ProviderError } from "@agenteschat/providers";
+import type { RealtimeEvent } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import { ProviderError } from "@dougbot/providers";
 import {
   addChannelMember,
   addRunStep,

@@ -1,7 +1,7 @@
-import type { PortalItem } from "@agenteschat/client";
-import { useApproveForClient } from "@agenteschat/client";
-import { portalErrorText } from "@agenteschat/client/lib/portal";
-import { Button, Dialog, DialogBody, DialogFooter, Field, Locked, Textarea } from "@agenteschat/ui";
+import type { PortalItem } from "@dougbot/client";
+import { useApproveForClient } from "@dougbot/client";
+import { portalErrorText } from "@dougbot/client/lib/portal";
+import { Button, Dialog, DialogBody, DialogFooter, Field, Locked, Textarea } from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

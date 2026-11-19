@@ -1,4 +1,4 @@
-import type { AgentColorName } from "@agenteschat/ui/agent/engine";
+import type { AgentColorName } from "@dougbot/ui/agent/engine";
 import { type StyleProp, View, type ViewStyle } from "react-native";
 import { useTheme } from "@/ui/theme";
 import { Animated, usePulse } from "./Dither";

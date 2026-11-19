@@ -1,5 +1,5 @@
-import type { AppLocale } from "@agenteschat/i18n/locale";
-import type { LocaleStrings } from "@agenteschat/i18n/plurals";
+import type { AppLocale } from "@dougbot/i18n/locale";
+import type { LocaleStrings } from "@dougbot/i18n/plurals";
 import { featureKeysEn } from "./keys.en";
 import { featureKeysPtBR } from "./keys.pt-BR";
 import de from "./locales/de.json";

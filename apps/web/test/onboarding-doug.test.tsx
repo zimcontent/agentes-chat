@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { DougTeamTemplate, DougTemplateMember, TeamTemplate } from "@agenteschat/client";
-import type { OnboardingStepId } from "@agenteschat/client/lib/onboarding";
+import type { DougTeamTemplate, DougTemplateMember, TeamTemplate } from "@dougbot/client";
+import type { OnboardingStepId } from "@dougbot/client/lib/onboarding";
 import { act, cleanup, fireEvent } from "@testing-library/react";
 import { BrandStep } from "@/pages/onboarding/BrandStep";
 import { createFakeApi, type FakeState, fakeDevicesOf, GENERAL_ID, ORG_ID, seedState, withRightHand } from "./fake-api";

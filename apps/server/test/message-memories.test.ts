@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { channelTopic } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import { consolidateItem } from "@agenteschat/engine";
+import { channelTopic } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import { consolidateItem } from "@dougbot/engine";
 import { browser, createTestServer, joinByInvitation, seedOrg, signUp, type TestServer } from "./harness";
 
 let t: TestServer;

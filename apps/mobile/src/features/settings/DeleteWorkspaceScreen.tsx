@@ -1,8 +1,8 @@
-import { ApiError, useApi, useAuthConfig, useDeleteWorkspace, useMe } from "@agenteschat/client";
-import { formatTimeLeft } from "@agenteschat/client/lib/actions";
-import { deletionProof, proofToSend } from "@agenteschat/client/lib/deletion";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { typedCode } from "@agenteschat/client/lib/join-requests";
+import { ApiError, useApi, useAuthConfig, useDeleteWorkspace, useMe } from "@dougbot/client";
+import { formatTimeLeft } from "@dougbot/client/lib/actions";
+import { deletionProof, proofToSend } from "@dougbot/client/lib/deletion";
+import { errorText } from "@dougbot/client/lib/errors";
+import { typedCode } from "@dougbot/client/lib/join-requests";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

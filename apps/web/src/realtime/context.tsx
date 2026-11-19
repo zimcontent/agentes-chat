@@ -13,7 +13,7 @@ import type {
   SecretRequest,
   ThreadInfo,
   VoiceDroppedEvent,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   ApiError,
   applyBrowserHandoff,
@@ -92,17 +92,17 @@ import {
   unmarkStopping,
   useIssueLive,
   useSendWaiting,
-} from "@agenteschat/client";
-import { type AgentUnavailableEvent, isAgentUnavailable } from "@agenteschat/client/lib/audience";
-import { newerBlockState } from "@agenteschat/client/lib/blocks";
-import { deviceWaitEventOf } from "@agenteschat/client/lib/devices";
-import { knownErrorText } from "@agenteschat/client/lib/errors";
-import { formatPercent } from "@agenteschat/client/lib/format";
-import { isReturnLine } from "@agenteschat/client/lib/notices";
-import { nextMonthIso, usageWhen } from "@agenteschat/client/lib/plan-usage";
-import { useSeat } from "@agenteschat/client/lib/seat-context";
-import { playSound, soundForEvent } from "@agenteschat/client/lib/sounds";
-import { playAgentReaction } from "@agenteschat/ui";
+} from "@dougbot/client";
+import { type AgentUnavailableEvent, isAgentUnavailable } from "@dougbot/client/lib/audience";
+import { newerBlockState } from "@dougbot/client/lib/blocks";
+import { deviceWaitEventOf } from "@dougbot/client/lib/devices";
+import { knownErrorText } from "@dougbot/client/lib/errors";
+import { formatPercent } from "@dougbot/client/lib/format";
+import { isReturnLine } from "@dougbot/client/lib/notices";
+import { nextMonthIso, usageWhen } from "@dougbot/client/lib/plan-usage";
+import { useSeat } from "@dougbot/client/lib/seat-context";
+import { playSound, soundForEvent } from "@dougbot/client/lib/sounds";
+import { playAgentReaction } from "@dougbot/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";

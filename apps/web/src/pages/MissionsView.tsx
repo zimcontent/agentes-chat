@@ -1,6 +1,6 @@
-import { MISSIONS_WAITING_COUNT, useMissionList } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
-import { Button, Icon, PageHeader, SearchField, Toolbar } from "@agenteschat/ui";
+import { MISSIONS_WAITING_COUNT, useMissionList } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
+import { Button, Icon, PageHeader, SearchField, Toolbar } from "@dougbot/ui";
 import { useDeferredValue, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useFilterCopy } from "@/components/filters";

@@ -1,12 +1,12 @@
-import type { PortalItem, PortalPlan } from "@agenteschat/client";
-import { capitalize } from "@agenteschat/client/lib/format";
+import type { PortalItem, PortalPlan } from "@dougbot/client";
+import { capitalize } from "@dougbot/client/lib/format";
 import {
   type PortalCalendarBy,
   type PortalCalendarEntry,
   portalCalendar,
   portalMonthName,
-} from "@agenteschat/client/lib/portal";
-import { Button, monthGrid, Segmented, ymd } from "@agenteschat/ui";
+} from "@dougbot/client/lib/portal";
+import { Button, monthGrid, Segmented, ymd } from "@dougbot/ui";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { stageName } from "./stage";

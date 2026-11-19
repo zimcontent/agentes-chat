@@ -2,7 +2,7 @@ import { afterAll, describe, expect, setDefaultTimeout, test } from "bun:test";
 import { mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { loadConfig } from "@agenteschat/config";
+import { loadConfig } from "@dougbot/config";
 import { en } from "../../../packages/i18n/src/en";
 import {
   computerFiles,

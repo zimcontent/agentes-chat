@@ -1,5 +1,5 @@
 {
-  "name": "@agenteschat/mobile",
+  "name": "@dougbot/mobile",
   "version": "0.0.0",
   "private": true,
   "main": "expo-router/entry",
@@ -8,15 +8,17 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "check": "bash scripts/build-gate.sh",
     "eas-build-post-install": "bash scripts/build-gate.sh",
-    "build:preview": "eas build --profile preview --platform all --non-interactive --no-wait"
+    "build:preview": "eas build --profile preview --platform all --non-interactive --no-wait",
+    "eas-build-pre-install": "sh -c '[ -e ios/Podfile ] || rm -rf ios'"
   },
   "license": "AGPL-3.0-only",
   "dependencies": {
-    "@agenteschat/adapters": "workspace:*",
-    "@agenteschat/client": "workspace:*",
-    "@agenteschat/i18n": "workspace:*",
-    "@agenteschat/tokens": "workspace:*",
-    "@agenteschat/ui": "workspace:*",
+    "@dougbot/adapters": "workspace:*",
+    "@dougbot/client": "workspace:*",
+    "@dougbot/i18n": "workspace:*",
+    "@dougbot/tokens": "workspace:*",
+    "@dougbot/ui": "workspace:*",
+    "@bacons/apple-targets": "5.0.0",
     "@better-auth/expo": "^1.7.10",
     "@config-plugins/react-native-webrtc": "15.0.2",
     "@expo-google-fonts/inter": "^0.4.2",
@@ -61,6 +63,7 @@
     "expo-splash-screen": "~58.0.14",
     "expo-status-bar": "~58.0.5",
     "expo-system-ui": "~58.0.7",
+    "expo-task-manager": "~58.0.14",
     "expo-video": "~58.0.14",
     "expo-web-browser": "~58.1.0",
     "i18next": "^26.4.2",

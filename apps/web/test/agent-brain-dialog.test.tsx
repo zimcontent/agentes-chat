@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, setSystemTime, test } from "bun:test";
-import type { AgentBrain, AiComputer, Machine, MachineAccount } from "@agenteschat/client";
-import { ApiError } from "@agenteschat/client";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import type { AgentBrain, AiComputer, Machine, MachineAccount } from "@dougbot/client";
+import { ApiError } from "@dougbot/client";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 

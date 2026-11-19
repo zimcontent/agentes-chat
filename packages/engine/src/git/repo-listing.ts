@@ -1,4 +1,4 @@
-import type { Database } from "@agenteschat/db";
+import type { Database } from "@dougbot/db";
 import { activeConnections, type ConnectorDeps } from "../connectors/connections";
 import { NotFoundError } from "../errors";
 import { requirePermission } from "../organizations";

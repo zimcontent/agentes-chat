@@ -1,4 +1,4 @@
-import type { OrgSummary } from "@agenteschat/client";
+import type { OrgSummary } from "@dougbot/client";
 import {
   useAgents,
   useAuthConfig,
@@ -7,13 +7,13 @@ import {
   useHostComputerOn,
   useMachines,
   useSetComputerTarget,
-} from "@agenteschat/client";
-import { type NoComputer, setupView } from "@agenteschat/client/lib/computer";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { computerState, machineTitle } from "@agenteschat/client/lib/machines";
-import { can } from "@agenteschat/client/lib/permissions";
-import { helpUrl } from "@agenteschat/client/lib/server";
-import { modeKey } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client";
+import { type NoComputer, setupView } from "@dougbot/client/lib/computer";
+import { errorText } from "@dougbot/client/lib/errors";
+import { computerState, machineTitle } from "@dougbot/client/lib/machines";
+import { can } from "@dougbot/client/lib/permissions";
+import { helpUrl } from "@dougbot/client/lib/server";
+import { modeKey } from "@dougbot/client/lib/workspace-mode";
 import type { TFunction } from "i18next";
 import { Trans, useTranslation } from "react-i18next";
 import { ActivityIndicator, StyleSheet } from "react-native";

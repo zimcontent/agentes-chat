@@ -1,4 +1,4 @@
-import { and, type Executor, eq, schema } from "@agenteschat/db";
+import { and, type Executor, eq, schema } from "@dougbot/db";
 import { fedByRoutine, type RunAuthority } from "../authority";
 import { directoryRole } from "./directory";
 import type { JsonSchema } from "./json-schema";
@@ -284,6 +284,7 @@ const LOOKS_ONLY = new Set([
   "desktop_screenshot",
   "git_clone",
   "team_status",
+  "show_sector_card",
   "offer_approvals",
   "offer_open_page",
   // Their card is the question: what the person may change applies from it, anything else waits on it.

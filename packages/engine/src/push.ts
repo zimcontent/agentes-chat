@@ -6,15 +6,17 @@ import {
   type WebPushKeys,
   type WebPushResult,
   type WebPushSender,
-} from "@agenteschat/adapters";
-import { and, asc, type Database, eq, gt, inArray, isNull, lte, notInArray, or, schema } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, asc, type Database, eq, gt, inArray, isNull, lte, notInArray, or, schema } from "@dougbot/db";
+import type { ArtifactDeps } from "./artifacts";
 import { errorNumber } from "./errors";
 import { mediaOf } from "./media";
 import { voiceOf } from "./message-preview";
 import { type NoticePrefs, noticeOn, readNoticePrefs } from "./notice-prefs";
 import type { NotificationActor, NotificationLatest, NotificationSource } from "./notifications";
 import { enqueue } from "./outbox";
-import { type PushTextInput, pushLocale, renderPush } from "./push-messages";
+import type { PushBlock } from "./push-actions";
+import { type PushTextInput, pushLocale, pushStrings, renderPush } from "./push-messages";
 import { accountClosed } from "./standing";
 import { isPersonalWorkspace } from "./workspace-mode";
 
@@ -90,7 +92,7 @@ export {
   APNS_PUSH_TOKEN,
   apnsAppIdValid,
   FCM_PUSH_TOKEN,
-} from "@agenteschat/adapters";
+} from "@dougbot/adapters";
 
 type NotificationRow = typeof notifications.$inferSelect;
 
@@ -286,6 +288,11 @@ export interface PushDeps {
    * several servers opens the workspace on the one the push came from (ADR 0154).
    */
   server?: string | null;
+  /**
+   * Where blocks are read: a push about a message with a live block carries its buttons (docs/adr/doug-0021-lock-screen.md).
+   * Absent: no buttons.
+   */
+  artifacts?: ArtifactDeps | null;
   now?: () => Date;
 }
 
@@ -467,6 +474,18 @@ export async function deliverPush(
   for (const key of PUSH_PLACE_KEYS) {
     if (source[key] != null && source[key] !== "") data[key] = String(source[key]);
   }
+  // A message whose live block has buttons: the phones show them (docs/adr/doug-0021-lock-screen.md). Its ids ride in
+  // the data, so a press names the block whatever path the push took.
+  let block: PushBlock | null = null;
+  if (deps.artifacts && phones.length > 0 && SAID_KINDS.has(row.kind) && source.messageId) {
+    // Loaded here: blocks reach most of the engine, which reaches push.
+    const { pushBlockOf } = await import("./push-actions");
+    block = await pushBlockOf(deps.artifacts, row.orgId, source.messageId, phones[0]?.locale).catch(() => null);
+    if (block) {
+      data.blockId = block.artifactId;
+      data.blockVersion = String(block.version);
+    }
+  }
   const text: PushTextInput = {
     kind: row.kind,
     waiting: row.waiting,
@@ -494,6 +513,7 @@ export async function deliverPush(
   const failures: { retryable: boolean; error: string; status?: number | null }[] = [];
   let phoneRequestFailed = false;
 
+  const blockActions = block ? (await import("./push-actions")).blockPushActions : null;
   if (deps.push && phones.length > 0) {
     const messages: PushMessage[] = phones.map((d) => ({
       to: d.token,
@@ -507,6 +527,8 @@ export async function deliverPush(
       priority: row.waiting ? "high" : "default",
       // A device's notice has buttons on the lock screen (Stop; Allow once, Always, No), by its kind.
       ...(row.kind.startsWith("device.") ? { category: row.kind } : {}),
+      // A live block's buttons, and "Abrir" in the phone's language.
+      ...(block && blockActions ? blockActions(block.buttons, pushStrings(pushLocale(d.locale)).openAction) : {}),
     }));
     try {
       const results = await deps.push.send(messages);

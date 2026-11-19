@@ -1,4 +1,4 @@
-import type { Dashboard, HomeTile, Widget } from "@agenteschat/client";
+import type { Dashboard, HomeTile, Widget } from "@dougbot/client";
 import {
   type BoardItem,
   boardItems,
@@ -8,8 +8,8 @@ import {
   useRefreshWidget,
   useSaveLayout,
   widgetCardStatus,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import {
   Button,
   Card,
@@ -24,8 +24,8 @@ import {
   MenuSeparator,
   useCardCut,
   WidgetCard,
-} from "@agenteschat/ui";
-import { layoutToSize, nextSize, sizeToLayout } from "@agenteschat/ui/widgets/spec";
+} from "@dougbot/ui";
+import { layoutToSize, nextSize, sizeToLayout } from "@dougbot/ui/widgets/spec";
 import { type ButtonHTMLAttributes, type ReactNode, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNow } from "@/hooks/useNow";

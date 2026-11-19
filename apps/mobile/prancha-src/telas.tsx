@@ -1,4 +1,4 @@
-import type { HexColor } from "@agenteschat/ui/agent/engine";
+import type { HexColor } from "@dougbot/ui/agent/engine";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -62,7 +62,11 @@ import {
   PortalAgendar,
   PortalAgendarPost,
   PortalCartao,
+  PortalCartaoData,
+  PortalCartaoEditar,
+  PortalCartaoEtiquetas,
   PortalCartaoLongo,
+  PortalCartaoMembros,
   PortalClienteEditar,
   PortalClientes,
   PortalCronograma,
@@ -1236,6 +1240,10 @@ export const TELAS: Record<string, () => ReactNode> = {
   "portal-cronograma": PortalCronograma,
   "portal-cronograma-320": PortalCronograma320,
   "portal-cartao": PortalCartao,
+  "portal-cartao-editar": PortalCartaoEditar,
+  "portal-cartao-data": PortalCartaoData,
+  "portal-cartao-etiquetas": PortalCartaoEtiquetas,
+  "portal-cartao-membros": PortalCartaoMembros,
   "portal-cartao-longo": PortalCartaoLongo,
   "portal-quadro": PortalQuadro,
   "portal-quadro-320": PortalQuadro320,

@@ -3,7 +3,7 @@ import type { EmailWords } from "./index";
 
 /**
  * The emails in ko: whatever is here replaces English, word group by word group (`deepMerge`); write a count's
- * forms with `plural("ko", n, { one, few, many, other })` from `@agenteschat/i18n/format`.
+ * forms with `plural("ko", n, { one, few, many, other })` from `@dougbot/i18n/format`.
  * Korean has no plural forms: `n === 1` only picks the wording English uses for a single item. A name is followed
  * by a particle that reads right after any final sound (에, 에서, 의, 님이) or by both forms (을(를), 이(가), (으)로).
  */

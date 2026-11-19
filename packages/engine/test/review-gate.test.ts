@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeApprovalPortal } from "@agenteschat/adapters";
+import { createFakeApprovalPortal } from "@dougbot/adapters";
 import {
   approvedOnCard,
   createFileArtifact,
@@ -103,7 +103,7 @@ describe("the review gate", () => {
     const card = await portal.createCard("acme", { title: "Cole Rd → Asbury", type: "reel" });
     const v1 = await video("reel.mp4");
     const sent = await sendForReview(deps, ctx(), { artifactId: v1.id, title: "Reel" });
-    const { schema, eq } = await import("@agenteschat/db");
+    const { schema, eq } = await import("@dougbot/db");
     await f.db
       .update(schema.videoReviews)
       .set({ portalClient: "acme", portalCard: card.id })

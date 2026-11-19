@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { and, desc, eq, schema } from "@agenteschat/db";
+import { and, desc, eq, schema } from "@dougbot/db";
 import {
   addReviewNote,
   createFileArtifact,

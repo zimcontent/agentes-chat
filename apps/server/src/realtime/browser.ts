@@ -1,4 +1,4 @@
-import { BROWSER_LIMITS, BROWSER_VIEW, type BrowserInputEvent, parseBrowserInputEvent } from "@agenteschat/adapters";
+import { BROWSER_LIMITS, BROWSER_VIEW, type BrowserInputEvent, parseBrowserInputEvent } from "@dougbot/adapters";
 
 /**
  * The agent browser's live view on `/api/ws` (ADR 0040 §7). Client frames:

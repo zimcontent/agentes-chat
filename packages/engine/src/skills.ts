@@ -1,6 +1,6 @@
-import type { BlobStoreResolver, PubSub } from "@agenteschat/adapters";
-import { and, asc, type Database, eq, gt, inArray, isNull, lte, or, type SQL, schema, sql } from "@agenteschat/db";
-import { SKILL_ASSET_BYTES, SKILL_TEXT_BYTES, SKILL_ZIP_BYTES } from "@agenteschat/tokens/skills";
+import type { BlobStoreResolver, PubSub } from "@dougbot/adapters";
+import { and, asc, type Database, eq, gt, inArray, isNull, lte, or, type SQL, schema, sql } from "@dougbot/db";
+import { SKILL_ASSET_BYTES, SKILL_TEXT_BYTES, SKILL_ZIP_BYTES } from "@dougbot/tokens/skills";
 import { getAgent } from "./agents";
 import { type ArtifactActor, storedFileOfArtifact } from "./artifacts";
 import { recordAudit } from "./audit";

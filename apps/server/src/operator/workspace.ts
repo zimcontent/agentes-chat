@@ -1,4 +1,4 @@
-import { schema } from "@agenteschat/db";
+import { schema } from "@dougbot/db";
 import {
   AUDIENCE_MODES,
   OPERATOR_ASK_KINDS,
@@ -12,7 +12,7 @@ import {
   operatorConnections,
   operatorRoutines,
   SYSTEM_STOP_REASONS,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
 import { apiError, errorResponse } from "../http/errors";
 import { iso, json, OrgParams } from "../routes/app/context";

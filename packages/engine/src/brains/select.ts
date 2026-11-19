@@ -9,9 +9,9 @@ import {
   OPENCODE_ACP_PROTOCOL,
   OPENCODE_PROTOCOL,
   type PlanUsage,
-} from "@agenteschat/adapters";
-import { and, desc, type Executor, eq, isNotNull, ne, or, schema, sql } from "@agenteschat/db";
-import { isAutoModel } from "@agenteschat/providers";
+} from "@dougbot/adapters";
+import { and, desc, type Executor, eq, isNotNull, ne, or, schema, sql } from "@dougbot/db";
+import { isAutoModel } from "@dougbot/providers";
 import {
   autoPlanModel,
   claudeCodeModel,
@@ -21,8 +21,8 @@ import {
   PLAN_INACTIVE_TEXT,
   planOf,
   speedFits,
-} from "@agenteschat/providers/plans";
-import { PLAN_CRITICAL, planFull, planState } from "@agenteschat/ui/plan-state";
+} from "@dougbot/providers/plans";
+import { PLAN_CRITICAL, planFull, planState } from "@dougbot/ui/plan-state";
 import type { Agent } from "../agents";
 import type { MachineStatus } from "../machine-hub";
 import { pausedMessage } from "../machines";

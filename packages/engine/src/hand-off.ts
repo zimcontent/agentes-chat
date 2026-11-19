@@ -1,5 +1,5 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, desc, type Executor, eq, inArray, isNull, ne, schema, sql } from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import { and, desc, type Executor, eq, inArray, isNull, ne, schema, sql } from "@dougbot/db";
 import { filesOfRun } from "./artifacts";
 import { routineBriefOfRun } from "./background";
 import { sameSentence } from "./context/items";

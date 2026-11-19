@@ -1,6 +1,6 @@
-import { useUpdateAgent } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
-import { Card, Select, SettingRow } from "@agenteschat/ui";
+import { useUpdateAgent } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
+import { Card, Select, SettingRow } from "@dougbot/ui";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
 import { useMediaOn } from "@/components/SidebarSetup";

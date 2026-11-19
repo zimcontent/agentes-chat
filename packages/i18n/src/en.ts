@@ -2887,6 +2887,8 @@ export const en = {
     runFailed: "{{agent}} couldn't answer: {{reason}}",
     runRefused: "{{agent}} didn't answer. {{reason}}",
     runFailedNoReason: "{{agent}} couldn't answer. Try again.",
+    copyRunDetails: "Copy details",
+    runDetailsCopied: "Details copied.",
     runBusy: "{{agent}} couldn't answer: the computer stayed busy with other tasks. Try again in a moment.",
     waitingApproval: "waiting for approval",
     notMemberTitle: "You're not in this group",
@@ -2995,6 +2997,7 @@ export const en = {
     },
     unreadDivider: "New",
     offline: "No connection. Whatever you send goes out on its own when it's back.",
+    serverReconnecting: "Reconnecting to DougBot. Whatever you send goes out on its own when it's back.",
     backOnline: "Connected again",
     sendingOffline: "goes out when the connection is back",
     endOfReply: "End of reply",
@@ -4008,6 +4011,22 @@ export const en = {
     syncing: "Bringing its training together. It takes up to a minute.",
     missing: "Didn't reach {{workspace}}: {{what}}.",
     failed: "Couldn't change it. Try again.",
+    craftOnly: "Separate operation: only the craft goes back and forth.",
+  },
+  separateOperation: {
+    title: "Separate operation",
+    help: "The agents here also work in your other workspaces, like people employed by two companies. Only the craft goes back and forth: instructions, skills, lessons, rules and preferences that name nothing of the other company. Facts, decisions, notes, clients and connections stay in each.",
+    switch: "Only the craft goes back and forth",
+    switchHelp:
+      "Once on, what already came from another company goes back to it within a minute. The original stays where it was learned.",
+    ownersOnly: "Only owners change it.",
+    names: "This operation's names",
+    namesHelp:
+      "Clients, projects and people of this operation, separated by commas. Nothing that names one of them reaches a copy in another workspace. The workspace's name and the clients its agents already know count on their own.",
+    namesExample: "E.g. Aurora Bakery, North Tower",
+    sharedSignIn:
+      "{{label}} uses the same sign-in as {{workspaces}}. Connect it again with this operation's own account.",
+    failed: "Couldn't save. Try again.",
   },
   ronda: {
     title: "Ronda",
@@ -5666,6 +5685,15 @@ export const en = {
       high: "High",
       blocked: "Blocked",
       status: { in_progress: "In progress", in_review: "In review" },
+      /** Each one's tasks in the order they are to be done (ADR doug-0022), moved by a handle or its arrow keys. */
+      queue: {
+        /** The ordered list of a person's or an agent's tasks. */
+        list: "{{name}}'s queue",
+        /** The handle's name for a screen reader: dragging it, or its up and down arrows, moves the task. */
+        move: "Move task #{{number}} in the queue. Drag it, or use the up and down arrow keys.",
+        /** Said after a move: the task's place among what shows. */
+        moved: "Task #{{number}} is now {{place}} of {{count}}.",
+      },
     },
     mission: "<b>{{name}}</b> needs you in a mission",
     seeAll: "See all",
@@ -6873,6 +6901,13 @@ export const en = {
       cancel: "Cancel",
       forgotten: "Forgotten. It's in Archived if you want it back.",
       saved: "Saved. It counts as verified now.",
+      /** Where the agent works in other workspaces too (ADR doug-0013): whether one memory goes there. */
+      reachAll: "In all workspaces",
+      reachHere: "Only in this workspace",
+      keepHere: "Keep only here",
+      sendAll: "Take to all",
+      keptHere: "It stays in this workspace. Copies the other workspaces got are archived within a minute.",
+      sentAll: "It goes to the agent in your other workspaces within a minute.",
       /** Lasting rules people gave the agent in the chat (a permission, where to send things), with who and when. */
       rules: "Rules people gave",
       rulesNote:
@@ -7951,6 +7986,8 @@ export const en = {
     create: "Create {{name}}",
     createBlank: "Create agent",
     failed: "Couldn't create it: {{reason}}",
+    /** Beside Create, once a create has lasted a while. */
+    stillCreating: "Still creating. This can take a little longer.",
     level: {
       read: "Reads",
       write: "Reads and writes",
@@ -11581,7 +11618,7 @@ export const en = {
       notesExample: "E.g.: Always close with who does what and by when. Call the client by name.",
       agentNotes: "{{name}} on calls",
       agentNotesExample: "E.g.: Brings numbers before opinions. Pushes back when the budget doesn't fit.",
-      title: "Live voice (GPT-Live)",
+      title: "Live voice",
       lead: "Voice calls with your agents and Listen on any message, each agent in its own voice.",
       on: "On",
       off: "Off",
@@ -11607,6 +11644,19 @@ export const en = {
       previewOf: "Hear {{voice}}",
       use: "Use {{voice}}",
       refused: "This key doesn't have this voice: {{voice}} spoke instead.",
+      engine: "The calls' voice",
+      house: "House voice (Qwen)",
+      gptLive: "GPT-Live (your key)",
+      houseCredits:
+        "Paid from this workspace's credits: {{perMinute}} credits a minute. Balance: {{balance}} credits, about {{minutes}} min.",
+      houseNoWallet: "Paid in credits, {{perMinute}} a minute. The balance can't be read now.",
+      gptLiveHint: "OpenAI's voice, on this workspace's own key. About US$ 0.05 a minute per agent.",
+      addCredits: "Buy credits",
+      monthly: "Monthly limit in credits",
+      monthlyNone: "No limit",
+      spent: "Used this month: {{spent}} of {{limit}} credits.",
+      spentNoLimit: "Used this month: {{spent}} credits. Calls stop only when the balance runs out.",
+      pickerLeadHouse: "Hear each voice as {{name}} and pick one. Each sample uses a credit or two.",
     },
     phoneLine: {
       title: "Phone calls",
@@ -11663,6 +11713,12 @@ export const en = {
       notHost: "Only the person running the call opens the agents' voices.",
       ended: "This call has ended.",
       notIn: "You're not in this call anymore.",
+      noCredits: "Not enough credits for a minute of call. Buy credits on the Media page.",
+      monthLimit:
+        "The calls reached this month's credit limit. Whoever configures the workspace can raise it in Settings › Voice.",
+      updateApp: "Calls here use the house voice. Update the app to call.",
+      noHouse: "The house voice isn't available here.",
+      badLimit: "A limit is a whole number of credits.",
     },
   },
   media: {
@@ -13061,6 +13117,18 @@ export const en = {
     htmlError: "The page hit an error: {{message}}",
     markdownSource: "Markdown text",
   },
+  /** The right hand's pills above the composer: each sector's card on a press (docs/adr/doug-0020-doug-sector-cards.md). */
+  sectorPills: {
+    label: "Shortcuts",
+    failed: "That card didn't come. Try again.",
+    whatsapp: "WhatsApp",
+    calendar: "Calendar",
+    approvals: "Approvals",
+    proposals: "Proposals",
+    tasks: "Tasks",
+    review: "Review",
+    portal: "Portal",
+  },
   blocks: {
     send: "Send",
     more: "More",
@@ -13091,6 +13159,9 @@ export const en = {
     pollAnswered_one: "{{count}} of {{total}} answered",
     pollAnswered_other: "{{count}} of {{total}} answered",
     voteFailed: "Your vote didn't go through.",
+    /** A card's button that ran on the server (docs/adr/doug-0020-doug-sector-cards.md). */
+    done: "Done",
+    actFailed: "That didn't go through. Try again.",
   },
   choices: {
     step: "{{step}} of {{total}}",
@@ -13105,6 +13176,45 @@ export const en = {
     tooLongFix: "Shorten the answer.",
   },
   drive: {
+    draft: "Draft",
+    draftUntil: "Goes to the trash on its own on {{date}}, unless it changes or someone keeps it.",
+    keepDraft: "Keep it",
+    kept: "{{title}} is kept.",
+    folders: {
+      title: "Folders",
+      path: "Folder path",
+      new: "New folder",
+      newTitle: "New folder",
+      newInside: "New folder inside",
+      create: "Create",
+      created: "Folder {{name}} created.",
+      name: "Name",
+      namePlaceholder: "Client or project",
+      menu: "Folder {{name}}: more",
+      menuShort: "More",
+      rename: "Rename",
+      renameTitle: "Rename folder",
+      renameConfirm: "Rename",
+      move: "Move",
+      moveTo: "Move to…",
+      moveHere: "Move here",
+      here: "Here now",
+      moveFolderTitle: "Move {{name}}",
+      moveFilesTitle_one: "Move {{count}} file",
+      moveFilesTitle_other: "Move {{count}} files",
+      moved: "{{name}} moved to {{folder}}.",
+      filed_one: "{{count}} file moved to {{folder}}.",
+      filed_other: "{{count}} files moved to {{folder}}.",
+      files_one: "{{count}} file",
+      files_other: "{{count}} files",
+      remove: "Remove folder",
+      removeTitle: "Remove {{name}}?",
+      removeBody: "No file is deleted. What is inside goes up one level.",
+      removeConfirm: "Remove folder",
+      removed: "Folder {{name}} removed.",
+      emptyTitle: "This folder is empty",
+      emptyText: "Drag files here, upload them, or ask an agent to file its work in this folder.",
+    },
     title: "Drive",
     subtitle: "Everything people and agents made or uploaded.",
     search: "Search files",
@@ -13402,7 +13512,7 @@ export const en = {
       },
       inUse: "{{provider}} · {{bucket}}",
       inUseAt: "{{bucket}} at {{host}}",
-      /** A failed test step by its code (`stepErrorText` in `@agenteschat/client/lib/storage`). */
+      /** A failed test step by its code (`stepErrorText` in `@dougbot/client/lib/storage`). */
       stepError: {
         auth: "The access key or the secret wasn't accepted.",
         permission: "The key isn't allowed to do this step.",
@@ -14825,6 +14935,10 @@ export const en = {
       request_folder_access: "Ask for a folder",
       create_artifact: "Create file in Drive",
       update_artifact: "Change file in Drive",
+      drive_folders: "See the Drive's folders",
+      file_artifacts: "File in a Drive folder",
+      drive_folder: "Arrange a Drive folder",
+      trash_artifacts: "Clear out files",
       read_artifact: "Read file in Drive",
       list_artifacts: "List Drive files",
       share_artifact: "Share file",
@@ -15951,6 +16065,14 @@ export const en = {
       sharingEmpty: "Choose who sees it.",
       sharingTooMany: "Choose at most {{max}} people and {{max}} roles.",
       notInDrive: "This lives only in its conversation, so it can't be shared.",
+    },
+    drive: {
+      folderExists: "There's a folder with that name here already.",
+      folderNotFound: "This folder no longer exists.",
+      folderCycle: "A folder can't go inside itself.",
+      folderTooDeep: "Folders go at most {{max}} levels deep.",
+      foldersFull: "This workspace has {{max}} folders already.",
+      folderName: "Give the folder a name.",
     },
     device: {
       notLinkMaker: "Only the person who made the link can let this computer join.",
@@ -18216,7 +18338,7 @@ export const en = {
   },
   gallery: {
     title: "Component gallery",
-    subtitle: "Development only: the @agenteschat/ui components.",
+    subtitle: "Development only: the @dougbot/ui components.",
   },
   format: {
     // i18next's `list` format: Intl.ListFormat in the language ("Ada, Atlas, and Theo", "Ada、Atlas、Theo"). Keep as is.
@@ -19086,6 +19208,22 @@ export const en = {
     update_artifact: {
       label: "Update file",
       description: "Saves a new version of a file.",
+    },
+    drive_folders: {
+      label: "See folders",
+      description: "Sees the Drive's folders.",
+    },
+    file_artifacts: {
+      label: "File in folders",
+      description: "Puts Drive files in project folders.",
+    },
+    drive_folder: {
+      label: "Arrange folders",
+      description: "Renames, moves or removes Drive folders (never files).",
+    },
+    trash_artifacts: {
+      label: "Clear out its files",
+      description: "Moves files it made and nobody needs to the trash (30 days to restore).",
     },
     list_issues: {
       label: "View tasks",
@@ -21552,6 +21690,9 @@ export const en = {
     photosHint: "Up to {{images}} photos of {{imageMb}} MB.",
     photoType: "Only photos can be attached.",
     photosTooMany: "One feedback takes up to {{images}} photos.",
+    device: "Include device details",
+    /** Behind the ⓘ of Include device details. */
+    deviceHint: "Browser, window size, theme, time zone and recent errors. It helps find the problem.",
     send: "Send",
     thanks: "Delivered. Thank you.",
     reply: "Everything is read. An answer, if one is needed, comes to {{email}}.",

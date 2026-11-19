@@ -1,9 +1,9 @@
-import type { OrgRole, Person } from "@agenteschat/client";
-import { useChangeRole, useSetMemberRoles } from "@agenteschat/client";
-import { firstName } from "@agenteschat/client/lib/format";
-import { useHeldWhile } from "@agenteschat/client/lib/hold";
-import { giveRole, isBelow, PEOPLE_SEARCH_FROM, peopleWith, roleName } from "@agenteschat/client/lib/roles";
-import { matchesWords } from "@agenteschat/ui/search";
+import type { OrgRole, Person } from "@dougbot/client";
+import { useChangeRole, useSetMemberRoles } from "@dougbot/client";
+import { firstName } from "@dougbot/client/lib/format";
+import { useHeldWhile } from "@dougbot/client/lib/hold";
+import { giveRole, isBelow, PEOPLE_SEARCH_FROM, peopleWith, roleName } from "@dougbot/client/lib/roles";
+import { matchesWords } from "@dougbot/ui/search";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

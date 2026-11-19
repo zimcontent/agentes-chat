@@ -1,4 +1,4 @@
-import type { AgentColor } from "@agenteschat/tokens/look";
+import type { AgentColor } from "@dougbot/tokens/look";
 import {
   atTime,
   baseName,

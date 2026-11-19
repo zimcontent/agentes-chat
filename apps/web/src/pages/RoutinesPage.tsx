@@ -9,7 +9,7 @@ import type {
   RoutineRun,
   RoutineTarget,
   RoutineTargetInput,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   ROUTINE_HOOK_METHODS,
   useCalendar,
@@ -24,12 +24,12 @@ import {
   useRoutines,
   useRuleDescribe,
   useRuleParse,
-} from "@agenteschat/client";
-import { approvalTitle, ownActionName, routineVaultKey, splitOwnActions } from "@agenteschat/client/lib/approval-words";
-import type { RunStatus } from "@agenteschat/client/lib/calendar";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { FIELD_LIMITS } from "@agenteschat/client/lib/field-limits";
-import { formatBytes } from "@agenteschat/client/lib/files";
+} from "@dougbot/client";
+import { approvalTitle, ownActionName, routineVaultKey, splitOwnActions } from "@dougbot/client/lib/approval-words";
+import type { RunStatus } from "@dougbot/client/lib/calendar";
+import { errorText } from "@dougbot/client/lib/errors";
+import { FIELD_LIMITS } from "@dougbot/client/lib/field-limits";
+import { formatBytes } from "@dougbot/client/lib/files";
 import {
   capitalize,
   clockHour,
@@ -41,15 +41,10 @@ import {
   relativeTime,
   toYmd,
   whenAt,
-} from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { can } from "@agenteschat/client/lib/permissions";
-import {
-  blankLeft,
-  ownWords,
-  type RoutineTemplateOption,
-  templateRule,
-} from "@agenteschat/client/lib/routine-templates";
+} from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { can } from "@dougbot/client/lib/permissions";
+import { blankLeft, ownWords, type RoutineTemplateOption, templateRule } from "@dougbot/client/lib/routine-templates";
 import {
   busyOnComputer,
   eventWebhook,
@@ -72,7 +67,7 @@ import {
   usageParts,
   type Words,
   whereItRuns,
-} from "@agenteschat/client/lib/routine-view";
+} from "@dougbot/client/lib/routine-view";
 import {
   browserTimezone,
   hookCurl,
@@ -80,7 +75,7 @@ import {
   onceParts,
   routineHookUrl,
   timezoneName,
-} from "@agenteschat/client/lib/routines";
+} from "@dougbot/client/lib/routines";
 import {
   Button,
   CheckboxPill,
@@ -125,7 +120,7 @@ import {
   Toolbar,
   useAutoGrow,
   zonedInstant,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
 import { type CSSProperties, type ReactNode, useDeferredValue, useEffect, useMemo, useState } from "react";
@@ -1568,6 +1563,10 @@ function RoutineDetails({ routine: r, now, onClose }: { routine: Routine; now: D
                     <RunItem key={x.id} run={x} routine={r} />
                   ))}
                 </ol>
+              )}
+              {/* Doug: a history that didn't load says so, with a retry, instead of an empty tab. */}
+              {runs.isError && list.length === 0 && (
+                <ErrorState error={runs.error} onRetry={() => void runs.refetch()} />
               )}
               {runs.isSuccess && list.length === 0 && (
                 <p className="small muted">

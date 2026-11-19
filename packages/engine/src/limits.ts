@@ -1,4 +1,5 @@
-import { and, count, type Database, type Executor, eq, gt, gte, isNotNull, isNull, schema, sql } from "@agenteschat/db";
+import type { PlatformCredentials } from "@dougbot/adapters";
+import { and, count, type Database, type Executor, eq, gt, gte, isNotNull, isNull, schema, sql } from "@dougbot/db";
 import { caches } from "./cache";
 import { ConflictError } from "./errors";
 import { formatBytes } from "./format";
@@ -240,12 +241,13 @@ export async function platformCapReached(db: Database, orgId: string, now = new 
       })
       .from(organizations)
       .where(eq(organizations.id, orgId));
-    if (!org || org.limit === null) return false;
+    const limit = org ? (org.limit ?? platformCapDefaultNano) : null;
+    if (!org || limit === null) return false;
     const spent = await platformSpendNano(db, orgId, now);
-    const percent = spent <= 0 ? 0 : spent >= org.limit ? 100 : spent * 2 >= org.limit ? 50 : 0;
+    const percent = spent <= 0 ? 0 : spent >= limit ? 100 : spent * 2 >= limit ? 50 : 0;
     const month = monthStartUtc(now).toISOString().slice(0, 7);
     if (percent > 0 && (org.month !== month || (org.percent ?? 0) < percent)) {
-      const data = { month, percent, spentUsd: cents(spent), limitUsd: cents(org.limit) };
+      const data = { month, percent, spentUsd: cents(spent), limitUsd: cents(limit) };
       await db.transaction(async (tx) => {
         // Another process may have seen the same crossing: only the one that moves the row tells it.
         const moved = await tx
@@ -261,8 +263,33 @@ export async function platformCapReached(db: Database, orgId: string, now = new 
         if (moved.length > 0) await recordOperatorEvent(tx, { type: "platform_ai.threshold", orgId, data });
       });
     }
-    return spent >= org.limit;
+    return spent >= limit;
   })) as boolean;
+}
+
+/**
+ * The platform cap of a workspace the operator set none for (`PLATFORM_AI_USD_PER_MONTH`, docs/adr/doug-0035-beta.md):
+ * a server that lends its own key to every workspace (a beta tester's stack) bounds what each one spends. Null: none.
+ */
+let platformCapDefaultNano: number | null = null;
+export function setPlatformCapDefault(usdPerMonth: number | null | undefined) {
+  platformCapDefaultNano = usdPerMonth == null ? null : Math.round(usdPerMonth * NANO_PER_USD);
+}
+
+/**
+ * The platform's keys, gone for a workspace past its platform AI for the month (docs/adr/doug-0035-beta.md): the
+ * gateway then finds no key, its agents read as having no AI, and the apps ask the workspace to connect its own.
+ */
+export function cappedPlatformCredentials(db: Database, inner: PlatformCredentials): PlatformCredentials {
+  return {
+    async resolve(orgId, provider) {
+      return (await platformCapReached(db, orgId)) ? null : inner.resolve(orgId, provider);
+    },
+    async available(orgId, provider) {
+      if (await platformCapReached(db, orgId)) return false;
+      return inner.available ? inner.available(orgId, provider) : (await inner.resolve(orgId, provider)) !== null;
+    },
+  };
 }
 
 /**

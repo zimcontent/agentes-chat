@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
-import { isVoiceOutId, type KeyWrapper, type PubSub, type VoiceOut, type WhatsAppGateway } from "@agenteschat/adapters";
-import { and, asc, type Database, eq, inArray, schema } from "@agenteschat/db";
+import { isVoiceOutId, type KeyWrapper, type PubSub, type VoiceOut, type WhatsAppGateway } from "@dougbot/adapters";
+import { and, asc, type Database, eq, inArray, schema } from "@dougbot/db";
 import { openSecret, sealSecret } from "../crypto";
 import { NotFoundError, ValidationError } from "../errors";
 import { publishUserEvent } from "../events";

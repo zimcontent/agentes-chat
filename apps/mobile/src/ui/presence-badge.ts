@@ -1,9 +1,9 @@
-import { mixHex } from "@agenteschat/ui/agent/engine";
-import { type BadgePresence, type BadgeTone, badgeCells } from "@agenteschat/ui/presence/badge";
+import { mixHex } from "@dougbot/ui/agent/engine";
+import { type BadgePresence, type BadgeTone, badgeCells } from "@dougbot/ui/presence/badge";
 
 /**
  * The presence badge (ADR 0084) as the phone draws it (pure: no React Native import, so it is unit-tested): the
- * shared cells (`@agenteschat/ui/presence/badge`) as one path per tone, its colors, and how big a cell is beside
+ * shared cells (`@dougbot/ui/presence/badge`) as one path per tone, its colors, and how big a cell is beside
  * an avatar. Each tone lies on a layer under it (the ring under the whole badge, the base under its marks), so
  * no seam of the surface shows between two tones.
  */

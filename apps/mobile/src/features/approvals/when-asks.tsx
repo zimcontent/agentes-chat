@@ -1,6 +1,6 @@
-import { type Approval, useChangeWhenAsks, useUndoWhenAsks } from "@agenteschat/client";
-import { APPROVALS_LEVELS, approvalsLevelOf, changesWhenAsks } from "@agenteschat/client/lib/approvals-level";
-import { can } from "@agenteschat/client/lib/permissions";
+import { type Approval, useChangeWhenAsks, useUndoWhenAsks } from "@dougbot/client";
+import { APPROVALS_LEVELS, approvalsLevelOf, changesWhenAsks } from "@dougbot/client/lib/approvals-level";
+import { can } from "@dougbot/client/lib/permissions";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { useOrg } from "@/providers/org";

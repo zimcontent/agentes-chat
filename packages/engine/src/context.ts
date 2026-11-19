@@ -1,4 +1,4 @@
-import { grantedTo, SHARED_COMPUTER_PROTOCOL, sharedFolderOf } from "@agenteschat/adapters";
+import { grantedTo, SHARED_COMPUTER_PROTOCOL, sharedFolderOf } from "@dougbot/adapters";
 import {
   and,
   asc,
@@ -13,10 +13,10 @@ import {
   rowsOf,
   schema,
   sql,
-} from "@agenteschat/db";
-import { BRAND_NAME } from "@agenteschat/i18n/brand";
-import { isAppLocale, localeInfo } from "@agenteschat/i18n/locale";
-import type { ModelMessage, SystemBlock } from "@agenteschat/providers";
+} from "@dougbot/db";
+import { BRAND_NAME } from "@dougbot/i18n/brand";
+import { isAppLocale, localeInfo } from "@dougbot/i18n/locale";
+import type { ModelMessage, SystemBlock } from "@dougbot/providers";
 import { agentStyleLine, agentStyleOf, isAgentStyle } from "./agent-style";
 import type { Agent } from "./agents";
 import { readerOf, readerOfMessage } from "./agents-dm-reads";
@@ -325,6 +325,7 @@ const QUIET_TOOLS = [
   "get_summary",
   "expand",
   "list_artifacts",
+  "drive_folders",
   "read_artifact",
   "list_issues",
   "list_events",
@@ -1592,7 +1593,13 @@ async function routineContext(
         ? [
             rondaEventText(event),
             // The right hand runs the operation with its person (ADR 9005 §5), outside the data envelope.
-            isRightHand(agent) ? rightHandRondaBrief({ who, opening: event.opening === true }) : "",
+            isRightHand(agent)
+              ? rightHandRondaBrief({
+                  who,
+                  opening: event.opening === true,
+                  cards: Array.isArray(event.cards) ? event.cards.filter((c) => typeof c === "string") : [],
+                })
+              : "",
           ]
             .filter(Boolean)
             .join("\n\n")
@@ -2365,7 +2372,7 @@ export function taskNotice(m: Pick<Message, "body" | "meta">, current = false, p
 
 /**
  * A person's message sent from an AI app (ADR 0119, `meta.via`): the agent learns the person reads the reply there,
- * maybe not in agentes.chat. "" for anything else.
+ * maybe not in DougBot. "" for anything else.
  */
 function viaLine(m: Message, who: string): string {
   // Written on WhatsApp and relayed here (docs/adr/doug-0034-whatsapp-files.md): the reply goes back there, files too.

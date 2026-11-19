@@ -1,4 +1,4 @@
-import type { WhatsAppAccount, WhatsAppChat, WhatsAppMessage, WhatsAppOverview } from "@agenteschat/client";
+import type { WhatsAppAccount, WhatsAppChat, WhatsAppMessage, WhatsAppOverview } from "@dougbot/client";
 import type { WhatsAppWords } from "./words";
 
 /*

@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { LOAD_SAMPLE_MS } from "@agenteschat/adapters";
-import { testConfig } from "@agenteschat/config";
-import { type Database, eq, schema } from "@agenteschat/db";
-import { createTestDatabase } from "@agenteschat/db/testing";
-import { setTelemetryEnabled, telemetryState } from "@agenteschat/engine";
+import { LOAD_SAMPLE_MS } from "@dougbot/adapters";
+import { testConfig } from "@dougbot/config";
+import { type Database, eq, schema } from "@dougbot/db";
+import { createTestDatabase } from "@dougbot/db/testing";
+import { setTelemetryEnabled, telemetryState } from "@dougbot/engine";
 import { createLogger } from "../src/logger";
 import {
   FIRST_REPORT_MS,

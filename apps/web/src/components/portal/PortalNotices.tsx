@@ -1,6 +1,6 @@
-import type { PortalState } from "@agenteschat/client";
-import { clockAt } from "@agenteschat/client/lib/format";
-import { Alert } from "@agenteschat/ui";
+import type { PortalState } from "@dougbot/client";
+import { clockAt } from "@dougbot/client/lib/format";
+import { Alert } from "@dougbot/ui";
 import { useTranslation } from "react-i18next";
 import { useNow } from "@/hooks/useNow";
 

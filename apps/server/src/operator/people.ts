@@ -4,7 +4,7 @@ import {
   OPERATOR_ACCESS_TARGETS,
   operatorAccess,
   operatorNotifications,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
 import { apiError, errorResponse } from "../http/errors";
 import { iso, json, OrgParams } from "../routes/app/context";

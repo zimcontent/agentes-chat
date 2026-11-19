@@ -1,6 +1,6 @@
-import type { LiveRun } from "@agenteschat/client";
-import { holdsText } from "@agenteschat/client/lib/text";
-import { type ReplyStop, replyStopOf, type ToolItem, toolItemsLive } from "@agenteschat/client/lib/work";
+import type { LiveRun } from "@dougbot/client";
+import { holdsText } from "@dougbot/client/lib/text";
+import { type ReplyStop, replyStopOf, type ToolItem, toolItemsLive } from "@dougbot/client/lib/work";
 
 /**
  * An agent's turn in the conversation: while it works nothing of it draws there (the line above the box says who

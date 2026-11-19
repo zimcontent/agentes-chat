@@ -1,5 +1,5 @@
-import { type Message, sendHelpers, usePostMessage } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+import { type Message, sendHelpers, usePostMessage } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { EventPillAction, EventPillText, Text, useToast } from "@/ui";

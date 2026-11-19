@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { createAnthropicProvider, type ModelRequest, systemText } from "@agenteschat/providers";
-import type { FakeReply } from "@agenteschat/providers/testing";
+import { createAnthropicProvider, type ModelRequest, systemText } from "@dougbot/providers";
+import type { FakeReply } from "@dougbot/providers/testing";
 import { AUTONOMY_PHRASES, placeOf, type ScriptedTurn, TURNS, type TurnsWorld, turnsWorld } from "../eval/turns";
 import { drainOutbox, postPersonMessage } from "../src";
 
@@ -115,8 +115,10 @@ const size = (r: ModelRequest) =>
  * never told as "the first time", and the DM rule saying what may be said of it elsewhere. Where each workspace gets its
  * own computer, `workspaceComputerText` adds 447 to that (48,078); and a sign-in whose link or
  * code goes to a mailbox the agent reads being its own work adds 360; the ceiling leaves a little room above both.
+ * `remember`'s `reach`, a memory kept in its workspace or taken to every copy of the agent (ADR doug-0013, addendum
+ * 2026-11-19), adds 410 (49,030; 49,477 with the workspace's computer).
  */
-const OI_CEILING_CHARS = 48_700;
+const OI_CEILING_CHARS = 49_500;
 
 test("a DM 'oi' stays under the size ceiling", async () => {
   const [request] = await play(TURNS.find((t) => t.id === "greet-dm") as ScriptedTurn);

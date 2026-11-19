@@ -12,8 +12,8 @@ import {
   suggestActors,
   suggestPlaces,
   typingOperator,
-} from "@agenteschat/client/lib/search-filters";
-import { cx, Icon, type IconName, Token } from "@agenteschat/ui";
+} from "@dougbot/client/lib/search-filters";
+import { cx, Icon, type IconName, Token } from "@dougbot/ui";
 import { type KeyboardEvent, type ReactNode, type RefObject, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActorAvatar } from "@/components/AgentAvatar";

@@ -219,3 +219,30 @@ test("deleting a task: 204, gone from the list and its address; a member who did
   expect(await (await api("/issues")).json()).toMatchObject({ issues: [] });
   expect((await api(`/issues/${created.id}`, { method: "DELETE" })).status).toBe(404);
 });
+
+test("an assignee's queue: owners and admins move a task, a member can't, the agenda reads the new order", async () => {
+  const owner = browser(t);
+  await signUp(owner, "owner@example.com");
+  const { orgId, agentId } = await seedOrg(owner);
+  const api = (path: string, init?: Parameters<typeof owner>[1]) =>
+    owner(`/api/app/organizations/${orgId}${path}`, init);
+  const make = async (title: string) =>
+    (
+      (await (await api("/issues", { json: { title, assignee: { type: "agent", id: agentId } } })).json()) as {
+        id: string;
+      }
+    ).id;
+  const first = await make("Primeiro");
+  const second = await make("Segundo");
+  const moved = await api(`/queues/agent/${agentId}`, { method: "PUT", json: { taskId: second, afterId: null } });
+  expect(await moved.json()).toEqual({ order: [second, first] });
+  const agenda = (await (await api("/team-agenda?from=2026-11-16")).json()) as { tasks: { id: string }[] };
+  expect(agenda.tasks.map((x) => x.id)).toEqual([second, first]);
+
+  const member = await joinByInvitation(t, owner, orgId, "ronny@example.com");
+  const refused = await member(`/api/app/organizations/${orgId}/queues/agent/${agentId}`, {
+    method: "PUT",
+    json: { taskId: first, afterId: null },
+  });
+  expect(refused.status).toBe(403);
+});

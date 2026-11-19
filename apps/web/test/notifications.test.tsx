@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { type AgentQuestion, ApiError, type AppNotification } from "@agenteschat/client";
-import { type SoundName, setSoundPlayer } from "@agenteschat/client/lib/sounds";
+import { type AgentQuestion, ApiError, type AppNotification } from "@dougbot/client";
+import { type SoundName, setSoundPlayer } from "@dougbot/client/lib/sounds";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { dispatchPushOpen, pushOpenPath } from "../src/lib/push-open";
 import { ADA_ID, ATLAS_ID, createFakeApi, ENG_ID, type FakeState, fakeMachinesOf, ORG_ID, seedState } from "./fake-api";

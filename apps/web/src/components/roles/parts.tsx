@@ -1,8 +1,8 @@
-import type { OrgRole, Person } from "@agenteschat/client";
-import { useChannels } from "@agenteschat/client";
-import { joinNames, namesText } from "@agenteschat/client/lib/format";
-import type { RoleTab } from "@agenteschat/client/lib/roles";
-import { Avatar, Chip, ChipButton, RoleMark, Tip } from "@agenteschat/ui";
+import type { OrgRole, Person } from "@dougbot/client";
+import { useChannels } from "@dougbot/client";
+import { joinNames, namesText } from "@dougbot/client/lib/format";
+import type { RoleTab } from "@dougbot/client/lib/roles";
+import { Avatar, Chip, ChipButton, RoleMark, Tip } from "@dougbot/ui";
 import { useNavigate } from "@tanstack/react-router";
 import type { HTMLAttributes, ReactNode } from "react";
 import { useTranslation } from "react-i18next";

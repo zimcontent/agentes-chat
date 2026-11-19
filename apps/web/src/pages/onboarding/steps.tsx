@@ -1,9 +1,9 @@
-import type { Agent } from "@agenteschat/client";
-import { keys, useApplyTeamTemplate, useDougTemplate, useRoutines, useTeamTemplates } from "@agenteschat/client";
-import type { PlanOffer } from "@agenteschat/client/lib/billing";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { firstJob } from "@agenteschat/client/lib/onboarding";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
+import type { Agent } from "@dougbot/client";
+import { keys, useApplyTeamTemplate, useDougTemplate, useRoutines, useTeamTemplates } from "@dougbot/client";
+import type { PlanOffer } from "@dougbot/client/lib/billing";
+import { errorText } from "@dougbot/client/lib/errors";
+import { firstJob } from "@dougbot/client/lib/onboarding";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
 import {
   aboutContext,
   aboutOf,
@@ -11,7 +11,7 @@ import {
   type BusinessType,
   teamFailureText,
   templateFor,
-} from "@agenteschat/client/lib/team-plan";
+} from "@dougbot/client/lib/team-plan";
 import {
   Button,
   Chip,
@@ -24,7 +24,7 @@ import {
   Skeleton,
   Spinner,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";

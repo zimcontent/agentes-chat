@@ -1,6 +1,6 @@
 import { afterEach, expect } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
-import { ProviderError } from "@agenteschat/providers";
+import { eq, schema } from "@dougbot/db";
+import { ProviderError } from "@dougbot/providers";
 import { expireConsultations, runAuthority, updateAgent } from "../../src";
 import { closeWorlds, type Script, type World, world } from "./harness";
 import { assertInvariants } from "./invariants";

@@ -1,5 +1,5 @@
-import { useAuthConfig, useWorkspaceLimits } from "@agenteschat/client";
-import { membersFull, membersFullText, membersFullWhoPhone } from "@agenteschat/client/lib/limits";
+import { useAuthConfig, useWorkspaceLimits } from "@dougbot/client";
+import { membersFull, membersFullText, membersFullWhoPhone } from "@dougbot/client/lib/limits";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/providers/org";
 import { GroupedFooter } from "@/ui";

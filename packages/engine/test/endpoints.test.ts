@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
-import { customModelId, MODEL_CATALOG, ProviderError } from "@agenteschat/providers";
+import { eq, schema } from "@dougbot/db";
+import { customModelId, MODEL_CATALOG, ProviderError } from "@dougbot/providers";
 import {
   agentAiState,
   allowsPrivateEndpoints,

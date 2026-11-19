@@ -184,8 +184,10 @@ export function inertLines(value: string, max = 64): string {
   if (Array.from(raw).length <= max) return breakSeparators(raw);
   // Cut on grapheme boundaries and say that it was cut.
   const parts = Array.from(new Intl.Segmenter().segment(raw), (s) => s.segment);
-  return breakSeparators(`${parts
-    .slice(0, Math.max(0, max - 1))
-    .join("")
-    .trimEnd()}…`);
+  return breakSeparators(
+    `${parts
+      .slice(0, Math.max(0, max - 1))
+      .join("")
+      .trimEnd()}…`,
+  );
 }

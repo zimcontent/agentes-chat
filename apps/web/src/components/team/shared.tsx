@@ -1,10 +1,10 @@
-import type { AgentGroup, TeamAgent } from "@agenteschat/client";
-import { useAiStatus, useChannels } from "@agenteschat/client";
-import { groupOf } from "@agenteschat/client/lib/agent-groups";
-import { aiStateOf } from "@agenteschat/client/lib/no-ai";
-import { rightHandOf } from "@agenteschat/client/lib/right-hand";
-import { noSectorsCopy } from "@agenteschat/client/lib/team-views";
-import { Button, EmptyState, Icon, PixelSpinner, RoleMark, spriteTone } from "@agenteschat/ui";
+import type { AgentGroup, TeamAgent } from "@dougbot/client";
+import { useAiStatus, useChannels } from "@dougbot/client";
+import { groupOf } from "@dougbot/client/lib/agent-groups";
+import { aiStateOf } from "@dougbot/client/lib/no-ai";
+import { rightHandOf } from "@dougbot/client/lib/right-hand";
+import { noSectorsCopy } from "@dougbot/client/lib/team-views";
+import { Button, EmptyState, Icon, PixelSpinner, RoleMark, spriteTone } from "@dougbot/ui";
 import { type CSSProperties, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { NoAiChip } from "@/components/NoAi";

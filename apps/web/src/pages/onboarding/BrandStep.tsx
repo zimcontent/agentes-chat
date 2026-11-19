@@ -1,14 +1,7 @@
-import {
-  type BrandInput,
-  type BrandToneWord,
-  type BrandView,
-  brandFields,
-  brandMissing,
-  keys,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { joinNames } from "@agenteschat/client/lib/format";
-import { Button, ChipButton, Field, Icon, Input, Locked, Skeleton, Textarea } from "@agenteschat/ui";
+import { type BrandInput, type BrandToneWord, type BrandView, brandFields, brandMissing, keys } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { joinNames } from "@dougbot/client/lib/format";
+import { Button, ChipButton, Field, Icon, Input, Locked, Skeleton, Textarea } from "@dougbot/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

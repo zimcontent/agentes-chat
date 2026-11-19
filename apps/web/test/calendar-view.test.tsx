@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { CalendarReminder } from "@agenteschat/client";
-import { HOUR_PX, mondayOf } from "@agenteschat/client/lib/calendar";
-import { toYmd } from "@agenteschat/client/lib/format";
+import type { CalendarReminder } from "@dougbot/client";
+import { HOUR_PX, mondayOf } from "@dougbot/client/lib/calendar";
+import { toYmd } from "@dougbot/client/lib/format";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { ADA_ID, createFakeApi, ENG_ID, ORG_ID, seedState } from "./fake-api";
 import { renderApp, screen, settle } from "./render";

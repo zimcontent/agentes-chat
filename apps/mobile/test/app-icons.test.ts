@@ -12,7 +12,7 @@ import {
   madeIconId,
   madeIconOf,
   madeIcons,
-} from "@agenteschat/client/lib/app-icons";
+} from "@dougbot/client/lib/app-icons";
 import { Resvg } from "@resvg/resvg-js";
 import { opaquePng, png } from "../scripts/icon-png.mjs";
 import * as Doug from "../src/brand/doug-icons.js";

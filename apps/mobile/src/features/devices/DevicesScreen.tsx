@@ -1,10 +1,10 @@
-import type { ComputerDevice } from "@agenteschat/client";
-import { useComputerSetup, useMachines } from "@agenteschat/client";
-import { computerName, setupPending, setupView } from "@agenteschat/client/lib/computer";
-import { settingsFrozen } from "@agenteschat/client/lib/deletion";
-import { can } from "@agenteschat/client/lib/permissions";
-import { helpUrl } from "@agenteschat/client/lib/server";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+import type { ComputerDevice } from "@dougbot/client";
+import { useComputerSetup, useMachines } from "@dougbot/client";
+import { computerName, setupPending, setupView } from "@dougbot/client/lib/computer";
+import { settingsFrozen } from "@dougbot/client/lib/deletion";
+import { can } from "@dougbot/client/lib/permissions";
+import { helpUrl } from "@dougbot/client/lib/server";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
 import { useOrg } from "@/providers/org";

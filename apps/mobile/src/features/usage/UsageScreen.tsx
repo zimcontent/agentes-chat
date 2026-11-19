@@ -1,4 +1,4 @@
-import type { OrgPlanUsage, PlanAccountUsage, PlanServes } from "@agenteschat/client";
+import type { OrgPlanUsage, PlanAccountUsage, PlanServes } from "@dougbot/client";
 import {
   keys,
   useAiAccounts,
@@ -9,11 +9,11 @@ import {
   useUpdateSettings,
   useUsageReport,
   useWorkspaceUsesApi,
-} from "@agenteschat/client";
-import { composioUsageText, showsComposioUsage } from "@agenteschat/client/lib/composio";
-import { computerNameOf } from "@agenteschat/client/lib/computer";
-import { formatPercent, formatShortDate, formatTokensShort, formatUsd } from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
+} from "@dougbot/client";
+import { composioUsageText, showsComposioUsage } from "@dougbot/client/lib/composio";
+import { computerNameOf } from "@dougbot/client/lib/computer";
+import { formatPercent, formatShortDate, formatTokensShort, formatUsd } from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
 import {
   accountName,
   accountOwner,
@@ -27,12 +27,12 @@ import {
   servesText,
   shareFacts,
   splitUsage,
-} from "@agenteschat/client/lib/plan-usage";
-import { planName } from "@agenteschat/client/lib/plans";
-import { parseAmount } from "@agenteschat/client/lib/text";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
-import { gradientOf } from "@agenteschat/ui/agent/engine";
-import { PLAN_ALMOST, PLAN_TONE, planLevel, planLine } from "@agenteschat/ui/plan-state";
+} from "@dougbot/client/lib/plan-usage";
+import { planName } from "@dougbot/client/lib/plans";
+import { parseAmount } from "@dougbot/client/lib/text";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
+import { gradientOf } from "@dougbot/ui/agent/engine";
+import { PLAN_ALMOST, PLAN_TONE, planLevel, planLine } from "@dougbot/ui/plan-state";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

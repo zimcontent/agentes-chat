@@ -1,6 +1,6 @@
-import { type AgentBrakes, BRAKES_DEFAULTS, useAgents, useUpdateAgent } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
-import { Button, Card, CheckboxPill, Input, Segmented, Select, SettingNote, SettingRow, Switch } from "@agenteschat/ui";
+import { type AgentBrakes, BRAKES_DEFAULTS, useAgents, useUpdateAgent } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
+import { Button, Card, CheckboxPill, Input, Segmented, Select, SettingNote, SettingRow, Switch } from "@dougbot/ui";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

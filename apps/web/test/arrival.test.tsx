@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { FeedbackInput } from "@agenteschat/client";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import type { FeedbackInput } from "@dougbot/client";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
@@ -102,6 +102,32 @@ describe("feedback", () => {
   });
 });
 
+describe("feedback device details", () => {
+  test("the device facts go only when the box is ticked, and it starts unticked", async () => {
+    const { state } = await open(seedState({ authConfig: { feedback: true } }));
+    // DougBot has no sidebar row for it: the form opens from a right-click report, as here.
+    await act(async () => openFeedback());
+    const form = screen().getByRole("dialog", { name: "O que faltou, quebrou ou incomodou?" });
+    const box = within(form).getByRole("checkbox", { name: "Incluir dados do dispositivo" });
+    expect(box.getAttribute("aria-checked")).toBe("false");
+    await type(within(form).getByRole("textbox"), "Sem dados");
+    await click(within(form).getByRole("button", { name: /^Enviar/ }));
+    await settle(4);
+    const plain = state.calls.findLast((c) => c.method === "system.sendFeedback")?.args[0] as FeedbackInput;
+    expect(plain.facts?.map(([k]) => k)).toEqual(expect.arrayContaining(["Route", "Workspace mode", "Language"]));
+    expect(plain.facts?.map(([k]) => k)).not.toContain("Browser");
+
+    await click(screen().getByRole("button", { name: "Enviar outro" }));
+    const again = screen().getByRole("dialog", { name: "O que faltou, quebrou ou incomodou?" });
+    await click(within(again).getByRole("checkbox", { name: "Incluir dados do dispositivo" }));
+    await type(within(again).getByRole("textbox"), "Com dados");
+    await click(within(again).getByRole("button", { name: /^Enviar/ }));
+    await settle(4);
+    const full = state.calls.findLast((c) => c.method === "system.sendFeedback")?.args[0] as FeedbackInput;
+    expect(full.facts?.map(([k]) => k)).toEqual(expect.arrayContaining(["Route", "Browser", "Window"]));
+  });
+});
+
 describe("feedback about what was clicked", () => {
   const page = () => {
     const host = document.createElement("div");
@@ -142,7 +168,9 @@ describe("feedback about what was clicked", () => {
     await settle(4);
     const sent = state.calls.findLast((c) => c.method === "system.sendFeedback")?.args[0] as FeedbackInput;
     expect(sent.about).toEqual({ kind: "agent message", label: "Ada", text: "Deploy done.\nAll green." });
-    expect(sent.facts?.map(([k]) => k)).toEqual(expect.arrayContaining(["Route", "Message id", "Browser"]));
+    // The device details are opt-in: a send that did not tick them carries only where the person is.
+    expect(sent.facts?.map(([k]) => k)).toEqual(expect.arrayContaining(["Route", "Message id"]));
+    expect(sent.facts?.map(([k]) => k)).not.toContain("Browser");
 
     await act(async () => openFeedback(describeElement(host.querySelector("p"))));
     form = screen().getByRole("dialog", { name: "O que faltou, quebrou ou incomodou?" });

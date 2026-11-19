@@ -5,9 +5,9 @@ import {
   createFakePushSender,
   type MachineRequest,
   type RealtimeEvent,
-} from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
+} from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
 import {
   BROWSER_HANDOFF_TOPIC,
   BROWSER_SCOPE,

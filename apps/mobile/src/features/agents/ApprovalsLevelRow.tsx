@@ -1,5 +1,5 @@
-import { useAgents, useSettings, useSetWorkspaceApprovalsLevel } from "@agenteschat/client";
-import { APPROVALS_LEVELS, ownApprovalsCount } from "@agenteschat/client/lib/approvals-level";
+import { useAgents, useSettings, useSetWorkspaceApprovalsLevel } from "@dougbot/client";
+import { APPROVALS_LEVELS, ownApprovalsCount } from "@dougbot/client/lib/approvals-level";
 import { useTranslation } from "react-i18next";
 import { GroupedList, GroupedRow } from "@/ui";
 import { useFailed } from "../routines/hooks";

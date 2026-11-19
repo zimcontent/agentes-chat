@@ -16,7 +16,7 @@ import {
 import { createConnection } from "node:net";
 import os from "node:os";
 import path from "node:path";
-import type { AgentScope, MachineRequest, RunnerAccess } from "@agenteschat/adapters/machine-protocol";
+import type { AgentScope, MachineRequest, RunnerAccess } from "@dougbot/adapters/machine-protocol";
 import { systemLauncher } from "../../runner/agent-users";
 import {
   KEEPER_STATE,

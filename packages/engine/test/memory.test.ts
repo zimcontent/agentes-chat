@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { PubSub } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
-import { systemText, textOf } from "@agenteschat/providers";
+import type { PubSub } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
+import { systemText, textOf } from "@dougbot/providers";
 import {
   addChannelMember,
   addReaction,

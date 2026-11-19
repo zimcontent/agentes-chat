@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { CLOUD_SERVER } from "@agenteschat/client/lib/server";
+import { CLOUD_SERVER } from "@dougbot/client/lib/server";
 import { act, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { I18nextProvider } from "react-i18next";
@@ -441,7 +441,7 @@ describe("pairing from the app", () => {
         expect(rowOf(el, norte)?.querySelector("small")?.textContent).toBe(
           "agentes.tail1234.ts.net · Its agents don't use this Mac",
         );
-        // agentes.chat's workspace too.
+        // DougBot's workspace too.
         expect(button(rowOf(el, "Oficina"), "Allow")).toBeTruthy();
         expect(rowOf(el, "Oficina")?.querySelector("small")?.textContent).toBe(
           "DougBot Cloud · Its agents don't use this Mac",

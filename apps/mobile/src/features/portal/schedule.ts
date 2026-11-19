@@ -1,5 +1,5 @@
-import type { PortalItem } from "@agenteschat/client";
-import { portalAhead, portalDayOf, portalSendDate, portalTimeOf } from "@agenteschat/client/lib/portal";
+import type { PortalItem } from "@dougbot/client";
+import { portalAhead, portalDayOf, portalSendDate, portalTimeOf } from "@dougbot/client/lib/portal";
 import { type ClockTime, dayChoices, dayOffsetOf, defaultCustom } from "../reminders/logic";
 
 /**

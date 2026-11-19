@@ -1,8 +1,8 @@
-import type { Message, TeamCheck } from "@agenteschat/client";
-import { relativeTime } from "@agenteschat/client/lib/format";
-import { targetKind, teamChecksOf } from "@agenteschat/client/lib/team-checks";
-import { modeKey } from "@agenteschat/client/lib/workspace-mode";
-import { Icon, type IconName } from "@agenteschat/ui";
+import type { Message, TeamCheck } from "@dougbot/client";
+import { relativeTime } from "@dougbot/client/lib/format";
+import { targetKind, teamChecksOf } from "@dougbot/client/lib/team-checks";
+import { modeKey } from "@dougbot/client/lib/workspace-mode";
+import { Icon, type IconName } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { Trans, useTranslation } from "react-i18next";
 import { useOrg } from "./org-context";

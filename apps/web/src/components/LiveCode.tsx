@@ -1,7 +1,7 @@
-import type { LiveCode, LiveOutput } from "@agenteschat/client";
-import { nearBottom } from "@agenteschat/client/lib/chat";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { Button, Icon } from "@agenteschat/ui";
+import type { LiveCode, LiveOutput } from "@dougbot/client";
+import { nearBottom } from "@dougbot/client/lib/chat";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { Button, Icon } from "@dougbot/ui";
 import { type ReactNode, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/lib/toast";

@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { createMemoryBlobStore } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { createMemoryBlobStore } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import { StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import {
   allowPrivateOutbound,

@@ -8,7 +8,7 @@ import {
   MADE_ICON_GROUNDS,
   MADE_ICON_POSES,
   type MadeIcon,
-} from "@agenteschat/client/lib/app-icons";
+} from "@dougbot/client/lib/app-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { type ReactNode, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

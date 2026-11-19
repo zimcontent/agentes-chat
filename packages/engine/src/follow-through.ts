@@ -1,4 +1,4 @@
-import type { PubSub } from "@agenteschat/adapters";
+import type { PubSub } from "@dougbot/adapters";
 import {
   and,
   type Database,
@@ -12,7 +12,7 @@ import {
   rowsOf,
   schema,
   sql,
-} from "@agenteschat/db";
+} from "@dougbot/db";
 import { announceAgentStatus } from "./agent-status";
 import { agentsOnlyIn } from "./agent-work";
 import { runAuthority } from "./authority";

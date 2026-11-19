@@ -1,5 +1,5 @@
-import { useChannels, useIssues, useSendWork, type VideoReviewSummary } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+import { useChannels, useIssues, useSendWork, type VideoReviewSummary } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import {
   Button,
   Dialog,
@@ -12,7 +12,7 @@ import {
   Segmented,
   Select,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

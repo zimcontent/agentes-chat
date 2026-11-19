@@ -1,8 +1,8 @@
-import type { Agent, Channel, OrgRole } from "@agenteschat/client";
-import { channelMembersQuery, useApi, useChannelCategories, useChannels, useRoles } from "@agenteschat/client";
-import { EVERYONE_AUDIENCE, listsAgent } from "@agenteschat/client/lib/audience";
-import { joinNames } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
+import type { Agent, Channel, OrgRole } from "@dougbot/client";
+import { channelMembersQuery, useApi, useChannelCategories, useChannels, useRoles } from "@dougbot/client";
+import { EVERYONE_AUDIENCE, listsAgent } from "@dougbot/client/lib/audience";
+import { joinNames } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
 import {
   changedLists,
   type InviteAgentCase,
@@ -15,12 +15,12 @@ import {
   inviteReach,
   inviteRefusalText,
   inviteStart,
-} from "@agenteschat/client/lib/invite-start";
-import { can } from "@agenteschat/client/lib/permissions";
-import { personalHelperRole } from "@agenteschat/client/lib/personal-view";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
-import { everyoneOf, isEveryone, sortRoles } from "@agenteschat/client/lib/roles";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/invite-start";
+import { can } from "@dougbot/client/lib/permissions";
+import { personalHelperRole } from "@dougbot/client/lib/personal-view";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
+import { everyoneOf, isEveryone, sortRoles } from "@dougbot/client/lib/roles";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import {
   ChipField,
   type ChipFieldOption,
@@ -32,7 +32,7 @@ import {
   MenuHeading,
   RoleMark,
   Select,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useQueries } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";

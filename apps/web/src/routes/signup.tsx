@@ -1,5 +1,5 @@
-import { meQuery } from "@agenteschat/client";
-import { earlyAccessToken, safeRedirect } from "@agenteschat/client/lib/guards";
+import { meQuery } from "@dougbot/client";
+import { earlyAccessToken, safeRedirect } from "@dougbot/client/lib/guards";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { AuthPage } from "@/pages/AuthPage";
 

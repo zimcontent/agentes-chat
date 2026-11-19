@@ -24,7 +24,13 @@
     "itsChannels": "Gruppi",
     "seeAll": "Vedi tutti"
   },
+  "sectorPills": {
+    "label": "Scorciatoie",
+    "failed": "La scheda non è arrivata. Riprova."
+  },
   "blocks": {
+    "done": "Fatto",
+    "actFailed": "Non è andata. Riprova.",
     "send": "Invia",
     "more": "Altro",
     "thousand": "k",
@@ -46,7 +52,20 @@
     "pollAnswered_one": "{{count}} di {{total}} ha risposto",
     "pollAnswered_many": "{{count}} di {{total}} hanno risposto",
     "pollAnswered_other": "{{count}} di {{total}} hanno risposto",
-    "voteFailed": "Il tuo voto non è andato a buon fine."
+    "voteFailed": "Il tuo voto non è andato a buon fine.",
+    "openPiece": "Apri in grande",
+    "openSlide": "Apri la slide {{at}}",
+    "pieceAt": "{{at}} di {{count}}",
+    "carouselTitle": "Carosello",
+    "posterTitle": "Post statico",
+    "reelTitle": "Copione del reel",
+    "aboutSlide": "la slide {{at}} («{{title}}»)",
+    "aboutPoster": "il post statico («{{title}}»)",
+    "aboutBeat": "il passaggio {{time}} del reel",
+    "noteMessage": "Su {{about}}: {{note}}",
+    "notePlaceholder": "Commenta {{about}}",
+    "noteLabel": "Il tuo commento",
+    "noteSent": "Inviato a {{name}}"
   },
   "choices": {
     "step": "{{step}} di {{total}}",
@@ -2580,6 +2599,16 @@
     "week": "Settimana",
     "month": "Mese",
     "sheet": {
+      "nowTitle": "Ora",
+      "account": "Account",
+      "model": "Modello",
+      "effort": "Impegno",
+      "context": "Contesto",
+      "contextFull": "Tutta la finestra del modello",
+      "autoPerTask": "scelto per ogni attività",
+      "autoLine": "Sceglie il modello e l'impegno per ogni attività, sullo stesso account.",
+      "switchTitle": "Passa a",
+      "on": "su {{place}}",
       "title": "Cambia l'IA di {{name}}",
       "title_female": "Cambia l'IA di {{name}}",
       "smart": "Più intelligente",

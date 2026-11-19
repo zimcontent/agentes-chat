@@ -1,9 +1,9 @@
-import type { AppNotification } from "@agenteschat/client";
-import { appCreatedLine } from "@agenteschat/client/lib/apps";
-import { formatUsd } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { restrictionOf, workspaceHeadline } from "@agenteschat/client/lib/notifications";
-import { teamWatchLine } from "@agenteschat/client/lib/team-watch";
+import type { AppNotification } from "@dougbot/client";
+import { appCreatedLine } from "@dougbot/client/lib/apps";
+import { formatUsd } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { restrictionOf, workspaceHeadline } from "@dougbot/client/lib/notifications";
+import { teamWatchLine } from "@dougbot/client/lib/team-watch";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/providers/org";
 import { isDashboardNotice } from "../dashboards/logic";

@@ -1,6 +1,6 @@
-import type { ArtifactRef } from "@agenteschat/client";
-import { fileIcon, fitsUpload, formatBytes, MAX_UPLOAD_MB, previewKind } from "@agenteschat/client/lib/files";
-import { ComposerFile, type IconName } from "@agenteschat/ui";
+import type { ArtifactRef } from "@dougbot/client";
+import { fileIcon, fitsUpload, formatBytes, MAX_UPLOAD_MB, previewKind } from "@dougbot/client/lib/files";
+import { ComposerFile, type IconName } from "@dougbot/ui";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";

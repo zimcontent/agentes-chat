@@ -25,7 +25,13 @@
     "itsChannels": "Группы",
     "seeAll": "Показать все"
   },
+  "sectorPills": {
+    "label": "Ярлыки",
+    "failed": "Карточка не пришла. Попробуйте ещё раз."
+  },
   "blocks": {
+    "done": "Готово",
+    "actFailed": "Не получилось. Попробуйте ещё раз.",
     "send": "Отправить",
     "more": "Ещё",
     "thousand": "тыс.",
@@ -48,7 +54,20 @@
     "pollAnswered_few": "Ответили {{count}} из {{total}}",
     "pollAnswered_many": "Ответили {{count}} из {{total}}",
     "pollAnswered_other": "Ответили {{count}} из {{total}}",
-    "voteFailed": "Ваш голос не учтён."
+    "voteFailed": "Ваш голос не учтён.",
+    "openPiece": "Открыть крупно",
+    "openSlide": "Открыть слайд {{at}}",
+    "pieceAt": "{{at}} из {{count}}",
+    "carouselTitle": "Карусель",
+    "posterTitle": "Статичный пост",
+    "reelTitle": "Сценарий рилса",
+    "aboutSlide": "слайд {{at}} («{{title}}»)",
+    "aboutPoster": "статичный пост («{{title}}»)",
+    "aboutBeat": "фрагмент {{time}} рилса",
+    "noteMessage": "Про {{about}}: {{note}}",
+    "notePlaceholder": "Комментарий: {{about}}",
+    "noteLabel": "Ваш комментарий",
+    "noteSent": "Отправлено: {{name}}"
   },
   "choices": {
     "step": "{{step}} из {{total}}",
@@ -2709,6 +2728,16 @@
     "week": "Неделя",
     "month": "Месяц",
     "sheet": {
+      "nowTitle": "Сейчас",
+      "account": "Аккаунт",
+      "model": "Модель",
+      "effort": "Усилие",
+      "context": "Контекст",
+      "contextFull": "Всё окно модели",
+      "autoPerTask": "выбирается для каждой задачи",
+      "autoLine": "Выбирает модель и усилие для каждой задачи, на том же аккаунте.",
+      "switchTitle": "Переключить на",
+      "on": "в {{place}}",
       "title": "Сменить ИИ агента {{name}}",
       "title_female": "Сменить ИИ агента {{name}}",
       "smart": "Самый умный",

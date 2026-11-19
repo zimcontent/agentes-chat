@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { deflateSync } from "node:zlib";
-import { forgetPictures } from "@agenteschat/engine";
+import { forgetPictures } from "@dougbot/engine";
 import { browser, createTestServer, ORIGIN, seedOrg, signUp, type TestServer } from "./harness";
 
 let t: TestServer;

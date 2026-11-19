@@ -1,5 +1,5 @@
-import { BROWSER_PROTOCOL } from "@agenteschat/adapters";
-import type { Database } from "@agenteschat/db";
+import { BROWSER_PROTOCOL } from "@dougbot/adapters";
+import type { Database } from "@dougbot/db";
 import { getAgentCached } from "../agents";
 import type { MachineCaller, MachineStatus } from "../machine-hub";
 import { REMOVED_COMPUTER_MESSAGE } from "../machines";

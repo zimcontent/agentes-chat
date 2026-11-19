@@ -7,15 +7,15 @@ import {
   useDougTemplate,
   useTeamTemplates,
   type WorkspaceMode,
-} from "@agenteschat/client";
-import { firstName } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { settingUp } from "@agenteschat/client/lib/guards";
-import { landingOf, type RailStep, railState } from "@agenteschat/client/lib/onboarding";
-import { can } from "@agenteschat/client/lib/permissions";
-import { finishOnboarding, isRightHand, RIGHT_HAND_DEFAULT } from "@agenteschat/client/lib/right-hand";
-import { aboutOf, type BusinessType, templateFor } from "@agenteschat/client/lib/team-plan";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client";
+import { firstName } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { settingUp } from "@dougbot/client/lib/guards";
+import { landingOf, type RailStep, railState } from "@dougbot/client/lib/onboarding";
+import { can } from "@dougbot/client/lib/permissions";
+import { finishOnboarding, isRightHand, RIGHT_HAND_DEFAULT } from "@dougbot/client/lib/right-hand";
+import { aboutOf, type BusinessType, templateFor } from "@dougbot/client/lib/team-plan";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import { useIsMutating, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

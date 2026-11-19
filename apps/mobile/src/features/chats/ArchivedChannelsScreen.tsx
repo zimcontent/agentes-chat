@@ -1,6 +1,6 @@
-import { type ArchivedChannel, useArchivedChannels, useUnarchiveChannel } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { formatShortDate } from "@agenteschat/client/lib/format";
+import { type ArchivedChannel, useArchivedChannels, useUnarchiveChannel } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { formatShortDate } from "@dougbot/client/lib/format";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { Button, EmptyState, GroupedList, GroupedRow, Text, useToast } from "@/ui";

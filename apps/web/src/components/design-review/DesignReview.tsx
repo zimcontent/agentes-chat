@@ -9,7 +9,7 @@ import {
   type VideoReview,
   type VideoReviewNote,
   type VideoReviewNoteKind,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   editorPage,
   type FrameCommand,
@@ -17,10 +17,10 @@ import {
   type FrameMessage,
   type LayerInfo,
   type LayerPatch,
-} from "@agenteschat/client/lib/design-bridge";
-import { relativeTime } from "@agenteschat/client/lib/format";
-import { PAGE_SANDBOX } from "@agenteschat/client/lib/isolated-page";
-import { portalClientName } from "@agenteschat/client/lib/portal";
+} from "@dougbot/client/lib/design-bridge";
+import { relativeTime } from "@dougbot/client/lib/format";
+import { PAGE_SANDBOX } from "@dougbot/client/lib/isolated-page";
+import { portalClientName } from "@dougbot/client/lib/portal";
 import {
   Button,
   Chip,
@@ -32,7 +32,7 @@ import {
   Segmented,
   Spinner,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { type PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";

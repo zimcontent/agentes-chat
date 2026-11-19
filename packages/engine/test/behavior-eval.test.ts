@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { type ModelRequest, systemText } from "@agenteschat/providers";
-import { createFakeProvider, type FakeReply } from "@agenteschat/providers/testing";
+import { type ModelRequest, systemText } from "@dougbot/providers";
+import { createFakeProvider, type FakeReply } from "@dougbot/providers/testing";
 import cases from "../eval/behavior-cases.json";
 import { deterministicChecks } from "../eval/behavior-checks";
 import { CONNECTORS } from "../eval/behavior-fakes";

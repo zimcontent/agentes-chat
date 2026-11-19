@@ -1,7 +1,7 @@
-import { computerName } from "@agenteschat/client/lib/computer";
-import { iphoneOverWifi, personInControl } from "@agenteschat/client/lib/devices";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+import { computerName } from "@dougbot/client/lib/computer";
+import { iphoneOverWifi, personInControl } from "@dougbot/client/lib/devices";
+import { errorText } from "@dougbot/client/lib/errors";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
 import { useOrg } from "@/providers/org";

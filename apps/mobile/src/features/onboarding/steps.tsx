@@ -1,14 +1,14 @@
-import type { Agent, TeamTemplate } from "@agenteschat/client";
-import { useApplyTeamTemplate, useRoutines, useUpdateSettings } from "@agenteschat/client";
-import { planHoldPhoneLine } from "@agenteschat/client/lib/no-ai";
-import { firstJob } from "@agenteschat/client/lib/onboarding";
+import type { Agent, TeamTemplate } from "@dougbot/client";
+import { useApplyTeamTemplate, useRoutines, useUpdateSettings } from "@dougbot/client";
+import { planHoldPhoneLine } from "@dougbot/client/lib/no-ai";
+import { firstJob } from "@dougbot/client/lib/onboarding";
 import {
   aboutContext,
   aboutOf,
   BUSINESS_TYPES,
   type BusinessType,
   teamFailureText,
-} from "@agenteschat/client/lib/team-plan";
+} from "@dougbot/client/lib/team-plan";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

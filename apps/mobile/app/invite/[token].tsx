@@ -1,4 +1,4 @@
-import { INVITATION_MAIL_PARAM, invitationMailProof } from "@agenteschat/client/lib/guards";
+import { INVITATION_MAIL_PARAM, invitationMailProof } from "@dougbot/client/lib/guards";
 import { useLocalSearchParams } from "expo-router";
 import { InviteScreen } from "@/features/auth/InviteScreen";
 import { isInviteToken } from "@/features/auth/links";

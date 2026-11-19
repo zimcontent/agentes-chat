@@ -1,5 +1,5 @@
-import { type NoticeCategory, useNoticePrefs, useSetNoticePref } from "@agenteschat/client";
-import { Button, Card, CardHeader, Chip, Icon, type IconName, InfoHint, Switch } from "@agenteschat/ui";
+import { type NoticeCategory, useNoticePrefs, useSetNoticePref } from "@dougbot/client";
+import { Button, Card, CardHeader, Chip, Icon, type IconName, InfoHint, Switch } from "@dougbot/ui";
 import { cloneElement, isValidElement, type ReactElement, type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LoadingLine } from "@/components/Loading";

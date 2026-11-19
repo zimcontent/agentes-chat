@@ -1,9 +1,9 @@
 ---
 name: ui-polish
-description: agentes.chat UI rules and routine. Use before any UI, CSS, layout, spacing, alignment, component, screen, page, dialog, card, chat, menu, toolbar, form, email or on-screen copy change in agentes.chat (apps/web, packages/ui, apps/mobile, apps/desktop), and for any design review or polish pass. Every rule is a number. The routine fixes the kit component, sweeps every sibling, keeps the CI geometry check green, shoots before and after at 1280 and 390, and runs break-ui and Impeccable's audit.
+description: DougBot UI rules and routine. Use before any UI, CSS, layout, spacing, alignment, component, screen, page, dialog, card, chat, menu, toolbar, form, email or on-screen copy change in DougBot (apps/web, packages/ui, apps/mobile, apps/desktop), and for any design review or polish pass. Every rule is a number. The routine fixes the kit component, sweeps every sibling, keeps the CI geometry check green, shoots before and after at 1280 and 390, and runs break-ui and Impeccable's audit.
 ---
 
-# UI polish for agentes.chat
+# UI polish for DougBot
 
 Measure, don't eyeball. Vision misses 1 to 2 px errors, source review can't see pixels, and a screenshot diff shows what changed, not what's wrong. Check the rendered screen.
 
@@ -55,7 +55,7 @@ Components
 28. A long-running screen always has a way out (stop or back). A failure says what happened and offers a retry.
 29. Motion is smooth. Nothing pops in, not a new card, not an opened thread.
 30. Scrolling columns hide their thumb until hover.
-31. Emails carry the agentes.chat look in light and dark clients.
+31. Emails carry the DougBot look in light and dark clients.
 
 Discord-style layout
 32. Members column on the right, open by default on desktop, toggled from the header. Roles have configurable colours and their marks are full circles.

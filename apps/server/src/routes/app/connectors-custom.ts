@@ -1,4 +1,4 @@
-import { connectorOAuthApps } from "@agenteschat/config";
+import { connectorOAuthApps } from "@dougbot/config";
 import {
   acceptCustomSuggestion,
   CONNECTOR_EVENTS,
@@ -18,7 +18,7 @@ import {
   saveCustomTools,
   ValidationError,
   withComposio,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { imageFile } from "../../http/image-file";
 import {

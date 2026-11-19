@@ -82,7 +82,7 @@ describe("connected computers helpers (ADR 0036)", () => {
   });
 
   test("why a computer can't yet: the runner's code in the person's words; an older runner's own English as it is", async () => {
-    const { ptBR, resources } = await import("@agenteschat/i18n");
+    const { ptBR, resources } = await import("@dougbot/i18n");
     const i18next = (await import("i18next")).default;
     const instance = i18next.createInstance();
     void instance.init({ lng: "pt-BR", fallbackLng: "en", resources, initAsync: false });

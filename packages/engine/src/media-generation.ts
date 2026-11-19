@@ -10,8 +10,8 @@ import {
   type MediaRequestMode,
   type ZimMedia,
   ZimMediaError,
-} from "@agenteschat/adapters";
-import { and, type Database, eq, gte, isNull, lt, ne, or, schema, sql } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, type Database, eq, gte, isNull, lt, ne, or, schema, sql } from "@dougbot/db";
 import { getAgentCached } from "./agents";
 import { type ArtifactActor, type ArtifactDeps, createFileArtifact, storedFileOfArtifact } from "./artifacts";
 import { ConflictError, NotFoundError, ValidationError } from "./errors";

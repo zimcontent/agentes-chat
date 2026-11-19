@@ -1,8 +1,8 @@
-import type { PlanCard } from "@agenteschat/client";
-import { useAuthConfig, usePortalToSchedule, useSendForApproval } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
-import { portalClientName, portalErrorText } from "@agenteschat/client/lib/portal";
-import { portalHere } from "@agenteschat/client/lib/sidebar-items";
+import type { PlanCard } from "@dougbot/client";
+import { useAuthConfig, usePortalToSchedule, useSendForApproval } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
+import { portalClientName, portalErrorText } from "@dougbot/client/lib/portal";
+import { portalHere } from "@dougbot/client/lib/sidebar-items";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert } from "react-native";

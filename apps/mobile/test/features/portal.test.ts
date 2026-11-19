@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { PlanCard, PortalBoard, PortalCard, PortalItem, PortalPlan } from "@agenteschat/client";
+import type { PlanCard, PortalBoard, PortalCard, PortalItem, PortalPlan } from "@dougbot/client";
 import {
   BOARD,
   boardCardOf,

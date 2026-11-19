@@ -1,5 +1,5 @@
-import { ApiError, type InvitationPreview, type JoinClaim } from "@agenteschat/client";
-import type { HumanAction } from "@agenteschat/client/lib/human-check";
+import { ApiError, type InvitationPreview, type JoinClaim } from "@dougbot/client";
+import type { HumanAction } from "@dougbot/client/lib/human-check";
 import { isInviteToken } from "./links";
 
 /**

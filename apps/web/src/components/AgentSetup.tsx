@@ -1,4 +1,4 @@
-import type { Agent, AgentAudience, AgentSetupStep, AudienceMode } from "@agenteschat/client";
+import type { Agent, AgentAudience, AgentSetupStep, AudienceMode } from "@dougbot/client";
 import {
   keys,
   useAgentAccess,
@@ -14,7 +14,7 @@ import {
   useRoles,
   useUpdateAgent,
   useWidenAudience,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   type AccessResource,
   asksAt,
@@ -22,21 +22,21 @@ import {
   type LevelState,
   levelOf,
   resourcesOf,
-} from "@agenteschat/client/lib/access-levels";
-import { channelsAfter, sameAudience } from "@agenteschat/client/lib/agent-edit";
-import { audienceModeKey, audienceModeTextKey, audienceOf, audiencePatch } from "@agenteschat/client/lib/audience";
-import { setDraftFor } from "@agenteschat/client/lib/drafts";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { formatTime, NAMES_SHOWN, namesText } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { aiStateOf } from "@agenteschat/client/lib/no-ai";
-import { addsAgentsTo, can } from "@agenteschat/client/lib/permissions";
-import { rolePicksInSight } from "@agenteschat/client/lib/personal-view";
-import { planOf } from "@agenteschat/client/lib/plans";
-import { AUTO, modelChoices } from "@agenteschat/client/lib/providers";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
-import { isEveryone, sortRoles } from "@agenteschat/client/lib/roles";
-import { connectorName } from "@agenteschat/client/lib/scopes";
+} from "@dougbot/client/lib/access-levels";
+import { channelsAfter, sameAudience } from "@dougbot/client/lib/agent-edit";
+import { audienceModeKey, audienceModeTextKey, audienceOf, audiencePatch } from "@dougbot/client/lib/audience";
+import { setDraftFor } from "@dougbot/client/lib/drafts";
+import { errorText } from "@dougbot/client/lib/errors";
+import { formatTime, NAMES_SHOWN, namesText } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { aiStateOf } from "@dougbot/client/lib/no-ai";
+import { addsAgentsTo, can } from "@dougbot/client/lib/permissions";
+import { rolePicksInSight } from "@dougbot/client/lib/personal-view";
+import { planOf } from "@dougbot/client/lib/plans";
+import { AUTO, modelChoices } from "@dougbot/client/lib/providers";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
+import { isEveryone, sortRoles } from "@dougbot/client/lib/roles";
+import { connectorName } from "@dougbot/client/lib/scopes";
 import {
   askedLine,
   nextStep,
@@ -47,8 +47,8 @@ import {
   setupSteps,
   setupTaskKeys,
   suggestedChannels,
-} from "@agenteschat/client/lib/setup-checklist";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/setup-checklist";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
 import {
   AffixInput,
   Avatar,
@@ -68,7 +68,7 @@ import {
   Textarea,
   Token,
   TokenList,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { type ReactNode, type RefObject, useEffect, useRef, useState } from "react";

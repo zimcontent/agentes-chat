@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { Message, Mission, MissionDelivery } from "@agenteschat/client";
-import { isOpenMission, waitingText } from "@agenteschat/client/lib/missions";
+import type { Message, Mission, MissionDelivery } from "@dougbot/client";
+import { isOpenMission, waitingText } from "@dougbot/client/lib/missions";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { MissionStatusChip, missionStatusKey, missionSummaryStatusKey } from "@/components/missions/MissionBits";
 import { MissionDeliveryCard } from "@/components/missions/MissionCards";

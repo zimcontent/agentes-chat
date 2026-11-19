@@ -24,7 +24,13 @@
     "itsChannels": "Grupos",
     "seeAll": "Ver todo"
   },
+  "sectorPills": {
+    "label": "Atajos",
+    "failed": "La tarjeta no llegó. Inténtalo de nuevo."
+  },
   "blocks": {
+    "done": "Hecho",
+    "actFailed": "No salió bien. Inténtalo de nuevo.",
     "send": "Enviar",
     "more": "Más",
     "thousand": "k",
@@ -46,7 +52,20 @@
     "pollAnswered_one": "{{count}} de {{total}} respondió",
     "pollAnswered_many": "{{count}} de {{total}} respondieron",
     "pollAnswered_other": "{{count}} de {{total}} respondieron",
-    "voteFailed": "Tu voto no se registró."
+    "voteFailed": "Tu voto no se registró.",
+    "openPiece": "Abrir en grande",
+    "openSlide": "Abrir la diapositiva {{at}}",
+    "pieceAt": "{{at}} de {{count}}",
+    "carouselTitle": "Carrusel",
+    "posterTitle": "Post estático",
+    "reelTitle": "Guion del reel",
+    "aboutSlide": "la diapositiva {{at}} («{{title}}»)",
+    "aboutPoster": "el post estático («{{title}}»)",
+    "aboutBeat": "el tramo {{time}} del reel",
+    "noteMessage": "Sobre {{about}}: {{note}}",
+    "notePlaceholder": "Comentar {{about}}",
+    "noteLabel": "Tu comentario",
+    "noteSent": "Enviado a {{name}}"
   },
   "choices": {
     "step": "{{step}} de {{total}}",
@@ -2580,6 +2599,16 @@
     "week": "Semana",
     "month": "Mes",
     "sheet": {
+      "nowTitle": "Ahora",
+      "account": "Cuenta",
+      "model": "Modelo",
+      "effort": "Esfuerzo",
+      "context": "Contexto",
+      "contextFull": "Toda la ventana del modelo",
+      "autoPerTask": "se elige en cada tarea",
+      "autoLine": "Elige el modelo y el esfuerzo en cada tarea, en la misma cuenta.",
+      "switchTitle": "Cambiar a",
+      "on": "en {{place}}",
       "title": "Cambiar la IA de {{name}}",
       "title_female": "Cambiar la IA de {{name}}",
       "smart": "Más inteligente",

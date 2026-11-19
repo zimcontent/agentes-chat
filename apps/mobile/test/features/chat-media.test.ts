@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { DirectMessage, Message } from "@agenteschat/client";
-import { isMediaAlone, mediaTabsOf, shownMediaSettings } from "@agenteschat/client/lib/media";
-import { previewBody } from "@agenteschat/client/lib/message-body";
-import { STICKER_MOODS } from "@agenteschat/ui/agent/stickers";
+import type { DirectMessage, Message } from "@dougbot/client";
+import { isMediaAlone, mediaTabsOf, shownMediaSettings } from "@dougbot/client/lib/media";
+import { previewBody } from "@dougbot/client/lib/message-body";
+import { STICKER_MOODS } from "@dougbot/ui/agent/stickers";
 import { createFrameClock } from "../../src/agent/clock";
 import { stickerFrame } from "../../src/agent/sticker";
 import { createStickerStage } from "../../src/agent/sticker-stage";

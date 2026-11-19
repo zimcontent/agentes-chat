@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { Issue, IssueWork, Member } from "@agenteschat/client";
-import { ISSUES_VIEW_DEFAULT } from "@agenteschat/client/lib/issues-view";
+import type { Issue, IssueWork, Member } from "@dougbot/client";
+import { ISSUES_VIEW_DEFAULT } from "@dougbot/client/lib/issues-view";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { ADA_ID, ATLAS_ID, createFakeApi, ORG_ID, seedState } from "./fake-api";
 import { renderApp, screen, settle, showIn } from "./render";

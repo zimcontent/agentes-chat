@@ -1,6 +1,6 @@
 /**
- * The look every agentes.chat command line shares: the logo, a line down the left with a mark per step,
- * spinners and questions. The setup uses it, and so does the runner (`@agenteschat/setup/src/term`); the
+ * The look every DougBot command line shares: the logo, a line down the left with a mark per step,
+ * spinners and questions. The setup uses it, and so does the runner (`@dougbot/setup/src/term`); the
  * installers draw the same marks in POSIX sh (term-sh.ts).
  *
  * It degrades on its own: no color with NO_COLOR, FORCE_COLOR=0 or TERM=dumb (Node's and Bun's

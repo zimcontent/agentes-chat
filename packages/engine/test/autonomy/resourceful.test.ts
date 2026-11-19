@@ -1,5 +1,5 @@
 import { afterEach, expect } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
+import { eq, schema } from "@dougbot/db";
 import {
   createRoutine,
   createWebToolSource,

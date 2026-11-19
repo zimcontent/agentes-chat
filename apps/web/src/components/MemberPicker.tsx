@@ -1,5 +1,5 @@
-import { listsAgent } from "@agenteschat/client/lib/audience";
-import { Checkbox, InfoHint, SearchField, Token, TokenList } from "@agenteschat/ui";
+import { listsAgent } from "@dougbot/client/lib/audience";
+import { Checkbox, InfoHint, SearchField, Token, TokenList } from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActorAvatar } from "@/components/AgentAvatar";

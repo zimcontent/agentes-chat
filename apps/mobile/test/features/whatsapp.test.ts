@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { WhatsAppAccount, WhatsAppChat } from "@agenteschat/client";
+import type { WhatsAppAccount, WhatsAppChat } from "@dougbot/client";
 import {
   ANSWERING_MS,
   accountsInOrder,

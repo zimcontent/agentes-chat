@@ -215,6 +215,10 @@ if (args[0] === "acp" && !args.includes("--login")) {
       me.done = true;
       return refuse(id, -32603, "Quota exceeded for Gemini 4 Argon. Resets in 2h 5m.");
     }
+    if (text.includes("VERIFY")) {
+      say(sid, "⚠ Verification Required");
+      return finish({ stopReason: "end_turn" });
+    }
     if (text.includes("HANG")) {
       me.cancel = () => finish({ stopReason: "cancelled" });
       return;
@@ -374,6 +378,14 @@ if (args[0] === "-p") {
     );
     out({ event: "result", result: { conversation_id: conversation, status: "ERROR", response: "", error: "quota" } });
     process.exit(3);
+  }
+  // Google holding the account (1.5.10, 2026-11-18): the CLI says its card's title as the turn's answer.
+  if (prompt.includes("VERIFY")) {
+    out({
+      event: "result",
+      result: { conversation_id: conversation, status: "SUCCESS", response: "⚠ Verification Required" },
+    });
+    process.exit(0);
   }
   // No terminal sandbox (1.5.9, seen on Ubuntu 24.04, 2026-11-14): the command is soft-denied and the turn ends
   // "successfully" with nothing said.

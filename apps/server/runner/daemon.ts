@@ -1,7 +1,7 @@
 import { mkdirSync, realpathSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { GROK_ACCOUNT_HOMES } from "@agenteschat/adapters/command-policy";
+import { GROK_ACCOUNT_HOMES } from "@dougbot/adapters/command-policy";
 import {
   cgroupCounters,
   diskFigures,
@@ -10,7 +10,7 @@ import {
   machineSize,
   sampleLoad,
   TrafficWindow,
-} from "@agenteschat/adapters/host-stats";
+} from "@dougbot/adapters/host-stats";
 import {
   type AccountKind,
   type AgentScope,
@@ -30,8 +30,8 @@ import {
   type RunnerPause,
   type RunnerToolchains,
   type RunnerTools,
-} from "@agenteschat/adapters/machine-protocol";
-import { redactCommon } from "@agenteschat/adapters/redact";
+} from "@dougbot/adapters/machine-protocol";
+import { redactCommon } from "@dougbot/adapters/redact";
 import {
   type ActivityEntry,
   type ActivitySaid,
@@ -43,7 +43,7 @@ import {
   type ControlJob,
   type ControlReplies,
   type ControlStatus,
-} from "@agenteschat/adapters/runner-control";
+} from "@dougbot/adapters/runner-control";
 import {
   AccessRequests,
   addFolder,

@@ -1,5 +1,5 @@
-import type { ApiClient, Dashboard, DashboardSummary, OrgSummary, Widget, WidgetSpec } from "@agenteschat/client";
-import { ApiProvider } from "@agenteschat/client";
+import type { ApiClient, Dashboard, DashboardSummary, OrgSummary, Widget, WidgetSpec } from "@dougbot/client";
+import { ApiProvider } from "@dougbot/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { StyleSheet, View } from "react-native";

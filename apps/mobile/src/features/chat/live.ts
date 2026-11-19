@@ -58,12 +58,12 @@ import {
   typingThrottle,
   unmarkStopping,
   useApi,
-} from "@agenteschat/client";
-import { type AgentUnavailableEvent, isAgentUnavailable } from "@agenteschat/client/lib/audience";
-import { newerBlockState } from "@agenteschat/client/lib/blocks";
-import { deviceWaitEventOf } from "@agenteschat/client/lib/devices";
-import { isReturnLine } from "@agenteschat/client/lib/notices";
-import { playSound } from "@agenteschat/client/lib/sounds";
+} from "@dougbot/client";
+import { type AgentUnavailableEvent, isAgentUnavailable } from "@dougbot/client/lib/audience";
+import { newerBlockState } from "@dougbot/client/lib/blocks";
+import { deviceWaitEventOf } from "@dougbot/client/lib/devices";
+import { isReturnLine } from "@dougbot/client/lib/notices";
+import { playSound } from "@dougbot/client/lib/sounds";
 import { type QueryClient, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { useConnection, useMeId } from "../shared/hooks";

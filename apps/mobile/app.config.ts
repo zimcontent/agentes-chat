@@ -153,7 +153,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // App Store Connect asks about encryption on every build: only the system's HTTPS, so exempt (no export papers).
     config: { usesNonExemptEncryption: false },
     // A voice call goes on with the screen locked or another app open (docs/adr/doug-0006-live-voice.md, the phone app).
-    infoPlist: { ITSAppUsesNonExemptEncryption: false, UIBackgroundModes: ["audio"] },
+    // Live Activities (docs/adr/doug-0021-lock-screen.md): an agent at work on the lock screen and in the Dynamic
+    // Island, updated by the server through APNs; frequent updates, as a run moves every few seconds.
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
+      UIBackgroundModes: ["audio"],
+      NSSupportsLiveActivities: true,
+      NSSupportsLiveActivitiesFrequentUpdates: true,
+    },
   },
   android: {
     package: BUNDLE_ID,
@@ -197,7 +204,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
   },
   // Native permission texts (the OS shows them before the app's i18n runs). Only ready languages
-  // (@agenteschat/i18n/locale), here and in `supportedLocales`: the stores list these as the app's languages.
+  // (@dougbot/i18n/locale), here and in `supportedLocales`: the stores list these as the app's languages.
   locales: {
     en: "./assets/locales/en.json",
     "pt-BR": "./assets/locales/pt-BR.json",
@@ -308,6 +315,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         androidMultiIntentFilters: ["image/*", "video/*", "*/*"],
       },
     ],
+    // The lock screen (docs/adr/doug-0021-lock-screen.md): the Live Activity's widget extension (targets/live-activity)
+    // and the notification service extension that registers a live block's buttons (targets/notification-service),
+    // signed with the app's team and listed for EAS's credentials like the share extension.
+    "@bacons/apple-targets",
     [
       // Salvar em Fotos: add-only access (the read text matches expo-image-picker's). No granular reads on Android:
       // saveToPhotos asks write-only, which needs none from Android 13 on.

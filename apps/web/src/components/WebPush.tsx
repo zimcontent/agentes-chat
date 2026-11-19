@@ -1,14 +1,9 @@
-import type { Message } from "@agenteschat/client";
-import { useApprovals, useWebPushKey } from "@agenteschat/client";
-import { billingHoldOf } from "@agenteschat/client/lib/billing";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import {
-  MAX_PUSH_OFFERS,
-  type PushPermissionLike,
-  pushAskAt,
-  pushOffersFrom,
-} from "@agenteschat/client/lib/push-offer";
-import { Button, Icon } from "@agenteschat/ui";
+import type { Message } from "@dougbot/client";
+import { useApprovals, useWebPushKey } from "@dougbot/client";
+import { billingHoldOf } from "@dougbot/client/lib/billing";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { MAX_PUSH_OFFERS, type PushPermissionLike, pushAskAt, pushOffersFrom } from "@dougbot/client/lib/push-offer";
+import { Button, Icon } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";

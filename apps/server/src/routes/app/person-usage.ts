@@ -9,8 +9,8 @@ import {
   refuseMoreUsage,
   requestMoreUsage,
   setPersonLimits,
-} from "@agenteschat/engine";
-import { nanoUsdToUsd, usdToNanoUsd } from "@agenteschat/providers";
+} from "@dougbot/engine";
+import { nanoUsdToUsd, usdToNanoUsd } from "@dougbot/providers";
 import { createRoute, z } from "@hono/zod-openapi";
 import {
   type AppDeps,

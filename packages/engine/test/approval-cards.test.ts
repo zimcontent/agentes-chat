@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from "bun:test";
-import { type RealtimeEvent, userTopic } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import { systemText } from "@agenteschat/providers";
+import { type RealtimeEvent, userTopic } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import { systemText } from "@dougbot/providers";
 import {
   ASK_APPROVALS_TOGETHER,
   buildRunContext,

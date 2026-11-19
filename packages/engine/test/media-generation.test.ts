@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from "bun:test";
-import type { MediaGeneration, MediaModel, MediaRequest, ZimMedia } from "@agenteschat/adapters";
-import { ZimMediaError } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import type { MediaGeneration, MediaModel, MediaRequest, ZimMedia } from "@dougbot/adapters";
+import { ZimMediaError } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   agentMonthSpent,
   createFileArtifact,

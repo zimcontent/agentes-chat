@@ -1,11 +1,11 @@
-import type { WikiAuthor, WikiPage as WikiPageData, WikiPageSummary, WikiVersion } from "@agenteschat/client";
-import { ApiError, keys, useRoles, useWikiAction, useWikiHistory, useWikiPage } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { fileIcon } from "@agenteschat/client/lib/files";
-import { relativeTime, whenAt } from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
-import { type AudienceChoice, EVERYONE } from "@agenteschat/client/lib/who-sees";
-import { isImportedPage, leafTitle, wikiImportOf } from "@agenteschat/client/lib/wiki";
+import type { WikiAuthor, WikiPage as WikiPageData, WikiPageSummary, WikiVersion } from "@dougbot/client";
+import { ApiError, keys, useRoles, useWikiAction, useWikiHistory, useWikiPage } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { fileIcon } from "@dougbot/client/lib/files";
+import { relativeTime, whenAt } from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
+import { type AudienceChoice, EVERYONE } from "@dougbot/client/lib/who-sees";
+import { isImportedPage, leafTitle, wikiImportOf } from "@dougbot/client/lib/wiki";
 import {
   Avatar,
   Button,
@@ -22,7 +22,7 @@ import {
   Menu,
   modKey,
   Popover,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";

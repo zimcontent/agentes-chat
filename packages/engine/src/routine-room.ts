@@ -1,5 +1,5 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, type Executor, eq, schema } from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import { and, type Database, type Executor, eq, schema } from "@dougbot/db";
 import { caches } from "./cache";
 import { sha256 } from "./crypto";
 import { createAgentRuns } from "./dispatch";

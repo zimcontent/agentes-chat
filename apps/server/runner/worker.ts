@@ -13,7 +13,7 @@ import {
   parseAccess,
   parsePause,
   type TurnContext,
-} from "@agenteschat/adapters/machine-protocol";
+} from "@dougbot/adapters/machine-protocol";
 import { realFoldersFor } from "./access";
 import { agentAccountHome, agentAccountsDir, grantOf, lentAccounts } from "./accounts";
 import { dropAgySignIns } from "./agy-home";

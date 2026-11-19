@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
@@ -16,7 +16,7 @@ const go = async (path: string, state = seedState()) => {
 };
 const click = (el: Element) => act(async () => fireEvent.click(el));
 const type = (el: Element, value: string) => act(async () => fireEvent.change(el, { target: { value } }));
-/** A help line's link: to the page on agentes.chat in Portuguese, in a new tab with no referrer. */
+/** A help line's link: to the page on DougBot in Portuguese, in a new tab with no referrer. */
 const expectHelpLink = (link: HTMLElement, page: string) => {
   expect(link.getAttribute("href")).toBe(`https://time.zimcontent.com/docs/${page}`);
   expect(link.getAttribute("target")).toBe("_blank");

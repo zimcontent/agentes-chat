@@ -14,9 +14,9 @@ import {
   PASTE_MAX_BYTES,
   pasteBytes,
   pasteEvents,
-} from "@agenteschat/client";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { openRefusalKey } from "@agenteschat/client/lib/sites";
+} from "@dougbot/client";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { openRefusalKey } from "@dougbot/client/lib/sites";
 import * as Clipboard from "expo-clipboard";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,5 +1,5 @@
-import { DESKTOP_USE_PROTOCOL } from "@agenteschat/adapters";
-import type { Database } from "@agenteschat/db";
+import { DESKTOP_USE_PROTOCOL } from "@dougbot/adapters";
+import type { Database } from "@dougbot/db";
 import { getAgentCached } from "../agents";
 import type { MachineCaller } from "../machine-hub";
 import { REMOVED_COMPUTER_MESSAGE } from "../machines";

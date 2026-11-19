@@ -12,7 +12,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
-import { PUSH_ASK_RULES } from "@agenteschat/adapters/command-policy";
+import { PUSH_ASK_RULES } from "@dougbot/adapters/command-policy";
 import {
   BRAIN_PROFILES_PROTOCOL,
   BRAIN_PROTOCOL,
@@ -29,7 +29,7 @@ import {
   type RunnerFrame,
   STEER_PROTOCOL,
   type WireBrainEvent,
-} from "@agenteschat/adapters/machine-protocol";
+} from "@dougbot/adapters/machine-protocol";
 import { accountSettingsEnv } from "../../runner/accounts";
 import {
   BRAIN_BUILTIN_TOOLS,

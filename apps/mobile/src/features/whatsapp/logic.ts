@@ -1,5 +1,5 @@
-import { ApiError, keys, useWhatsApp } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+import { ApiError, keys, useWhatsApp } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";

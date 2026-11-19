@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { MailError } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { MailError } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   ConflictError,
   completeComposioConnect,

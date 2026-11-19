@@ -3,7 +3,7 @@ import type { EventEmitter } from "node:events";
 import { chmodSync, chownSync, rmSync, statSync } from "node:fs";
 import { createConnection, createServer, type Server, type Socket } from "node:net";
 import path from "node:path";
-import type { MachineErrorCode } from "@agenteschat/adapters/machine-protocol";
+import type { MachineErrorCode } from "@dougbot/adapters/machine-protocol";
 import { BROWSER_ICON, NOTE_ICON, NOTE_WM_CLASS, WAIT_WM_CLASS } from "./desktop-look";
 import { toMachineError } from "./errors";
 

@@ -1,4 +1,4 @@
-import { type BlobStoreResolver, holdEvents, type PubSub } from "@agenteschat/adapters";
+import { type BlobStoreResolver, holdEvents, type PubSub } from "@dougbot/adapters";
 import {
   and,
   asc,
@@ -14,7 +14,7 @@ import {
   rowsOf,
   schema,
   sql,
-} from "@agenteschat/db";
+} from "@dougbot/db";
 import {
   type AccessLine,
   accessInputOf,

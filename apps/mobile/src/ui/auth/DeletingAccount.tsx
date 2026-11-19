@@ -1,6 +1,6 @@
-import { useAuthConfig, useClosingMe, useRestoreAccount } from "@agenteschat/client";
-import { accountDeletingText } from "@agenteschat/client/lib/deletion";
-import { errorText, sessionEnded } from "@agenteschat/client/lib/errors";
+import { useAuthConfig, useClosingMe, useRestoreAccount } from "@dougbot/client";
+import { accountDeletingText } from "@dougbot/client/lib/deletion";
+import { errorText, sessionEnded } from "@dougbot/client/lib/errors";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

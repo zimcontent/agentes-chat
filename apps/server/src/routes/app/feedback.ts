@@ -24,7 +24,7 @@ import {
   storeFeedbackFile,
   TooManyError,
   ValidationError,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
 import { bodyLimit } from "hono/body-limit";
@@ -77,7 +77,7 @@ const FeedbackOffer = z
 /**
  * The apps' feedback form (ADR 0160): what the person wrote goes by email to whoever runs the server
  * (`FEEDBACK_EMAIL`), through the outbox, with the pictures and the video they added. Without that address it goes to
- * the agentes.chat team's inbox, pictures only (§13); with neither there is no form and no route.
+ * the DougBot team's inbox, pictures only (§13); with neither there is no form and no route.
  */
 export function feedbackRoutes(deps: AppDeps) {
   const { db, config, adapters } = deps;

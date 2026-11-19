@@ -1,17 +1,10 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { ApiClient, Artifact } from "@agenteschat/client";
-import {
-  documentPreview,
-  parsePatch,
-  patchCounts,
-  sideBySide,
-  sortRows,
-  toCsv,
-} from "@agenteschat/client/lib/artifacts";
+import type { ApiClient, Artifact } from "@dougbot/client";
+import { documentPreview, parsePatch, patchCounts, sideBySide, sortRows, toCsv } from "@dougbot/client/lib/artifacts";
 import {
   artifactPlace,
   daysLeft,
@@ -19,8 +12,8 @@ import {
   groupArtifacts,
   rangeOf,
   sortArtifacts,
-} from "@agenteschat/client/lib/drive";
-import { PAGE_CSP } from "@agenteschat/client/lib/isolated-page";
+} from "@dougbot/client/lib/drive";
+import { PAGE_CSP } from "@dougbot/client/lib/isolated-page";
 import { act, cleanup, fireEvent, render, within } from "@testing-library/react";
 import { fileSaver } from "@/components/artifacts/ArtifactViewer";
 import { HTML_SANDBOX, HtmlFrame, withShim } from "@/components/artifacts/HtmlFrame";
@@ -846,6 +839,44 @@ describe("Drive", () => {
     await click(all);
     expect(screen().queryByRole("toolbar", { name: "Seleção" })).toBeNull();
   });
+
+  test("folders: make one, move a file into it, open it by its tile and go back by the path; search looks in all", async () => {
+    const { state } = await goDrive();
+    const files = () => names().filter((n) => !n?.startsWith("Alliance"));
+    await click(screen().getByRole("button", { name: "Nova pasta" }));
+    const made = screen().getByRole("dialog", { name: "Nova pasta" });
+    await type(within(made).getByRole("textbox", { name: "Nome" }), "Alliance");
+    await click(within(made).getByRole("button", { name: "Criar" }));
+    await settle(5);
+    const tile = () => screen().getByRole("button", { name: /^Alliance/ });
+    expect(tile().textContent).toContain("0 arquivos");
+
+    await click(screen().getByRole("checkbox", { name: "Selecionar Organograma do time" }));
+    await click(within(screen().getByRole("toolbar", { name: "Seleção" })).getByRole("button", { name: "Mover" }));
+    const move = screen().getByRole("dialog", { name: "Mover 1 arquivo" });
+    await click(within(move).getByRole("radio", { name: /Alliance/ }));
+    await click(within(move).getByRole("button", { name: "Mover para cá" }));
+    await settle(6);
+    expect(state.calls.filter((c) => c.method === "artifacts.file")).toHaveLength(1);
+    expect(files()).not.toContain("Organograma do time");
+    expect(tile().textContent).toContain("1 arquivo");
+
+    await click(tile());
+    await settle(6);
+    expect(files()).toEqual(["Organograma do time"]);
+    const path = screen().getByRole("navigation", { name: "Caminho da pasta" });
+    expect(within(path).getByRole("button", { name: "Alliance" }).getAttribute("aria-current")).toBe("page");
+    await click(within(path).getByRole("button", { name: "Drive" }));
+    await settle(6);
+    expect(files()).toHaveLength(4);
+
+    // Looking for something at the top: every folder, each found file saying where it is filed.
+    await type(screen().getByRole("searchbox", { name: "Buscar arquivos" }), "organograma");
+    await settle(6);
+    expect(files()).toEqual(["Organograma do time"]);
+    expect(document.querySelector(".drive-card__where")?.textContent).toBe("Alliance");
+    expect(screen().queryByRole("button", { name: /^Alliance/ })).toBeNull();
+  });
 });
 
 describe("artifact helpers", () => {
@@ -1029,7 +1060,7 @@ describe("deleting a file", () => {
   test("a chat card for a deleted file is a quiet 'Arquivo removido'", async () => {
     const { ArtifactCard } = await import("@/components/artifacts/ArtifactCard");
     expect(ArtifactCard).toBeTruthy();
-    const { artifactRefs } = await import("@agenteschat/client/lib/artifacts");
+    const { artifactRefs } = await import("@dougbot/client/lib/artifacts");
     expect(artifactRefs({ artifacts: [{ id: "x", deleted: true, title: "Relatório" }] })).toEqual([
       { id: "x", deleted: true, title: "Relatório" },
     ]);

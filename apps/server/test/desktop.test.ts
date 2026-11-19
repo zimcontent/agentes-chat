@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import { MACHINE_PROTOCOL_VERSION, type ServerFrame } from "@agenteschat/adapters";
+import { MACHINE_PROTOCOL_VERSION, type ServerFrame } from "@dougbot/adapters";
 import { DESKTOP_TAG_PREFIX, parseReleaseBody, parseSha256, savedName } from "../src/routes/desktop";
 import { browser, createTestServer, pairComputer, seedOrg, signUp, type TestServer } from "./harness";
 

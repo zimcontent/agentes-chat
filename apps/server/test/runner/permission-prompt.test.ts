@@ -5,7 +5,7 @@ import {
   approvalMessage,
   DELETE_BRANCHES_POINTER,
   unaskedMessage,
-} from "@agenteschat/adapters/command-policy";
+} from "@dougbot/adapters/command-policy";
 import {
   allowedBy,
   PERMISSION_PROMPT_TOOL,
@@ -13,7 +13,7 @@ import {
   parseRunnerFrame,
   ruleMatches,
   rulesFor,
-} from "@agenteschat/adapters/machine-protocol";
+} from "@dougbot/adapters/machine-protocol";
 import {
   claudeMcpConfig,
   claudePermissionSettings,

@@ -1,17 +1,21 @@
-import { type Issue, type Message, useChannels, type WorkView } from "@agenteschat/client";
-import { heldBack } from "@agenteschat/client/lib/issues";
-import { workLine, workPlanProgress, workWaitsOnPerson } from "@agenteschat/client/lib/long-work";
-import { can } from "@agenteschat/client/lib/permissions";
-import { WorkLine, WorkLineAction, WorkPlan } from "@agenteschat/ui";
+import { type Issue, type Message, useApprovals, useChannels, useMembers, type WorkView } from "@dougbot/client";
+import { approvalCardItems, asOfNow, cardDeadline, workApproval } from "@dougbot/client/lib/approval-card";
+import { heldBack } from "@dougbot/client/lib/issues";
+import { workLine, workPlanProgress, workWaitsOnPerson } from "@dougbot/client/lib/long-work";
+import { can } from "@dougbot/client/lib/permissions";
+import { WorkLine, WorkLineAction, WorkPlan } from "@dougbot/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";
+import { ApprovalAsk, ApprovalGroupAsk } from "@/components/ApprovalAsk";
 import { useChannelActions } from "@/components/channel-actions";
 import { useNow } from "@/components/missions/MissionBits";
 import { useOrg } from "@/components/org-context";
 import { useDirectory } from "@/hooks/useDirectory";
 import { useToast } from "@/lib/toast";
+import { useExpired } from "./RequestCard";
 
 /** The line of a long work (ADR 0121) and its actions, the same under the anchor and on the card. */
 function useWorkLine(work: WorkView, inUpdatesThread = false) {
@@ -63,7 +67,36 @@ export function MessageWorkLine({
 }) {
   const work = message.longWork;
   if (!work) return null;
-  return <AnchorLine work={work} threaded={Boolean(threaded)} inThread={Boolean(inThread)} />;
+  return (
+    <>
+      <AnchorLine work={work} threaded={Boolean(threaded)} inThread={Boolean(inThread)} />
+      {/* In its thread the card is right there; elsewhere a copy of it, decided here as well. */}
+      {!inThread && <WorkApproval work={work} />}
+    </>
+  );
+}
+
+/**
+ * The approval its run waits on from this reader, as the thread's own card under the line: decided where the person
+ * talks, without opening the thread (`workApproval`). The same requests as the thread's card, so either one decides.
+ */
+function WorkApproval({ work }: { work: WorkView }) {
+  const { org } = useOrg();
+  const dir = useDirectory(org.id);
+  const approvals = useApprovals(org.id);
+  const people = useMembers(org.id).data;
+  // Once shown, it stays, decided or not: the click's outcome reads where it was clicked.
+  const [shownId, setShownId] = useState<string | null>(null);
+  const approval = workApproval(approvals.data, work.runId, shownId);
+  if (approval && approval.id !== shownId) setShownId(approval.id);
+  const items = approval?.messageId ? approvalCardItems(approvals.data, approval.messageId, approval) : [];
+  useExpired(cardDeadline(items));
+  if (!approval) return null;
+  const members = new Map((people ?? []).map((m) => [m.userId, m]));
+  const agent = dir.anyAgent(approval.agentId);
+  if (items.length > 1)
+    return <ApprovalGroupAsk items={items.map((a) => asOfNow(a))} agent={agent} members={members} />;
+  return <ApprovalAsk approval={approval} agent={agent} members={members} />;
 }
 
 function AnchorLine({ work, threaded, inThread }: { work: WorkView; threaded: boolean; inThread: boolean }) {

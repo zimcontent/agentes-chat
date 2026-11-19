@@ -9,7 +9,7 @@ import {
   reachableFromInternet,
   revokeGrant,
   TOKEN_EXPIRY_DAYS,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { signedInLately } from "../../auth";
 import { apiError, errorResponse } from "../../http/errors";

@@ -5,8 +5,8 @@ import {
   CHROME_NEEDED,
   CHROMIUM_LINUX,
   CHROMIUM_NEEDED,
-} from "@agenteschat/adapters/machine-protocol";
-import { TERM_SH } from "@agenteschat/setup/src/term-sh";
+} from "@dougbot/adapters/machine-protocol";
+import { TERM_SH } from "@dougbot/setup/src/term-sh";
 import { DEFAULT_AGENT_UID_RANGE, SYSTEM_RUNNER_HOME } from "./config";
 import { WINDOWS_TASK } from "./service";
 

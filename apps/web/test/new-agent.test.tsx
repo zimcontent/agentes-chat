@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { type AgentInput, ApiError, keys } from "@agenteschat/client";
-import { en, ptBR } from "@agenteschat/i18n";
+import { type AgentInput, ApiError, keys } from "@dougbot/client";
+import { en, ptBR } from "@dougbot/i18n";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import {
   freeHandle,

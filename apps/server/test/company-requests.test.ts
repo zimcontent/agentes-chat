@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { createMemoryRateLimiter } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
-import { COMPANY_MAX_EMAILS_PER_ADDRESS_DAY, companyEmailLimitKey } from "@agenteschat/engine";
+import { createMemoryRateLimiter } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
+import { COMPANY_MAX_EMAILS_PER_ADDRESS_DAY, companyEmailLimitKey } from "@dougbot/engine";
 import {
   browser,
   createTestServer,

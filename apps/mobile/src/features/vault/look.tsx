@@ -1,4 +1,4 @@
-import type { VaultItem } from "@agenteschat/client";
+import type { VaultItem } from "@dougbot/client";
 import * as Clipboard from "expo-clipboard";
 import { useCallback, useMemo, useSyncExternalStore } from "react";
 import { Text as RNText, StyleSheet, View } from "react-native";

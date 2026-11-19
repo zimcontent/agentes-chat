@@ -1,5 +1,5 @@
-import type { AgentPlanUsage } from "@agenteschat/client";
-import { useAgentPlanUsage, useApi } from "@agenteschat/client";
+import type { AgentPlanUsage } from "@dougbot/client";
+import { useAgentPlanUsage, useApi } from "@dougbot/client";
 import {
   formatMonth,
   formatPercent,
@@ -7,16 +7,10 @@ import {
   formatTokensShort,
   formatUsd,
   joinNames,
-} from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import {
-  brandOf,
-  noWindowsText,
-  partedUsage,
-  usageSourceName,
-  usageSourcePart,
-} from "@agenteschat/client/lib/plan-usage";
-import { gradientOf } from "@agenteschat/ui/agent/engine";
+} from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { brandOf, noWindowsText, partedUsage, usageSourceName, usageSourcePart } from "@dougbot/client/lib/plan-usage";
+import { gradientOf } from "@dougbot/ui/agent/engine";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";

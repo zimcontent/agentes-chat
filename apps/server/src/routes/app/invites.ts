@@ -1,4 +1,4 @@
-import { nameIsPassword } from "@agenteschat/client/lib/text";
+import { nameIsPassword } from "@dougbot/client/lib/text";
 import {
   approveJoinRequest,
   askToJoin,
@@ -30,7 +30,7 @@ import {
   sha256,
   suggestPerson,
   turnOffInviteLink,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { hashPassword, mintUserSignIn, NAME_IS_PASSWORD, NAME_IS_PASSWORD_MESSAGE, sessionUser } from "../../auth";
 import { requestLimitIp } from "../../http/client-ip";

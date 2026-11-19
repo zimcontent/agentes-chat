@@ -1,15 +1,5 @@
-import { keys, useSetChannelIcon } from "@agenteschat/client";
-import {
-  Avatar,
-  type AvatarProps,
-  Button,
-  cx,
-  Dialog,
-  DialogBody,
-  DialogFooter,
-  Locked,
-  LogoMark,
-} from "@agenteschat/ui";
+import { keys, useSetChannelIcon } from "@dougbot/client";
+import { Avatar, type AvatarProps, Button, cx, Dialog, DialogBody, DialogFooter, Locked, LogoMark } from "@dougbot/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type PointerEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

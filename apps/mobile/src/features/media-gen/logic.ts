@@ -19,11 +19,11 @@ import {
   mediaServiceMode,
   pickMediaMode,
   useAuthConfig,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 
 /**
  * Mídia on the phone (docs/adr/doug-0011): the rules the screens read, kept apart from them so they are tested. The
- * models, modes and prices are the shared client's (`@agenteschat/client` media), the same reading as the web's page.
+ * models, modes and prices are the shared client's (`@dougbot/client` media), the same reading as the web's page.
  */
 
 /** Whether this server has Mídia on: the web shows it on the same flag. */

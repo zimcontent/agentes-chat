@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { CarrySource } from "@agenteschat/client";
+import type { CarrySource } from "@dougbot/client";
 import { cleanup, fireEvent } from "@testing-library/react";
 import { createFakeApi, ORG_ID, seedState } from "./fake-api";
 import { renderApp, screen, settle } from "./render";

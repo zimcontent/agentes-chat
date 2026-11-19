@@ -1,5 +1,5 @@
-import type { ControlConfig, ControlConfigPatch } from "@agenteschat/adapters/runner-control";
-import { Button, Segmented } from "@agenteschat/ui";
+import type { ControlConfig, ControlConfigPatch } from "@dougbot/adapters/runner-control";
+import { Button, Segmented } from "@dougbot/ui";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHost, useSnapshot, useStore } from "../../app";

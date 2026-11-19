@@ -1,5 +1,5 @@
-import { type AgentScope, DESKTOP_TEXT_PROTOCOL } from "@agenteschat/adapters";
-import type { Database } from "@agenteschat/db";
+import { type AgentScope, DESKTOP_TEXT_PROTOCOL } from "@dougbot/adapters";
+import type { Database } from "@dougbot/db";
 import { getAgentCached } from "./agents";
 import { type MachineCaller, MachineRequestError } from "./machine-hub";
 import { recordOperatorEvent } from "./operator-events";

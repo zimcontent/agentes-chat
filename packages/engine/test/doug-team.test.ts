@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { and, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+import { and, eq, inArray, isNull, schema, sql } from "@dougbot/db";
 import { DOUG_TEAM_DIR, GENERATED, renderDougTeamFiles } from "../scripts/doug-team-build";
 import {
   archiveAgent,

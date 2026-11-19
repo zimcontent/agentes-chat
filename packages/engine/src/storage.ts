@@ -9,7 +9,7 @@ import {
   StorageError,
   type StorageHost,
   StorageHostError,
-} from "@agenteschat/adapters";
+} from "@dougbot/adapters";
 import {
   and,
   asc,
@@ -25,7 +25,7 @@ import {
   or,
   schema,
   sql,
-} from "@agenteschat/db";
+} from "@dougbot/db";
 import { recordAudit } from "./audit";
 import { openSecret, randomToken, sealSecret, sha256 } from "./crypto";
 import { NotFoundError, ValidationError } from "./errors";

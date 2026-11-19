@@ -1,5 +1,5 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import { and, type Database, eq, inArray, isNull, schema, sql } from "@dougbot/db";
 import { getAgent } from "./agents";
 import { recordAudit } from "./audit";
 import { brainOf, brainOptions } from "./brain-settings";

@@ -8,8 +8,8 @@ import {
   type PortalList,
   type PortalState,
   type PortalType,
-} from "@agenteschat/adapters";
-import type { Database } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, type Database, eq, isNull, schema } from "@dougbot/db";
 import { type PortalColumn, portalColumnOf } from "./approval-portal";
 import type { CardReview } from "./approval-portal-reviews";
 import { ValidationError } from "./errors";
@@ -134,12 +134,17 @@ const OPEN_STAGES: readonly PortalColumn[] = ["todo", "doing", "adjusting"];
 export const portalDay = (now: Date, timeZone: string) =>
   new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
 
+/**
+ * `queue`: the member's place for each card's task (`portalQueueOf`, ADR doug-0022). Inside each group the cards go in
+ * that order, the team's priority; a card with no task of theirs keeps the group's own order after them.
+ */
 export async function myPortalWork(
   portal: ApprovalPortal,
   member: string,
   now = new Date(),
   timeZone = "America/Sao_Paulo",
   reviewsOf: ReviewsOf = noReviews,
+  queue: ReadonlyMap<string, number> = new Map(),
 ): Promise<MyPortalWork> {
   const [items, all] = await Promise.all([portal.items(), portal.cards()]);
   const cards = all.filter((card) => card.members.includes(member) && !card.material);
@@ -157,12 +162,16 @@ export async function myPortalWork(
     else if (card.produceOn === today) work.today_.push(plan);
     else work.next.push(plan);
   }
+  // Each person's queue first (docs/adr/doug-0022-task-queue-order.md), then the schedule.
+  const queued = (card: PlanCard) => queue.get(card.id) ?? Number.POSITIVE_INFINITY;
+  const byQueue = (a: PlanCard, b: PlanCard) => (queued(a) === queued(b) ? 0 : queued(a) < queued(b) ? -1 : 1);
   const bySchedule = (a: PlanCard, b: PlanCard) =>
     (a.produceOn ?? "9999").localeCompare(b.produceOn ?? "9999") ||
     place(a) - place(b) ||
     a.client.localeCompare(b.client) ||
     byOrder(a, b);
-  for (const bucket of [work.late, work.today_, work.next, work.undated]) bucket.sort(bySchedule);
+  for (const bucket of [work.late, work.today_, work.next, work.undated])
+    bucket.sort((a, b) => byQueue(a, b) || bySchedule(a, b));
   return work;
 }
 
@@ -214,22 +223,34 @@ export async function labelIdsByName(portal: ApprovalPortal, names: string[]): P
   });
 }
 
-/** Member ids by name (a person's name or the start of it); an unknown or ambiguous name is refused. */
+/**
+ * Member ids by name: a person of the workspace (their name or its start) or one of its agents (name or handle, "@"
+ * or not, or the start of either), as the card's own dialog puts either on a card and its task follows the first one
+ * (ADR 9001 §11). An exact name wins over a start; an unknown or ambiguous name is refused with who there is.
+ */
 export async function memberIdsByName(db: Database, orgId: string, names: string[]): Promise<string[]> {
   if (!names.length) return [];
-  const members = await listMembers(db, orgId);
+  const people = (await listMembers(db, orgId)).map((m) => ({ id: m.userId, names: [m.name], shown: m.name }));
+  const bots = (
+    await db
+      .select({ id: schema.agents.id, name: schema.agents.name, handle: schema.agents.handle })
+      .from(schema.agents)
+      .where(and(eq(schema.agents.orgId, orgId), isNull(schema.agents.archivedAt)))
+  ).map((a) => ({ id: a.id, names: [a.name, a.handle], shown: `${a.name} (@${a.handle})` }));
+  const all = [...people, ...bots];
+  const low = (text: string) => text.trim().toLowerCase();
   return names.map((name) => {
-    const wanted = name.trim().toLowerCase();
-    const exact = members.filter((m) => m.name.trim().toLowerCase() === wanted);
-    const found = exact.length ? exact : members.filter((m) => m.name.trim().toLowerCase().startsWith(wanted));
-    if (found.length !== 1) {
+    const wanted = low(name).replace(/^@/, "");
+    const exact = all.filter((m) => m.names.some((n) => low(n) === wanted));
+    const found = exact.length ? exact : all.filter((m) => m.names.some((n) => low(n).startsWith(wanted)));
+    if (!wanted || found.length !== 1) {
       throw new ValidationError(
-        `${found.length ? "more than one member is" : "no member is"} called "${name}"; the members are: ${members
-          .map((m) => m.name)
-          .join(", ")}`,
+        `${found.length > 1 ? "more than one member is" : "no member is"} called "${name}"; the people are: ${people
+          .map((m) => m.shown)
+          .join(", ")}; the agents are: ${bots.map((m) => m.shown).join(", ")}`,
       );
     }
-    return (found[0] as (typeof members)[number]).userId;
+    return (found[0] as (typeof all)[number]).id;
   });
 }
 
@@ -269,7 +290,7 @@ export function planTool(portal: ApprovalPortal): ToolDefinition {
   return {
     name: PORTAL_PLAN_TOOL,
     description:
-      "Write a content strategy into a client's strategic schedule at the approval portal's board: lists (usually weeks, named as the team names them, e.g. \"Semana 16 a 20/11\") and the posts of each. Use it when a person asks you to put a strategy or a set of posts on the schedule. A list that already exists by that name gets the new posts; nothing is removed. `members` are people of the workspace by name, `labels` the team's labels by name; `produce_on` is the day a person makes the post, `post_on` the day it goes out.",
+      "Write a content strategy into a client's strategic schedule at the approval portal's board: lists (usually weeks, named as the team names them, e.g. \"Semana 16 a 20/11\") and the posts of each. Use it when a person asks you to put a strategy or a set of posts on the schedule. A list that already exists by that name gets the new posts; nothing is removed. `members` are people or agents of the workspace by name (the first is the one responsible: an agent there starts on it), `labels` the team's labels by name; `produce_on` is the day a person makes the post, `post_on` the day it goes out.",
     scope: "",
     inputSchema: {
       type: "object",

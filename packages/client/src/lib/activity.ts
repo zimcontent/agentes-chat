@@ -132,7 +132,7 @@ export type ActivityKind =
   | "readingConversation"
   | "usingTool";
 
-/** The computer's own permission check before a command (`PERMISSION_TOOL` in `@agenteschat/adapters`). */
+/** The computer's own permission check before a command (`PERMISSION_TOOL` in `@dougbot/adapters`). */
 export const PERMISSION_TOOL = "permission_prompt";
 
 export interface Activity {
@@ -163,8 +163,12 @@ const BUILTIN: Record<string, ActivityKind> = {
   get_issue: "readingIssues",
   read_artifact: "readingDrive",
   list_artifacts: "readingDrive",
+  drive_folders: "readingDrive",
   create_artifact: "writingDrive",
   update_artifact: "writingDrive",
+  file_artifacts: "writingDrive",
+  drive_folder: "writingDrive",
+  trash_artifacts: "writingDrive",
   search_context: "searchingMemory",
   expand: "searchingMemory",
   get_summary: "searchingMemory",

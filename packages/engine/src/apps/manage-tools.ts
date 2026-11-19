@@ -1,4 +1,4 @@
-import { and, eq, gte, schema, sql } from "@agenteschat/db";
+import { and, eq, gte, schema, sql } from "@dougbot/db";
 import { z } from "zod";
 import {
   type Agent,

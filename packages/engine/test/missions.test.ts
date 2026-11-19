@@ -5,8 +5,8 @@ import {
   MACHINE_PROTOCOL_VERSION,
   PERMISSION_TIMEOUT_MESSAGE,
   type ServerFrame,
-} from "@agenteschat/adapters";
-import { and, eq, schema, sql } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, eq, schema, sql } from "@dougbot/db";
 import {
   addChannelMember,
   afterMissionRunEnded,

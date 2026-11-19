@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { and, eq, schema } from "@agenteschat/db";
-import { costNanoUsd } from "@agenteschat/providers";
+import { and, eq, schema } from "@dougbot/db";
+import { costNanoUsd } from "@dougbot/providers";
 import {
   agentSourceNames,
   createAgent,

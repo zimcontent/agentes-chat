@@ -8,9 +8,9 @@ import {
   type CustomServer,
   type GitHubAppInfo,
   type GitHubAppInstallation,
-} from "@agenteschat/client";
-import { connectedItems, isMcpItem, itemName } from "@agenteschat/client/lib/connected";
-import { knownErrorText } from "@agenteschat/client/lib/errors";
+} from "@dougbot/client";
+import { connectedItems, isMcpItem, itemName } from "@dougbot/client/lib/connected";
+import { knownErrorText } from "@dougbot/client/lib/errors";
 import {
   appAccountsText,
   githubAppPanel,
@@ -19,7 +19,7 @@ import {
   missingEventsText,
   removedText,
   removeInstallationText,
-} from "@agenteschat/client/lib/github-app";
+} from "@dougbot/client/lib/github-app";
 import type { TFunction } from "i18next";
 import {
   accountActions,

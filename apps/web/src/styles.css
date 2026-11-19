@@ -1,4 +1,4 @@
-/* App styles: fonts, the design system, and page layout. No component visuals here: those live in @agenteschat/ui. */
+/* App styles: fonts, the design system, and page layout. No component visuals here: those live in @dougbot/ui. */
 /* The kit, then the app's base sheets, in one cascade layer. Page sheets (a component's own CSS) stay unlayered, so a
    page rule beats the kit and the base whatever order the build links the chunks in: the production build links the
    shared chunks' CSS before the main sheet, where a tie went to the kit, while dev links the main sheet first. One
@@ -14,7 +14,7 @@
 @import "@fontsource-variable/inter/index.css";
 @import "@fontsource-variable/manrope/index.css";
 @import "./fonts.css";
-@import "@agenteschat/ui/styles.css" layer(base);
+@import "@dougbot/ui/styles.css" layer(base);
 @import "./layout.css" layer(base);
 @import "./responsive.css" layer(base);
 @import "./chat/looks.css" layer(base);
@@ -23,7 +23,7 @@
 @import "./desktop.css";
 @import "./over-pages.css";
 /* Doug's dark theme and glass, over everything above (unlayered, last). */
-@import "@agenteschat/ui/doug.css";
+@import "@dougbot/ui/doug.css";
 
 :root {
   /* The app reads in Source Sans 3, titles too; code in JetBrains Mono. */

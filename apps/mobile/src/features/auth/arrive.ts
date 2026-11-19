@@ -1,4 +1,4 @@
-import type { ApiClient } from "@agenteschat/client";
+import type { ApiClient } from "@dougbot/client";
 import { router } from "@/ui/navigation";
 import { chatHref } from "../links/logic";
 

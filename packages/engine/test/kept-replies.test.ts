@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { schema } from "@agenteschat/db";
-import { systemText, textOf } from "@agenteschat/providers";
+import { schema } from "@dougbot/db";
+import { systemText, textOf } from "@dougbot/providers";
 import { closeWorlds, type World, world } from "./autonomy/harness";
 import { assertInvariants } from "./autonomy/invariants";
 

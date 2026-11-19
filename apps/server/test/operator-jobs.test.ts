@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, expect, test } from "bun:test";
-import { EmailError } from "@agenteschat/adapters";
-import { eq, schema, sql } from "@agenteschat/db";
-import { completeJob, failJob, type OutboxJob, rethrowEmailError } from "@agenteschat/engine";
+import { EmailError } from "@dougbot/adapters";
+import { eq, schema, sql } from "@dougbot/db";
+import { completeJob, failJob, type OutboxJob, rethrowEmailError } from "@dougbot/engine";
 import { createLogger } from "../src/logger";
 import { createOperatorApp } from "../src/operator/app";
 import { createTestServer, planOfLast, type TestServer } from "./harness";

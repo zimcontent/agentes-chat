@@ -1,5 +1,5 @@
-import type { PlanCard, PortalLabel, PortalList, PortalListKind, PortalPlan } from "@agenteschat/client";
-import { useMovePortalCard, useMovePortalCardAcross, usePortalLists, useSavePortalCard } from "@agenteschat/client";
+import type { PlanCard, PortalLabel, PortalList, PortalListKind, PortalPlan } from "@dougbot/client";
+import { useMovePortalCard, useMovePortalCardAcross, usePortalLists, useSavePortalCard } from "@dougbot/client";
 import {
   PORTAL_NO_LIST,
   portalChecks,
@@ -10,7 +10,7 @@ import {
   portalPlaceAt,
   portalReadyToSend,
   portalWhen,
-} from "@agenteschat/client/lib/portal";
+} from "@dougbot/client/lib/portal";
 import {
   Button,
   Chip,
@@ -22,7 +22,7 @@ import {
   Menu,
   MenuItem,
   MenuSeparator,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

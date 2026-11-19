@@ -1,5 +1,5 @@
-import type { ApiClient } from "@agenteschat/client";
-import { LiveLeg } from "./leg";
+import type { ApiClient } from "@dougbot/client";
+import { openVoiceLeg, type VoiceLeg } from "./leg";
 
 /**
  * "Ouvir" (ADR doug-0006): a message told by voice, as a colleague would tell it, or a voice saying hello (`sample`). One
@@ -23,7 +23,7 @@ export class ListenCall {
   private state: ListenState = { phase: "connecting", error: null, asking: false, said: "" };
   private listeners = new Set<() => void>();
   private ctx: AudioContext | null = null;
-  private leg: LiveLeg | null = null;
+  private leg: VoiceLeg | null = null;
   private mic: MediaStream | null = null;
   private analyser: AnalyserNode | null = null;
   private audio: HTMLAudioElement | null = null;
@@ -65,12 +65,12 @@ export class ListenCall {
       const silence = this.ctx.createMediaStreamDestination();
       const track = silence.stream.getAudioTracks()[0];
       if (!track) throw new Error("no audio track");
-      this.leg = await LiveLeg.open(
+      this.leg = await openVoiceLeg(
         track,
-        (sdp) =>
-          this.o.api.liveVoice.startSession(this.o.orgId, {
+        (extra) =>
+          this.o.api.liveVoice.startVoice(this.o.orgId, {
+            ...extra,
             kind: this.o.kind,
-            sdp,
             messageId: this.o.messageId,
             agentId: this.o.agentId,
             voice: this.o.voice,

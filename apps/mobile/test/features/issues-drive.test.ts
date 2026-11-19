@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { Artifact, Issue, IssueColumn } from "@agenteschat/client";
-import { githubLinkLabel, isGithubLink } from "@agenteschat/client/lib/github-link";
-import { conversationLine } from "@agenteschat/client/lib/issues";
+import type { Artifact, Issue, IssueColumn } from "@dougbot/client";
+import { githubLinkLabel, isGithubLink } from "@dougbot/client/lib/github-link";
+import { conversationLine } from "@dougbot/client/lib/issues";
 import {
   cardPreview,
   cardShape,

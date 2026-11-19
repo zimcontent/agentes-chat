@@ -1,4 +1,4 @@
-import { heldWhole } from "@agenteschat/client/lib/format";
+import { heldWhole } from "@dougbot/client/lib/format";
 import {
   Alert,
   Button,
@@ -11,7 +11,7 @@ import {
   MenuItem,
   Select,
   Switch,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { type ReactNode, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHost, useSnapshot, useStore } from "../../app";
@@ -46,7 +46,7 @@ const KIND_SUB: Record<ServerKind, string> = {
 };
 
 /**
- * Preferences › Servers: where this app opens agentes.chat, each with its workspaces (ADR 0154). Each keeps its own
+ * Preferences › Servers: where this app opens DougBot, each with its workspaces (ADR 0154). Each keeps its own
  * sign-in (cookies are per origin).
  */
 export function Servers() {
@@ -306,7 +306,7 @@ function AccountRows({
   );
 }
 
-/** agentes.chat on this computer, stopped running here ("Stop running it here…"): its data stays, Start brings it back. */
+/** DougBot on this computer, stopped running here ("Stop running it here…"): its data stays, Start brings it back. */
 function StoppedHere({ local }: { local: LocalServerStatus }) {
   const { t } = useTranslation();
   const host = useHost();
@@ -351,7 +351,7 @@ function StoppedHere({ local }: { local: LocalServerStatus }) {
 }
 
 /**
- * agentes.chat on this computer (the app runs it): its state and address, reach from the person's other
+ * DougBot on this computer (the app runs it): its state and address, reach from the person's other
  * devices (Tailscale) and the phone's QR code with it, the usage-statistics switch, the way to Jev's key, its
  * version, data and backups, Restart and Stop, "Stop running it here…" (its data stays) and "Erase and start over…".
  */

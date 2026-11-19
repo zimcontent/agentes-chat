@@ -1,5 +1,5 @@
-import type { KeyWrapper } from "@agenteschat/adapters";
-import { and, asc, type Database, type Executor, eq, inArray, isNull, like, schema, sql } from "@agenteschat/db";
+import type { KeyWrapper } from "@dougbot/adapters";
+import { and, asc, type Database, type Executor, eq, inArray, isNull, like, schema, sql } from "@dougbot/db";
 import {
   checkOpenRouterKey,
   customModelId,
@@ -18,7 +18,7 @@ import {
   PROVIDERS,
   type ProviderId,
   parseCustomModel,
-} from "@agenteschat/providers";
+} from "@dougbot/providers";
 import { recordAudit } from "./audit";
 import { caches } from "./cache";
 import { openSecret, sealSecret } from "./crypto";

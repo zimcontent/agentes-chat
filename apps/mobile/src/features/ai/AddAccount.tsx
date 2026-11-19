@@ -1,7 +1,7 @@
-import type { AccountLoginStart, MachineAccount, MachineAccountKind } from "@agenteschat/client";
-import { keys, useAccountLogin, useAiAccounts, useApi } from "@agenteschat/client";
-import { accountTitle, reusableAccount, signInOf } from "@agenteschat/client/lib/ai-accounts";
-import { knownErrorText } from "@agenteschat/client/lib/errors";
+import type { AccountLoginStart, MachineAccount, MachineAccountKind } from "@dougbot/client";
+import { keys, useAccountLogin, useAiAccounts, useApi } from "@dougbot/client";
+import { accountTitle, reusableAccount, signInOf } from "@dougbot/client/lib/ai-accounts";
+import { knownErrorText } from "@dougbot/client/lib/errors";
 import {
   beginLogin,
   freeDuplicate,
@@ -12,9 +12,9 @@ import {
   loginRead,
   loginReadPasses,
   otherThanHint,
-} from "@agenteschat/client/lib/machines";
-import { GEMINI_ENTERPRISE_PROVIDER, planKeyFits, signInKey } from "@agenteschat/client/lib/plans";
-import { accountCodeAad } from "@agenteschat/client/lib/secret-box";
+} from "@dougbot/client/lib/machines";
+import { GEMINI_ENTERPRISE_PROVIDER, planKeyFits, signInKey } from "@dougbot/client/lib/plans";
+import { accountCodeAad } from "@dougbot/client/lib/secret-box";
 import { useQueryClient } from "@tanstack/react-query";
 import * as Clipboard from "expo-clipboard";
 import { type ReactNode, useEffect, useRef, useState } from "react";

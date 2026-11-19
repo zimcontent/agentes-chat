@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, lstatSync, mkdirSync, readFileSync, statSync, symlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { MACHINE_OPS, type MachineRequest, type RunnerAccess } from "@agenteschat/adapters/machine-protocol";
+import { MACHINE_OPS, type MachineRequest, type RunnerAccess } from "@dougbot/adapters/machine-protocol";
 import type { BrowserViews } from "../../runner/browser-views";
 import {
   agentTmpOnDisk,

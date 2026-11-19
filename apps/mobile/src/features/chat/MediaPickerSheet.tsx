@@ -1,6 +1,6 @@
-import type { Agent, Gif, GifCategory, MessageMedia, StickerMood } from "@agenteschat/client";
-import { useGifSearch, useRoster, useSettled } from "@agenteschat/client";
-import { knownErrorText } from "@agenteschat/client/lib/errors";
+import type { Agent, Gif, GifCategory, MessageMedia, StickerMood } from "@dougbot/client";
+import { useGifSearch, useRoster, useSettled } from "@dougbot/client";
+import { knownErrorText } from "@dougbot/client/lib/errors";
 import {
   GIF_CATEGORY_IDS,
   GIF_SEARCH_DELAY_MS,
@@ -12,8 +12,8 @@ import {
   stickerLabel,
   stickerMedia,
   stickerWords,
-} from "@agenteschat/client/lib/media";
-import { stickerMoodsFor } from "@agenteschat/ui/media-grid";
+} from "@dougbot/client/lib/media";
+import { stickerMoodsFor } from "@dougbot/ui/media-grid";
 import { Image } from "expo-image";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

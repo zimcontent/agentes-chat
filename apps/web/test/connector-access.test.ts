@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
-import type { AgentAccess, Connection, CustomServer, ToolDecision } from "@agenteschat/client";
+import type { AgentAccess, Connection, CustomServer, ToolDecision } from "@dougbot/client";
 import {
   catalogToolClass,
   inputFromAccess,
   inputWithLevels,
   levelIn,
   resourcesOf,
-} from "@agenteschat/client/lib/access-levels";
-import { connectedIds, connectedItems } from "@agenteschat/client/lib/connected";
+} from "@dougbot/client/lib/access-levels";
+import { connectedIds, connectedItems } from "@dougbot/client/lib/connected";
 import {
   decisionsOf,
   defaultAccess,
@@ -15,8 +15,8 @@ import {
   exposedTools,
   humanize,
   toolsToReview,
-} from "@agenteschat/client/lib/custom-tools";
-import { connectorName } from "@agenteschat/client/lib/scopes";
+} from "@dougbot/client/lib/custom-tools";
+import { connectorName } from "@dougbot/client/lib/scopes";
 import { createI18n } from "@/i18n";
 import { CATALOG } from "./fake-api";
 

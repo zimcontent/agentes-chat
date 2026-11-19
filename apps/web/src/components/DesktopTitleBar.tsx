@@ -1,12 +1,12 @@
-import { Button, Icon, Kbd, modKey } from "@agenteschat/ui";
+import { Button, Icon, Kbd, modKey } from "@dougbot/ui";
 import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { AgoraButton } from "./Agora";
-import { openPalette } from "./CommandMenu";
 import { useNavDrawer } from "./NavDrawer";
-import { useSidebarCollapsed } from "./Sidebar";
 import { WorkspaceSky } from "./Sky";
+// Doug: from shell-events.ts, not Sidebar.tsx and CommandMenu.tsx: the error screen loads this before the first paint.
+import { openPalette, useSidebarCollapsed } from "./shell-events";
 
 /**
  * The Mac app's title bar (ADR 0036): room for the

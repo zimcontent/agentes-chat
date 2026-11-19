@@ -1,4 +1,4 @@
-import type { Config } from "@agenteschat/config";
+import type { Config } from "@dougbot/config";
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import type { Context } from "hono";
 

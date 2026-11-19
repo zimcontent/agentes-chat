@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { MACHINE_PROTOCOL_VERSION, orgTopic, parseRunnerFrame, type ServerFrame } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import { MACHINE_PROTOCOL_VERSION, orgTopic, parseRunnerFrame, type ServerFrame } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   accessNotice,
   authenticateMachine,

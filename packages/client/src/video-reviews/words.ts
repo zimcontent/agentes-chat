@@ -9,6 +9,8 @@ const en = {
   empty: "Nothing to review",
   emptyText: "When an agent sends a video or a design piece for review, it shows up here.",
   status: { in_review: "To review", changes: "Changes asked", approved: "Approved" },
+  /** A decision message as people read it (`reviewDecisionOf`): its head and the id behind the ⓘ. */
+  decided: { approve: "Approved:", changes: "Changes to", id: "Review ID", copy: "Copy", copied: "Copied" },
   filters: { open: "To review", all: "All" },
   version: (n: number) => `V${n}`,
   notesOpen: (n: number) => (n === 1 ? "1 note" : `${n} notes`),
@@ -342,6 +344,7 @@ const ptBR: ReviewWords = {
   empty: "Nada para revisar",
   emptyText: "Quando um agente mandar um vídeo ou uma peça para revisão, ela aparece aqui.",
   status: { in_review: "Para revisar", changes: "Ajustes pedidos", approved: "Aprovado" },
+  decided: { approve: "Aprovado:", changes: "Ajustes em", id: "ID da revisão", copy: "Copiar", copied: "Copiado" },
   filters: { open: "Para revisar", all: "Todos" },
   version: (n) => `V${n}`,
   notesOpen: (n) => (n === 1 ? "1 nota" : `${n} notas`),

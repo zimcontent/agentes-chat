@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { ApiError, type Channel } from "@agenteschat/client";
-import { joinable } from "@agenteschat/client/lib/channel-access";
-import { audienceKind, audienceOfKind, whoSeesLabel } from "@agenteschat/client/lib/who-sees";
+import { ApiError, type Channel } from "@dougbot/client";
+import { joinable } from "@dougbot/client/lib/channel-access";
+import { audienceKind, audienceOfKind, whoSeesLabel } from "@dougbot/client/lib/who-sees";
 import { type QueryClient, useQueryClient } from "@tanstack/react-query";
 import { act, cleanup } from "@testing-library/react";
 import type { TFunction } from "i18next";

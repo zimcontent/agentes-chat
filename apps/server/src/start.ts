@@ -40,15 +40,15 @@ import {
   type MailAdapters,
   postgresJsNotifier,
   type WebPushSender,
-} from "@agenteschat/adapters";
-import { type Config, ConfigError, composioAuthConfigs, loadConfig, redactConfig } from "@agenteschat/config";
+} from "@dougbot/adapters";
+import { type Config, ConfigError, composioAuthConfigs, loadConfig, redactConfig } from "@dougbot/config";
 import {
   createDatabase,
   type Database,
   type DatabaseHandle,
   ensureMessagePartitions,
   MigrationMismatchError,
-} from "@agenteschat/db";
+} from "@dougbot/db";
 import {
   APP_JOB_KINDS,
   activeRunCount,
@@ -56,6 +56,7 @@ import {
   allowPrivateOutbound,
   allowsPrivateEndpoints,
   backfillMemoryTrust,
+  cappedPlatformCredentials,
   composioUsageHook,
   // The approval portal kept in this server's own database (docs/adr/doug-0031-embedded-approval-portal.md).
   createEmbeddedApprovalPortal,
@@ -85,6 +86,7 @@ import {
   retireHostTokens,
   retireMillionSendMailboxes,
   setMessageLinkBase,
+  setPlatformCapDefault,
   setRestrictionNotices,
   setWorkspaceComputers,
   shareCacheInvalidations,
@@ -92,19 +94,19 @@ import {
   vapidKeys,
   vapidSubject,
   widenDmHowTos,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import {
-  type AgentesModule,
   ClientConfigError,
   type ClientOverrides,
+  type DougBotModule,
   type Edition,
   loadClient,
   locateClient,
   type ModuleContext,
   overridesOf,
   resolveAdapters,
-} from "@agenteschat/modules";
-import { createModelProviders, enableOpenRouterModels } from "@agenteschat/providers";
+} from "@dougbot/modules";
+import { createModelProviders, enableOpenRouterModels } from "@dougbot/providers";
 import { createApp } from "./app";
 import { createAuth } from "./auth";
 import { buildEngine } from "./engine";
@@ -113,7 +115,7 @@ import { FILE_UPLOAD_PATH, SERVER_BODY_BYTES } from "./http/body-limit";
 import { checkHumanCheckAtBoot, createHumanCheck } from "./http/human-check";
 import { createLogger, type Logger } from "./logger";
 import { OPERATOR_API_PREFIX, serveOperatorApi } from "./operator/app";
-import { apnsKeyGaps, directPushSenders, phonePushMode, relayServeSender } from "./push-senders";
+import { apnsKeyGaps, directPushSenders, liveActivitySender, phonePushMode, relayServeSender } from "./push-senders";
 import { createMachineSockets } from "./realtime/machines";
 import { createStreamSockets } from "./realtime/streams";
 import { createRealtime, type SocketData } from "./realtime/ws";
@@ -137,7 +139,7 @@ const EXIT_FLUSH_MS = 2_000;
 
 export interface StartOptions {
   edition: Edition;
-  modules?: AgentesModule[];
+  modules?: DougBotModule[];
   /**
    * Answer only requests addressed to this server's own names (`127.0.0.1:<PORT>`, `localhost:<PORT>`
    * and `PUBLIC_URL`'s host), with a 421 for any other: native mode listens on loopback, where a web
@@ -162,7 +164,7 @@ export function applyBootSwitches(config: Config) {
 }
 
 /**
- * Boots an agentes.chat server: config → database → migrations → adapters
+ * Boots a DougBot server: config → database → migrations → adapters
  * (core defaults, then module overrides) → HTTP + WebSocket → workers.
  * Shared by the self-hosted entrypoint (`src/main.ts`) and any entrypoint
  * that adds public modules (ADR 0002); only `modules` differ.
@@ -337,6 +339,7 @@ async function boot(
   let gifKey: GifKey | null = null;
   // The installation's own file store, made before the adapters that share it: the approval portal keeps a post's
   // files there (docs/adr/doug-0031-embedded-approval-portal.md).
+  setPlatformCapDefault(config.PLATFORM_AI_USD_PER_MONTH);
   const platformBlobs = platformBlobStore(config, database.db);
   const defaults: Adapters = {
     search: createPostgresSearchResolver(database.db),
@@ -347,13 +350,19 @@ async function boot(
     keyWrapper: localKeyWrapper,
     legacyKeyWrappers: [],
     email: emailSender(config, log),
-    platformCredentials: envPlatformCredentials({
-      anthropic: { apiKey: config.PLATFORM_ANTHROPIC_API_KEY, workspaceId: config.PLATFORM_ANTHROPIC_WORKSPACE_ID },
-    }),
+    // The server's own key, bounded per workspace by its platform cap (docs/adr/doug-0035-beta.md).
+    platformCredentials: cappedPlatformCredentials(
+      database.db,
+      envPlatformCredentials({
+        anthropic: { apiKey: config.PLATFORM_ANTHROPIC_API_KEY, workspaceId: config.PLATFORM_ANTHROPIC_WORKSPACE_ID },
+      }),
+    ),
     platformBlobs,
     // Phone app push (ADR 0035, ADR 0152, ADR 0178): only devices that registered get anything. Android straight
     // to Firebase and iPhones straight to Apple, or through the push relay (`PUSH_SENDER`).
     push: createPhonePushSender({ android: phoneSender("android"), ios: phoneSender("ios") }),
+    // Live Activities (docs/adr/doug-0021-lock-screen.md): straight to Apple only, never through the relay.
+    liveActivities: liveActivitySender(direct, pushModes.ios),
     // Browser push (ADR 0071): the installation's own VAPID pair, made on first use.
     webPush: webPushSender(config, database.db, keyWrappers, log),
     // Each Composio call counts for its workspace before it is made (ADR 0107 §7).
@@ -628,6 +637,7 @@ async function boot(
       net: { allowPrivate: allowsPrivateEndpoints(config) },
     }),
     errors,
+    liveActivities: adapters.liveActivities ?? null,
     log,
   });
   // A restart announced ahead (ADR doug-0005): no long job starts here, runs stop at their next step.
@@ -700,6 +710,7 @@ async function boot(
     ...adapters,
     machines: createMachineSockets(engine.machineHub),
     browserLive: engine.browserLive,
+    liveVoice: engine.liveVoice,
     streams: createStreamSockets({ db: database.db, auth, config, broker: engine.streams }),
   });
   const publicUrl = new URL(config.PUBLIC_URL);
@@ -940,7 +951,7 @@ function webPushSender(config: Config, db: Database, wrappers: () => KeyWrapper[
 }
 
 /**
- * GIF search (ADR 0091): on agentes.chat's own servers GIPHY only with `GIPHY_API_KEY`; elsewhere a provider that
+ * GIF search (ADR 0091): on DougBot's own servers GIPHY only with `GIPHY_API_KEY`; elsewhere a provider that
  * follows the installation's key (`GIPHY_API_KEY`, or the one its owner adds in Settings), there while it has one.
  */
 function gifProvider(config: Config, key: () => string | null): GifProvider | null {

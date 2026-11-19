@@ -2,7 +2,7 @@ import { afterEach, expect, test } from "bun:test";
 import { spawn } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { type MachineRequest, parseBrainEvent } from "@agenteschat/adapters";
+import { type MachineRequest, parseBrainEvent } from "@dougbot/adapters";
 import {
   CODEX_CHAT_CONFIG,
   CODEX_CHAT_OFF,

@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { MessagePin } from "@agenteschat/client";
-import { pinsIn } from "@agenteschat/client/lib/pins";
+import type { MessagePin } from "@dougbot/client";
+import { pinsIn } from "@dougbot/client/lib/pins";
 import { orderPins, pinTarget } from "../../src/features/chat/logic";
 import {
   atDayTime,

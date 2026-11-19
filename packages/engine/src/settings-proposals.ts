@@ -1,5 +1,5 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, type Executor, eq, isNull, schema } from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import { and, type Database, type Executor, eq, isNull, schema } from "@dougbot/db";
 import { accessInputOf, replaceableGrants, setAgentAccess } from "./access";
 import { moveAgentToGroup } from "./agent-groups";
 import { type Agent, archiveAgent, getAgent, unarchiveAgent, updateAgent, validateAgentFields } from "./agents";

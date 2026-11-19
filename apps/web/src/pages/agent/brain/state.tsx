@@ -1,4 +1,4 @@
-import type { AgentBrain, BrainKind, MachineAccount, MachineAccountKind, PlanUsage } from "@agenteschat/client";
+import type { AgentBrain, BrainKind, MachineAccount, MachineAccountKind, PlanUsage } from "@dougbot/client";
 import {
   useAiAccounts,
   useAiStatus,
@@ -7,7 +7,7 @@ import {
   useModels,
   usePlatformKey,
   useSettings,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   type AccountChoice,
   accountAbout,
@@ -19,12 +19,12 @@ import {
   ownSignInName,
   ownSignInTitle,
   signInOf,
-} from "@agenteschat/client/lib/ai-accounts";
-import { advancedContents, effortOf, viewSpeedFits } from "@agenteschat/client/lib/brain-advanced";
-import { computerNameOf, setupView } from "@agenteschat/client/lib/computer";
-import { contextChoices, isContextLimit } from "@agenteschat/client/lib/context-limits";
-import { holdText } from "@agenteschat/client/lib/errors";
-import { firstName, namesText } from "@agenteschat/client/lib/format";
+} from "@dougbot/client/lib/ai-accounts";
+import { advancedContents, effortOf, viewSpeedFits } from "@dougbot/client/lib/brain-advanced";
+import { computerNameOf, setupView } from "@dougbot/client/lib/computer";
+import { contextChoices, isContextLimit } from "@dougbot/client/lib/context-limits";
+import { holdText } from "@dougbot/client/lib/errors";
+import { firstName, namesText } from "@dougbot/client/lib/format";
 import {
   type AiChoice,
   aiChoiceOf,
@@ -36,8 +36,8 @@ import {
   planOfAccount,
   planOfKind,
   unsupportedGate,
-} from "@agenteschat/client/lib/no-ai";
-import { can as canDo } from "@agenteschat/client/lib/permissions";
+} from "@dougbot/client/lib/no-ai";
+import { can as canDo } from "@dougbot/client/lib/permissions";
 import {
   brainModelChoice,
   brainModelChoices,
@@ -45,10 +45,10 @@ import {
   PLAN_IDS,
   planModel as planModelOf,
   planOf,
-} from "@agenteschat/client/lib/plans";
-import { apiProviderOf, isAuto, keyLine, keySource, modelChoices } from "@agenteschat/client/lib/providers";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
-import { Icon, type IconName, ProviderLogo, planState } from "@agenteschat/ui";
+} from "@dougbot/client/lib/plans";
+import { apiProviderOf, isAuto, keyLine, keySource, modelChoices } from "@dougbot/client/lib/providers";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
+import { Icon, type IconName, ProviderLogo, planState } from "@dougbot/ui";
 import { useTranslation } from "react-i18next";
 import { modelOptions as apiModelOptions, DEFAULT_KEY } from "@/components/AgentFields";
 import type { HaveItem } from "@/components/arrival/ConnectHave";

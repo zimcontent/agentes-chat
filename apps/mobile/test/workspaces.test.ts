@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { Me, OrgSummary } from "@agenteschat/client";
+import type { Me, OrgSummary } from "@dougbot/client";
 import { workspacesBeyond } from "../src/features/me/logic";
 import { orderedServers, unreadElsewhere, workspacesOf } from "../src/features/me/workspaces-logic";
 import { newWorkspaceMade, offersNewWorkspaceHere } from "../src/lib/new-workspace";
@@ -188,7 +188,7 @@ describe("Workspaces", () => {
     expect(offersNewWorkspaceHere(box, me())).toBe(true);
     expect(offersNewWorkspaceHere(box, me(false))).toBe(false);
     expect(offersNewWorkspaceHere(box, undefined)).toBe(false);
-    // On agentes.chat its own row makes one there.
+    // On DougBot its own row makes one there.
     expect(offersNewWorkspaceHere(cloud, me(true))).toBe(false);
     const sheet = readFileSync(join(import.meta.dir, "../src/features/me/WorkspacesPages.tsx"), "utf8");
     expect(sheet).toContain("{offersNewWorkspaceHere(server, me) ? (");

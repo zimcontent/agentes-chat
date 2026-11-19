@@ -1,13 +1,13 @@
 import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { AgentComputer, Machine } from "@agenteschat/client";
-import { ApiError, applyComputerEvent, applyMachineEvent, keys } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { fileIcon, formatBytes, MAX_UPLOAD_BYTES, previewKind } from "@agenteschat/client/lib/files";
-import { taskNoticeOf } from "@agenteschat/client/lib/missions";
+import type { AgentComputer, Machine } from "@dougbot/client";
+import { ApiError, applyComputerEvent, applyMachineEvent, keys } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { fileIcon, formatBytes, MAX_UPLOAD_BYTES, previewKind } from "@dougbot/client/lib/files";
+import { taskNoticeOf } from "@dougbot/client/lib/missions";
 import { QueryClient } from "@tanstack/react-query";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { fileSaver } from "@/components/artifacts/ArtifactViewer";

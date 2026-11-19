@@ -8,8 +8,8 @@ import {
   type VideoReview,
   type VideoReviewAttachmentInput,
   type VideoReviewNoteKind,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useEffect, useRef, useState } from "react";

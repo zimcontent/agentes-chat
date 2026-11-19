@@ -1,6 +1,6 @@
-import { ApiError } from "@agenteschat/client";
-import { errorCode, errorText } from "@agenteschat/client/lib/errors";
-import { BRAND_NAME, Button, Icon, Locked } from "@agenteschat/ui";
+import { ApiError } from "@dougbot/client";
+import { errorCode, errorText } from "@dougbot/client/lib/errors";
+import { BRAND_NAME, Button, Icon, Locked } from "@dougbot/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { FormEvent } from "react";

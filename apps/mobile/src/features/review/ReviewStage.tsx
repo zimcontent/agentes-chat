@@ -1,4 +1,4 @@
-import { timecode, type VideoReviewNote } from "@agenteschat/client";
+import { timecode, type VideoReviewNote } from "@dougbot/client";
 import { useEventListener } from "expo";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { type ComponentRef, type MutableRefObject, useEffect, useMemo, useRef, useState } from "react";

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { serverText } from "@agenteschat/i18n";
-import { LOCALE_CODES } from "@agenteschat/i18n/locale";
+import { serverText } from "@dougbot/i18n";
+import { LOCALE_CODES } from "@dougbot/i18n/locale";
 import { QueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
 import { ApiError } from "../src/api/http";

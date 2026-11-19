@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { serverText } from "@agenteschat/i18n";
-import { HELP, type HelpBlock } from "@agenteschat/i18n/help";
-import type { AppLocale } from "@agenteschat/i18n/locale";
+import { serverText } from "@dougbot/i18n";
+import { HELP, type HelpBlock } from "@dougbot/i18n/help";
+import type { AppLocale } from "@dougbot/i18n/locale";
 import { desktopStrings } from "../src/i18n";
 
 const REPO = join(import.meta.dir, "..", "..", "..");

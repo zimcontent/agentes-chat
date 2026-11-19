@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
+import { eq, schema } from "@dougbot/db";
 import {
   connectVaultSource,
   createVaultItem,

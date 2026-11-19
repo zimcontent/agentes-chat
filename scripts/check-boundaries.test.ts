@@ -80,35 +80,35 @@ test("a hashed word is caught in any case, alone or in a hyphenated name, never 
 
 test("a client's client.ts may import the module API and the public packages, and its own files", () => {
   const allowed = [
-    'import type { AgentesModule } from "@agenteschat/modules";',
-    'import { db } from "@agenteschat/db";',
+    'import type { DougBotModule } from "@dougbot/modules";',
+    'import { db } from "@dougbot/db";',
     'import { createRoute } from "@hono/zod-openapi";',
     'import { z } from "zod";',
     'import { helper } from "./helper";',
     'import { other } from "./nested/other";',
-    'const m = await import("@agenteschat/adapters");',
-    'const p = require("@agenteschat/providers");',
+    'const m = await import("@dougbot/adapters");',
+    'const p = require("@dougbot/providers");',
     'import { existsSync } from "node:fs";',
   ].join("\n");
   expect(clientImports([{ path: "clients/064/client.ts", text: allowed }])).toEqual([]);
   // The list is the contract: what the example uses, and no package outside it.
-  expect(CLIENT_PACKAGES).toContain("@agenteschat/modules");
+  expect(CLIENT_PACKAGES).toContain("@dougbot/modules");
 });
 
 test("a client folder reaching past the module API is refused, with the line", () => {
   const refused = [
     'import { executor } from "../../packages/engine/src/executor";',
     'import { thing } from "../064-outra/client";',
-    'import { private } from "@agenteschat/cloud";',
-    'import { ee } from "@agenteschat/ee";',
+    'import { private } from "@dougbot/cloud";',
+    'import { ee } from "@dougbot/ee";',
     'import { x } from "some-other-package";',
   ].join("\n");
   const hits = clientImports([{ path: "clients/064/client.ts", text: refused }]);
   expect(hits).toEqual([
     "clients/064/client.ts:1: ../../packages/engine/src/executor",
     "clients/064/client.ts:2: ../064-outra/client",
-    "clients/064/client.ts:3: @agenteschat/cloud",
-    "clients/064/client.ts:4: @agenteschat/ee",
+    "clients/064/client.ts:3: @dougbot/cloud",
+    "clients/064/client.ts:4: @dougbot/ee",
     "clients/064/client.ts:5: some-other-package",
   ]);
 });
@@ -121,14 +121,14 @@ test("an import no allow-list names is refused, however it is spelled", () => {
   const hole = (inner: string) => `${dollar}{${inner}}`;
   const cases: [string, string][] = [
     // A bare import, no `from`.
-    ['import "@agenteschat/engine";', "@agenteschat/engine"],
+    ['import "@dougbot/engine";', "@dougbot/engine"],
     // A template literal with a hole.
-    [`const x = await import(${tick}@agenteschat/${hole("name")}${tick});`, `${tick}@agenteschat/`],
+    [`const x = await import(${tick}@dougbot/${hole("name")}${tick});`, `${tick}@dougbot/`],
     [`const y = require(${tick}./a/${hole("b")}${tick});`, `${tick}./a/`],
     // A relative path that climbs out of the client's folder.
     ['import { x } from "./a/../../..";', "./a/../../.."],
     // `import.meta.resolve`, literal or not.
-    ['const r = import.meta.resolve("@agenteschat/engine");', "@agenteschat/engine"],
+    ['const r = import.meta.resolve("@dougbot/engine");', "@dougbot/engine"],
     ["const r = import.meta.resolve(name);", "name"],
     // A variable argument.
     ["const m = await import(module);", "module"],
@@ -142,11 +142,11 @@ test("an import no allow-list names is refused, however it is spelled", () => {
 });
 
 test("a specifier is named on the line the path is on, even with `from` below it", () => {
-  const text = 'import type { AgentesModule } from\n  "@agenteschat/engine";';
+  const text = 'import type { DougBotModule } from\n  "@dougbot/engine";';
   expect(clientImports([{ path: "clients/064/client.ts", text }])).toEqual([
-    "clients/064/client.ts:2: @agenteschat/engine",
+    "clients/064/client.ts:2: @dougbot/engine",
   ]);
-  const allowed = 'import type { AgentesModule } from\n  "@agenteschat/modules";';
+  const allowed = 'import type { DougBotModule } from\n  "@dougbot/modules";';
   expect(clientImports([{ path: "clients/064/client.ts", text: allowed }])).toEqual([]);
 });
 
@@ -167,9 +167,9 @@ test("a tournament of relative paths stays in the folder or leaves it, by where 
 test("every extension a client's folder may hold is read, not only .ts", () => {
   for (const extension of ["ts", "tsx", "mts", "cts", "js", "jsx", "mjs", "cjs"]) {
     const hits = clientImports([
-      { path: `clients/064/client.${extension}`, text: 'import { x } from "@agenteschat/engine";' },
+      { path: `clients/064/client.${extension}`, text: 'import { x } from "@dougbot/engine";' },
     ]);
-    expect(hits).toEqual([`clients/064/client.${extension}:1: @agenteschat/engine`]);
+    expect(hits).toEqual([`clients/064/client.${extension}:1: @dougbot/engine`]);
   }
 });
 

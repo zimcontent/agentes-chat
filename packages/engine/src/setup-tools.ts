@@ -1,6 +1,6 @@
-import { holdEvents, type PubSub } from "@agenteschat/adapters";
-import { and, count, eq, inArray, isNull, or, schema, sql } from "@agenteschat/db";
-import { isKnownProvider, PROVIDERS } from "@agenteschat/providers";
+import { holdEvents, type PubSub } from "@dougbot/adapters";
+import { and, count, eq, inArray, isNull, or, schema, sql } from "@dougbot/db";
+import { isKnownProvider, PROVIDERS } from "@dougbot/providers";
 import { actWithUndo, publishMessageActions } from "./agent-actions";
 import {
   AGENT_PROPOSAL_CARD,
@@ -89,7 +89,7 @@ export const OPEN_PAGE_CARD = "action_open_page";
 /**
  * The screens an "Abrir" card opens (`offer_open_page`), each with what it is for the model. The screen asks what
  * it always asks there (the email code and the typed name of a deletion, Stripe for billing, our dialogs for keys)
- * and checks the clicker's permissions. Mirrored in `@agenteschat/client/lib/app-pages` (their paths on the web and
+ * and checks the clicker's permissions. Mirrored in `@dougbot/client/lib/app-pages` (their paths on the web and
  * the phone).
  */
 export const APP_PAGES = {
@@ -242,7 +242,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * A catalog connector or one-click MCP server by its id or name ("GitHub", "google-drive"). With `server`, as this
- * server's "Adicionar conector" lists it, whether it connects here (`soon`: its vendor hasn't approved agentes.chat).
+ * server's "Adicionar conector" lists it, whether it connects here (`soon`: its vendor hasn't approved DougBot).
  */
 export function catalogConnector(
   name: string,

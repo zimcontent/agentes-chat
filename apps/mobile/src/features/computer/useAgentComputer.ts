@@ -10,9 +10,9 @@ import {
   useDesktopStatus,
   useMachines,
   useWorkingRuns,
-} from "@agenteschat/client";
-import type { AgentComputerFacts } from "@agenteschat/client/lib/agent-computer";
-import { computerEdition, setupView } from "@agenteschat/client/lib/computer";
+} from "@dougbot/client";
+import type { AgentComputerFacts } from "@dougbot/client/lib/agent-computer";
+import { computerEdition, setupView } from "@dougbot/client/lib/computer";
 import { useQuery } from "@tanstack/react-query";
 import { useOrg } from "@/providers/org";
 import { browserGranted } from "../browser/logic";

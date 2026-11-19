@@ -1,6 +1,6 @@
-import { createRequester, enc, keys, type RequestOptions } from "@agenteschat/client";
-import type { MoveTarget } from "@agenteschat/client/lib/machine-outages";
-import { visibleOutages } from "@agenteschat/client/lib/machine-outages";
+import { createRequester, enc, keys, type RequestOptions } from "@dougbot/client";
+import type { MoveTarget } from "@dougbot/client/lib/machine-outages";
+import { visibleOutages } from "@dougbot/client/lib/machine-outages";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { appHeaders, readCookie } from "@/lib/auth";
@@ -9,7 +9,7 @@ import { useOrgId } from "../shared/hooks";
 import { type MachineOutages, type MoveAgentsResult, OUTAGES_POLL_MS } from "./logic";
 
 /*
- * Mobile-local hooks for the offline-computer endpoints. The shared client (`@agenteschat/client`) gets
+ * Mobile-local hooks for the offline-computer endpoints. The shared client (`@dougbot/client`) gets
  * `useMachineOutages` / `useMoveAgents` from the web's work; once both are on main these become thin
  * re-exports (same query key, so nothing else changes).
  */

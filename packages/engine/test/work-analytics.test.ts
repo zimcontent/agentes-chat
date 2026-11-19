@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
-import { summedCostNanoUsd } from "@agenteschat/providers";
+import { eq, schema } from "@dougbot/db";
+import { summedCostNanoUsd } from "@dougbot/providers";
 import {
   createAgent,
   createOrganization,

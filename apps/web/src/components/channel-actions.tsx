@@ -1,6 +1,6 @@
-import type { Agent, Message as MessageType } from "@agenteschat/client";
-import type { ConsultPairItem } from "@agenteschat/client/lib/consult-group";
-import { Menu, MenuItem } from "@agenteschat/ui";
+import type { Agent, Message as MessageType } from "@dougbot/client";
+import type { ConsultPairItem } from "@dougbot/client/lib/consult-group";
+import { Menu, MenuItem } from "@dougbot/ui";
 import { createContext, useContext } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";

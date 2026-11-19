@@ -72,6 +72,7 @@ import {
 } from "../lib/sidebar-items";
 import { repinAgent, SIDEBAR_VIEW_DEFAULT, unpinAgents } from "../lib/sidebar-view";
 import { playSound } from "../lib/sounds";
+import { movedInAgenda } from "../lib/team-agenda";
 import type { TeamWeekAct } from "../lib/team-week";
 import { threadStartOf } from "../lib/threads";
 import { upsertMessage, withLocalCopies } from "../lib/timeline";
@@ -154,6 +155,7 @@ import type {
   JevKey,
   JevKeyInput,
   LiveVoice,
+  LiveVoiceEngine,
   Machine,
   MachineAccessReduce,
   MachineTool,
@@ -205,6 +207,7 @@ import type {
   SandboxSettingsInput,
   SearchFilterInput,
   SearchKind,
+  SectorName,
   SeriesScope,
   SetupStep,
   SidebarItem,
@@ -222,6 +225,8 @@ import type {
   StorageMigration,
   StorageSave,
   TaskManagerView,
+  TaskQueueMove,
+  TeamAgenda,
   TeamProposalCard,
   ThreadAction,
   ThreadCreateInput,
@@ -465,7 +470,7 @@ export const useSaveSpeechKey = () =>
 export const useRemoveSpeechKey = () => useSpeechKeyChange<void>((api) => api.system.removeSpeechKey());
 
 /**
- * The company requests, for the installation's owner (`null` to everyone else, and on agentes.chat itself), one page
+ * The company requests, for the installation's owner (`null` to everyone else, and on DougBot itself), one page
  * at a time, filtered by step and by a search over the company, the person and the address.
  */
 export const useCompanyRequests = (query: { status?: string; q?: string } = {}) => {
@@ -557,6 +562,12 @@ export const useSaveLiveVoiceKey = (orgId: string) =>
   useLiveVoiceChange(orgId, (api, apiKey: string) => api.liveVoice.saveKey(orgId, apiKey));
 export const useRemoveLiveVoiceKey = (orgId: string) =>
   useLiveVoiceChange<void>(orgId, (api) => api.liveVoice.removeKey(orgId));
+/** The voice of calls here (docs/adr/doug-0036-house-voice.md): the house voice, GPT-Live, or null for the default. */
+export const useSetLiveVoiceEngine = (orgId: string) =>
+  useLiveVoiceChange(orgId, (api, engine: LiveVoiceEngine | null) => api.liveVoice.setEngine(orgId, engine));
+/** The most credits the house voice may spend here in a month; null: no limit. */
+export const useSetLiveVoiceLimit = (orgId: string) =>
+  useLiveVoiceChange(orgId, (api, credits: number | null) => api.liveVoice.setMonthlyLimit(orgId, credits));
 /** The workspace's notes on how its agents behave on calls (docs/adr/doug-0006-live-voice.md §11). */
 export const useSaveCallNotes = (orgId: string) =>
   useLiveVoiceChange(orgId, (api, notes: string) => api.liveVoice.saveCallNotes(orgId, notes));
@@ -2687,6 +2698,28 @@ export function useAgentTwins(orgId: string, agentId: string) {
   return useQuery({ queryKey: keys.agentTwins(orgId, agentId), queryFn: () => api.carry.twins(orgId, agentId) });
 }
 
+/** Whether this workspace is a separate operation (ADR doug-0035): what its agents carry to the owner's others. */
+export function useSeparateOperation(orgId: string, enabled = true) {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.separateOperation(orgId),
+    queryFn: () => api.carry.separateOperation(orgId),
+    enabled,
+  });
+}
+
+export function useSetSeparateOperation(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { on?: boolean; names?: string[] }) => api.carry.setSeparateOperation(orgId, input),
+    onSuccess: (view) => {
+      qc.setQueryData(keys.separateOperation(orgId), view);
+      return qc.invalidateQueries({ queryKey: ["org", orgId, "agent-twins"] });
+    },
+  });
+}
+
 /** Joins the agent with its copy in another workspace, or takes it out (`otherAgentId` null). */
 export function useSetAgentTwin(orgId: string, agentId: string) {
   const api = useApi();
@@ -3280,6 +3313,28 @@ export const useRonda = (orgId: string, agentId: string) => {
     enabled: orgId.length > 0 && agentId.length > 0,
   });
 };
+
+/** The right hand's pills above the composer (doug-0020): the sectors with something for me, refreshed now and then. */
+export const useSectorPills = (orgId: string, agentId: string, enabled = true) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.sectorPills(orgId, agentId),
+    queryFn: () => api.agents.sectorPills(orgId, agentId),
+    enabled: enabled && orgId.length > 0 && agentId.length > 0,
+    staleTime: 60_000,
+    refetchInterval: 5 * 60_000,
+  });
+};
+
+/** A pill pressed: the right hand shows that sector's card now; the pills read again after. */
+export function useShowSectorCard(orgId: string, agentId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (sector: SectorName) => api.agents.showSectorCard(orgId, agentId, sector),
+    onSettled: () => qc.invalidateQueries({ queryKey: keys.sectorPills(orgId, agentId) }),
+  });
+}
 
 /** Turns an agent's ronda on or off, in the browser's time zone; the ronda and Rotinas follow. */
 export function useSetRonda(orgId: string, agentId: string) {
@@ -4269,12 +4324,14 @@ export function useMemoryAction(orgId: string, agentId: string) {
         | { type: "pin"; id: string; pinned: boolean }
         | { type: "archive"; id: string; archived: boolean }
         | { type: "confirm"; id: string }
-        | { type: "team"; id: string },
+        | { type: "team"; id: string }
+        | { type: "reach"; id: string; reach: "all" | "here" },
     ) => {
       if (action.type === "edit") return api.memory.edit(orgId, action.id, action.text);
       if (action.type === "pin") return api.memory.setPinned(orgId, action.id, action.pinned);
       if (action.type === "confirm") return api.memory.confirm(orgId, action.id);
       if (action.type === "team") return api.memory.makeTeam(orgId, action.id);
+      if (action.type === "reach") return api.memory.setReach(orgId, action.id, action.reach);
       return api.memory.setArchived(orgId, action.id, action.archived);
     },
     onSuccess: () =>
@@ -4551,6 +4608,15 @@ export const useBlockReply = (orgId: string, id: string) => {
   });
 };
 
+/**
+ * A card's button that runs on the server (`act`, docs/adr/doug-0020-doug-sector-cards.md): pressed once; the button
+ * shows it done when `block.state` comes back with `_acted`.
+ */
+export const useBlockAct = (orgId: string, id: string) => {
+  const api = useApi();
+  return useMutation({ mutationFn: (act: string) => api.artifacts.blockAct(orgId, id, act) });
+};
+
 /** How long a block's changes gather before they go: a dragged slider sends a few values, not one per step. */
 const BLOCK_SEND_MS = 250;
 
@@ -4684,6 +4750,41 @@ export function useSaveArtifact(orgId: string, id: string) {
   });
 }
 
+/** The Drive's folders and how many files the viewer sees in each (docs/adr/doug-0036-drive-folders.md). */
+export function useDriveFolders(orgId: string) {
+  const api = useApi();
+  return useQuery({ queryKey: keys.driveFolders(orgId), queryFn: () => api.artifacts.folders(orgId) });
+}
+
+/**
+ * Makes, renames, moves and removes folders, files files and keeps drafts; every one reads the Drive again. Errors
+ * are the caller's to say.
+ */
+export function useDriveOrganize(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  const settled = () => qc.invalidateQueries({ queryKey: keys.artifacts(orgId) });
+  const opts = { meta: { silent: true }, onSettled: settled };
+  return {
+    createFolder: useMutation({
+      mutationFn: (input: { name: string; parentId?: string | null }) => api.artifacts.createFolder(orgId, input),
+      ...opts,
+    }),
+    updateFolder: useMutation({
+      mutationFn: (input: { id: string; name?: string; parentId?: string | null }) =>
+        api.artifacts.updateFolder(orgId, input.id, { name: input.name, parentId: input.parentId }),
+      ...opts,
+    }),
+    removeFolder: useMutation({ mutationFn: (id: string) => api.artifacts.removeFolder(orgId, id), ...opts }),
+    file: useMutation({
+      mutationFn: (input: { ids: string[]; folderId: string | null }) =>
+        api.artifacts.file(orgId, input.ids, input.folderId),
+      ...opts,
+    }),
+    keepDraft: useMutation({ mutationFn: (id: string) => api.artifacts.keepDraft(orgId, id), ...opts }),
+  };
+}
+
 /** "Compartilhar" (ADR 0157): who sees a file on top of its conversation. The dialog says a failure itself. */
 export function useSetArtifactSharing(orgId: string) {
   const api = useApi();
@@ -4760,6 +4861,32 @@ export const useTeamAgenda = (orgId: string, from: string, days: number, enabled
     refetchInterval: 5 * 60_000,
   });
 };
+
+/**
+ * Moves a task in its assignee's queue on the agenda (ADR doug-0022): at once on every agenda on screen, then the
+ * server's order read back. A refusal puts the order back.
+ */
+export function useMoveInQueue(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  const root = ["org", orgId, "issues", "agenda"] as const;
+  return useMutation({
+    mutationFn: (move: TaskQueueMove) =>
+      api.issues.moveInQueue ? api.issues.moveInQueue(orgId, move) : Promise.reject(new Error("no queue")),
+    onMutate: async (move) => {
+      await qc.cancelQueries({ queryKey: root });
+      const before = qc.getQueriesData<TeamAgenda>({ queryKey: root });
+      for (const [key, agenda] of before) {
+        if (agenda) qc.setQueryData<TeamAgenda>(key, { ...agenda, tasks: movedInAgenda(agenda.tasks, move) });
+      }
+      return { before };
+    },
+    onError: (_e, _v, ctx) => {
+      for (const [key, agenda] of ctx?.before ?? []) qc.setQueryData(key, agenda);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: root }),
+  });
+}
 
 export const useIssue = (orgId: string, number: number, enabled = true) => {
   const api = useApi();
@@ -6966,7 +7093,9 @@ export function applyIssueEvent(qc: QueryClient, orgId: string, event: { type: s
     event.type === "issue.created" ||
     event.type === "issue.updated" ||
     event.type === "issue.deleted" ||
-    event.type === "issue.audience"
+    event.type === "issue.audience" ||
+    // Someone moved a task in a queue (ADR doug-0022): the agenda reads again.
+    event.type === "issue.queue"
   )
     readOncePerBurst(`${orgId}:issues`, () => void qc.invalidateQueries({ queryKey: keys.issues(orgId) }));
   // A task's conversation has no members to hear `channel.activity`: a notice about the task is my news of it.

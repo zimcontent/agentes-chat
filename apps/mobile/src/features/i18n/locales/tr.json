@@ -23,7 +23,13 @@
     "itsChannels": "Gruplar",
     "seeAll": "Tümünü gör"
   },
+  "sectorPills": {
+    "label": "Kısayollar",
+    "failed": "Kart gelmedi. Tekrar dene."
+  },
   "blocks": {
+    "done": "Tamam",
+    "actFailed": "Olmadı. Tekrar dene.",
     "send": "Gönder",
     "more": "Daha fazla",
     "thousand": "B",
@@ -44,7 +50,20 @@
     "pollMultiple": "Birden fazla seçebilirsiniz.",
     "pollAnswered_one": "{{count}} / {{total}} yanıtladı",
     "pollAnswered_other": "{{count}} / {{total}} yanıtladı",
-    "voteFailed": "Oyunuz kaydedilemedi."
+    "voteFailed": "Oyunuz kaydedilemedi.",
+    "openPiece": "Büyük aç",
+    "openSlide": "{{at}}. slaytı aç",
+    "pieceAt": "{{at}} / {{count}}",
+    "carouselTitle": "Karusel",
+    "posterTitle": "Statik gönderi",
+    "reelTitle": "Reels senaryosu",
+    "aboutSlide": "{{at}}. slayt (“{{title}}”)",
+    "aboutPoster": "statik gönderi (“{{title}}”)",
+    "aboutBeat": "reels'in {{time}} bölümü",
+    "noteMessage": "{{about}} hakkında: {{note}}",
+    "notePlaceholder": "Not ekle: {{about}}",
+    "noteLabel": "Notunuz",
+    "noteSent": "{{name}} adlı kişiye gönderildi"
   },
   "choices": {
     "step": "{{step}} / {{total}}",
@@ -2469,6 +2488,16 @@
     "week": "Hafta",
     "month": "Ay",
     "sheet": {
+      "nowTitle": "Şimdi",
+      "account": "Hesap",
+      "model": "Model",
+      "effort": "Efor",
+      "context": "Bağlam",
+      "contextFull": "Modelin tüm penceresi",
+      "autoPerTask": "her görevde seçilir",
+      "autoLine": "Aynı hesapta her görev için modeli ve eforu seçer.",
+      "switchTitle": "Şuna geç",
+      "on": "{{place}} üzerinde",
       "title": "{{name}} için yapay zekâyı değiştir",
       "title_female": "{{name}} için yapay zekâyı değiştir",
       "smart": "En akıllı",

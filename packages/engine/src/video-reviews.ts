@@ -10,8 +10,8 @@ import {
   type PubSub,
   type SpeechEngine,
   type VideoCopies,
-} from "@agenteschat/adapters";
-import { and, asc, type Database, desc, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, asc, type Database, desc, eq, inArray, isNull, schema, sql } from "@dougbot/db";
 import { type ArtifactActor, type ArtifactDeps, storedFileOfArtifact } from "./artifacts";
 import { requireChannelAccess } from "./channels";
 import { afterApproveOf, cardCaptionOf, queueDesignDelivery } from "./design-delivery";
@@ -1181,6 +1181,34 @@ export function decisionMessage(input: {
 }
 
 /**
+ * What people read of a decision (`meta.videoReview.said`): what the person wrote and the notes, without the agent's
+ * instructions (ids, tools, the skill to run), which the apps show only in the technical style.
+ */
+export function decisionShown(input: Pick<Parameters<typeof decisionMessage>[0], "design" | "notes" | "message">) {
+  const lines: string[] = [];
+  const design = input.design;
+  if (input.message.trim()) lines.push(input.message.trim());
+  if (input.notes.length > 0) {
+    if (lines.length > 0) lines.push("");
+    for (const note of input.notes) {
+      const body = note.body.replace(/\n+/g, " ").trim() || "(sem texto: veja o anexo)";
+      const kind = note.kind && note.kind in KIND_WORDS ? ` ${KIND_WORDS[note.kind as ReviewNoteKind]}:` : "";
+      lines.push(
+        `- [${where(note.atMs, note.endMs ?? null, design ? (note.page ?? null) : null)}]${kind} ${body}${note.author ? ` (${note.author})` : ""}`,
+      );
+      for (const a of note.attachments ?? []) {
+        lines.push(
+          a.type === "file"
+            ? `  - Anexo (${MEDIA_WORDS[a.media]}): ${a.name}`
+            : `  - Link: ${a.label && a.label !== a.url ? `[${a.label}](${a.url})` : a.url}`,
+        );
+      }
+    }
+  }
+  return lines.join("\n");
+}
+
+/**
  * Approves the newest version or asks for changes to it: the notes not yet sent go to the agent in one message from
  * this person, in the conversation the video came from, which starts the agent's work on it.
  */
@@ -1285,6 +1313,21 @@ export async function decideVideoReview(
         ),
       );
   }
+  const facts = {
+    design,
+    notes: notes.map((n) => ({
+      atMs: n.atMs,
+      endMs: n.endMs,
+      page: n.page,
+      kind: n.kind,
+      x: n.x,
+      y: n.y,
+      body: n.body,
+      attachments: n.attachments ?? [],
+      author: n.author ?? "",
+    })),
+    message,
+  };
   await postPersonMessage(
     deps,
     userId,
@@ -1297,22 +1340,20 @@ export async function decideVideoReview(
         version: review.version,
         reviewId: review.id,
         decision: input.decision,
-        design,
-        notes: notes.map((n) => ({
-          atMs: n.atMs,
-          endMs: n.endMs,
-          page: n.page,
-          kind: n.kind,
-          x: n.x,
-          y: n.y,
-          body: n.body,
-          attachments: n.attachments ?? [],
-          author: n.author ?? "",
-        })),
-        message,
+        ...facts,
       }),
       threadId: review.threadId,
-      meta: { videoReview: { id: review.id, version: review.version, decision: input.decision } },
+      // The body is the agent's; people read the decision from here (`reviewDecisionOf` in the apps).
+      meta: {
+        videoReview: {
+          id: review.id,
+          version: review.version,
+          decision: input.decision,
+          title: review.title,
+          handle: agent.handle,
+          said: decisionShown(facts),
+        },
+      },
     },
     { place },
   );

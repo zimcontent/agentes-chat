@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { type ComputerSetup, NetworkError } from "@agenteschat/client";
+import { type ComputerSetup, NetworkError } from "@dougbot/client";
 import { cleanup } from "@testing-library/react";
 import { ADA_ID, ATLAS_ID, createFakeApi, fakeBrowserOf, fakeMachinesOf, ORG_ID, seedState } from "./fake-api";
 import { renderApp, screen, settle } from "./render";

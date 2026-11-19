@@ -1,12 +1,12 @@
-import type { PortalCard, PortalCardFile, PortalType } from "@agenteschat/client";
-import { useSavePortalCard } from "@agenteschat/client";
+import type { PortalCard, PortalCardFile, PortalType } from "@dougbot/client";
+import { useSavePortalCard } from "@dougbot/client";
 import {
   PORTAL_TYPES,
   portalClientName,
   portalDayOf,
   portalErrorText,
   portalWithResponsible,
-} from "@agenteschat/client/lib/portal";
+} from "@dougbot/client/lib/portal";
 import {
   Button,
   DatePicker,
@@ -18,7 +18,7 @@ import {
   Locked,
   Select,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { type RefObject, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { actorFromKey, NO_ACTOR, useActors } from "@/components/actors";

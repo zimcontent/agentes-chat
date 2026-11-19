@@ -1,4 +1,4 @@
-import { ACCOUNT_KINDS, BRAIN_EFFORTS, BRAIN_SPEEDS } from "@agenteschat/adapters";
+import { ACCOUNT_KINDS, BRAIN_EFFORTS, BRAIN_SPEEDS } from "@dougbot/adapters";
 import {
   AGENT_ACTION_KINDS,
   AGENT_STYLES,
@@ -11,8 +11,8 @@ import {
   STANDING_STATES,
   START_PAGES,
   WORKSPACE_MODES,
-} from "@agenteschat/engine";
-import { CONTEXT_LIMITS, ENDPOINT_STYLES, MODEL_TIERS, PROVIDER_IDS } from "@agenteschat/providers";
+} from "@dougbot/engine";
+import { CONTEXT_LIMITS, ENDPOINT_STYLES, MODEL_TIERS, PROVIDER_IDS } from "@dougbot/providers";
 import { z } from "@hono/zod-openapi";
 
 /** Who a task or a wiki page is for (ADR 0151): "only me" is a list of one. Administrators always see it. */
@@ -541,6 +541,11 @@ export const Agent = z
       .optional()
       .openapi({ description: "Its voice on calls (ADR doug-0006): the one picked or its id's." }),
     voiceChosen: z.boolean().optional().openapi({ description: "A person picked its voice." }),
+    houseVoice: z.string().optional().openapi({
+      description:
+        "Its house voice (docs/adr/doug-0036-house-voice.md): the one picked, or one like its GPT-Live voice.",
+    }),
+    houseVoiceChosen: z.boolean().optional().openapi({ description: "A person picked its house voice." }),
     liveCallNotes: z
       .string()
       .nullable()

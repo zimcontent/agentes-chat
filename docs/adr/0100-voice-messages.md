@@ -148,7 +148,7 @@ still dropped; with either, the message goes.
 
 **What reads what.** Agents get the body as before, typed part first, with no prompt change, so mentions, routing,
 context and search see both. The apps show `meta.voice.text` as text above the player and the rest of the body as the
-player's words (`voiceParts` in `@agenteschat/client`). Lists, notifications, push, thread titles and quotes show the
+player's words (`voiceParts` in `@dougbot/client`). Lists, notifications, push, thread titles and quotes show the
 typed part (`readableBody`, `listedText`), and name the message a voice message only when nothing was typed: such a
 message's preview carries no `voice` and no `mediaKind`, and its quote no `mediaKind`.
 

@@ -9,7 +9,7 @@ import {
   parseRunnerFrame,
   type RunnerFrame,
   type TaskDone,
-} from "@agenteschat/adapters/machine-protocol";
+} from "@dougbot/adapters/machine-protocol";
 import { handleRequest } from "../../runner/handlers";
 import { copiedFiles, missionWorktree, readProjectConfig, setupCommandFor } from "../../runner/mission-worktree";
 import { agentWorkspace } from "../../runner/paths";

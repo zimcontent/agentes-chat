@@ -1,8 +1,8 @@
-import type { Channel } from "@agenteschat/client";
-import { useDeleteChannel } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { matchesName } from "@agenteschat/client/lib/text";
-import { AffixInput, Button, Dialog, DialogBody, DialogFooter, Field, Icon, Locked } from "@agenteschat/ui";
+import type { Channel } from "@dougbot/client";
+import { useDeleteChannel } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { matchesName } from "@dougbot/client/lib/text";
+import { AffixInput, Button, Dialog, DialogBody, DialogFooter, Field, Icon, Locked } from "@dougbot/ui";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

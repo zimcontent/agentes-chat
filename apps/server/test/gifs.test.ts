@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeGifs } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { createFakeGifs } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import { type Browser, browser, createTestServer, joinByInvitation, seedOrg, signUp, type TestServer } from "./harness";
 
 /**

@@ -1,6 +1,6 @@
-import { and, type Database, eq, inArray, rowsOf, schema, sql } from "@agenteschat/db";
-import { planOf as codingPlan, PLAN_IDS, planModel } from "@agenteschat/providers/plans";
-import { CONSULT_SUBJECT_CHARS, consultSubject } from "@agenteschat/ui/agent-talk";
+import { and, type Database, eq, inArray, rowsOf, schema, sql } from "@dougbot/db";
+import { planOf as codingPlan, PLAN_IDS, planModel } from "@dougbot/providers/plans";
+import { CONSULT_SUBJECT_CHARS, consultSubject } from "@dougbot/ui/agent-talk";
 import {
   type AgentWorkState,
   agentsOnlyIn,
@@ -844,7 +844,7 @@ export interface TaskStep {
   createdAt: string;
 }
 
-/** The computer's own permission check before a command (`PERMISSION_TOOL` in `@agenteschat/adapters`). */
+/** The computer's own permission check before a command (`PERMISSION_TOOL` in `@dougbot/adapters`). */
 const PERMISSION_TOOL = "permission_prompt";
 
 /**

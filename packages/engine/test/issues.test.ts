@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
-import { type ModelRequest, systemText } from "@agenteschat/providers";
+import { eq, schema } from "@dougbot/db";
+import { type ModelRequest, systemText } from "@dougbot/providers";
 import {
   addChannelMember,
   addRunStep,
@@ -459,7 +459,7 @@ describe("issues", () => {
     expect(work).toMatchObject({ agentId: qa.id, state: "running", runId: handed.work?.runId });
   });
 
-  test("a run's context lists the agent's open tasks, latest activity first; not closed, others' or hidden ones; none for a routine", async () => {
+  test("a run's context lists the agent's open tasks in its queue's order, not by activity; not closed, others' or hidden ones; none for a routine", async () => {
     f = await setup({ issueTools: true });
     const deps = { db: f.db, pubsub: f.pubsub };
     let asked = "";
@@ -499,7 +499,7 @@ describe("issues", () => {
     await at(newer.id, 1);
 
     const listed =
-      "# Your open tasks\nIssues assigned to you, latest activity first:\n- #2 Login quebra (todo)\n- #1 Frete lento (in_progress, criteria 1/2)";
+      "# Your open tasks\nIssues assigned to you, in the order the team wants them done (take the first one first, unless told otherwise):\n- #1 Frete lento (in_progress, criteria 1/2)\n- #2 Login quebra (todo)";
     // Reading issues only, like every new agent: the list, and nothing about tools it doesn't have.
     const reading = await ask("@dev e agora?");
     expect(reading).toContain(listed);

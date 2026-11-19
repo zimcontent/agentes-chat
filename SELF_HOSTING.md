@@ -1,10 +1,10 @@
-# Self-hosting agentes.chat
+# Self-hosting DougBot
 
 Self-hosting is free and always will be: AGPL-3.0, no license key. agentes.chat Cloud is the paid,
 hosted option. Changing it without publishing your changes, or reselling it under your own brand,
 takes a [commercial license](COMMERCIAL.md).
 
-agentes.chat runs as two containers: Postgres 18 with the pgvector extension, and the app, one Bun
+DougBot runs as two containers: Postgres 18 with the pgvector extension, and the app, one Bun
 process that serves the web app, the API and the WebSockets and runs the background workers. A
 third, Tailscale, puts it on your private network with HTTPS. Migrations run when the app starts.
 Everything it keeps is in Postgres, except uploaded files, which the compose file stores in a volume.
@@ -42,7 +42,7 @@ never sent to browsers.
 <details open>
 <summary><b>Quick start (about 10 minutes)</b></summary>
 
-You end up with agentes.chat on your Tailscale network (your tailnet), at
+You end up with DougBot on your Tailscale network (your tailnet), at
 `https://agentes.<your-tailnet>.ts.net` with a real certificate. Only devices signed in to your
 tailnet can open it: no domain, no open port, nothing on the public internet.
 
@@ -77,10 +77,10 @@ tailnet can open it: no domain, no open port, nothing on the public internet.
    ◇  On your tailnet as agentes.tail1234.ts.net
    ◇  .env: PUBLIC_URL=https://agentes.tail1234.ts.net
    ◇  HTTPS certificate ready
-   ◇  agentes.chat <version> is up
+   ◇  DougBot <version> is up
    ◇  Agents' computer: this machine
    │
-   ●  agentes.chat is up
+   ●  DougBot is up
    │    https://agentes.tail1234.ts.net
    │
    │    App:  agenteschat://connect?server=https%3A%2F%2Fagentes.tail1234.ts.net
@@ -158,11 +158,11 @@ one's container (Caddy or Tailscale), which `docker compose up` alone would leav
 1. Install the Tailscale app (https://tailscale.com/download/ios or
    https://tailscale.com/download/android) and sign in to the same tailnet. Done when it says
    **Connected**.
-2. Install the agentes.chat app.
+2. Install the DougBot app.
 3. Point the phone's camera at a QR code for your instance. The setup prints one at the end; in the
    web app, **Open on your phone** (**Abrir no celular** in Portuguese) in **Settings › Your account**
    shows one that also signs you in. Or, on the app's sign-in screen, tap the server line
-   (**Server: agentes.chat · Change**, or **Servidor: agentes.chat · Trocar**), then
+   (**Server: DougBot · Change**, or **Servidor: DougBot · Trocar**), then
    **Scan QR code** (**Escanear QR code**), or type the address and tap **Use this server**
    (**Usar este servidor**).
 4. The app shows your server's address. Confirm, then sign in (the web app's code signs you in by
@@ -184,13 +184,13 @@ Agents run commands and code, drive a browser, and can think with Claude Code or
 you connect (Agent computers, below). A computer must reach the instance, so on Tailscale, install
 Tailscale on it and sign in to the same tailnet first.
 
-The agentes.chat desktop app (macOS, Windows and Linux) opens your instance in a window of its own.
+The DougBot desktop app (macOS, Windows and Linux) opens your instance in a window of its own.
 Download it from `/download` on your instance (or the latest `desktop-v*` release). It's in beta: the Mac
 build isn't notarized by Apple yet and the Windows installer isn't signed, so the first open asks once (macOS:
 **System Settings › Privacy & Security › Open Anyway**, right after you try to open it; Windows: **More info ›
 Run anyway**). `/download` shows each step with pictures. Then:
 
-1. On its first screen, under **Sign in to agentes.chat**, click **Use your own server**, then
+1. On its first screen, under **Sign in to DougBot**, click **Use your own server**, then
    **Connect to my server**.
 2. Type your address (`https://agentes.<your-tailnet>.ts.net`), or click **Use** next to one the app
    found: it looks on this computer and, when Tailscale is connected, on your tailnet. Plain http works
@@ -215,10 +215,10 @@ sign-in.
   Agent computers below explains it.
 
 Unless it has builds of its own (`DESKTOP_RELEASES_TOKEN`), the page that offers the app (Settings ›
-Devices, and onboarding's computer step) asks agentes.chat for its newest version as it opens, from
+Devices, and onboarding's computer step) asks DougBot for its newest version as it opens, from
 your browser or the app's window: the request names the system and, like any request a page makes to
 another site, carries this instance's address (its `Origin` header) and the browser's IP. The app asks
-agentes.chat for its own updates when it starts and every 6 hours, naming its system and processor (its
+DougBot for its own updates when it starts and every 6 hours, naming its system and processor (its
 version too, when it installs one). On Linux the AppImage updates itself; a deb downloads the new deb.
 
 </details>
@@ -238,7 +238,7 @@ Agents use a phone through a computer you connected (Connect a computer, above):
   on **Developer options › Wireless debugging**, then scan the QR the computer shows from **Pair device
   with QR code** there, or type what **Pair device with pairing code** shows. Not with the camera: it
   reads the QR as a Wi-Fi network named `agentes-…`, which doesn't exist, and takes the phone off the
-  computer's Wi-Fi, where it must stay. On a Mac, the agentes.chat app needs **System
+  computer's Wi-Fi, where it must stay. On a Mac, the DougBot app needs **System
   Settings › Privacy & Security › Local Network**, or the computer never hears the phone. Wireless
   debugging turns off when the phone restarts.
 - **iPhone through a Mac:** an iPhone on iOS 17 or newer, and Xcode from the App Store with an Apple
@@ -247,7 +247,7 @@ Agents use a phone through a computer you connected (Connect a computer, above):
   Mac, and turn on Developer Mode and UI Automation. A newer iOS needs an Xcode that knows it: update
   Xcode when the iPhone updates.
 
-Android's pairing QR aside, the steps show no QR code: one that opens them in the agentes.chat phone
+Android's pairing QR aside, the steps show no QR code: one that opens them in the DougBot phone
 app waits until the app is in the App Store and Google Play, since until then it would only open the
 web page in the phone's browser.
 
@@ -256,7 +256,7 @@ web page in the phone's browser.
 <details>
 <summary><b>For AI agents</b></summary>
 
-A runbook for an AI agent, or a script, installing agentes.chat on a server where it can run
+A runbook for an AI agent, or a script, installing DougBot on a server where it can run
 commands.
 
 **What needs a person.** In the Tailscale admin console, once per tailnet: MagicDNS and HTTPS on
@@ -275,7 +275,7 @@ tailnet policy file limits who reaches what, let your people reach `tag:agentes`
 **The command**, in an empty directory on the server:
 
 ```sh
-AGENTES_SETUP_TAILSCALE_KEY='tskey-client-…' npx -y @agenteschat/setup --network tailscale --email skip --json
+AGENTES_SETUP_TAILSCALE_KEY='tskey-client-…' npx -y @dougbot/setup --network tailscale --email skip --json
 ```
 
 No Node.js or Docker on the server? As root, the installer gets what's missing and then runs the
@@ -321,7 +321,7 @@ Done:
 }
 ```
 
-Give the person `url`, `appLink` (it opens the agentes.chat phone or desktop app on this server;
+Give the person `url`, `appLink` (it opens the DougBot phone or desktop app on this server;
 `null` for an http address, which the phone app doesn't open) and `nextSteps`: the first account,
 created from a device in the tailnet, owns the instance. `computer` is `on` when this server is its
 agents' computer, `off` when answered no, and `skipped` where it can't be.
@@ -362,8 +362,8 @@ A failure names the check, what happened and the fix:
 | `port` | Another program uses the app's port, or 80 and 443 for a public domain | `HOST_PORT=3001` in `.env`, or stop that program. |
 | `app.config` | The app refused a value in `.env` | The values `error` names. |
 | `app.health`, `tailscale.timeout` | Something didn't answer in time (`--timeout`, 300 s by default) | `docker compose logs agentes`, or `tailscale`. |
-| `computer` | `--computer yes` on a machine that can't be the agents' computer, said before Docker or any question: sign-up is open, a provisioner gives workspaces their computers, no root or no systemd on Linux, or it's already connected as a computer. Or one of the first two was turned on after a yes, and agentes.chat won't start with the token | What `fix` says, or `--computer no`. |
-| `computer.install`, `computer.off`, `computer.token` | The agents' computer didn't install or wasn't accepted (agentes.chat itself is up, and the result still has `url` and `appLink`) | What `fix` says, then the same command again. Its log shows its state: `journalctl -u agentes-runner` on Linux, `~/.agentes-runner/runner.log` on a Mac. On any computer you connected, `agentes-runner doctor` lists what it gives agents (connections, agent apps, toolchains, phones) and what needs you, and waits there until each is fixed. |
+| `computer` | `--computer yes` on a machine that can't be the agents' computer, said before Docker or any question: sign-up is open, a provisioner gives workspaces their computers, no root or no systemd on Linux, or it's already connected as a computer. Or one of the first two was turned on after a yes, and DougBot won't start with the token | What `fix` says, or `--computer no`. |
+| `computer.install`, `computer.off`, `computer.token` | The agents' computer didn't install or wasn't accepted (DougBot itself is up, and the result still has `url` and `appLink`) | What `fix` says, then the same command again. Its log shows its state: `journalctl -u agentes-runner` on Linux, `~/.agentes-runner/runner.log` on a Mac. On any computer you connected, `agentes-runner doctor` lists what it gives agents (connections, agent apps, toolchains, phones) and what needs you, and waits there until each is fixed. |
 
 </details>
 
@@ -493,7 +493,7 @@ the right past every trusted hop, and the first other address is the client.
 <details>
 <summary><b>This machine only, and by hand</b></summary>
 
-The setup's **This machine only** choice runs agentes.chat at http://localhost:3000, to try it on a
+The setup's **This machine only** choice runs DougBot at http://localhost:3000, to try it on a
 laptop. By hand, in an empty directory:
 
 ```sh
@@ -534,8 +534,8 @@ port past the host's firewall.
 <details>
 <summary><b>On this computer, without Docker</b></summary>
 
-agentes.chat also runs as one program with its database built in, with nothing else to install: no
-Docker, no Postgres to set up. The desktop app's **Run agentes.chat on this computer** does it with no
+DougBot also runs as one program with its database built in, with nothing else to install: no
+Docker, no Postgres to set up. The desktop app's **Run DougBot on this computer** does it with no
 terminal (below). `install.sh` can't do it without Docker yet. On a Mac or a PC, use the app. By hand,
 from a release package, further below.
 
@@ -561,13 +561,13 @@ the `https://…ts.net` address it prints, then start it again. The desktop app 
 switch.
 
 **From the desktop app** (macOS, Windows and Linux). On its first screen, click **Use your own server**,
-then **Run agentes.chat on this Mac** (this PC on Windows, this computer on Linux). On Windows the folder is
+then **Run DougBot on this Mac** (this PC on Windows, this computer on Linux). On Windows the folder is
 `%USERPROFILE%\.agentes`. Your name comes from this computer; type
 your email (your team sees it). **Reach it from your phone and teammates** puts it on your tailnet
 (off; you can turn it on later), and **Send anonymous usage statistics** is on (it writes `TELEMETRY`
-in `~/.agentes/.env`). **Start agentes.chat** then prepares the folder and the database (the first time
+in `~/.agentes/.env`). **Start DougBot** then prepares the folder and the database (the first time
 takes a little longer), starts it, creates your owner account, makes this computer your agents'
-computer and opens agentes.chat, signed in.
+computer and opens DougBot, signed in.
 
 - **It runs inside the app.** It starts with the app (Open at login turns on), starts again by itself
   if it stops, and stops when you quit the app (which asks first: nobody can use it until you open the
@@ -590,7 +590,7 @@ computer and opens agentes.chat, signed in.
   back. After that, with no account left, the app opens its welcome window on the account step to make a new
   owner. With other accounts left, **Continue on this Mac** signs no one in, and each person signs in with
   their own email.
-- **Preferences › Servers › agentes.chat on this Mac:** reach (Tailscale needs HTTPS turned on for your
+- **Preferences › Servers › DougBot on this Mac:** reach (Tailscale needs HTTPS turned on for your
   tailnet, which **Turn it on** opens; on Linux, connect Tailscale with `sudo tailscale up`, and run
   `sudo tailscale set --operator=$USER` once), the phone's QR code, usage statistics, **Back up now**
   (`~/.agentes/backups/agentes-<date>.tar.gz`, with the database, the files and `.env`), Restart, Stop,
@@ -606,7 +606,7 @@ computer and opens agentes.chat, signed in.
   owner key is in the folder); its agents' homes are gone, so they sign in again.
 - **The Trash removes nothing.** All of the above lives outside the app, so trashing it leaves every folder
   and doesn't stop a running app. To remove it entirely, in this order: turn off **Open at login**
-  (**Preferences › General**), quit the app (**Quit agentes.chat**: on a Mac in the agentes.chat menu or
+  (**Preferences › General**), quit the app (**Quit DougBot**: on a Mac in the DougBot menu or
   ⌘Q, on Windows and Linux from its icon by the clock; **Quit** if it asks; closing the window only hides
   it), delete the app, stop a server you installed in `~/.agentes` from the terminal with its own
   `~/.agentes/app/<version>/bin/agentes-server service uninstall` (quitting the app doesn't stop it), then
@@ -627,7 +627,7 @@ computer and opens agentes.chat, signed in.
   `BUN_BE_BUN=1 /Applications/agentes.chat.app/Contents/MacOS/agentes-runner ~/.agentes/app/current/server/native.js db dump --data ~/.agentes --out agentes.sql`
   (on Linux, the deb's `/usr/bin/agentes-runner` in its place).
 
-**Usage statistics.** Like any self-hosted install, it sends agentes.chat an anonymous usage report
+**Usage statistics.** Like any self-hosted install, it sends DougBot an anonymous usage report
 once a day (Optional services and what they receive lists every field in it). To turn it off, put
 `TELEMETRY=off` in `~/.agentes/.env` and start it again (the desktop app's **Send anonymous usage
 statistics** switch does that), or use the switch in **Settings → General → Usage statistics**.
@@ -815,10 +815,10 @@ ones a self-hosted instance usually touches:
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | | "Sign in with Google", redirect URI `{PUBLIC_URL}/api/auth/callback/google`. `GITHUB_*` and `APPLE_*` work the same way. |
 | `APPLE_TEAM_ID` + `APPLE_APP_BUNDLE_ID`, `ANDROID_APP_PACKAGE` + `ANDROID_APP_CERT_SHA256` | | For a phone app you build yourself with `EXPO_PUBLIC_API_URL` set to this server: links to its pages (a conversation, a message, a thread, an agent, a task, a routine, an approval, the inbox, settings, invitations, password resets) open in the app instead of the browser. The server then publishes `/.well-known/apple-app-site-association` (also at `/apple-app-site-association`) and `/.well-known/assetlinks.json`; your proxy must pass them through as they are, with no redirect. Several bundle ids or packages are comma-separated. The fingerprints are the SHA-256 of Google Play's app signing key and of your upload key. Without them, links open the website, as before. |
 | `TERMS_URL`, `PRIVACY_URL` | | Your terms and privacy policy, linked on the sign-in and sign-up screens when both are set. `/terms` and `/privacy` on this server go to them, or say it has none. |
-| `LANDING_URL` | | The agentes.chat landing page's address, which turns on its waiting list. Leave it unset. |
+| `LANDING_URL` | | The DougBot landing page's address, which turns on its waiting list. Leave it unset. |
 | `SMTP_URL` | | Email through your SMTP server: `smtps://user:password@smtp.example.com:465`, or `smtp://` for STARTTLS on 587, which is then required (`?requireTLS=false` at the end allows a relay without TLS on a trusted network). |
 | `MILLIONSEND_API_KEY`, `MILLIONSEND_API_URL` | `https://api.millionsend.com` for the URL | Email through a Resend-compatible API instead: MillionSend, your own MillionSend, or Resend (`https://api.resend.com`). |
-| `EMAIL_FROM`, `EMAIL_REPLY_TO` | `agentes.chat <ping@HOST>`, HOST being the host of `PUBLIC_URL` | Sender of the app's emails. Its domain must be verified with your email provider. |
+| `EMAIL_FROM`, `EMAIL_REPLY_TO` | `DougBot <ping@HOST>`, HOST being the host of `PUBLIC_URL` | Sender of the app's emails. Its domain must be verified with your email provider. |
 | `EMAIL_ART` | `auto` | Where emails get their pictures (the logo, agents' faces): from this server's `/email/` when its address is public, else attached to each message. `attach` always attaches them, for a public address people outside still can't open (an access proxy, a VPN, an IP allowlist). |
 | `FILES_DIR` | `/data/files`, set by the compose file | Folder for uploaded files, on the `files` volume. |
 | `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | | Files in an S3-compatible bucket instead, when all four are set. `S3_REGION` (default `auto`); `S3_PATH_STYLE=true` for MinIO and Garage. |
@@ -826,7 +826,7 @@ ones a self-hosted instance usually touches:
 | `LOG_LEVEL` | `info` | `debug`, `info`, `warn` or `error`. |
 | `LOG_FORMAT` | `json` | `gcp` for Google Cloud Logging (`severity` and `message`). |
 | `TELEMETRY` | `on` | `off` stops the anonymous usage report (Optional services and what they receive). |
-| `FEEDBACK_RELAY` | `true` | The apps' feedback form sends what a person writes to the agentes.chat team. `false`: no form (Optional services and what they receive). |
+| `FEEDBACK_RELAY` | `true` | The apps' feedback form sends what a person writes to the DougBot team. `false`: no form (Optional services and what they receive). |
 | `TYPESAFE_API_KEY` | | Your TypeSafe key for Jev, or an OpenRouter key (`sk-or-…`) to call the same Jev through OpenRouter (AI: plans and keys). Wins over the key added in Settings → AI and usage. |
 | `COMPOSIO_API_KEY`, `COMPOSIO_WEBHOOK_SECRET` | | Your Composio project: Gmail and Outlook mailboxes and the services connected through Composio (below). |
 | `COMPOSIO_AUTH_CONFIGS`, `COMPOSIO_CALLS_PER_MONTH` | `0` for the cap (none) | Auth configs of your own per toolkit (`googledrive=ac_…`), and the Composio calls a workspace may make per month. |
@@ -1036,7 +1036,7 @@ for another day, `--org <workspace id>` for one workspace).
 <details>
 <summary><b>Optional services and what they receive</b></summary>
 
-**The usage report.** The instance sends agentes.chat anonymous usage statistics: counts such as people,
+**The usage report.** The instance sends DougBot anonymous usage statistics: counts such as people,
 agents, machine sizes, AI tokens used and how much data the agents' browsers send and receive, never
 messages, files, names or sites. The first goes about an hour after the server first starts, then one a
 day at that time, restarts or not (one that came due while the server was off goes about 10 minutes
@@ -1060,7 +1060,7 @@ report replaces it. These are all its fields:
 | `computers` | The computers connected to the server and seen in the last 30 days, with agents or not (this server's own, once for all the workspaces it serves, plus the ones people connected and one given by a provisioner), one line for each `kind` (`host`, `connected`, `managed`), `os`, `arch` and `size` (as above, or `null` when their runner is too old to say), with how many computers are alike (`count`), how many `agents` use them, their last day's `load` (as above, their averages averaged and the highest peaks, or `null` when none said how busy it got in the last day), and `browserTraffic`: what the agents' browsers on them sent and received over the last day, as their Chrome counts each request's headers and body (`upMb`, `downMb`, in MB), the `hours` counted and how many of the line's computers said (`computers`), `null` when none did. Only the agents' browsers are counted, never the rest of the computer. The 50 lines with the most computers. |
 | `lastDay.runs`, `lastDay.toolCalls` | Agent runs started, and tool calls they made, in the last 24 hours. |
 | `lastDay.desktopMinutes`, `lastDay.terminalMinutes` | Minutes people watched or controlled agents' desktops, and had terminals open, in the last 24 hours. |
-| `lastDay.models` | For each AI provider and model used in the last 24 hours (the 50 most used): `provider`, `model`, `calls`, `inputTokens` (cached ones included) and `outputTokens`. A model that isn't in agentes.chat's model list (a name someone typed, a deployment, a fine-tune) goes as `other`. |
+| `lastDay.models` | For each AI provider and model used in the last 24 hours (the 50 most used): `provider`, `model`, `calls`, `inputTokens` (cached ones included) and `outputTokens`. A model that isn't in DougBot's model list (a name someone typed, a deployment, a fine-tune) goes as `other`. |
 
 It never holds messages, files, names, emails, hostnames, paths, prompts, IP addresses, the sites agents'
 browsers visit, or ids of workspaces, people or computers (the request itself comes from your server's
@@ -1076,7 +1076,7 @@ either way:
 
 **Feedback.** The apps have a feedback form (**Send feedback**, at the bottom of the sidebar), and an
 agent can send one when a person asks it to or agrees to its offer. Each one
-goes to the agentes.chat team, who make the app, and the form says so before the person sends it.
+goes to the DougBot team, who make the app, and the form says so before the person sends it.
 Nothing goes by itself: only when someone presses **Send**, and only that message, as JSON in a POST to
 `FEEDBACK_URL` (`https://app.agentes.chat/api/feedback/inbox`), through Cloudflare like the usage
 report. It holds what the person wrote; their name and email address, to answer them; the workspace's
@@ -1084,11 +1084,11 @@ name and their role in it; the thing they reported and its words, when they righ
 it in; the screen they were on (its path, with its ids), the agent open and what it thinks with, the
 language, the browser, the window, the app's build and its last errors; the server's version; and up
 to three pictures they added (a video isn't offered). Never a conversation, and nothing that says which
-server it came from beyond the request's own address. agentes.chat mails it to its team and keeps no
+server it came from beyond the request's own address. DougBot mails it to its team and keeps no
 copy on the server that received it. To turn it off, set `FEEDBACK_RELAY=false` in `.env` and start the
 server again: the apps show no form and agents can't send any.
 
-**Downloads and updates.** Installing and updating fetch files from agentes.chat, and those requests
+**Downloads and updates.** Installing and updating fetch files from DougBot, and those requests
 carry nothing about the instance beyond what any download does: the installer
 (`curl -fsSL https://agentes.chat/install`), the compose file the setup fetches into a folder that has
 none (`https://agentes.chat/install/docker-compose.yml`), the packages that run it without Docker
@@ -1098,7 +1098,7 @@ the desktop app's own updates: a check at start and every 6 hours
 one, `https://app.agentes.chat/api/desktop/update` (its version and package type too) and
 `/api/desktop/download/…`. The page that offers the app asks
 for its newest version from the browser (Connect a computer, above, says what that request carries).
-The instance itself downloads nothing from agentes.chat.
+The instance itself downloads nothing from DougBot.
 
 **Help pages.** The app's help links ("How computers work", "About this computer") open the public docs at
 `https://agentes.chat/docs`, in the reader's language (`/pt/docs`, `/zh/docs`, `/fr/docs`…), the same pages for
@@ -1128,7 +1128,7 @@ party only when you turn that service on:
 | agentes.chat push relay | A phone signed in to the instance: an Android phone unless `FIREBASE_SERVICE_ACCOUNT` is set, an iPhone unless `APNS_KEY` is, neither when `PUSH_SENDER` is `direct` or `off` | Once, to register the instance: its version. Then, for each push to that phone: its push token (FCM's or Apple's; for an iPhone also the app's bundle id), a title (up to 80 characters), a line of text (up to 180) and what the notification opens (ids of the workspace, conversation or request), which the relay passes to Firebase Cloud Messaging or to Apple without keeping them. |
 | Firebase Cloud Messaging (Google) | An Android phone signed in to the instance (through the relay above, or directly with `FIREBASE_SERVICE_ACCOUNT`) | For each push to that phone: its FCM token, the title, the line of text and what the notification opens. Directly, also a request signed with the service account's key, for an access token. |
 | Apple Push Notification service | An iPhone signed in to the instance (through the relay above, or directly with `APNS_KEY`) | For each push to that iPhone: its device token, the app's bundle id, the title, the line of text and what the notification opens. Directly, each request also carries a token signed with the APNs key. |
-| Your browser's push service (Google, Mozilla, Apple, Microsoft) | Someone turns on **Notifications in this browser** (`WEB_PUSH=off` hides it) | For each push to that browser: the notification encrypted to that browser (RFC 8291), which the push service can't read, the instance's public key, and a contact for the instance: `PUBLIC_URL` when it is a public https address, else the `EMAIL_FROM` address, else agentes.chat's site. |
+| Your browser's push service (Google, Mozilla, Apple, Microsoft) | Someone turns on **Notifications in this browser** (`WEB_PUSH=off` hides it) | For each push to that browser: the notification encrypted to that browser (RFC 8291), which the push service can't read, the instance's public key, and a contact for the instance: `PUBLIC_URL` when it is a public https address, else the `EMAIL_FROM` address, else DougBot's site. |
 | A Sentry-compatible server you choose | `SENTRY_DSN`, `SENTRY_WEB_DSN`, `SENTRY_MOBILE_DSN` | Error reports, below. |
 | Tailscale | `COMPOSE_PROFILES=tailscale`, or the desktop app's **Reach it from your phone and teammates** | Its coordination server keeps the server's name, tailnet addresses and public keys, as for any device in your tailnet. Connections are encrypted end to end (WireGuard), through Tailscale's relays when no direct path exists; with Funnel, visitors' connections pass through Tailscale's servers, still encrypted to this server. The HTTPS certificate comes from Let's Encrypt, which publishes the server's name in the public Certificate Transparency log. |
 
@@ -1199,7 +1199,7 @@ There are two ways to set the app up:
     permissions: Members read, Projects read and write. Installable by any account.
 
 Then an admin of each workspace installs it on the repositories its agents may use: connecting GitHub offers
-**The agentes.chat app** first, and **GitHub repositories** in **Settings → Connectors** has **Install the agentes.chat
+**The DougBot app** first, and **GitHub repositories** in **Settings → Connectors** has **Install the DougBot
 app** (on the web and the phone). Each account it's installed on has **Manage on GitHub**, GitHub's page where that
 account's repositories are picked, and **Remove**, which also uninstalls the app from that GitHub account. Without a
 GitHub account connected, the app alone is the workspace's GitHub (**Connect a GitHub account** adds one). GitHub
@@ -1406,7 +1406,7 @@ agents too, except DNS: a database, an Ollama or a proxy you run there for them 
 `sudo agentes-runner services allow tcp/11434` (also `list` and `remove`; it applies within 2 seconds).
 The address the runner connects to, when it is this computer's loopback (`http://127.0.0.1:3000`), the
 proxies the runner itself runs behind, and ports Docker publishes on the computer's other addresses
-(Caddy's 80 and 443) stay open. agentes.chat reached through something running natively on this
+(Caddy's 80 and 443) stay open. DougBot reached through something running natively on this
 computer (`tailscale serve`, an nginx or a Caddy outside Docker) takes
 `sudo agentes-runner services allow tcp/443` too, or agents can't push to its git. Container and VM
 networks on the computer are closed to agents, except ports published on an address other than
@@ -1529,7 +1529,7 @@ aren't isolated from each other: code the agent runs there can see its screen an
 type passwords into desktop apps; a person signs in with take control, and the sign-in stays in the
 agent's home. Mac and Windows computers have no desktop use.
 
-**This server as the agents' computer.** The machine agentes.chat runs on can be a computer too, for
+**This server as the agents' computer.** The machine DougBot runs on can be a computer too, for
 the organizations the installation's first account made and is an owner or an admin of. The setup
 does it by default, after asking: on Linux each agent gets a user of its own with a screen (as root,
 with systemd built with `BPF_FRAMEWORK`: yes by default with apt-get and 4 GB of memory or more, no by
@@ -1542,7 +1542,7 @@ commands on unless you say no. It writes `HOST_COMPUTER_TOKEN` to `.env` and to
 `host-computer-token` beside it (readable by you only), installs what runs the agents there from the
 address the app is published on (`BIND_ADDRESS` and `HOST_PORT`), and waits for it to answer, up to
 90 seconds. Running the setup again leaves it running while it answers and is up to date, and sets it
-up again when agentes.chat brings a newer version. Answering no leaves `HOST_COMPUTER_TOKEN=` empty,
+up again when DougBot brings a newer version. Answering no leaves `HOST_COMPUTER_TOKEN=` empty,
 so the setup doesn't ask again; `--computer yes` on a later run turns it on, and `--computer no`
 after a yes empties the token, removes `host-computer-token` and prints the command that removes the
 service. It's skipped, saying why and what to do instead, while sign-up is open (`ALLOW_SIGNUP=true`) or a provisioner gives
@@ -1582,7 +1582,7 @@ be set with `ALLOW_SIGNUP=true`, and a new token retires the old one's connectio
 restarts. Its agents reach the app at the address the runner connects to and the ports Docker publishes
 on public addresses (Caddy's 80 and 443), never Postgres or the containers' network; a service you run
 natively on this machine for them takes `sudo agentes-runner services allow tcp/<port>` (`tcp/443` for
-agentes.chat behind a `tailscale serve`, an nginx or a Caddy outside Docker). The Kotlin compile daemon
+DougBot behind a `tailscale serve`, an nginx or a Caddy outside Docker). The Kotlin compile daemon
 doesn't run there: the computer keeps the default uid range, and Kotlin compiles inside Gradle.
 
 The agent browser opens an offline new tab in its responsible person's language, with no outside request.
@@ -1599,7 +1599,7 @@ A computer on your server never measures or reports its public address: only a w
 stored encrypted with a key derived from `AGENTES_SECRET`, never sent back to a browser, and every
 model call goes through the server, which records its usage and cost per agent.
 
-**Jev (optional).** Jev is a fast model by TypeSafe that agentes.chat asks small questions: who should
+**Jev (optional).** Jev is a fast model by TypeSafe that DougBot asks small questions: who should
 answer a message nobody @mentioned, how a new memory relates to the old ones, where a button is on an
 agent's screen. With it, unmentioned messages are routed even when agents think only with plans,
 memory spots repeats said in other words, and agents find buttons from a description and on
@@ -1672,7 +1672,7 @@ docker compose up -d
 ```
 
 `https://agentes.chat/install/docker-compose.yml`, the one the setup downloads, is the file of the
-build agentes.chat runs, which follows `main` and can be ahead of the latest release.
+build DougBot runs, which follows `main` and can be ahead of the latest release.
 
 Keep your settings in `.env` and never edit `docker-compose.yml`, so replacing it loses nothing.
 Anything a variable can't set goes in a `docker-compose.override.yml` beside it, which Compose merges
@@ -1810,7 +1810,7 @@ package.json names the version):
 git clone https://github.com/agentes-chat/agentes-chat.git
 cd agentes-chat
 bun install
-bun run --filter '@agenteschat/setup' build
+bun run --filter '@dougbot/setup' build
 docker build -t ghcr.io/agentes-chat/agentes:latest .
 mkdir -p ~/agentes && cp docker-compose.yml ~/agentes/
 AGENTES_INSTALL_SETUP=$PWD/packages/setup/dist/index.js sh install.sh --dir ~/agentes

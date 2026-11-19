@@ -1,10 +1,9 @@
-import { useNotificationCount } from "@agenteschat/client";
-import { workspaceLabel, workspaceNotes } from "@agenteschat/client/lib/deletion";
-import { MenuAt, MenuHeading, MenuItem, MenuReactions, MenuSeparator } from "@agenteschat/ui";
+import { useNotificationCount } from "@dougbot/client";
+import { workspaceLabel, workspaceNotes } from "@dougbot/client/lib/deletion";
+import { MenuAt, MenuHeading, MenuItem, MenuReactions, MenuSeparator } from "@dougbot/ui";
 import { useRouter } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { NEW_AGENT_EVENT } from "@/components/new-agent/NewAgentDialog";
 import {
   copyText,
   keepsSystemMenu,
@@ -16,10 +15,10 @@ import {
 } from "@/lib/context-menu";
 import { inDesktopApp, thisMac } from "@/lib/desktop";
 import { useToast } from "@/lib/toast";
-import { openPalette } from "./CommandMenu";
 import { useNavDrawer } from "./NavDrawer";
 import { useOrg } from "./org-context";
-import { NEW_CHANNEL_EVENT, toggleSidebar } from "./Sidebar";
+// Doug: from shell-events.ts, not the screens that own them: the root route loads this before the first paint.
+import { NEW_AGENT_EVENT, NEW_CHANNEL_EVENT, openPalette, toggleSidebar } from "./shell-events";
 
 /**
  * The right click: draws our menu when a screen opens one (a message, a channel). In the desktop app links and empty

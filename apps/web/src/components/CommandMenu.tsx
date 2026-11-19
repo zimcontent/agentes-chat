@@ -1,14 +1,14 @@
-import { useAuthConfig, useChannels, useWikiTree } from "@agenteschat/client";
-import { AGENT_SECTIONS, AGENT_TABS, PERSONAL_AGENT_TABS } from "@agenteschat/client/lib/agent-edit";
-import { canTalk, listsAgent } from "@agenteschat/client/lib/audience";
-import { joinable } from "@agenteschat/client/lib/channel-access";
-import { channelTitle } from "@agenteschat/client/lib/channel-name";
-import { setDraftFor } from "@agenteschat/client/lib/drafts";
-import { can, makesAgents } from "@agenteschat/client/lib/permissions";
-import { settingsSectionNameKey } from "@agenteschat/client/lib/personal-view";
-import { portalHere } from "@agenteschat/client/lib/sidebar-items";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
-import { Avatar, CommandPalette, Icon, type PaletteItem } from "@agenteschat/ui";
+import { useAuthConfig, useChannels, useWikiTree } from "@dougbot/client";
+import { AGENT_SECTIONS, AGENT_TABS, PERSONAL_AGENT_TABS } from "@dougbot/client/lib/agent-edit";
+import { canTalk, listsAgent } from "@dougbot/client/lib/audience";
+import { joinable } from "@dougbot/client/lib/channel-access";
+import { channelTitle } from "@dougbot/client/lib/channel-name";
+import { setDraftFor } from "@dougbot/client/lib/drafts";
+import { can, makesAgents } from "@dougbot/client/lib/permissions";
+import { settingsSectionNameKey } from "@dougbot/client/lib/personal-view";
+import { portalHere } from "@dougbot/client/lib/sidebar-items";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
+import { Avatar, CommandPalette, Icon, type PaletteItem } from "@dougbot/ui";
 import { useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -26,8 +26,8 @@ import { SETTINGS_SECTIONS } from "@/pages/settings-sections";
 export const isPaletteShortcut = (e: Pick<KeyboardEvent, "key" | "metaKey" | "ctrlKey" | "altKey" | "shiftKey">) =>
   (e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "k";
 
-/** Opens the palette from elsewhere (a button). */
-export const openPalette = () => window.dispatchEvent(new Event("agentes:palette"));
+// Doug: openPalette lives in shell-events.ts, so the shell can open the palette without loading it (see there).
+export { openPalette } from "./shell-events";
 
 /**
  * The ⌘K palette: go to any channel, agent, person, page or settings section,

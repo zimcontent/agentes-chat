@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { AgentGroup, Channel, Member, TeamAgent } from "@agenteschat/client";
-import { chartByPerson } from "@agenteschat/client/lib/team-views";
+import type { AgentGroup, Channel, Member, TeamAgent } from "@dougbot/client";
+import { chartByPerson } from "@dougbot/client/lib/team-views";
 import { featureKeysEn } from "../../src/features/i18n/keys.en";
 import { featureKeysPtBR } from "../../src/features/i18n/keys.pt-BR";
 import { chartRows, lineContinues, teamSections } from "../../src/features/team/logic";

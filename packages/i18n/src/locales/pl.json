@@ -3924,7 +3924,20 @@
     "synced": "To samo trenowanie wszędzie, sprawdzone {{when}}.",
     "syncing": "Łączenie trenowania. Potrwa do minuty.",
     "missing": "Nie dotarło do {{workspace}}: {{what}}.",
-    "failed": "Nie udało się zmienić. Spróbuj ponownie."
+    "failed": "Nie udało się zmienić. Spróbuj ponownie.",
+    "craftOnly": "Odrębna działalność: w obie strony przechodzi tylko warsztat."
+  },
+  "separateOperation": {
+    "title": "Odrębna działalność",
+    "help": "Agenci stąd pracują też w Twoich innych przestrzeniach roboczych, jak pracownicy dwóch firm. W obie strony przechodzi tylko warsztat: instrukcje, skille, lekcje, zasady i preferencje, które nie wymieniają niczego z drugiej firmy. Fakty, decyzje, notatki, klienci i połączenia zostają w każdej z nich.",
+    "switch": "W obie strony przechodzi tylko warsztat",
+    "switchHelp": "Po włączeniu to, co już przyszło z innej firmy, wraca tam w ciągu minuty. Oryginał zostaje tam, gdzie się go nauczono.",
+    "ownersOnly": "Zmieniać mogą tylko właściciele.",
+    "names": "Nazwy tej działalności",
+    "namesHelp": "Klienci, projekty i osoby tej działalności, oddzielone przecinkami. Nic, co wymienia któregoś z nich, nie trafia do kopii w innej przestrzeni roboczej. Nazwa przestrzeni roboczej i klienci, których agenci już znają, liczą się sami.",
+    "namesExample": "Np.: Piekarnia Aurora, Wieża Północna",
+    "sharedSignIn": "{{label}} używa tego samego logowania co {{workspaces}}. Połącz ponownie z własnym kontem tej działalności.",
+    "failed": "Nie udało się zapisać. Spróbuj ponownie."
   },
   "ronda": {
     "title": "Obchód",
@@ -5556,6 +5569,11 @@
       "status": {
         "in_progress": "W toku",
         "in_review": "W przeglądzie"
+      },
+      "queue": {
+        "list": "Kolejka: {{name}}",
+        "move": "Przenieś zadanie #{{number}} w kolejce. Przeciągnij je albo użyj strzałek w górę i w dół.",
+        "moved": "Zadanie #{{number}} jest teraz {{place}} z {{count}}."
       }
     },
     "mission": "<b>{{name}}</b> potrzebuje cię w misji",
@@ -6834,6 +6852,12 @@
       "cancel": "Anuluj",
       "forgotten": "Zapomniano. Jest w Archiwum, jeśli zechcesz to przywrócić.",
       "saved": "Zapisano. Teraz liczy się jako zweryfikowane.",
+      "reachAll": "We wszystkich workspace'ach",
+      "reachHere": "Tylko w tym workspace",
+      "keepHere": "Zostaw tylko tutaj",
+      "sendAll": "Zabierz wszędzie",
+      "keptHere": "Zostaje w tym workspace. Kopie w innych workspace'ach zostaną zarchiwizowane w ciągu minuty.",
+      "sentAll": "W ciągu minuty trafi do agenta w Twoich innych workspace'ach.",
       "rules": "Zasady od ludzi",
       "rulesNote": "Obowiązują w całej pracy dla osoby, która dała każdą z nich, skądkolwiek przyjdzie prośba. Zasady opiekuna lub admina obowiązują wszystkich.",
       "rulesNoteRightHand": "Zasady, które dajesz w swoim DM, obowiązują tylko ciebie. Tylko ty je widzisz.",
@@ -11963,7 +11987,7 @@
       "notesExample": "Np.: Zawsze kończcie tym, kto co robi i do kiedy. Zwracajcie się do klienta po imieniu.",
       "agentNotes": "{{name}} w rozmowach",
       "agentNotesExample": "Np.: Przynosi liczby przed opiniami. Sprzeciwia się, gdy budżet się nie spina.",
-      "title": "Głos na żywo (GPT-Live)",
+      "title": "Głos na żywo",
       "lead": "Rozmowy głosowe z agentami i Posłuchaj przy każdej wiadomości, każdy agent własnym głosem.",
       "on": "Włączony",
       "off": "Wyłączony",
@@ -11987,7 +12011,19 @@
       "current": "Obecny",
       "previewOf": "Posłuchaj: {{voice}}",
       "use": "Użyj: {{voice}}",
-      "refused": "Ten klucz nie ma tego głosu: zamiast niego mówił {{voice}}."
+      "refused": "Ten klucz nie ma tego głosu: zamiast niego mówił {{voice}}.",
+      "engine": "Głos rozmów",
+      "house": "Głos domowy (Qwen)",
+      "gptLive": "GPT-Live (twój klucz)",
+      "houseCredits": "Płatne kredytami tego workspace’u: {{perMinute}} kredytów za minutę. Saldo: {{balance}} kredytów, około {{minutes}} min.",
+      "houseNoWallet": "Płatne kredytami, {{perMinute}} za minutę. Salda nie da się teraz odczytać.",
+      "gptLiveHint": "Głos OpenAI, na kluczu tego workspace’u. Około 0,05 USD za minutę na agenta.",
+      "addCredits": "Kup kredyty",
+      "monthly": "Miesięczny limit w kredytach",
+      "monthlyNone": "Bez limitu",
+      "spent": "Zużyte w tym miesiącu: {{spent}} z {{limit}} kredytów.",
+      "spentNoLimit": "Zużyte w tym miesiącu: {{spent}} kredytów. Rozmowy zatrzymują się dopiero, gdy skończy się saldo.",
+      "pickerLeadHouse": "Posłuchaj każdego głosu jako {{name}} i wybierz. Każda próbka kosztuje jeden lub dwa kredyty."
     },
     "phoneLine": {
       "title": "Połączenia telefoniczne",
@@ -12041,7 +12077,12 @@
       "noWords": "Ta wiadomość nie ma słów do przeczytania.",
       "notHost": "Tylko osoba prowadząca rozmowę włącza głosy agentów.",
       "ended": "Ta rozmowa się zakończyła.",
-      "notIn": "Nie jesteś już w tej rozmowie."
+      "notIn": "Nie jesteś już w tej rozmowie.",
+      "noCredits": "Za mało kredytów na minutę rozmowy. Kup kredyty na stronie Media.",
+      "monthLimit": "Rozmowy osiągnęły limit kredytów na ten miesiąc. Osoba konfigurująca workspace może go podnieść w Ustawienia › Głos.",
+      "updateApp": "Rozmowy tutaj używają głosu domowego. Zaktualizuj aplikację, aby zadzwonić.",
+      "noHouse": "Głos domowy nie jest tu dostępny.",
+      "badLimit": "Limit to całkowita liczba kredytów."
     }
   },
   "media": {
@@ -13593,6 +13634,17 @@
     "htmlError": "Na stronie wystąpił błąd: {{message}}",
     "markdownSource": "Tekst w Markdown"
   },
+  "sectorPills": {
+    "label": "Skróty",
+    "failed": "Karta nie dotarła. Spróbuj ponownie.",
+    "whatsapp": "WhatsApp",
+    "calendar": "Kalendarz",
+    "approvals": "Zatwierdzenia",
+    "proposals": "Propozycje",
+    "tasks": "Zadania",
+    "review": "Przegląd",
+    "portal": "Portal"
+  },
   "blocks": {
     "send": "Wyślij",
     "more": "Więcej",
@@ -13623,7 +13675,9 @@
     "pollAnswered_few": "Odpowiedziało {{count}} z {{total}}",
     "pollAnswered_many": "Odpowiedziało {{count}} z {{total}}",
     "pollAnswered_other": "Odpowiedziało {{count}} z {{total}}",
-    "voteFailed": "Twój głos nie został zapisany."
+    "voteFailed": "Twój głos nie został zapisany.",
+    "done": "Gotowe",
+    "actFailed": "Nie udało się. Spróbuj ponownie."
   },
   "choices": {
     "step": "{{step}} z {{total}}",
@@ -13637,6 +13691,51 @@
     "tooLongFix": "Skróć odpowiedź."
   },
   "drive": {
+    "draft": "Wersja robocza",
+    "draftUntil": "{{date}} trafi sama do kosza, chyba że się zmieni albo ktoś ją zachowa.",
+    "keepDraft": "Zachowaj",
+    "kept": "{{title}} zostaje zachowany.",
+    "folders": {
+      "title": "Foldery",
+      "path": "Ścieżka folderu",
+      "new": "Nowy folder",
+      "newTitle": "Nowy folder",
+      "newInside": "Nowy folder w środku",
+      "create": "Utwórz",
+      "created": "Folder {{name}} został utworzony.",
+      "name": "Nazwa",
+      "namePlaceholder": "Klient lub projekt",
+      "menu": "Folder {{name}}: więcej",
+      "menuShort": "Więcej",
+      "rename": "Zmień nazwę",
+      "renameTitle": "Zmień nazwę folderu",
+      "renameConfirm": "Zmień nazwę",
+      "move": "Przenieś",
+      "moveTo": "Przenieś do…",
+      "moveHere": "Przenieś tutaj",
+      "here": "Jest tutaj",
+      "moveFolderTitle": "Przenieś {{name}}",
+      "moveFilesTitle_one": "Przenieś {{count}} plik",
+      "moveFilesTitle_few": "Przenieś {{count}} pliki",
+      "moveFilesTitle_many": "Przenieś {{count}} plików",
+      "moveFilesTitle_other": "Przenieś {{count}} pliku",
+      "moved": "{{name}} został przeniesiony do {{folder}}.",
+      "filed_one": "{{count}} plik został przeniesiony do {{folder}}.",
+      "filed_few": "{{count}} pliki zostały przeniesione do {{folder}}.",
+      "filed_many": "{{count}} plików zostało przeniesionych do {{folder}}.",
+      "filed_other": "{{count}} pliku zostało przeniesionych do {{folder}}.",
+      "files_one": "{{count}} plik",
+      "files_few": "{{count}} pliki",
+      "files_many": "{{count}} plików",
+      "files_other": "{{count}} pliku",
+      "remove": "Usuń folder",
+      "removeTitle": "Usunąć {{name}}?",
+      "removeBody": "Żaden plik nie zostanie usunięty. Zawartość trafi o poziom wyżej.",
+      "removeConfirm": "Usuń folder",
+      "removed": "Folder {{name}} został usunięty.",
+      "emptyTitle": "Ten folder jest pusty",
+      "emptyText": "Przeciągnij pliki tutaj, prześlij je albo poproś agenta, żeby zapisał swoją pracę w tym folderze."
+    },
     "title": "Drive",
     "subtitle": "Wszystko, co stworzyli lub przesłali ludzie i agenci.",
     "search": "Szukaj plików",
@@ -15489,6 +15588,10 @@
       "request_folder_access": "Poproś o dostęp do folderu",
       "create_artifact": "Utwórz plik w Drive",
       "update_artifact": "Zaktualizuj plik w Drive",
+      "drive_folders": "Zobacz foldery Drive",
+      "file_artifacts": "Zapisz w folderze Drive",
+      "drive_folder": "Uporządkuj folder Drive",
+      "trash_artifacts": "Posprzątaj pliki",
       "read_artifact": "Przeczytaj plik w Drive",
       "list_artifacts": "Wyświetl pliki w Drive",
       "share_artifact": "Udostępnij plik",
@@ -16702,6 +16805,14 @@
       "sharingEmpty": "Wybierz, kto to widzi.",
       "sharingTooMany": "Wybierz najwyżej {{max}} osób i {{max}} ról.",
       "notInDrive": "To istnieje tylko w swojej rozmowie, więc nie da się tego udostępnić."
+    },
+    "drive": {
+      "folderExists": "Folder o tej nazwie już tu jest.",
+      "folderNotFound": "Ten folder już nie istnieje.",
+      "folderCycle": "Folder nie może znaleźć się sam w sobie.",
+      "folderTooDeep": "Foldery mogą sięgać najwyżej {{max}} poziomów w głąb.",
+      "foldersFull": "Ta przestrzeń robocza ma już {{max}} folderów.",
+      "folderName": "Nadaj folderowi nazwę."
     },
     "device": {
       "notLinkMaker": "Tylko osoba, która utworzyła link, może wpuścić ten komputer.",
@@ -18918,7 +19029,7 @@
   },
   "gallery": {
     "title": "Galeria komponentów",
-    "subtitle": "Tylko do developmentu: komponenty @agenteschat/ui."
+    "subtitle": "Tylko do developmentu: komponenty @dougbot/ui."
   },
   "format": {
     "list": "{{names, list}}",
@@ -19719,6 +19830,22 @@
     "update_artifact": {
       "label": "Zaktualizuj plik",
       "description": "Zapisuje nową wersję pliku."
+    },
+    "drive_folders": {
+      "label": "Zobacz foldery",
+      "description": "Widzi foldery Drive."
+    },
+    "file_artifacts": {
+      "label": "Zapisz w folderach",
+      "description": "Umieszcza pliki z Drive w folderach projektów."
+    },
+    "drive_folder": {
+      "label": "Uporządkuj foldery",
+      "description": "Zmienia nazwy folderów Drive, przenosi je albo usuwa (nigdy plików)."
+    },
+    "trash_artifacts": {
+      "label": "Posprzątaj własne pliki",
+      "description": "Przenosi do kosza pliki, które stworzył, a których nikt nie potrzebuje (30 dni na przywrócenie)."
     },
     "list_issues": {
       "label": "Zobacz zadania",

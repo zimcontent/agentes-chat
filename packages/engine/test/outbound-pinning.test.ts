@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { OutboundAddressError } from "@agenteschat/adapters";
-import { schema } from "@agenteschat/db";
+import { OutboundAddressError } from "@dougbot/adapters";
+import { schema } from "@dougbot/db";
 import {
   allowPrivateOutbound,
   type ConnectorDeps,

@@ -1,6 +1,6 @@
-import { instanceQuery, useApi } from "@agenteschat/client";
-import { LICENSE_URL } from "@agenteschat/client/lib/about";
-import { shownAddress } from "@agenteschat/client/lib/sites";
+import { instanceQuery, useApi } from "@dougbot/client";
+import { LICENSE_URL } from "@dougbot/client/lib/about";
+import { shownAddress } from "@dougbot/client/lib/sites";
 import { useQuery } from "@tanstack/react-query";
 import { Trans, useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

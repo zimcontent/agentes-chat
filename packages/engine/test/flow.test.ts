@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from "bun:test";
-import type { RealtimeEvent } from "@agenteschat/adapters";
-import { and, asc, eq, schema } from "@agenteschat/db";
-import { ProviderError, systemText } from "@agenteschat/providers";
+import type { RealtimeEvent } from "@dougbot/adapters";
+import { and, asc, eq, schema } from "@dougbot/db";
+import { ProviderError, systemText } from "@dougbot/providers";
 import { drainOutbox, listMessages, type OutboxJob, postPersonMessage } from "../src";
 import { type Fixture, setup } from "./fixtures";
 

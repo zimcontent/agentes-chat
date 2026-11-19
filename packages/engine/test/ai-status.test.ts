@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { envPlatformCredentials, noPlatformCredentials, ROUTE_PROTOCOL } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { envPlatformCredentials, noPlatformCredentials, ROUTE_PROTOCOL } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   type AiRouting,
   agentAiState,

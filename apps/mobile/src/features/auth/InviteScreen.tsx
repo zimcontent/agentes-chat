@@ -7,10 +7,10 @@ import {
   useApi,
   useAuthConfig,
   useMe,
-} from "@agenteschat/client";
-import { formatTimeLeft } from "@agenteschat/client/lib/actions";
-import { errorCode, invitedErrorText } from "@agenteschat/client/lib/errors";
-import { type HumanCheck, withHumanCheck } from "@agenteschat/client/lib/human-check";
+} from "@dougbot/client";
+import { formatTimeLeft } from "@dougbot/client/lib/actions";
+import { errorCode, invitedErrorText } from "@dougbot/client/lib/errors";
+import { type HumanCheck, withHumanCheck } from "@dougbot/client/lib/human-check";
 import {
   ANSWER_POLL_MS,
   askView,
@@ -19,9 +19,9 @@ import {
   JOIN_NOTE_MAX,
   sendsEmail,
   typedCode,
-} from "@agenteschat/client/lib/join-requests";
-import { emailTypoFix, isEmail } from "@agenteschat/client/lib/text";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/join-requests";
+import { emailTypoFix, isEmail } from "@dougbot/client/lib/text";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ComponentRef, type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

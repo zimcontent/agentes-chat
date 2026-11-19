@@ -2,12 +2,12 @@ import { existsSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { z } from "zod";
-import type { AgentesModule } from "./index";
+import type { DougBotModule } from "./index";
 
 /**
  * A client's customizations (ADR doug-0032): two files in a folder of three digits under `clients/` at the root of
  * the source, `config.json` (what the apps show and what this client turns on or off) and `client.ts` (an
- * `AgentesModule`, for anything a module can do). The server loads the folder of its `DOUG_CLIENT_CODE` at boot and
+ * `DougBotModule`, for anything a module can do). The server loads the folder of its `DOUG_CLIENT_CODE` at boot and
  * nothing without one, so every server built from this source behaves the same until a client names it.
  *
  * A folder never changes what the product does for everyone: it may only add through the module API and rename or
@@ -179,7 +179,7 @@ export interface LoadedClient {
   code: string;
   dir: string;
   config: ClientConfig;
-  module: AgentesModule | null;
+  module: DougBotModule | null;
 }
 
 /** A client folder that can't be used, with what to fix: thrown at boot, before anything serves. */
@@ -203,7 +203,7 @@ export function clientsRoot(from: string = import.meta.dir): string | null {
 }
 
 /** A module as `client.ts` exports it: a named module with `onStart` and the rest as functions when present. */
-function isModule(value: unknown): value is AgentesModule {
+function isModule(value: unknown): value is DougBotModule {
   if (!value || typeof value !== "object") return false;
   const m = value as Record<string, unknown>;
   if (typeof m.name !== "string" || !m.name.trim()) return false;
@@ -252,7 +252,7 @@ export async function loadClient(code: string | undefined, root?: string | null)
     }
     config = parsed.data;
   }
-  let module: AgentesModule | null = null;
+  let module: DougBotModule | null = null;
   if (hasModule) {
     let loaded: unknown;
     try {
@@ -264,7 +264,7 @@ export async function loadClient(code: string | undefined, root?: string | null)
     }
     const exported = (loaded as { default?: unknown }).default;
     if (!isModule(exported))
-      throw new ClientConfigError(`${modulePath} must export default an AgentesModule (a name, and functions)`);
+      throw new ClientConfigError(`${modulePath} must export default an DougBotModule (a name, and functions)`);
     module = exported;
   }
   return { code: place.code, dir, config, module };

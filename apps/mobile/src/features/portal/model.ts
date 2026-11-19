@@ -13,8 +13,8 @@ import type {
   PortalListKind,
   PortalPlan,
   PortalStatus,
-} from "@agenteschat/client";
-import { previewKindOfName } from "@agenteschat/client/lib/files";
+} from "@dougbot/client";
+import { previewKindOfName } from "@dougbot/client/lib/files";
 import {
   PORTAL_BOARD_COLUMNS,
   type PortalBoardColumn,
@@ -23,13 +23,13 @@ import {
   portalDayOf,
   portalSendProblem,
   portalTimeOf,
-} from "@agenteschat/client/lib/portal";
+} from "@dougbot/client/lib/portal";
 import type { IconName } from "@/ui/Icon";
 import type { PortalWords } from "./words";
 
 /**
  * The phone's approval portal (ADR 9001), pure: what each screen lists and in what order. The web's rules live in
- * `@agenteschat/client/lib/portal`; this only shapes them for the phone's lists.
+ * `@dougbot/client/lib/portal`; this only shapes them for the phone's lists.
  */
 
 /** A client as a route segment: the portal's slug, never anything that could leave the path. */

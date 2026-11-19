@@ -10,7 +10,7 @@ import type {
   MemberPresence,
   SidebarSection as SectionKey,
   SidebarItem,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   agentStateIn,
   agentWorkingIn,
@@ -42,9 +42,9 @@ import {
   useVideoReviews,
   useWaitingOnMe,
   useWhatsApp,
-} from "@agenteschat/client";
-import { agentSections, groupOf } from "@agenteschat/client/lib/agent-groups";
-import { WORK_TICK_MS, workLine } from "@agenteschat/client/lib/agent-work";
+} from "@dougbot/client";
+import { agentSections, groupOf } from "@dougbot/client/lib/agent-groups";
+import { WORK_TICK_MS, workLine } from "@dougbot/client/lib/agent-work";
 import {
   audienceChip,
   audienceNames,
@@ -52,29 +52,29 @@ import {
   canTalk,
   hiddenAgentIds,
   listsAllAgents,
-} from "@agenteschat/client/lib/audience";
-import { channelTitle } from "@agenteschat/client/lib/channel-name";
-import { workspaceNotes } from "@agenteschat/client/lib/deletion";
-import { ErrorBoundary } from "@agenteschat/client/lib/error-boundary";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { formatTime, upperFirst } from "@agenteschat/client/lib/format";
-import { waitingAgents } from "@agenteschat/client/lib/outages";
-import { can, makesAgents, managesChannel } from "@agenteschat/client/lib/permissions";
+} from "@dougbot/client/lib/audience";
+import { channelTitle } from "@dougbot/client/lib/channel-name";
+import { workspaceNotes } from "@dougbot/client/lib/deletion";
+import { ErrorBoundary } from "@dougbot/client/lib/error-boundary";
+import { errorText } from "@dougbot/client/lib/errors";
+import { formatTime, upperFirst } from "@dougbot/client/lib/format";
+import { waitingAgents } from "@dougbot/client/lib/outages";
+import { can, makesAgents, managesChannel } from "@dougbot/client/lib/permissions";
 import {
   AVAILABILITIES,
   agentFaceWord,
   isOutOfOffice,
   presenceOfAvailability,
   statusEndNote,
-} from "@agenteschat/client/lib/presence";
-import { recentDms } from "@agenteschat/client/lib/recent";
-import { isRightHand, rightHandSeenKey } from "@agenteschat/client/lib/right-hand";
-import { SERVER_PLACE_ICON } from "@agenteschat/client/lib/server";
-import { inSidebarList, sidebarItemOrder, sidebarPlace } from "@agenteschat/client/lib/sidebar-items";
-import { AGENT_SORTS, sortAgents, splitPinned } from "@agenteschat/client/lib/sidebar-view";
-import { setSupportCameFrom, supportContactOf } from "@agenteschat/client/lib/support";
-import { badgeCount, looksUnread } from "@agenteschat/client/lib/unread";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/presence";
+import { recentDms } from "@dougbot/client/lib/recent";
+import { isRightHand, rightHandSeenKey } from "@dougbot/client/lib/right-hand";
+import { SERVER_PLACE_ICON } from "@dougbot/client/lib/server";
+import { inSidebarList, sidebarItemOrder, sidebarPlace } from "@dougbot/client/lib/sidebar-items";
+import { AGENT_SORTS, sortAgents, splitPinned } from "@dougbot/client/lib/sidebar-view";
+import { setSupportCameFrom, supportContactOf } from "@dougbot/client/lib/support";
+import { badgeCount, looksUnread } from "@dougbot/client/lib/unread";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
 import {
   type AgentColor,
   Avatar,
@@ -109,7 +109,7 @@ import {
   Skeleton,
   SkeletonGroup,
   selectionSkyUrl,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
 import {
@@ -124,7 +124,6 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";
@@ -192,6 +191,13 @@ import {
 } from "./SidebarSetup";
 import { AgentGlow, AgentTrail, colorOf, WorkspaceSky } from "./Sky";
 import { SetStatusDialog, useSaveStatus } from "./StatusDialog";
+import {
+  closeTabletSidebar,
+  NEW_CHANNEL_EVENT,
+  TABLET_QUERY,
+  toggleSidebar,
+  useSidebarCollapsed,
+} from "./shell-events";
 import { useReviewWords } from "./video-review/words";
 import { WhatsAppMark } from "./whatsapp/WhatsAppMark";
 
@@ -226,50 +232,8 @@ function UnshownRow() {
 }
 export const unshownRow = () => <UnshownRow />;
 
-/** Tablet widths: the sidebar starts as an icon rail (NavDrawer.tsx has the other breakpoints). */
-export const TABLET_QUERY = "(min-width: 761px) and (max-width: 1199px)";
-
-/**
- * The sidebar shrunk to its icon rail, shared with the Mac app's title bar, which carries the toggle there
- * (DesktopTitleBar.tsx). Desktop widths remember the person's choice (in memory too, for when storage is blocked).
- * Tablet widths start as the rail every time: their toggle opens the whole sidebar over the page until a link, Esc,
- * a click outside or the toggle closes it, since the page's tablet layout has no room for it beside.
- */
-const SIDEBAR_EVENT = "agentes:sidebar";
-let sidebarCollapsed = storage.get(STORAGE_KEYS.sidebarCollapsed) === "1";
-let tabletOpen = false;
-const onSidebarChange = (cb: () => void) => {
-  window.addEventListener(SIDEBAR_EVENT, cb);
-  return () => window.removeEventListener(SIDEBAR_EVENT, cb);
-};
-const isTablet = () => typeof window.matchMedia === "function" && window.matchMedia(TABLET_QUERY).matches;
-export const toggleSidebar = () => {
-  if (isTablet()) tabletOpen = !tabletOpen;
-  else {
-    sidebarCollapsed = !sidebarCollapsed;
-    storage.set(STORAGE_KEYS.sidebarCollapsed, sidebarCollapsed ? "1" : "0");
-  }
-  window.dispatchEvent(new Event(SIDEBAR_EVENT));
-};
-/** A tablet's open sidebar back to its rail. */
-export const closeTabletSidebar = () => {
-  if (!tabletOpen) return;
-  tabletOpen = false;
-  window.dispatchEvent(new Event(SIDEBAR_EVENT));
-};
-/** Whether the sidebar is its icon rail at this width (a phone's drawer never reads it), and its toggle. */
-export function useSidebarCollapsed(): [boolean, () => void] {
-  const tablet = useMediaQuery(TABLET_QUERY);
-  const collapsed = useSyncExternalStore(
-    onSidebarChange,
-    () => (tablet ? !tabletOpen : sidebarCollapsed),
-    () => false,
-  );
-  return [collapsed, toggleSidebar];
-}
-
-/** File → Novo canal in the desktop app's menu bar (DesktopMenus.tsx): the sidebar opens its dialog. */
-export const NEW_CHANNEL_EVENT = "agentes:new-channel";
+// Doug: these live in shell-events.ts, so the shell can use them without loading the sidebar (see there).
+export { closeTabletSidebar, NEW_CHANNEL_EVENT, TABLET_QUERY, toggleSidebar, useSidebarCollapsed };
 
 /**
  * On the icon rail every channel would be the same "#": its initials instead ("eng-backend" → "Eb",
@@ -405,7 +369,7 @@ export function Sidebar() {
     .flatMap((s) => (s.work ? [`${s.agentId}:${s.work.state}`] : []))
     .sort()
     .join();
-  // The tab's title: "(3) agentes.chat", what the sidebar's numbers add up to (agents it doesn't list left out).
+  // The tab's title: "(3) DougBot", what the sidebar's numbers add up to (agents it doesn't list left out).
   const hiddenAgents = useMemo(() => hiddenAgentIds(org, dir.agents), [org, dir.agents]);
   useUnreadTitle(orgId, hiddenAgents);
   const dms = useDms(orgId);
@@ -2901,7 +2865,7 @@ function useWorkspaceLook() {
 /**
  * Your workspaces in the account menu of a personal workspace (ADR 0159): the workspace menu's list, then New
  * workspace when the person may make one. In the desktop app (ADR 0154) by server, then Add workspace; New workspace
- * (it makes one here) sits under this server's workspaces only on a server of one's own, since on agentes.chat Add
+ * (it makes one here) sits under this server's workspaces only on a server of one's own, since on DougBot Add
  * workspace makes one (`offersNewWorkspace`). Mounted only while the menu is open: the counts load then. No role beside
  * each: one person's own workspaces.
  */

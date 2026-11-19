@@ -35,7 +35,7 @@ export interface DatabaseOptions {
 
 export interface DatabaseHandle {
   db: Database;
-  /** The postgres.js client, for LISTEN/NOTIFY (see `@agenteschat/adapters`); null on PGlite (one process). */
+  /** The postgres.js client, for LISTEN/NOTIFY (see `@dougbot/adapters`); null on PGlite (one process). */
   client: postgres.Sql | null;
   /**
    * Applies pending migrations, after checking that the applied ones are
@@ -94,6 +94,9 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "hidden_tools" text[] NOT NULL DEFAULT '{}'::text[]`,
   // The Doug team made here (`organization_settings.doug_team`, docs/adr/doug-0030-time-doug.md).
   `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "doug_team" jsonb`,
+  // A separate operation: its agents' copies elsewhere carry only their craft (docs/adr/doug-0035-separate-operation.md).
+  `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "separate_operation" boolean NOT NULL DEFAULT false`,
+  `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "kept_names" text[] NOT NULL DEFAULT '{}'::text[]`,
   // WhatsApp numbers and their conversations (`schema/whatsapp.ts`).
   `CREATE TABLE IF NOT EXISTS "whatsapp_accounts" (
     "id" uuid PRIMARY KEY,
@@ -250,6 +253,13 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "live_call_notes" text`,
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "live_call_notes" text`,
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "call_voice" text`,
+  // The house voice (docs/adr/doug-0036-house-voice.md): each agent's voice of it, the workspace's engine and monthly
+  // limit, and each session's engine and the credits it was charged.
+  `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "house_voice" text`,
+  `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "live_voice_engine" text`,
+  `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "live_voice_monthly_credits" integer`,
+  `ALTER TABLE "live_voice_sessions" ADD COLUMN IF NOT EXISTS "engine" text NOT NULL DEFAULT 'gpt-live'`,
+  `ALTER TABLE "live_voice_sessions" ADD COLUMN IF NOT EXISTS "credits" integer NOT NULL DEFAULT 0`,
   // Videos agents send for the team's review, their versions and the notes on them (docs/adr/doug-0007-video-review.md).
   `CREATE TABLE IF NOT EXISTS "video_reviews" (
     "id" uuid PRIMARY KEY,
@@ -446,6 +456,21 @@ export const EXTRA_COLUMNS = [
   `CREATE INDEX IF NOT EXISTS "company_requests_status" ON "company_requests" ("status", "created_at", "id")`,
   `CREATE INDEX IF NOT EXISTS "company_requests_created" ON "company_requests" ("created_at", "id")`,
   `CREATE INDEX IF NOT EXISTS "company_requests_retention" ON "company_requests" ("status", "updated_at")`,
+  // What the buttons of the server's cards do (docs/adr/doug-0020-doug-sector-cards.md, `schema/sector-cards.ts`).
+  `CREATE TABLE IF NOT EXISTS "block_actions" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "artifact_id" uuid NOT NULL REFERENCES "artifacts"("id") ON DELETE CASCADE,
+    "act" text NOT NULL,
+    "kind" text NOT NULL,
+    "payload" jsonb NOT NULL DEFAULT '{}'::jsonb,
+    "for_user_id" text REFERENCES "users"("id") ON DELETE CASCADE,
+    "done_at" timestamp with time zone,
+    "done_by_user_id" text REFERENCES "users"("id") ON DELETE SET NULL,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "block_actions_act" ON "block_actions" ("artifact_id", "act")`,
+  `CREATE INDEX IF NOT EXISTS "block_actions_org" ON "block_actions" ("org_id", "created_at")`,
   // One agent in several workspaces, trained as one (ADR doug-0013).
   `CREATE TABLE IF NOT EXISTS "agent_twins" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
@@ -460,6 +485,8 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "twin_off" boolean DEFAULT false NOT NULL`,
   `CREATE INDEX IF NOT EXISTS "agents_twin_id_index" ON "agents" ("twin_id")`,
   `ALTER TABLE "context_items" ADD COLUMN IF NOT EXISTS "twin_key" uuid`,
+  // How far a memory goes among an agent's copies (ADR doug-0013 addendum 2026-11-19): `all`, `here`, null by its kind.
+  `ALTER TABLE "context_items" ADD COLUMN IF NOT EXISTS "reach" text`,
   // Where agents working for a person use the browser: the server's computers or their own (ADR doug-0021).
   `ALTER TABLE "organization_members" ADD COLUMN IF NOT EXISTS "browser_computer_id" uuid`,
   `CREATE INDEX IF NOT EXISTS "context_items_twin_key_index" ON "context_items" ("twin_key")`,
@@ -687,6 +714,68 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "phone_lines" ADD COLUMN IF NOT EXISTS "engines" jsonb NOT NULL DEFAULT '["gpt-live"]'::jsonb`,
   `ALTER TABLE "phone_calls" ADD COLUMN IF NOT EXISTS "engine" text NOT NULL DEFAULT 'gpt-live'`,
   `ALTER TABLE "phone_calls" ADD COLUMN IF NOT EXISTS "credits" integer`,
+  // The Drive's folders, a file's folder and a draft's end (docs/adr/doug-0036-drive-folders.md).
+  `CREATE TABLE IF NOT EXISTS "drive_folders" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "parent_id" uuid REFERENCES "drive_folders"("id") ON DELETE SET NULL,
+    "name" text NOT NULL,
+    "created_by_type" text NOT NULL,
+    "created_by_id" text NOT NULL,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now(),
+    "updated_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS "drive_folders_org" ON "drive_folders" ("org_id", "parent_id")`,
+  // One name per place, whatever its case: an agent filing into "clientes" finds "Clientes".
+  `CREATE UNIQUE INDEX IF NOT EXISTS "drive_folders_name" ON "drive_folders"
+     ("org_id", coalesce("parent_id", '00000000-0000-0000-0000-000000000000'::uuid), lower("name"))`,
+  `ALTER TABLE "artifacts" ADD COLUMN IF NOT EXISTS "folder_id" uuid REFERENCES "drive_folders"("id") ON DELETE SET NULL`,
+  `ALTER TABLE "artifacts" ADD COLUMN IF NOT EXISTS "expires_at" timestamp with time zone`,
+  `CREATE INDEX IF NOT EXISTS "artifacts_folder" ON "artifacts" ("org_id", "folder_id")`,
+  `CREATE INDEX IF NOT EXISTS "artifacts_expires" ON "artifacts" ("expires_at") WHERE "expires_at" IS NOT NULL AND "deleted_at" IS NULL`,
+  // Live Activities on iPhones (docs/adr/doug-0021-lock-screen.md): the run a person waits on, on their lock screen.
+  `CREATE TABLE IF NOT EXISTS "live_activities" (
+    "id" uuid PRIMARY KEY NOT NULL,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE cascade,
+    "user_id" text NOT NULL REFERENCES "users"("id") ON DELETE cascade,
+    "run_id" uuid NOT NULL,
+    "agent_id" uuid NOT NULL,
+    "token" text NOT NULL,
+    "app_id" text,
+    "apns_sandbox" boolean DEFAULT false NOT NULL,
+    "locale" text NOT NULL,
+    "state" jsonb,
+    "sent_at" timestamp with time zone,
+    "ended_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT "live_activities_token_unique" UNIQUE("token")
+  )`,
+  `CREATE INDEX IF NOT EXISTS "live_activities_run_id_index" ON "live_activities" USING btree ("run_id")`,
+  `CREATE INDEX IF NOT EXISTS "live_activities_open_idx" ON "live_activities" USING btree ("created_at") WHERE "live_activities"."ended_at" is null`,
+  // Each assignee's tasks in a queue, in the order they reached them (docs/adr/doug-0022-task-queue-order.md): lowest
+  // first, null with no assignee. Open tasks already assigned line up once, when the column comes, by when they were
+  // assigned (their last "assigned" event), or made when none.
+  `DO $$ BEGIN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = current_schema() AND table_name = 'issues' AND column_name = 'queue_position'
+    ) THEN
+      ALTER TABLE "issues" ADD COLUMN "queue_position" double precision;
+      UPDATE "issues" AS i SET "queue_position" = q.position
+      FROM (
+        SELECT t.id, row_number() OVER (
+          PARTITION BY t.org_id, t.assignee_type, t.assignee_id
+          ORDER BY coalesce(
+            (SELECT max(a.created_at) FROM "issue_activity" a WHERE a.issue_id = t.id AND a.event = 'assigned'),
+            t.created_at
+          ), t.number
+        )::double precision AS position
+        FROM "issues" t
+        WHERE t.assignee_id IS NOT NULL AND t.status IN ('todo', 'in_progress', 'in_review')
+      ) AS q
+      WHERE i.id = q.id;
+    END IF;
+  END $$`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

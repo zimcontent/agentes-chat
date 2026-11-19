@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { AiAccounts, AiComputer } from "@agenteschat/client";
-import { ApiError } from "@agenteschat/client";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import type { AiAccounts, AiComputer } from "@dougbot/client";
+import { ApiError } from "@dougbot/client";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 

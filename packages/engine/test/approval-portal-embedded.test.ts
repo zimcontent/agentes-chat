@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { createFakeEmailSender, createMemoryBlobStore } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import { createFakeEmailSender, createMemoryBlobStore } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   announcePortalPost,
   clientDecision,

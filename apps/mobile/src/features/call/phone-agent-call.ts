@@ -1,4 +1,4 @@
-import type { ApiClient } from "@agenteschat/client";
+import type { ApiClient } from "@dougbot/client";
 import { type MediaStream, mediaDevices } from "react-native-webrtc";
 import { callActive } from "./active";
 import { PhoneLeg } from "./leg";

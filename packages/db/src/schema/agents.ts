@@ -48,7 +48,7 @@ export const providerCredentials = pgTable(
     orgId: uuid()
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
-    /** Provider id from `PROVIDERS` in `@agenteschat/providers` (text, so new providers need no migration). */
+    /** Provider id from `PROVIDERS` in `@dougbot/providers` (text, so new providers need no migration). */
     provider: text().notNull(),
     label: text().notNull(),
     /** `v1.<iv>.<ciphertext>.<tag>` of the API key, under the data key. */
@@ -149,7 +149,7 @@ export const agents = pgTable(
     role: text().notNull().default(""),
     /** Standing instructions, part of the system prompt. */
     instructions: text().notNull().default(""),
-    /** Model id from the catalog in `@agenteschat/providers`. */
+    /** Model id from the catalog in `@dougbot/providers`. */
     model: text().notNull(),
     /**
      * Provider credential this agent bills to. Null = the platform key, which
@@ -284,6 +284,11 @@ export const agents = pgTable(
     /** Its ElevenLabs voice on maestro calls (doug-0006 §11); null: one picked from its id among the account's. */
     callVoice: text(),
     /**
+     * Its house voice (docs/adr/doug-0036-house-voice.md): one of `HOUSE_VOICES`. Null: one that sounds like its GPT-Live
+     * voice (`houseVoiceFor`). Created by `EXTRA_COLUMNS`.
+     */
+    houseVoice: text(),
+    /**
      * The most context its model reads, in tokens (`200000`, `400000`, `1000000`; validated in code): the API
      * brain compacts past it, Claude Code and Codex compact there too. Null = the model's own window.
      */
@@ -400,6 +405,14 @@ export const organizationSettings = pgTable("organization_settings", {
   /** How the agents behave on voice calls here, on top of the base (docs/adr/doug-0006-live-voice.md §11). */
   liveCallNotes: text(),
   /**
+   * The voice engine of calls, Ouvir and samples in the apps (docs/adr/doug-0036-house-voice.md): `house` (the house
+   * voice, paid in credits) or `gpt-live` (the workspace's own GPT-Live key). Null: the house voice where the server
+   * has it, else GPT-Live.
+   */
+  liveVoiceEngine: text().$type<"house" | "gpt-live">(),
+  /** The most credits the house voice may spend in a month here; null: no limit but the wallet. */
+  liveVoiceMonthlyCredits: integer(),
+  /**
    * The voice of the Doug's phone calls here (docs/adr/doug-0035-phone-calls.md): `gpt-live` (GPT-Live 1, the
    * calling service's own key) or `qwen` (Qwen Audio 3.1 Flash, the house key, paid in the workspace's credits).
    */
@@ -486,6 +499,13 @@ export const organizationSettings = pgTable("organization_settings", {
    * column of this instance's own (`EXTRA_COLUMNS`), outside the numbered migrations.
    */
   dougTeam: jsonb().$type<{ cardId: string; agents: Record<string, string>; rightHand: boolean }>(),
+  /**
+   * A separate operation (docs/adr/doug-0035-separate-operation.md): copies of its agents in other workspaces carry
+   * only their craft, both ways. A column of this instance's own (`EXTRA_COLUMNS`).
+   */
+  separateOperation: boolean().notNull().default(false),
+  /** Names that belong to this workspace (clients, projects, people): they never reach a separate copy elsewhere. */
+  keptNames: text().array().notNull().default(sql`'{}'::text[]`),
   /**
    * How much the workspace's agents ask before acting (ADR 0173 addendum 2026-11-15): what every agent without its
    * own choice (`agents.approvals_level_own`) uses. A workspace with no row here is at `risky`.

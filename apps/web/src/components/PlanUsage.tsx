@@ -1,12 +1,12 @@
-import type { AiAccounts, PlanAccountInfo, PlanAccountUsage, PlanServes } from "@agenteschat/client";
-import { keys, useAiAccounts, useApi, useModels, usePlanUsage } from "@agenteschat/client";
-import { removableLogins } from "@agenteschat/client/lib/ai-accounts";
-import { computerNameOf } from "@agenteschat/client/lib/computer";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { formatPercent, formatTokensShort, formatUsd, joinNames } from "@agenteschat/client/lib/format";
-import { planName } from "@agenteschat/client/lib/plans";
-import { AUTO, apiProviderOf } from "@agenteschat/client/lib/providers";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+import type { AiAccounts, PlanAccountInfo, PlanAccountUsage, PlanServes } from "@dougbot/client";
+import { keys, useAiAccounts, useApi, useModels, usePlanUsage } from "@dougbot/client";
+import { removableLogins } from "@dougbot/client/lib/ai-accounts";
+import { computerNameOf } from "@dougbot/client/lib/computer";
+import { errorText } from "@dougbot/client/lib/errors";
+import { formatPercent, formatTokensShort, formatUsd, joinNames } from "@dougbot/client/lib/format";
+import { planName } from "@dougbot/client/lib/plans";
+import { AUTO, apiProviderOf } from "@dougbot/client/lib/providers";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import {
   agentGradient,
   Button,
@@ -26,7 +26,7 @@ import {
   planLevel,
   planLine,
   Segmented,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { Fragment, useEffect, useId, useState } from "react";

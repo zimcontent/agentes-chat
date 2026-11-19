@@ -1,4 +1,4 @@
-import { VOICE_MAX_MS } from "@agenteschat/client/lib/voice";
+import { VOICE_MAX_MS } from "@dougbot/client/lib/voice";
 import {
   getRecordingPermissionsAsync,
   RecordingPresets,

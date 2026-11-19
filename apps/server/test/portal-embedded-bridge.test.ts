@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import { createFakeApprovalPortal } from "@agenteschat/adapters";
+import { createFakeApprovalPortal } from "@dougbot/adapters";
 import { browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 
 // An installation with a bridge of its own (`APPROVAL_PORTAL_URL` + `APPROVAL_PORTAL_TOKEN`) keeps everything it had

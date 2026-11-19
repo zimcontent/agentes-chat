@@ -1,5 +1,5 @@
-import { and, type Database, type Executor, eq, inArray, schema, sql } from "@agenteschat/db";
-import { modelProvider, ProviderError, parseCustomModel } from "@agenteschat/providers";
+import { and, type Database, type Executor, eq, inArray, schema, sql } from "@dougbot/db";
+import { modelProvider, ProviderError, parseCustomModel } from "@dougbot/providers";
 import type { Agent } from "./agents";
 import { enqueue } from "./outbox";
 

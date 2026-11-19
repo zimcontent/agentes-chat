@@ -9,11 +9,11 @@ import {
   type WikiBacklink,
   type WikiPageSummary,
   type WikiVersion,
-} from "@agenteschat/client";
-import { capitalize, relativeTime } from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
-import { titleOfSlug, toggleTask, wikiImportOf } from "@agenteschat/client/lib/wiki";
-import { type DiffLine, diffLines } from "@agenteschat/ui/diff";
+} from "@dougbot/client";
+import { capitalize, relativeTime } from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
+import { titleOfSlug, toggleTask, wikiImportOf } from "@dougbot/client/lib/wiki";
+import { type DiffLine, diffLines } from "@dougbot/ui/diff";
 import { useQueryClient } from "@tanstack/react-query";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";

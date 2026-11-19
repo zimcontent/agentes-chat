@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { ApiError, type InvitationPreview, NetworkError, type SignInOptions } from "@agenteschat/client";
+import { ApiError, type InvitationPreview, NetworkError, type SignInOptions } from "@dougbot/client";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { createBetterAuthClient } from "@/auth/better-auth";
 import { rememberSignIn } from "@/components/SocialButtons";

@@ -1,7 +1,7 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, asc, type Database, eq, isNull, schema, sql } from "@agenteschat/db";
-import { serverText } from "@agenteschat/i18n";
-import type { AppLocale } from "@agenteschat/i18n/locale";
+import type { PubSub } from "@dougbot/adapters";
+import { and, asc, type Database, eq, isNull, schema, sql } from "@dougbot/db";
+import { serverText } from "@dougbot/i18n";
+import type { AppLocale } from "@dougbot/i18n/locale";
 import { takenHandles } from "./agents";
 import { type AiStatusDeps, orgHasAi } from "./ai-status";
 import type { AgentAppearance } from "./appearance";
@@ -29,7 +29,7 @@ import { isPersonalWorkspace } from "./workspace-mode";
 
 /**
  * "See team templates" (ADR 0137 §10): six business types, each a team of the same few agents, kept in code with its
- * words in `@agenteschat/i18n` (`teamTemplates.*`, every language). "Create the team" makes it at once, as the right
+ * words in `@dougbot/i18n` (`teamTemplates.*`, every language). "Create the team" makes it at once, as the right
  * hand's team card in its created state.
  */
 export const BUSINESS_TEMPLATES = ["agency", "store", "clinic", "software", "support", "services"] as const;

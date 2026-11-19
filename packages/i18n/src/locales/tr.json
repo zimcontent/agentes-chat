@@ -3661,7 +3661,20 @@
     "synced": "Hepsinde aynı eğitim, kontrol: {{when}}.",
     "syncing": "Eğitim birleştiriliyor. Bir dakikaya kadar sürer.",
     "missing": "{{workspace}} alanına ulaşmadı: {{what}}.",
-    "failed": "Değiştirilemedi. Tekrar dene."
+    "failed": "Değiştirilemedi. Tekrar dene.",
+    "craftOnly": "Ayrı işletme: yalnızca zanaat gidip gelir."
+  },
+  "separateOperation": {
+    "title": "Ayrı işletme",
+    "help": "Buradaki ajanlar, iki şirketin çalışanı gibi diğer çalışma alanlarınızda da çalışır. Yalnızca zanaat gidip gelir: diğer şirketten hiçbir şeyin adını anmayan talimatlar, skill'ler, dersler, kurallar ve tercihler. Olgular, kararlar, notlar, müşteriler ve bağlantılar her birinde kalır.",
+    "switch": "Yalnızca zanaat gidip gelir",
+    "switchHelp": "Açıldığında, başka bir şirketten zaten gelmiş olanlar bir dakika içinde oraya geri döner. Asıl kayıt öğrenildiği yerde kalır.",
+    "ownersOnly": "Bunu yalnızca sahipler değiştirebilir.",
+    "names": "Bu işletmenin adları",
+    "namesHelp": "Bu işletmenin müşterileri, projeleri ve kişileri, virgülle ayrılmış olarak. Bunlardan birinin adını anan hiçbir şey başka bir çalışma alanındaki kopyaya ulaşmaz. Çalışma alanının adı ve ajanlarının zaten tanıdığı müşteriler kendiliğinden sayılır.",
+    "namesExample": "Örn.: Aurora Fırını, Kuzey Kule",
+    "sharedSignIn": "{{label}}, {{workspaces}} ile aynı oturum açmayı kullanıyor. Bu işletmenin kendi hesabıyla yeniden bağlayın.",
+    "failed": "Kaydedilemedi. Tekrar deneyin."
   },
   "ronda": {
     "title": "Devriye",
@@ -5206,6 +5219,11 @@
       "status": {
         "in_progress": "Devam ediyor",
         "in_review": "İncelemede"
+      },
+      "queue": {
+        "list": "{{name}} sırası",
+        "move": "#{{number}} görevini sırada taşı. Sürükleyin ya da yukarı ve aşağı ok tuşlarını kullanın.",
+        "moved": "#{{number}} görevi artık {{count}} görev içinde {{place}}. sırada."
       }
     },
     "mission": "<b>{{name}}</b> bir misyonda size ihtiyaç duyuyor",
@@ -6347,6 +6365,12 @@
       "cancel": "İptal",
       "forgotten": "Unutuldu. Geri isterseniz Arşivlenenler bölümünde.",
       "saved": "Kaydedildi. Artık doğrulanmış sayılıyor.",
+      "reachAll": "Tüm çalışma alanlarında",
+      "reachHere": "Yalnızca bu çalışma alanında",
+      "keepHere": "Yalnızca burada tut",
+      "sendAll": "Hepsine taşı",
+      "keptHere": "Bu çalışma alanında kalır. Diğer çalışma alanlarındaki kopyalar bir dakika içinde arşivlenir.",
+      "sentAll": "Bir dakika içinde diğer çalışma alanlarınızdaki ajana ulaşır.",
       "rules": "Kişilerin verdiği kurallar",
       "rulesNote": "Kuralı verenin tüm işlerinde, istek nereden gelirse gelsin geçerlidir. Sorumlunun veya bir yöneticinin kuralları herkes için geçerlidir.",
       "rulesNoteRightHand": "DM'inde verdiğin kurallar yalnızca senin için geçerlidir. Onları yalnızca sen görürsün.",
@@ -11086,7 +11110,7 @@
       "notesExample": "Örn.: Her zaman kimin neyi ne zamana kadar yapacağıyla bitirin. Müşteriye adıyla hitap edin.",
       "agentNotes": "Aramalarda {{name}}",
       "agentNotesExample": "Örn.: Görüşten önce rakam getirir. Bütçe tutmadığında itiraz eder.",
-      "title": "Canlı ses (GPT-Live)",
+      "title": "Canlı ses",
       "lead": "Ajanlarınızla sesli aramalar ve her mesajda Dinle, her ajan kendi sesiyle.",
       "on": "Açık",
       "off": "Kapalı",
@@ -11110,7 +11134,19 @@
       "current": "Geçerli",
       "previewOf": "{{voice}} dinle",
       "use": "{{voice}} kullan",
-      "refused": "Bu anahtarda bu ses yok: yerine {{voice}} konuştu."
+      "refused": "Bu anahtarda bu ses yok: yerine {{voice}} konuştu.",
+      "engine": "Aramaların sesi",
+      "house": "Varsayılan ses (Qwen)",
+      "gptLive": "GPT-Live (kendi anahtarınız)",
+      "houseCredits": "Bu çalışma alanının kredileriyle ödenir: dakikada {{perMinute}} kredi. Bakiye: {{balance}} kredi, yaklaşık {{minutes}} dk.",
+      "houseNoWallet": "Kredilerle ödenir, dakikada {{perMinute}}. Bakiye şu anda okunamıyor.",
+      "gptLiveHint": "Bu çalışma alanının anahtarıyla OpenAI'ın sesi. Ajan başına dakikada yaklaşık 0,05 ABD doları.",
+      "addCredits": "Kredi satın al",
+      "monthly": "Kredi cinsinden aylık sınır",
+      "monthlyNone": "Sınır yok",
+      "spent": "Bu ay kullanılan: {{limit}} kredinin {{spent}} kadarı.",
+      "spentNoLimit": "Bu ay kullanılan: {{spent}} kredi. Aramalar yalnızca bakiye bitince durur.",
+      "pickerLeadHouse": "Her sesi {{name}} olarak dinleyin ve seçin. Her örnek bir iki kredi harcar."
     },
     "phoneLine": {
       "title": "Telefon aramaları",
@@ -11164,7 +11200,12 @@
       "noWords": "Bu mesajda anlatılacak söz yok.",
       "notHost": "Ajanların seslerini yalnızca aramayı yöneten kişi açar.",
       "ended": "Bu arama sona erdi.",
-      "notIn": "Artık bu aramada değilsiniz."
+      "notIn": "Artık bu aramada değilsiniz.",
+      "noCredits": "Bir dakikalık arama için yeterli kredi yok. Medya sayfasından kredi alın.",
+      "monthLimit": "Aramalar bu ayın kredi sınırına ulaştı. Çalışma alanını yapılandıran kişi bunu Ayarlar › Ses bölümünden artırabilir.",
+      "updateApp": "Buradaki aramalar varsayılan sesi kullanıyor. Aramak için uygulamayı güncelleyin.",
+      "noHouse": "Varsayılan ses burada kullanılamıyor.",
+      "badLimit": "Sınır tam sayı olarak kredi cinsindendir."
     }
   },
   "media": {
@@ -12577,6 +12618,17 @@
     "htmlError": "Sayfada bir hata oluştu: {{message}}",
     "markdownSource": "Markdown metni"
   },
+  "sectorPills": {
+    "label": "Kısayollar",
+    "failed": "Kart gelmedi. Tekrar dene.",
+    "whatsapp": "WhatsApp",
+    "calendar": "Ajanda",
+    "approvals": "Onaylar",
+    "proposals": "Öneriler",
+    "tasks": "Görevler",
+    "review": "İnceleme",
+    "portal": "Portal"
+  },
   "blocks": {
     "send": "Gönder",
     "more": "Daha fazla",
@@ -12605,7 +12657,9 @@
     "pollMultiple": "Birden fazla seçebilirsiniz.",
     "pollAnswered_one": "{{total}} kişiden {{count}} kişi yanıtladı",
     "pollAnswered_other": "{{total}} kişiden {{count}} kişi yanıtladı",
-    "voteFailed": "Oyunuz iletilemedi."
+    "voteFailed": "Oyunuz iletilemedi.",
+    "done": "Tamam",
+    "actFailed": "Olmadı. Tekrar dene."
   },
   "choices": {
     "step": "{{step}} / {{total}}",
@@ -12619,6 +12673,45 @@
     "tooLongFix": "Cevabı kısalt."
   },
   "drive": {
+    "draft": "Taslak",
+    "draftUntil": "Değiştirilmezse veya biri saklamazsa {{date}} tarihinde kendiliğinden çöp kutusuna gider.",
+    "keepDraft": "Sakla",
+    "kept": "{{title}} saklandı.",
+    "folders": {
+      "title": "Klasörler",
+      "path": "Klasör yolu",
+      "new": "Yeni klasör",
+      "newTitle": "Yeni klasör",
+      "newInside": "İçine yeni klasör",
+      "create": "Oluştur",
+      "created": "{{name}} klasörü oluşturuldu.",
+      "name": "Ad",
+      "namePlaceholder": "Müşteri veya proje",
+      "menu": "{{name}} klasörü: daha fazla",
+      "menuShort": "Daha fazla",
+      "rename": "Yeniden adlandır",
+      "renameTitle": "Klasörü yeniden adlandır",
+      "renameConfirm": "Yeniden adlandır",
+      "move": "Taşı",
+      "moveTo": "Şuraya taşı…",
+      "moveHere": "Buraya taşı",
+      "here": "Burada",
+      "moveFolderTitle": "{{name}} öğesini taşı",
+      "moveFilesTitle_one": "{{count}} dosyayı taşı",
+      "moveFilesTitle_other": "{{count}} dosyayı taşı",
+      "moved": "{{name}}, {{folder}} klasörüne taşındı.",
+      "filed_one": "{{count}} dosya {{folder}} klasörüne taşındı.",
+      "filed_other": "{{count}} dosya {{folder}} klasörüne taşındı.",
+      "files_one": "{{count}} dosya",
+      "files_other": "{{count}} dosya",
+      "remove": "Klasörü kaldır",
+      "removeTitle": "{{name}} kaldırılsın mı?",
+      "removeBody": "Hiçbir dosya silinmez. İçindekiler bir üst düzeye çıkar.",
+      "removeConfirm": "Klasörü kaldır",
+      "removed": "{{name}} klasörü kaldırıldı.",
+      "emptyTitle": "Bu klasör boş",
+      "emptyText": "Dosyaları buraya sürükle, yükle ya da bir ajandan işini bu klasöre kaydetmesini iste."
+    },
     "title": "Drive",
     "subtitle": "Kişilerin ve ajanların oluşturduğu veya yüklediği her şey.",
     "search": "Dosyalarda ara",
@@ -14433,6 +14526,10 @@
       "request_folder_access": "Klasör erişimi iste",
       "create_artifact": "Drive'da dosya oluştur",
       "update_artifact": "Drive'daki dosyayı güncelle",
+      "drive_folders": "Drive klasörlerini gör",
+      "file_artifacts": "Bir Drive klasörüne kaydet",
+      "drive_folder": "Bir Drive klasörünü düzenle",
+      "trash_artifacts": "Dosyaları temizle",
       "read_artifact": "Drive'daki dosyayı oku",
       "list_artifacts": "Drive dosyalarını listele",
       "share_artifact": "Dosyayı paylaş",
@@ -15578,6 +15675,14 @@
       "sharingEmpty": "Kimin göreceğini seçin.",
       "sharingTooMany": "En fazla {{max}} kişi ve {{max}} rol seçin.",
       "notInDrive": "Bu yalnızca kendi sohbetinde yaşıyor, bu yüzden paylaşılamaz."
+    },
+    "drive": {
+      "folderExists": "Burada bu adda bir klasör zaten var.",
+      "folderNotFound": "Bu klasör artık yok.",
+      "folderCycle": "Bir klasör kendi içine konamaz.",
+      "folderTooDeep": "Klasörler en fazla {{max}} düzey derinliğe gidebilir.",
+      "foldersFull": "Bu çalışma alanında zaten {{max}} klasör var.",
+      "folderName": "Klasöre bir ad ver."
     },
     "device": {
       "notLinkMaker": "Bu bilgisayarı yalnızca bağlantıyı oluşturan kişi katılmaya izin verebilir.",
@@ -17731,7 +17836,7 @@
   },
   "gallery": {
     "title": "Bileşen galerisi",
-    "subtitle": "Yalnızca geliştirme için: @agenteschat/ui bileşenleri."
+    "subtitle": "Yalnızca geliştirme için: @dougbot/ui bileşenleri."
   },
   "format": {
     "list": "{{names, list}}",
@@ -18496,6 +18601,22 @@
     "update_artifact": {
       "label": "Dosyayı güncelle",
       "description": "Bir dosyanın yeni sürümünü kaydeder."
+    },
+    "drive_folders": {
+      "label": "Klasörleri gör",
+      "description": "Drive klasörlerini görür."
+    },
+    "file_artifacts": {
+      "label": "Klasörlere kaydet",
+      "description": "Drive dosyalarını proje klasörlerine koyar."
+    },
+    "drive_folder": {
+      "label": "Klasörleri düzenle",
+      "description": "Drive klasörlerini yeniden adlandırır, taşır veya kaldırır (dosyalara asla dokunmaz)."
+    },
+    "trash_artifacts": {
+      "label": "Kendi dosyalarını temizle",
+      "description": "Oluşturduğu ve kimsenin ihtiyaç duymadığı dosyaları çöp kutusuna taşır (geri yüklemek için 30 gün)."
     },
     "list_issues": {
       "label": "Görevleri gör",

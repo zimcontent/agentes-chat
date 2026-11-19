@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { MailSummary } from "@agenteschat/adapters";
-import { asc, eq, schema } from "@agenteschat/db";
+import type { MailSummary } from "@dougbot/adapters";
+import { asc, eq, schema } from "@dougbot/db";
 import {
   addChannelMember,
   closeRoutineRun,

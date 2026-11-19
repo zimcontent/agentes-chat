@@ -9,9 +9,9 @@ import {
   useSetNoticePref,
   useSetShowActivity,
   useSetStart,
-} from "@agenteschat/client";
-import { type AppLocale, readyLocales } from "@agenteschat/i18n/locale";
-import { SOUND_STYLES, type SoundStyle } from "@agenteschat/ui/sfx";
+} from "@dougbot/client";
+import { type AppLocale, readyLocales } from "@dougbot/i18n/locale";
+import { SOUND_STYLES, type SoundStyle } from "@dougbot/ui/sfx";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";

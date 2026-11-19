@@ -1,6 +1,6 @@
-import { type TeamAgent, useAgentGroups, useChannels, useMembers, useTeam } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
-import { rightHandOf } from "@agenteschat/client/lib/right-hand";
+import { type TeamAgent, useAgentGroups, useChannels, useMembers, useTeam } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
+import { rightHandOf } from "@dougbot/client/lib/right-hand";
 import {
   type ChartNode,
   chartByPerson,
@@ -8,7 +8,7 @@ import {
   noSectorsCopy,
   sectorSupervisor,
   supervisorOf,
-} from "@agenteschat/client/lib/team-views";
+} from "@dougbot/client/lib/team-views";
 import { useTranslation } from "react-i18next";
 import { Pressable, RefreshControl, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useOrg } from "@/providers/org";

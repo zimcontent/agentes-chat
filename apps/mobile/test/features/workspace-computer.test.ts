@@ -6,10 +6,10 @@ import {
   deletingText,
   restorable,
   settingsFrozen,
-} from "@agenteschat/client/lib/deletion";
-import { suspendedText } from "@agenteschat/client/lib/errors";
-import { type OutageTargetLike, targetOptions } from "@agenteschat/client/lib/machine-outages";
-import { quickReply } from "@agenteschat/client/lib/notifications";
+} from "@dougbot/client/lib/deletion";
+import { suspendedText } from "@dougbot/client/lib/errors";
+import { type OutageTargetLike, targetOptions } from "@dougbot/client/lib/machine-outages";
+import { quickReply } from "@dougbot/client/lib/notifications";
 import { computerIcon, type MachineOutage, targetText } from "../../src/features/outages/logic";
 import { suspendedOf } from "../../src/lib/org-choice";
 import { notification, translator } from "./fixtures";

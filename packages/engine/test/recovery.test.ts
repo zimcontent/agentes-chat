@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { eq, schema, sql } from "@agenteschat/db";
-import type { FakeReply } from "@agenteschat/providers/testing";
+import { eq, schema, sql } from "@dougbot/db";
+import type { FakeReply } from "@dougbot/providers/testing";
 import {
   activeRunsIn,
   addRunStep,

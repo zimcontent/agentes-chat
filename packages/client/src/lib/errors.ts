@@ -31,6 +31,11 @@ const KNOWN = {
   "live_voice.too_many": "liveVoice.errors.tooMany",
   "live_voice.no_words": "liveVoice.errors.noWords",
   "live_voice.not_host": "liveVoice.errors.notHost",
+  "live_voice.no_credits": "liveVoice.errors.noCredits",
+  "live_voice.month_limit": "liveVoice.errors.monthLimit",
+  "live_voice.update_app": "liveVoice.errors.updateApp",
+  "live_voice.no_house": "liveVoice.errors.noHouse",
+  "live_voice.bad_limit": "liveVoice.errors.badLimit",
   "live_room.ended": "liveVoice.errors.ended",
   "live_room.bad_audio": "liveVoice.errors.badAudio",
   "live_room.not_in": "liveVoice.errors.notIn",
@@ -98,6 +103,12 @@ const KNOWN = {
   "artifact.sharing_empty": "errors.artifact.sharingEmpty",
   "artifact.sharing_too_many": "errors.artifact.sharingTooMany",
   "artifact.not_in_drive": "errors.artifact.notInDrive",
+  "drive.folder_exists": "errors.drive.folderExists",
+  "drive.folder_not_found": "errors.drive.folderNotFound",
+  "drive.folder_cycle": "errors.drive.folderCycle",
+  "drive.folder_too_deep": "errors.drive.folderTooDeep",
+  "drive.folders_full": "errors.drive.foldersFull",
+  "drive.folder_name": "errors.drive.folderName",
   "machine.forbidden": "errors.machine.forbidden",
   "device.forbidden": "errors.machine.forbidden",
   "device.link_not_found": "errors.machine.pairingInvalid",
@@ -647,7 +658,7 @@ export const reviewFlaggedOf = (reason: string) =>
 const UNCONTESTED: ReadonlySet<string> = new Set([REVIEW_REASON, "ended"]);
 
 /**
- * What the server says of a restriction besides its code: the reason the workspace is told, and on agentes.chat
+ * What the server says of a restriction besides its code: the reason the workspace is told, and on DougBot
  * Cloud `cloud` (`"true"` in a run's values, which are text) with a held agent's or a blocked account's kind.
  */
 export interface RestrictionFacts {

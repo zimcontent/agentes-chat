@@ -1,4 +1,4 @@
-import { useSetChatPrefs } from "@agenteschat/client";
+import { useSetChatPrefs } from "@dougbot/client";
 import {
   CHAT_STYLES,
   CHAT_TEXT_SIZES,
@@ -11,8 +11,8 @@ import {
   facesShown,
   openAtOf,
   textSizeOf,
-} from "@agenteschat/client/lib/chat-look";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/chat-look";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
 import {
   type AgentColor,
   Avatar,
@@ -28,7 +28,7 @@ import {
   RadioGroup,
   Segmented,
   Switch,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { fakeMailAuthError } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import { fakeMailAuthError } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   grantScopes,
   isSensitive,

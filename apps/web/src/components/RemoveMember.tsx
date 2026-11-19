@@ -1,7 +1,7 @@
-import { type Person, useRemovalPreview, useRemoveMember } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { removalLines } from "@agenteschat/client/lib/removal";
-import { Alert, Button, Dialog, DialogBody, DialogFooter } from "@agenteschat/ui";
+import { type Person, useRemovalPreview, useRemoveMember } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { removalLines } from "@dougbot/client/lib/removal";
+import { Alert, Button, Dialog, DialogBody, DialogFooter } from "@dougbot/ui";
 import { useNavigate } from "@tanstack/react-router";
 import { createContext, type ReactNode, useContext, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

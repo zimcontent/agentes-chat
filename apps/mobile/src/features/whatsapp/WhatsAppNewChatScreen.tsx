@@ -1,4 +1,4 @@
-import { useSendWhatsApp } from "@agenteschat/client";
+import { useSendWhatsApp } from "@dougbot/client";
 import { useState } from "react";
 import { StyleSheet, TextInput } from "react-native";
 import { Button, GroupedField, GroupedList, SheetScreen, Text, useFieldText, useToast } from "@/ui";

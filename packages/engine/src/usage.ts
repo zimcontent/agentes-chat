@@ -1,4 +1,4 @@
-import { and, type Database, eq, gte, isNull, schema, sql } from "@agenteschat/db";
+import { and, type Database, eq, gte, isNull, schema, sql } from "@dougbot/db";
 import { caches } from "./cache";
 import { can, getMembership, requirePermission } from "./organizations";
 import { readRefusal } from "./standing";

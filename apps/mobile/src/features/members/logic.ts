@@ -10,7 +10,7 @@ import type {
   Member,
   OrgRole,
   Person,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   daysBetween,
   formatInt,
@@ -20,7 +20,7 @@ import {
   namesText,
   relativeTime,
   timeLeft,
-} from "@agenteschat/client/lib/format";
+} from "@dougbot/client/lib/format";
 import {
   changedLists,
   INVITE_LINK_TTL,
@@ -31,12 +31,12 @@ import {
   invitePickable,
   inviteStart,
   type LinkChoices,
-} from "@agenteschat/client/lib/invite-start";
-import { askedLabel } from "@agenteschat/client/lib/join-requests";
-import { personalHelperRole, personalRoleKey } from "@agenteschat/client/lib/personal-view";
-import { everyoneOf, grants, isEveryone, rolesOf, sortRoles } from "@agenteschat/client/lib/roles";
-import { addressesIn } from "@agenteschat/client/lib/text";
-import { matchesWords } from "@agenteschat/ui/search";
+} from "@dougbot/client/lib/invite-start";
+import { askedLabel } from "@dougbot/client/lib/join-requests";
+import { personalHelperRole, personalRoleKey } from "@dougbot/client/lib/personal-view";
+import { everyoneOf, grants, isEveryone, rolesOf, sortRoles } from "@dougbot/client/lib/roles";
+import { addressesIn } from "@dougbot/client/lib/text";
+import { matchesWords } from "@dougbot/ui/search";
 import type { TFunction } from "i18next";
 import { channelGroups, channelMatches } from "../roles/logic";
 import type { InviteDraft } from "./draft";

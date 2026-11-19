@@ -3548,7 +3548,20 @@
     "synced": "Pelatihan sama di semua, dicek {{when}}.",
     "syncing": "Menggabungkan pelatihan. Butuh hingga satu menit.",
     "missing": "Tidak sampai ke {{workspace}}: {{what}}.",
-    "failed": "Tidak bisa diubah. Coba lagi."
+    "failed": "Tidak bisa diubah. Coba lagi.",
+    "craftOnly": "Operasi terpisah: hanya keahlian yang bolak-balik."
+  },
+  "separateOperation": {
+    "title": "Operasi terpisah",
+    "help": "Agen di sini juga bekerja di workspace Anda yang lain, seperti karyawan dua perusahaan. Hanya keahlian yang bolak-balik: instruksi, skill, pelajaran, aturan, dan preferensi yang tidak menyebut apa pun dari perusahaan lain. Fakta, keputusan, catatan, klien, dan koneksi tetap di masing-masing.",
+    "switch": "Hanya keahlian yang bolak-balik",
+    "switchHelp": "Setelah aktif, apa yang sudah datang dari perusahaan lain kembali ke sana dalam satu menit. Yang asli tetap di tempat ia dipelajari.",
+    "ownersOnly": "Hanya pemilik yang dapat mengubahnya.",
+    "names": "Nama operasi ini",
+    "namesHelp": "Klien, proyek, dan orang dari operasi ini, dipisahkan dengan koma. Apa pun yang menyebut salah satunya tidak sampai ke salinan di workspace lain. Nama workspace dan klien yang sudah dikenal agennya terhitung dengan sendirinya.",
+    "namesExample": "Mis.: Toko Roti Aurora, Menara Utara",
+    "sharedSignIn": "{{label}} memakai login yang sama dengan {{workspaces}}. Hubungkan lagi dengan akun milik operasi ini.",
+    "failed": "Tidak dapat menyimpan. Coba lagi."
   },
   "ronda": {
     "title": "Patroli",
@@ -5056,6 +5069,11 @@
       "status": {
         "in_progress": "Sedang dikerjakan",
         "in_review": "Sedang ditinjau"
+      },
+      "queue": {
+        "list": "Antrean {{name}}",
+        "move": "Pindahkan tugas #{{number}} di antrean. Seret, atau gunakan tombol panah atas dan bawah.",
+        "moved": "Tugas #{{number}} sekarang di urutan {{place}} dari {{count}}."
       }
     },
     "mission": "<b>{{name}}</b> membutuhkanmu dalam misi",
@@ -6146,6 +6164,12 @@
       "cancel": "Batal",
       "forgotten": "Dilupakan. Ada di Arsip jika kamu ingin mengembalikannya.",
       "saved": "Tersimpan. Sekarang dihitung terverifikasi.",
+      "reachAll": "Di semua workspace",
+      "reachHere": "Hanya di workspace ini",
+      "keepHere": "Simpan di sini saja",
+      "sendAll": "Bawa ke semua",
+      "keptHere": "Tetap di workspace ini. Salinan di workspace lain diarsipkan dalam satu menit.",
+      "sentAll": "Sampai ke agen di workspace Anda yang lain dalam satu menit.",
       "rules": "Aturan dari orang-orang",
       "rulesNote": "Berlaku di semua pekerjaan untuk orang yang memberinya, dari mana pun permintaannya datang. Aturan dari penanggung jawab atau admin berlaku untuk semua.",
       "rulesNoteRightHand": "Aturan yang Anda beri di DM Anda hanya berlaku untuk Anda. Hanya Anda yang melihatnya.",
@@ -10754,7 +10778,7 @@
       "notesExample": "Mis.: Selalu tutup dengan siapa melakukan apa dan kapan. Panggil klien dengan namanya.",
       "agentNotes": "{{name}} dalam panggilan",
       "agentNotesExample": "Mis.: Membawa angka sebelum opini. Membantah saat anggaran tidak cocok.",
-      "title": "Suara langsung (GPT-Live)",
+      "title": "Suara langsung",
       "lead": "Panggilan suara dengan agenmu dan Dengarkan di pesan mana pun, tiap agen dengan suaranya sendiri.",
       "on": "Aktif",
       "off": "Nonaktif",
@@ -10778,7 +10802,19 @@
       "current": "Saat ini",
       "previewOf": "Dengarkan {{voice}}",
       "use": "Gunakan {{voice}}",
-      "refused": "Kunci ini tidak punya suara ini: {{voice}} yang berbicara."
+      "refused": "Kunci ini tidak punya suara ini: {{voice}} yang berbicara.",
+      "engine": "Suara panggilan",
+      "house": "Suara bawaan (Qwen)",
+      "gptLive": "GPT-Live (kunci Anda)",
+      "houseCredits": "Dibayar dengan kredit workspace ini: {{perMinute}} kredit per menit. Saldo: {{balance}} kredit, sekitar {{minutes}} menit.",
+      "houseNoWallet": "Dibayar dengan kredit, {{perMinute}} per menit. Saldo tidak dapat dibaca sekarang.",
+      "gptLiveHint": "Suara OpenAI, dengan kunci workspace ini. Sekitar US$ 0,05 per menit per agen.",
+      "addCredits": "Beli kredit",
+      "monthly": "Batas bulanan dalam kredit",
+      "monthlyNone": "Tanpa batas",
+      "spent": "Terpakai bulan ini: {{spent}} dari {{limit}} kredit.",
+      "spentNoLimit": "Terpakai bulan ini: {{spent}} kredit. Panggilan hanya berhenti saat saldo habis.",
+      "pickerLeadHouse": "Dengarkan setiap suara sebagai {{name}} lalu pilih. Setiap contoh memakai satu atau dua kredit."
     },
     "phoneLine": {
       "title": "Panggilan telepon",
@@ -10832,7 +10868,12 @@
       "noWords": "Pesan ini tidak punya kata untuk diceritakan.",
       "notHost": "Hanya orang yang memandu panggilan yang bisa membuka suara agen.",
       "ended": "Panggilan ini sudah berakhir.",
-      "notIn": "Kamu sudah tidak ada di panggilan ini."
+      "notIn": "Kamu sudah tidak ada di panggilan ini.",
+      "noCredits": "Kredit tidak cukup untuk satu menit panggilan. Beli kredit di halaman Media.",
+      "monthLimit": "Panggilan sudah mencapai batas kredit bulan ini. Pengelola workspace dapat menaikkannya di Pengaturan › Suara.",
+      "updateApp": "Panggilan di sini memakai suara bawaan. Perbarui aplikasi untuk menelepon.",
+      "noHouse": "Suara bawaan tidak tersedia di sini.",
+      "badLimit": "Batas berupa bilangan bulat kredit."
     }
   },
   "media": {
@@ -12182,6 +12223,17 @@
     "htmlError": "Halaman mengalami error: {{message}}",
     "markdownSource": "Teks Markdown"
   },
+  "sectorPills": {
+    "label": "Pintasan",
+    "failed": "Kartunya tidak muncul. Coba lagi.",
+    "whatsapp": "WhatsApp",
+    "calendar": "Agenda",
+    "approvals": "Persetujuan",
+    "proposals": "Usulan",
+    "tasks": "Tugas",
+    "review": "Tinjauan",
+    "portal": "Portal"
+  },
   "blocks": {
     "send": "Kirim",
     "more": "Lainnya",
@@ -12209,7 +12261,9 @@
     "pollClosed": "Pemungutan suara ditutup",
     "pollMultiple": "Kamu bisa memilih lebih dari satu.",
     "pollAnswered_other": "{{count}} dari {{total}} sudah menjawab",
-    "voteFailed": "Suaramu tidak masuk."
+    "voteFailed": "Suaramu tidak masuk.",
+    "done": "Selesai",
+    "actFailed": "Tidak berhasil. Coba lagi."
   },
   "choices": {
     "step": "{{step}} dari {{total}}",
@@ -12223,6 +12277,42 @@
     "tooLongFix": "Persingkat jawabannya."
   },
   "drive": {
+    "draft": "Draf",
+    "draftUntil": "Masuk ke sampah dengan sendirinya pada {{date}}, kecuali berubah atau ada yang menyimpannya.",
+    "keepDraft": "Simpan",
+    "kept": "{{title}} disimpan.",
+    "folders": {
+      "title": "Folder",
+      "path": "Jalur folder",
+      "new": "Folder baru",
+      "newTitle": "Folder baru",
+      "newInside": "Folder baru di dalam",
+      "create": "Buat",
+      "created": "Folder {{name}} dibuat.",
+      "name": "Nama",
+      "namePlaceholder": "Klien atau proyek",
+      "menu": "Folder {{name}}: selengkapnya",
+      "menuShort": "Selengkapnya",
+      "rename": "Ganti nama",
+      "renameTitle": "Ganti nama folder",
+      "renameConfirm": "Ganti nama",
+      "move": "Pindahkan",
+      "moveTo": "Pindahkan ke…",
+      "moveHere": "Pindahkan ke sini",
+      "here": "Ada di sini",
+      "moveFolderTitle": "Pindahkan {{name}}",
+      "moveFilesTitle_other": "Pindahkan {{count}} file",
+      "moved": "{{name}} dipindahkan ke {{folder}}.",
+      "filed_other": "{{count}} file dipindahkan ke {{folder}}.",
+      "files_other": "{{count}} file",
+      "remove": "Hapus folder",
+      "removeTitle": "Hapus {{name}}?",
+      "removeBody": "Tidak ada file yang dihapus. Isinya naik satu tingkat.",
+      "removeConfirm": "Hapus folder",
+      "removed": "Folder {{name}} dihapus.",
+      "emptyTitle": "Folder ini kosong",
+      "emptyText": "Tarik file ke sini, unggah, atau minta agen menyimpan hasil kerjanya di folder ini."
+    },
     "title": "Drive",
     "subtitle": "Semua yang dibuat atau diunggah orang dan agen.",
     "search": "Cari file",
@@ -14022,6 +14112,10 @@
       "request_folder_access": "Minta akses folder",
       "create_artifact": "Buat file di Drive",
       "update_artifact": "Ubah file di Drive",
+      "drive_folders": "Lihat folder Drive",
+      "file_artifacts": "Simpan di folder Drive",
+      "drive_folder": "Atur folder Drive",
+      "trash_artifacts": "Bersihkan file",
       "read_artifact": "Baca file di Drive",
       "list_artifacts": "Daftar file Drive",
       "share_artifact": "Bagikan file",
@@ -15133,6 +15227,14 @@
       "sharingEmpty": "Pilih siapa yang melihat.",
       "sharingTooMany": "Pilih paling banyak {{max}} orang dan {{max}} peran.",
       "notInDrive": "Ini hanya ada di percakapannya, jadi tidak bisa dibagikan."
+    },
+    "drive": {
+      "folderExists": "Sudah ada folder dengan nama itu di sini.",
+      "folderNotFound": "Folder ini sudah tidak ada.",
+      "folderCycle": "Folder tidak bisa berada di dalam dirinya sendiri.",
+      "folderTooDeep": "Folder paling dalam {{max}} tingkat.",
+      "foldersFull": "Ruang kerja ini sudah punya {{max}} folder.",
+      "folderName": "Beri nama folder."
     },
     "device": {
       "notLinkMaker": "Hanya orang yang membuat tautan ini yang bisa mengizinkan komputer ini bergabung.",
@@ -17261,7 +17363,7 @@
   },
   "gallery": {
     "title": "Galeri komponen",
-    "subtitle": "Hanya untuk pengembangan: komponen @agenteschat/ui."
+    "subtitle": "Hanya untuk pengembangan: komponen @dougbot/ui."
   },
   "format": {
     "list": "{{names, list}}",
@@ -18014,6 +18116,22 @@
     "update_artifact": {
       "label": "Perbarui file",
       "description": "Menyimpan versi baru sebuah file."
+    },
+    "drive_folders": {
+      "label": "Lihat folder",
+      "description": "Melihat folder Drive."
+    },
+    "file_artifacts": {
+      "label": "Simpan di folder",
+      "description": "Menaruh file Drive di folder proyek."
+    },
+    "drive_folder": {
+      "label": "Atur folder",
+      "description": "Mengganti nama, memindahkan, atau menghapus folder Drive (tidak pernah file)."
+    },
+    "trash_artifacts": {
+      "label": "Bersihkan file sendiri",
+      "description": "Memindahkan file buatannya yang tidak dibutuhkan siapa pun ke sampah (30 hari untuk memulihkan)."
     },
     "list_issues": {
       "label": "Lihat tugas",

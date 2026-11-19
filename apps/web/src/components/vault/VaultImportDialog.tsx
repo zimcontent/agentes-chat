@@ -1,6 +1,6 @@
-import type { VaultImportResult, VaultScope } from "@agenteschat/client";
-import { modeKey } from "@agenteschat/client/lib/workspace-mode";
-import { Button, Dialog, DialogBody, DialogFooter, Icon, Locked, Segmented, SettingNote } from "@agenteschat/ui";
+import type { VaultImportResult, VaultScope } from "@dougbot/client";
+import { modeKey } from "@dougbot/client/lib/workspace-mode";
+import { Button, Dialog, DialogBody, DialogFooter, Icon, Locked, Segmented, SettingNote } from "@dougbot/ui";
 import { type DragEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

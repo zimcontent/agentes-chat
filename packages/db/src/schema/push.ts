@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { boolean, check, index, integer, jsonb, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 import { sessions, users } from "./auth";
+import { organizations } from "./tenancy";
 
 /**
  * Devices that receive push notifications (ADR 0035, ADR 0071). Per person, not per organization: one
@@ -90,3 +91,42 @@ export const pushRelayInstances = pgTable("push_relay_instances", {
   /** Set by the relay's operator: its requests are refused (`blocked`) from then on. */
   blockedAt: timestamp({ withTimezone: true }),
 });
+
+/**
+ * Live Activities on iPhones (docs/adr/doug-0021-lock-screen.md): an agent's run a person is waiting on, on their lock
+ * screen and in the Dynamic Island. The app starts one when the person sends work to an agent and registers its push
+ * token; the server updates it from the run (its status, its line) and ends it with the run, straight through APNs
+ * (only with the server's own key). `state` is what the activity shows now, so only a change is sent. Created by
+ * `EXTRA_COLUMNS`, outside the numbered migrations.
+ */
+export const liveActivities = pgTable(
+  "live_activities",
+  {
+    id: uuid()
+      .primaryKey()
+      .$defaultFn(() => Bun.randomUUIDv7()),
+    orgId: uuid()
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    userId: text()
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    /** The run it follows (no foreign key: runs are kept and cleaned on their own). */
+    runId: uuid().notNull(),
+    agentId: uuid().notNull(),
+    /** The activity's own push token (hex), unique: an activity is one row. */
+    token: text().notNull().unique(),
+    /** The app's bundle id (its APNs topic is `<appId>.push-type.liveactivity`). Null: the sender's first app. */
+    appId: text(),
+    apnsSandbox: boolean().notNull().default(false),
+    /** The phone's language: the words on the activity. */
+    locale: text().notNull(),
+    /** The content state last sent (null: none sent yet beyond the app's own start). */
+    state: jsonb().$type<Record<string, unknown>>(),
+    sentAt: timestamp({ withTimezone: true }),
+    /** Ended (the run ended, the activity went away, or it ran too long): never sent again. */
+    endedAt: timestamp({ withTimezone: true }),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index().on(t.runId), index("live_activities_open_idx").on(t.createdAt).where(sql`${t.endedAt} is null`)],
+);

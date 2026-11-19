@@ -1,7 +1,7 @@
-import type { DatabaseConnection, DatabasePolicy } from "@agenteschat/client";
-import { useDatabaseTables, useServerDatabases } from "@agenteschat/client";
-import { DATABASE_TIMEOUTS, splitColumns, splitDatabaseNames, tableRuleNames } from "@agenteschat/client/lib/databases";
-import { CheckboxPill, Field, Input, Segmented } from "@agenteschat/ui";
+import type { DatabaseConnection, DatabasePolicy } from "@dougbot/client";
+import { useDatabaseTables, useServerDatabases } from "@dougbot/client";
+import { DATABASE_TIMEOUTS, splitColumns, splitDatabaseNames, tableRuleNames } from "@dougbot/client/lib/databases";
+import { CheckboxPill, Field, Input, Segmented } from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AddressList } from "@/components/AddressList";

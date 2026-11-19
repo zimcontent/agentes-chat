@@ -36,10 +36,54 @@ export const SearchField = forwardRef<HTMLInputElement, SearchFieldProps>(functi
   ref,
 ) {
   const filled = typeof value === "string" ? value.length > 0 : value !== undefined && value !== null;
+  // Doug: Escape with text only clears the field (as the × does); with an empty field it goes on to close whatever
+  // holds the field. Heard on the window as it starts down, before a dialog's or a menu's own Escape (Radix listens on
+  // the document), which would otherwise close it with the text still there.
+  const own = useRef<HTMLInputElement | null>(null);
+  const clear = useRef(onClear);
+  useLayoutEffect(() => {
+    clear.current = onClear;
+  });
+  useLayoutEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const input = own.current;
+      // An Escape while an input method is composing cancels the composition, not the search.
+      if (
+        e.key !== "Escape" ||
+        e.isComposing ||
+        !input ||
+        e.target !== input ||
+        input.value === "" ||
+        e.defaultPrevented
+      )
+        return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (clear.current) {
+        clear.current();
+        return;
+      }
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")?.set?.call(input, "");
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, []);
   return (
     <span className={cx("ac-searchfield", size === "sm" && "ac-searchfield--sm", className)}>
       <Icon name="search" size={16} className="ac-searchfield__icon" />
-      <input ref={ref} type="search" autoComplete="off" className="ac-searchfield__input" value={value} {...rest} />
+      <input
+        ref={(node) => {
+          own.current = node;
+          if (typeof ref === "function") ref(node);
+          else if (ref) ref.current = node;
+        }}
+        type="search"
+        autoComplete="off"
+        className="ac-searchfield__input"
+        value={value}
+        {...rest}
+      />
       {shortcut && !filled && <span className="ac-searchfield__hint">{shortcut}</span>}
       {onClear && filled && (
         <button

@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
@@ -137,4 +137,44 @@ test("on an API key with a fixed model the picker's ramp has the three levels th
   await act(async () => fireEvent.keyDown(ramp, { key: "ArrowRight" }));
   await settle(6);
   expect(state.calls.find((c) => c.method === "agents.setBrain")?.args[2]).toEqual({ brain: "model", effort: "low" });
+});
+
+/*
+ * The same picker where the agent's own page changes its AI: "Pensa com" in Ajustes and the IA row of its front open
+ * it in a dialog, and its "Mais opções" is the full "Quem pensa".
+ */
+
+test("Ajustes' Pensa com opens the picker; a model saves at once, and Mais opções opens the full Quem pensa", async () => {
+  const state = seedState();
+  await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}?tab=overview`, { api: createFakeApi(state) });
+  await settle(8);
+  await click(screen().getByRole("button", { name: "Mudar quem pensa" }));
+  const picker = document.querySelector(".mp-dialog") as HTMLElement;
+  expect(picker.getAttribute("role")).toBe("dialog");
+  const tiles = [...picker.querySelectorAll(".mp__tile")].map((b) => b.getAttribute("aria-label"));
+  expect(tiles).toContain("Claude");
+  await click(within(picker).getByRole("button", { name: "Claude" }));
+  await click(within(picker).getByRole("option", { name: /Opus/ }));
+  expect(state.calls.find((c) => c.method === "agents.setBrain")?.args[2]).toMatchObject({
+    brain: "claude_code",
+    model: "opus",
+  });
+  expect(document.querySelector(".mp-dialog")).toBeNull();
+  // Again, for everything else: the full dialog in its place.
+  await click(screen().getByRole("button", { name: "Mudar quem pensa" }));
+  await click(within(document.querySelector(".mp-dialog") as HTMLElement).getByRole("button", { name: "Mais opções" }));
+  expect(document.querySelector(".mp-dialog")).toBeNull();
+  expect(screen().getByRole("dialog", { name: /^Quem pensa/ })).toBeTruthy();
+});
+
+test("the front's IA row opens the picker in place, never the Painel de IA", async () => {
+  const { router } = await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}`, { api: createFakeApi(seedState()) });
+  await settle(8);
+  await click(screen().getByRole("button", { name: "Trocar a IA" }));
+  expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/agents/${ADA_ID}`);
+  const picker = document.querySelector(".mp-dialog") as HTMLElement;
+  expect(picker.querySelectorAll(".mp__tile").length).toBeGreaterThan(0);
+  expect(picker.querySelectorAll(".mp__model").length).toBeGreaterThan(0);
+  await click(within(picker).getByRole("button", { name: "Fechar" }));
+  expect(document.querySelector(".mp-dialog")).toBeNull();
 });

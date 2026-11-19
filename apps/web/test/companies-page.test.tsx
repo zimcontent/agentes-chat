@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { isStrictEmail } from "@agenteschat/client/lib/text";
+import { isStrictEmail } from "@dougbot/client/lib/text";
 import { act, cleanup, fireEvent } from "@testing-library/react";
 import { createFakeApi, seedState } from "./fake-api";
 import { renderApp, screen, settle } from "./render";

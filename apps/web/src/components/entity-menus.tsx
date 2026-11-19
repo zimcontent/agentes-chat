@@ -1,4 +1,4 @@
-import type { Agent, Channel } from "@agenteschat/client";
+import type { Agent, Channel } from "@dougbot/client";
 import {
   keys,
   useArchiveChannel,
@@ -7,13 +7,13 @@ import {
   useMuteChannel,
   usePeople,
   useRoles,
-} from "@agenteschat/client";
-import { channelTitle } from "@agenteschat/client/lib/channel-name";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { can, leavesChannel, managesChannel } from "@agenteschat/client/lib/permissions";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
-import { leaves, removes } from "@agenteschat/client/lib/roles";
+} from "@dougbot/client";
+import { channelTitle } from "@dougbot/client/lib/channel-name";
+import { errorText } from "@dougbot/client/lib/errors";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { can, leavesChannel, managesChannel } from "@dougbot/client/lib/permissions";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
+import { leaves, removes } from "@dougbot/client/lib/roles";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useState } from "react";

@@ -9,9 +9,9 @@ import {
   orgTopic,
   type ServerFrame,
   STREAM_CLOSE,
-} from "@agenteschat/adapters";
-import { and, eq, rowsOf, schema, sql } from "@agenteschat/db";
-import { createTestDatabase } from "@agenteschat/db/testing";
+} from "@dougbot/adapters";
+import { and, eq, rowsOf, schema, sql } from "@dougbot/db";
+import { createTestDatabase } from "@dougbot/db/testing";
 import { Glob } from "bun";
 import {
   agentBrainSummaries,

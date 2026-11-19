@@ -1,6 +1,6 @@
-import { MisconfiguredError } from "@agenteschat/engine";
-import { isHelpSlug } from "@agenteschat/i18n/help";
-import type { AgentesModule, ClientOverrides, Edition, ModuleContext } from "@agenteschat/modules";
+import { MisconfiguredError } from "@dougbot/engine";
+import { isHelpSlug } from "@dougbot/i18n/help";
+import type { ClientOverrides, DougBotModule, Edition, ModuleContext } from "@dougbot/modules";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { Scalar } from "@scalar/hono-api-reference";
 import { serveStatic } from "hono/bun";
@@ -64,6 +64,7 @@ import { roleRoutes } from "./routes/app/roles";
 import { routineRoutes } from "./routes/app/routines";
 import { sandboxRoutes } from "./routes/app/sandboxes";
 import { secretRoutes } from "./routes/app/secrets";
+import { sectorCardRoutes } from "./routes/app/sector-cards";
 import { skillRoutes } from "./routes/app/skills";
 import { storageRoutes } from "./routes/app/storage";
 import { teamWeekRoutes } from "./routes/app/team-week";
@@ -97,7 +98,7 @@ export interface AppOptions {
   edition: Edition;
   /** The package's version; the config's `APP_VERSION` (the deploy's) takes its place when set. */
   version: string;
-  modules: AgentesModule[];
+  modules: DougBotModule[];
   /**
    * This client's customizations (`clients/<code>/config.json`, ADR doug-0032), read at boot from `DOUG_CLIENT_CODE`;
    * null or absent: a server that behaves as the shared code does. The apps read them in `GET /api/instance` and
@@ -135,7 +136,7 @@ export interface AppOptions {
  * - `/api/git/*`          git proxy for agents' computers (their own credential, ADR 0024)
  * - `/api/machines/*`     connected computers' runner: device-code connection, uploads, install.sh, a connect link's info (ADR 0025, 0036)
  * - `/api/desktop/*`      public: the desktop app's latest build and its download (ADR 0036)
- * - `/api/native/*`       public: the packages that run agentes.chat without Docker, for the installer (ADR 0060)
+ * - `/api/native/*`       public: the packages that run DougBot without Docker, for the installer (ADR 0060)
  * - `/api/hooks/*`        public: a webhook routine's own address (its chosen methods, ADR 0106)
  * - `/api/waitlist`       public: join the waiting list and confirm the email (the landing page, only with LANDING_URL)
  * - `/api/partners/waitlist` public: join the partner program's waiting list (the landing page, only with LANDING_URL)
@@ -244,6 +245,7 @@ export function createApp(options: AppOptions) {
     api.route("/app", planUsageRoutes(deps));
     api.route("/app", personUsageRoutes(deps));
     api.route("/app", teamWeekRoutes(deps));
+    api.route("/app", sectorCardRoutes(deps));
     api.route("/app", dashboardRoutes(deps));
     api.route("/app", telemetryRoutes(deps));
     api.route("/app", jevRoutes(deps));

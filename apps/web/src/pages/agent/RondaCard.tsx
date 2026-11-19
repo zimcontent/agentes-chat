@@ -6,12 +6,12 @@ import {
   useRonda,
   useRoutineAction,
   useSetRonda,
-} from "@agenteschat/client";
-import { nextLabel } from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
-import { modelChoices } from "@agenteschat/client/lib/providers";
-import { runOutcome } from "@agenteschat/client/lib/routine-view";
-import { Button, Card, Select, SettingNote, SettingRow } from "@agenteschat/ui";
+} from "@dougbot/client";
+import { nextLabel } from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
+import { modelChoices } from "@dougbot/client/lib/providers";
+import { runOutcome } from "@dougbot/client/lib/routine-view";
+import { Button, Card, Select, SettingNote, SettingRow } from "@dougbot/ui";
 import { useTranslation } from "react-i18next";
 import { ModelSelect, modelOptions } from "@/components/AgentFields";
 import { useOrg } from "@/components/org-context";

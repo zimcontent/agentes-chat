@@ -59,6 +59,18 @@
   "categories.seeAll": {
     "value": "See all"
   },
+  "sectorPills.label": {
+    "value": "Shortcuts"
+  },
+  "sectorPills.failed": {
+    "value": "That card didn't come. Try again."
+  },
+  "blocks.done": {
+    "value": "Done"
+  },
+  "blocks.actFailed": {
+    "value": "That didn't go through. Try again."
+  },
   "blocks.send": {
     "value": "Send"
   },
@@ -121,6 +133,45 @@
   },
   "blocks.voteFailed": {
     "value": "Your vote didn't go through."
+  },
+  "blocks.openPiece": {
+    "value": "Open full screen"
+  },
+  "blocks.openSlide": {
+    "value": "Open slide {{at}}"
+  },
+  "blocks.pieceAt": {
+    "value": "{{at}} of {{count}}"
+  },
+  "blocks.carouselTitle": {
+    "value": "Carousel"
+  },
+  "blocks.posterTitle": {
+    "value": "Static post"
+  },
+  "blocks.reelTitle": {
+    "value": "Reel script"
+  },
+  "blocks.aboutSlide": {
+    "value": "slide {{at}} (“{{title}}”)"
+  },
+  "blocks.aboutPoster": {
+    "value": "the static post (“{{title}}”)"
+  },
+  "blocks.aboutBeat": {
+    "value": "the {{time}} beat of the reel"
+  },
+  "blocks.noteMessage": {
+    "value": "About {{about}}: {{note}}"
+  },
+  "blocks.notePlaceholder": {
+    "value": "A note on {{about}}"
+  },
+  "blocks.noteLabel": {
+    "value": "Your note"
+  },
+  "blocks.noteSent": {
+    "value": "Sent to {{name}}"
   },
   "choices.step": {
     "value": "{{step}} of {{total}}"
@@ -6125,6 +6176,36 @@
   },
   "aiPanel.month": {
     "value": "Month"
+  },
+  "aiPanel.sheet.nowTitle": {
+    "value": "Now"
+  },
+  "aiPanel.sheet.account": {
+    "value": "Account"
+  },
+  "aiPanel.sheet.model": {
+    "value": "Model"
+  },
+  "aiPanel.sheet.effort": {
+    "value": "Effort"
+  },
+  "aiPanel.sheet.context": {
+    "value": "Context"
+  },
+  "aiPanel.sheet.contextFull": {
+    "value": "The model's whole window"
+  },
+  "aiPanel.sheet.autoPerTask": {
+    "value": "picked for each task"
+  },
+  "aiPanel.sheet.autoLine": {
+    "value": "Picks the model and the effort for each task, on the same account."
+  },
+  "aiPanel.sheet.switchTitle": {
+    "value": "Switch to"
+  },
+  "aiPanel.sheet.on": {
+    "value": "on {{place}}"
   },
   "aiPanel.sheet.title": {
     "value": "Change {{name}}'s AI",

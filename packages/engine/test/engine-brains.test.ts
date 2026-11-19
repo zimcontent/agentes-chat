@@ -6,9 +6,9 @@ import {
   MACHINE_PROTOCOL_VERSION,
   OPENCODE_ACP_PROTOCOL,
   orgTopic,
-} from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import { ProviderError, systemText } from "@agenteschat/providers";
+} from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import { ProviderError, systemText } from "@dougbot/providers";
 import {
   activeRunsIn,
   addChannelMember,

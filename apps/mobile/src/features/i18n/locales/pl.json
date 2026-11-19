@@ -25,7 +25,13 @@
     "itsChannels": "Grupy",
     "seeAll": "Zobacz wszystkie"
   },
+  "sectorPills": {
+    "label": "Skróty",
+    "failed": "Karta nie dotarła. Spróbuj ponownie."
+  },
   "blocks": {
+    "done": "Gotowe",
+    "actFailed": "Nie udało się. Spróbuj ponownie.",
     "send": "Wyślij",
     "more": "Więcej",
     "thousand": "tys.",
@@ -48,7 +54,20 @@
     "pollAnswered_few": "Odpowiedzi: {{count}} z {{total}}",
     "pollAnswered_many": "Odpowiedzi: {{count}} z {{total}}",
     "pollAnswered_other": "Odpowiedzi: {{count}} z {{total}}",
-    "voteFailed": "Twój głos nie został zapisany."
+    "voteFailed": "Twój głos nie został zapisany.",
+    "openPiece": "Otwórz na całym ekranie",
+    "openSlide": "Otwórz slajd {{at}}",
+    "pieceAt": "{{at}} z {{count}}",
+    "carouselTitle": "Karuzela",
+    "posterTitle": "Post statyczny",
+    "reelTitle": "Scenariusz rolki",
+    "aboutSlide": "slajd {{at}} („{{title}}”)",
+    "aboutPoster": "post statyczny („{{title}}”)",
+    "aboutBeat": "fragment {{time}} rolki",
+    "noteMessage": "O {{about}}: {{note}}",
+    "notePlaceholder": "Uwaga do: {{about}}",
+    "noteLabel": "Twoja uwaga",
+    "noteSent": "Wysłano do: {{name}}"
   },
   "choices": {
     "step": "{{step}} z {{total}}",
@@ -2709,6 +2728,16 @@
     "week": "Tydzień",
     "month": "Miesiąc",
     "sheet": {
+      "nowTitle": "Teraz",
+      "account": "Konto",
+      "model": "Model",
+      "effort": "Wysiłek",
+      "context": "Kontekst",
+      "contextFull": "Całe okno modelu",
+      "autoPerTask": "wybierany do każdego zadania",
+      "autoLine": "Wybiera model i wysiłek do każdego zadania, na tym samym koncie.",
+      "switchTitle": "Przełącz na",
+      "on": "na {{place}}",
       "title": "Zmień AI agenta {{name}}",
       "title_female": "Zmień AI agenta {{name}}",
       "smart": "Najmądrzejsza",

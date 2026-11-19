@@ -1,7 +1,7 @@
-import { type AgentBrainInput, type BrainKind, type BrainScope, keys, useApi } from "@agenteschat/client";
-import { type EffortLevel, effortLevelsOf, effortTextOf } from "@agenteschat/client/lib/brain-advanced";
-import { AUTO } from "@agenteschat/client/lib/providers";
-import { bodyTones } from "@agenteschat/ui/agent/engine";
+import { type AgentBrainInput, type BrainKind, type BrainScope, keys, useApi } from "@dougbot/client";
+import { type EffortLevel, effortLevelsOf, effortTextOf } from "@dougbot/client/lib/brain-advanced";
+import { AUTO } from "@dougbot/client/lib/providers";
+import { bodyTones } from "@dougbot/ui/agent/engine";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

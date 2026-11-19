@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { and, eq, inArray, rowsOf, schema, sql } from "@agenteschat/db";
+import { and, eq, inArray, rowsOf, schema, sql } from "@dougbot/db";
 import {
   createSetupToolSource,
   createToolGateway,

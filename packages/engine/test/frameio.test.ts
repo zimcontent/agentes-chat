@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHmac } from "node:crypto";
-import { asc, eq, schema } from "@agenteschat/db";
+import { asc, eq, schema } from "@dougbot/db";
 import {
   createRoutine,
   createWebhookEndpoint,

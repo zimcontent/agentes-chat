@@ -1,4 +1,4 @@
-import { type AppLocale, appLocale } from "@agenteschat/i18n/locale";
+import { type AppLocale, appLocale } from "@dougbot/i18n/locale";
 
 /**
  * The words of the runner's own pages (the agent's start page, a crashed tab's notice, macOS's password window for

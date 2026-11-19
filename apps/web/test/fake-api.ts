@@ -94,6 +94,7 @@ import type {
   ScopeGrant,
   SearchHit,
   SecretRequest,
+  SeparateOperation,
   ServerTelemetry,
   SidebarItem,
   SidebarItems,
@@ -110,20 +111,20 @@ import type {
   UnreadTask,
   UsageQueue,
   WorkspaceLimits,
-} from "@agenteschat/client";
-import { ApiError } from "@agenteschat/client";
-import { moveInGroups } from "@agenteschat/client/lib/agent-groups";
-import { answersOthers, audienceOf, listsAllAgents } from "@agenteschat/client/lib/audience";
-import type { ChatPrefs } from "@agenteschat/client/lib/chat-look";
-import { DOUG_TEMPLATE } from "@agenteschat/client/lib/doug-team";
-import { ISSUES_VIEW_DEFAULT } from "@agenteschat/client/lib/issues-view";
-import { freeHandle, takenHandles } from "@agenteschat/client/lib/new-agent";
-import { stepIndex } from "@agenteschat/client/lib/onboarding";
-import type { PlanModel } from "@agenteschat/client/lib/plans";
-import { type LodiPrefs, lodiPrefsOf } from "@agenteschat/client/lib/right-hand-prefs";
-import { grants, rowMax, SUMMARY_ORDER, withRowHolders } from "@agenteschat/client/lib/roles";
-import { sidebarItemOrder, sidebarSections } from "@agenteschat/client/lib/sidebar-items";
-import { driveFolder, isSecretFile } from "@agenteschat/ui/names";
+} from "@dougbot/client";
+import { ApiError } from "@dougbot/client";
+import { moveInGroups } from "@dougbot/client/lib/agent-groups";
+import { answersOthers, audienceOf, listsAllAgents } from "@dougbot/client/lib/audience";
+import type { ChatPrefs } from "@dougbot/client/lib/chat-look";
+import { DOUG_TEMPLATE } from "@dougbot/client/lib/doug-team";
+import { ISSUES_VIEW_DEFAULT } from "@dougbot/client/lib/issues-view";
+import { freeHandle, takenHandles } from "@dougbot/client/lib/new-agent";
+import { stepIndex } from "@dougbot/client/lib/onboarding";
+import type { PlanModel } from "@dougbot/client/lib/plans";
+import { type LodiPrefs, lodiPrefsOf } from "@dougbot/client/lib/right-hand-prefs";
+import { grants, rowMax, SUMMARY_ORDER, withRowHolders } from "@dougbot/client/lib/roles";
+import { sidebarItemOrder, sidebarSections } from "@dougbot/client/lib/sidebar-items";
+import { driveFolder, isSecretFile } from "@dougbot/ui/names";
 import { createFakeAccess } from "./fakes/access";
 import { createFakeApps, type FakeApps } from "./fakes/apps";
 import { createMockArtifacts } from "./fakes/artifacts";
@@ -165,6 +166,7 @@ const NO_LEGAL_SERVICES: LegalFacts["services"] = {
   support: false,
   telemetry: false,
   driveBackup: false,
+  houseVoice: false,
 };
 /** The brand's tones as the server sends them: ids fixed, words in pt-BR (the tests run in Portuguese). */
 const BRAND_TONES = [
@@ -340,6 +342,8 @@ export interface FakeState {
   carrySources?: CarrySource[];
   /** Each agent's copies in other workspaces (ADR doug-0013), by agent id; absent: none. */
   agentTwins?: Record<string, AgentTwins>;
+  /** Whether the workspace is a separate operation (ADR doug-0035); absent: off, the owner may change it. */
+  separateOperation?: SeparateOperation;
   /** What the organization's GitHub reaches (`githubApp.repositories`); unset = not connected. */
   githubRepos?: GitHubRepositories;
   /** The GitHub connection whose token GitHub no longer takes (its id): skills from private links say so. */
@@ -1660,6 +1664,29 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
       get: async () => ({ state: "off", hint: null, editable: true, callNotes: "" }),
       saveKey: async () => ({ state: "ok", hint: "abcd", editable: true, callNotes: "" }),
       removeKey: async () => ({ state: "off", hint: null, editable: true, callNotes: "" }),
+      startVoice: async () => {
+        throw new ApiError(404, "not_found", "Not found");
+      },
+      setEngine: async (_orgId, engine) => ({
+        state: "ok",
+        engine: engine ?? "house",
+        chosenEngine: engine,
+        gptLiveKey: false,
+        house: { perMinute: 20, balance: 1000, monthlyCredits: null, spentThisMonth: 0 },
+        hint: null,
+        editable: true,
+        callNotes: "",
+      }),
+      setMonthlyLimit: async (_orgId, credits) => ({
+        state: "ok",
+        engine: "house",
+        chosenEngine: null,
+        gptLiveKey: false,
+        house: { perMinute: 20, balance: 1000, monthlyCredits: credits, spentThisMonth: 0 },
+        hint: null,
+        editable: true,
+        callNotes: "",
+      }),
       saveCallNotes: async (_orgId, notes) => ({
         state: "off",
         hint: null,
@@ -1829,6 +1856,10 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         log("push.stale", ids);
         return ids.filter((id) => state.stalePushIds?.includes(id));
       },
+      // Live Activities are the iPhone's: the web never starts one.
+      liveActivityStart: async () => ({ available: false, start: null }),
+      registerLiveActivity: async () => {},
+      endLiveActivity: async () => {},
     },
     roles: {
       list: async (orgId) => {
@@ -3083,6 +3114,8 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         if (q) q.rows = q.rows.filter((r) => r.state !== "queued");
         return { canceled, skipped: 0 };
       },
+      sectorPills: async () => [],
+      showSectorCard: async () => ({ id: "card-message" }),
       ronda: async (orgId, agentId) => {
         log("agents.ronda", orgId, agentId);
         return (
@@ -3985,6 +4018,14 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         state.agentTwins = { ...state.agentTwins, [agentId]: next };
         return structuredClone(next);
       },
+      separateOperation: async () =>
+        structuredClone(state.separateOperation ?? { on: false, names: [], canEdit: true, sharedSignIns: [] }),
+      setSeparateOperation: async (orgId, input) => {
+        log("carry.setSeparateOperation", orgId, input);
+        const view = state.separateOperation ?? { on: false, names: [], canEdit: true, sharedSignIns: [] };
+        state.separateOperation = { ...view, ...input };
+        return structuredClone(state.separateOperation);
+      },
     },
     githubApp: {
       access: async () =>
@@ -4080,6 +4121,7 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
       edit: async (orgId, id, text) => patchMemory(orgId, id, { text }),
       setPinned: async (orgId, id, pinned) => patchMemory(orgId, id, { pinned }),
       setArchived: async (orgId, id, archived) => patchMemory(orgId, id, { archived }),
+      setReach: async (orgId, id, reach) => patchMemory(orgId, id, { reach }),
       confirm: async (orgId, id) => patchMemory(orgId, id, { confirmed: true }),
       listTeam: async () => state.memories.filter((m) => !m.agentId && !m.archived),
       makeTeam: async (orgId, id) => {
@@ -4321,7 +4363,7 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
   function patchMemory(
     orgId: string,
     id: string,
-    patch: { text?: string; pinned?: boolean; archived?: boolean; confirmed?: boolean },
+    patch: { text?: string; pinned?: boolean; archived?: boolean; confirmed?: boolean; reach?: "all" | "here" },
   ) {
     log("memory.patch", orgId, id, patch);
     const m = state.memories.find((x) => x.id === id);
@@ -4334,6 +4376,7 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
     }
     if (patch.pinned !== undefined) m.pinned = patch.pinned;
     if (patch.archived !== undefined) m.archived = patch.archived;
+    if (patch.reach !== undefined) m.reach = patch.reach;
     if (patch.confirmed) {
       m.lowTrust = false;
       m.verified = true;

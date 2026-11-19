@@ -1,7 +1,7 @@
 import { lookup } from "node:dns/promises";
 import type { request as httpsRequest } from "node:https";
 import { isIP } from "node:net";
-import { OutboundAddressError } from "@agenteschat/adapters";
+import { OutboundAddressError } from "@dougbot/adapters";
 import { ValidationError } from "./errors";
 
 /** Resolves a host name to its addresses (injected in tests). */

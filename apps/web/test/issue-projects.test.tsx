@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { ISSUES_VIEW_DEFAULT } from "@agenteschat/client/lib/issues-view";
+import { ISSUES_VIEW_DEFAULT } from "@dougbot/client/lib/issues-view";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { createFakeApi, ORG_ID, seedState } from "./fake-api";
 import { renderApp, screen, settle } from "./render";

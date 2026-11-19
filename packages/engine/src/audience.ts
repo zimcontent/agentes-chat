@@ -1,5 +1,5 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, type Executor, eq, inArray, type SQL, schema, sql } from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import { and, type Database, type Executor, eq, inArray, type SQL, schema, sql } from "@dougbot/db";
 import { type Agent, getAgent } from "./agents";
 import { recordAudit } from "./audit";
 import { isComputerBrain } from "./brains/types";

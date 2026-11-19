@@ -1,4 +1,4 @@
-import { escapeHtml } from "@agenteschat/client/lib/text";
+import { escapeHtml } from "@dougbot/client/lib/text";
 import mermaidBundle from "mermaid/dist/mermaid.min.js?url&no-inline";
 import frameScript from "./mermaid-frame.js?url&no-inline";
 

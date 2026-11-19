@@ -5,8 +5,8 @@ import {
   type MediaRequest,
   type ZimMedia,
   ZimMediaError,
-} from "@agenteschat/adapters";
-import { forgetMediaCatalog } from "@agenteschat/engine";
+} from "@dougbot/adapters";
+import { forgetMediaCatalog } from "@dougbot/engine";
 import { browser, createTestServer, joinByInvitation, seedOrg, signUp, type TestServer } from "./harness";
 
 // The Mídia page's routes (ADR doug-0011): the wallet and catalog through the server only, a person's generation that

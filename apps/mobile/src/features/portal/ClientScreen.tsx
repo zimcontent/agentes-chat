@@ -1,4 +1,4 @@
-import type { PortalItem, PortalPlan } from "@agenteschat/client";
+import type { PortalItem, PortalPlan } from "@dougbot/client";
 import {
   isPortalOff,
   usePortalBoard,
@@ -6,7 +6,7 @@ import {
   usePortalPlan,
   usePortalTasks,
   usePortalToSchedule,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   portalClientColors,
   portalClientLogos,
@@ -14,7 +14,7 @@ import {
   portalMonthName,
   portalPostedByMonth,
   portalTaskNumbers,
-} from "@agenteschat/client/lib/portal";
+} from "@dougbot/client/lib/portal";
 import { type ReactElement, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {

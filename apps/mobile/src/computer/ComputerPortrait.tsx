@@ -1,5 +1,5 @@
-import { useMachines } from "@agenteschat/client";
-import { computerKind } from "@agenteschat/client/lib/machines";
+import { useMachines } from "@dougbot/client";
+import { computerKind } from "@dougbot/client/lib/machines";
 import { memo, useId } from "react";
 import { View } from "react-native";
 import Svg, { Defs, LinearGradient, Rect, Stop } from "react-native-svg";

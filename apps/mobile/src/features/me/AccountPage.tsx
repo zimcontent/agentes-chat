@@ -1,10 +1,10 @@
-import { ApiError, keys, useApi, useMe, useSettings } from "@agenteschat/client";
-import { formatTimeLeft } from "@agenteschat/client/lib/actions";
-import { emailChangeRefusal, errorCode, errorText, REAUTH_SIGN_IN } from "@agenteschat/client/lib/errors";
-import { CODE_LENGTH, typedCode } from "@agenteschat/client/lib/join-requests";
-import { browserTimezone, zoneDisplayName } from "@agenteschat/client/lib/routines";
-import { isEmail } from "@agenteschat/client/lib/text";
-import { filterZones, type ZoneOption, zoneOptions } from "@agenteschat/ui/timezones";
+import { ApiError, keys, useApi, useMe, useSettings } from "@dougbot/client";
+import { formatTimeLeft } from "@dougbot/client/lib/actions";
+import { emailChangeRefusal, errorCode, errorText, REAUTH_SIGN_IN } from "@dougbot/client/lib/errors";
+import { CODE_LENGTH, typedCode } from "@dougbot/client/lib/join-requests";
+import { browserTimezone, zoneDisplayName } from "@dougbot/client/lib/routines";
+import { isEmail } from "@dougbot/client/lib/text";
+import { filterZones, type ZoneOption, zoneOptions } from "@dougbot/ui/timezones";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { userTopic } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import { LIVE_VOICE_NANO_USD_PER_SECOND, liveVoiceFor } from "@agenteschat/providers/live-voice";
+import { userTopic } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import { LIVE_VOICE_NANO_USD_PER_SECOND, liveVoiceFor } from "@dougbot/providers/live-voice";
 import {
   addLiveLines,
   askFromLiveRoom,
@@ -59,6 +59,13 @@ function openai(options: { refuseVoice?: boolean; refuseKey?: boolean } = {}) {
   return { fetch, sessions };
 }
 
+/** A GPT-Live session's start: this workspace has no house voice, so it opens on WebRTC. */
+async function webrtc(d: LiveVoiceDeps, input: Parameters<typeof startLiveSession>[3], userId = f.owner.id) {
+  const s = await startLiveSession(d, userId, f.org.id, input);
+  if (s.transport !== "webrtc") throw new Error(`opened on ${s.transport}`);
+  return s;
+}
+
 function deps(fetch: typeof globalThis.fetch, extra: Partial<LiveVoiceDeps> = {}): LiveVoiceDeps {
   return { db: f.db, pubsub: f.pubsub, keyWrapper: f.keyWrapper, keyWrappers: [f.keyWrapper], fetch, ...extra };
 }
@@ -70,16 +77,20 @@ describe("the workspace's GPT-Live key", () => {
     const d = deps(fake.fetch);
     expect(await liveVoiceView(d, f.owner.id, f.org.id)).toEqual({
       state: "off",
+      engine: "gpt-live",
+      chosenEngine: null,
+      gptLiveKey: false,
+      house: null,
       hint: null,
       editable: true,
       callNotes: "",
     });
     const view = await saveLiveVoiceKey(d, f.owner.id, f.org.id, `  ${KEY}  `);
-    expect(view).toEqual({ state: "ok", hint: "9f3c", editable: true, callNotes: "" });
+    expect(view).toMatchObject({ state: "ok", hint: "9f3c", editable: true, callNotes: "", gptLiveKey: true });
     const [row] = await f.db.select().from(schema.liveVoiceKeys);
     expect(JSON.stringify(row)).not.toContain("live-voice-test");
     const member = await addMember(f.db, f.org.id, "member", "Bia");
-    expect(await liveVoiceView(d, member.id, f.org.id)).toEqual({
+    expect(await liveVoiceView(d, member.id, f.org.id)).toMatchObject({
       state: "ok",
       hint: null,
       editable: false,
@@ -124,7 +135,7 @@ describe("Ouvir: a message told by voice", () => {
       .insert(schema.messageReactions)
       .values({ orgId: f.org.id, messageId: message.id, userId: f.owner.id, reaction: "+1" });
 
-    const session = await startLiveSession(d, f.owner.id, f.org.id, {
+    const session = await webrtc(d, {
       kind: "listen",
       sdp: "v=0 offer",
       messageId: message.id,

@@ -1,7 +1,7 @@
-import type { Agent } from "@agenteschat/client";
-import { useCatalog } from "@agenteschat/client";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { connectorName } from "@agenteschat/client/lib/scopes";
+import type { Agent } from "@dougbot/client";
+import { useCatalog } from "@dougbot/client";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { connectorName } from "@dougbot/client/lib/scopes";
 import {
   type AgentColor,
   gradientOf,
@@ -10,7 +10,7 @@ import {
   ProviderLogo,
   playAgentReaction,
   prefersReducedMotion,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { type CSSProperties, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";

@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test";
-import { MACHINE_PROTOCOL_VERSION } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import { MACHINE_PROTOCOL_VERSION } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   AUTONOMY_REPORT_JOB,
   type AutonomyRow,

@@ -1,15 +1,16 @@
-import type { AppNotification, SignInProvider } from "@agenteschat/client";
-import { deviceNoticeOf } from "@agenteschat/client/lib/devices";
-import { firstName } from "@agenteschat/client/lib/format";
-import { noticeLine } from "@agenteschat/client/lib/island";
-import { mediaWord } from "@agenteschat/client/lib/media";
-import { openTarget, targetPath } from "@agenteschat/client/lib/notifications";
+import type { AppNotification, SignInProvider } from "@dougbot/client";
+import { deviceNoticeOf } from "@dougbot/client/lib/devices";
+import { firstName } from "@dougbot/client/lib/format";
+import { noticeLine } from "@dougbot/client/lib/island";
+import { mediaWord } from "@dougbot/client/lib/media";
+import { openTarget, targetPath } from "@dougbot/client/lib/notifications";
+import { clipWhole } from "@dougbot/ui/clip";
 import type { i18n as I18n, TFunction } from "i18next";
 import { useEffect } from "react";
 import type { DesktopServerWorkspaces } from "./workspaces";
 
 /**
- * The site inside the agentes.chat desktop app (ADR 0036, ADR 0066): the app's main window loads it and
+ * The site inside the DougBot desktop app (ADR 0036, ADR 0066): the app's main window loads it and
  * sets `window.__agentesDesktop` before it starts. The site gets nothing of the computer but how it draws
  * (`renderer`, and on Linux `system`: distribution, session, WebKitGTK, graphics card). It draws its own
  * title bar and sends Google/Apple sign-in to the browser (`apps/desktop/src-tauri/src/main_window.rs`).
@@ -86,10 +87,8 @@ const isNoticeKind = (kind: string): kind is NoticeKind => (NOTICE_KINDS as read
 const NOTICE_TITLE_MAX = 80;
 const NOTICE_BODY_MAX = 180;
 
-const oneLine = (text: string, max: number) => {
-  const one = text.replace(/\s+/g, " ").trim();
-  return one.length > max ? `${one.slice(0, max - 1).trimEnd()}…` : one;
-};
+// Doug: cut on a whole character, never half of an emoji.
+const oneLine = (text: string, max: number) => clipWhole(text.replace(/\s+/g, " ").trim(), max);
 
 /**
  * The desktop app's notification for one that just arrived (`notification.upserted`): new and unread, of a
@@ -307,7 +306,7 @@ export const thisMac = {
    */
   openWorkspace: (server: string, orgId: string, account?: string) =>
     invoke<unknown>({ kind: "openWorkspace", server, orgId, ...(account ? { account } : {}) }),
-  /** The app's own window to add a workspace: a new one on agentes.chat, or the team's server. */
+  /** The app's own window to add a workspace: a new one on DougBot, or the team's server. */
   addWorkspace: () => invoke<unknown>({ kind: "addWorkspace" }),
   /**
    * The window goes to a server of the app's list on its own first page (its sign-in when the app has no session

@@ -5,8 +5,8 @@ import {
   useWhatsApp,
   useWhatsAppBrain,
   type WhatsAppAccount,
-} from "@agenteschat/client";
-import { brainLine } from "@agenteschat/client/lib/brain";
+} from "@dougbot/client";
+import { brainLine } from "@dougbot/client/lib/brain";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";

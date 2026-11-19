@@ -4,9 +4,9 @@ import type {
   BrainTurnRequest,
   BrainTurnTimings,
   ProviderFailureCause,
-} from "@agenteschat/adapters";
-import type { ToolImage } from "@agenteschat/providers";
-import { planOf } from "@agenteschat/providers/plans";
+} from "@dougbot/adapters";
+import type { ToolImage } from "@dougbot/providers";
+import { planOf } from "@dougbot/providers/plans";
 import type { CodeSetup } from "../git/machine";
 
 export type BrainKind = "model" | "claude_code" | "codex" | "cursor" | "opencode" | "grok" | "antigravity";

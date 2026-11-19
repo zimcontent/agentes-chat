@@ -1,9 +1,9 @@
-import { type Memory, useMemoryAction, useOrgMemories } from "@agenteschat/client";
-import { canTalk } from "@agenteschat/client/lib/audience";
-import { relativeTime } from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
-import { memoryLine } from "@agenteschat/client/lib/proposals";
-import { rightHandOf } from "@agenteschat/client/lib/right-hand";
+import { type Memory, useMemoryAction, useOrgMemories } from "@dougbot/client";
+import { canTalk } from "@dougbot/client/lib/audience";
+import { relativeTime } from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
+import { memoryLine } from "@dougbot/client/lib/proposals";
+import { rightHandOf } from "@dougbot/client/lib/right-hand";
 import { useDeferredValue, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";

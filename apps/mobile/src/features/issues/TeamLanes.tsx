@@ -1,4 +1,4 @@
-import { dueLabel, dueTone } from "@agenteschat/client/lib/format";
+import { dueLabel, dueTone } from "@dougbot/client/lib/format";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";

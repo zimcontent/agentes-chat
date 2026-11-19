@@ -10,26 +10,21 @@ import {
   useRoutines,
   useRuleDescribe,
   useRuleParse,
-} from "@agenteschat/client";
-import { FIELD_LIMITS } from "@agenteschat/client/lib/field-limits";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { splitAddresses } from "@agenteschat/client/lib/mail";
-import { routineReachWarnings } from "@agenteschat/client/lib/reach";
-import {
-  blankLeft,
-  ownWords,
-  type RoutineTemplateOption,
-  templateRule,
-} from "@agenteschat/client/lib/routine-templates";
-import { busyOnComputer, eventWebhook, runsPerDay } from "@agenteschat/client/lib/routine-view";
+} from "@dougbot/client";
+import { FIELD_LIMITS } from "@dougbot/client/lib/field-limits";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { splitAddresses } from "@dougbot/client/lib/mail";
+import { routineReachWarnings } from "@dougbot/client/lib/reach";
+import { blankLeft, ownWords, type RoutineTemplateOption, templateRule } from "@dougbot/client/lib/routine-templates";
+import { busyOnComputer, eventWebhook, runsPerDay } from "@dougbot/client/lib/routine-view";
 import {
   connectionReader,
   mailboxReader,
   timezoneName,
   triggerChoices,
   zoneDisplayName,
-} from "@agenteschat/client/lib/routines";
-import { WEEKDAYS } from "@agenteschat/ui/recurrence";
+} from "@dougbot/client/lib/routines";
+import { WEEKDAYS } from "@dougbot/ui/recurrence";
 import { type ReactNode, useDeferredValue, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";

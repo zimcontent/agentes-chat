@@ -1,7 +1,7 @@
-import type { WikiGraph } from "@agenteschat/client";
-import { useWikiGraph } from "@agenteschat/client";
-import { isImportedPage, layoutGraph, type Placed } from "@agenteschat/client/lib/wiki";
-import { appearanceStyle, PageHeader, Segmented } from "@agenteschat/ui";
+import type { WikiGraph } from "@dougbot/client";
+import { useWikiGraph } from "@dougbot/client";
+import { isImportedPage, layoutGraph, type Placed } from "@dougbot/client/lib/wiki";
+import { appearanceStyle, PageHeader, Segmented } from "@dougbot/ui";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from "bun:test";
-import { envPlatformCredentials, noPlatformCredentials } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
-import { costNanoUsd, maxCostNanoUsd, ProviderError, promptChars } from "@agenteschat/providers";
+import { envPlatformCredentials, noPlatformCredentials } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
+import { costNanoUsd, maxCostNanoUsd, ProviderError, promptChars } from "@dougbot/providers";
 import {
   agentBudgetState,
   agentSpendThisMonth,

@@ -1,5 +1,5 @@
-import type { NotificationEvent } from "@agenteschat/client";
-import { createIsland, raisesIsland, settledBy } from "@agenteschat/client/lib/island";
+import type { NotificationEvent } from "@dougbot/client";
+import { createIsland, raisesIsland, settledBy } from "@dougbot/client/lib/island";
 import { AppState } from "react-native";
 import { openConversationNow } from "@/lib/push";
 

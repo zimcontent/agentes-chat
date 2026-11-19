@@ -1,6 +1,6 @@
-import { LICENSE_URL, PUBLIC_SOURCE_URL } from "@agenteschat/client/lib/about";
-import { DOCS_SITE } from "@agenteschat/i18n/docs";
-import { Button, Chip, InfoHint, Switch } from "@agenteschat/ui";
+import { LICENSE_URL, PUBLIC_SOURCE_URL } from "@dougbot/client/lib/about";
+import { DOCS_SITE } from "@dougbot/i18n/docs";
+import { Button, Chip, InfoHint, Switch } from "@dougbot/ui";
 import { type ReactNode, useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useHost } from "../../app";

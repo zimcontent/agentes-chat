@@ -1,8 +1,8 @@
-import { requestLocale } from "@agenteschat/engine";
-import { serverText } from "@agenteschat/i18n";
-import { type AppLocale, appLocale } from "@agenteschat/i18n/locale";
-import { filePath } from "@agenteschat/tokens/message-links";
-import { dougMark } from "@agenteschat/ui/brand/dougbot-files";
+import { requestLocale } from "@dougbot/engine";
+import { serverText } from "@dougbot/i18n";
+import { type AppLocale, appLocale } from "@dougbot/i18n/locale";
+import { filePath } from "@dougbot/tokens/message-links";
+import { dougMark } from "@dougbot/ui/brand/dougbot-files";
 import type { Context, MiddlewareHandler } from "hono";
 import { signInPage } from "../routes/app/context";
 

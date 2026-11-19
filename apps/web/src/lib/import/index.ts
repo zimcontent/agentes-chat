@@ -1,2 +1,2 @@
-export * from "@agenteschat/client/lib/import/index";
+export * from "@dougbot/client/lib/import/index";
 export { type PickedFile, readImportFiles } from "./archive";

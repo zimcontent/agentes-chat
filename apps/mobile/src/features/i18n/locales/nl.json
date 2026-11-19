@@ -23,7 +23,13 @@
     "itsChannels": "Groepen",
     "seeAll": "Alles bekijken"
   },
+  "sectorPills": {
+    "label": "Snelkoppelingen",
+    "failed": "De kaart kwam niet door. Probeer het opnieuw."
+  },
   "blocks": {
+    "done": "Klaar",
+    "actFailed": "Dat lukte niet. Probeer het opnieuw.",
     "send": "Versturen",
     "more": "Meer",
     "thousand": "k",
@@ -44,7 +50,20 @@
     "pollMultiple": "Je kunt er meer dan één kiezen.",
     "pollAnswered_one": "{{count}} van {{total}} heeft geantwoord",
     "pollAnswered_other": "{{count}} van {{total}} hebben geantwoord",
-    "voteFailed": "Je stem is niet doorgekomen."
+    "voteFailed": "Je stem is niet doorgekomen.",
+    "openPiece": "Groot openen",
+    "openSlide": "Dia {{at}} openen",
+    "pieceAt": "{{at}} van {{count}}",
+    "carouselTitle": "Carrousel",
+    "posterTitle": "Statische post",
+    "reelTitle": "Reelscript",
+    "aboutSlide": "dia {{at}} (‘{{title}}’)",
+    "aboutPoster": "de statische post (‘{{title}}’)",
+    "aboutBeat": "het stuk {{time}} van de reel",
+    "noteMessage": "Over {{about}}: {{note}}",
+    "notePlaceholder": "Opmerking over {{about}}",
+    "noteLabel": "Je opmerking",
+    "noteSent": "Verstuurd naar {{name}}"
   },
   "choices": {
     "step": "{{step}} van {{total}}",
@@ -2469,6 +2488,16 @@
     "week": "Deze week",
     "month": "Deze maand",
     "sheet": {
+      "nowTitle": "Nu",
+      "account": "Account",
+      "model": "Model",
+      "effort": "Inspanning",
+      "context": "Context",
+      "contextFull": "Het hele venster van het model",
+      "autoPerTask": "per taak gekozen",
+      "autoLine": "Kiest het model en de inspanning per taak, op hetzelfde account.",
+      "switchTitle": "Wisselen naar",
+      "on": "op {{place}}",
       "title": "AI van {{name}} wisselen",
       "title_female": "AI van {{name}} wisselen",
       "smart": "Slimst",

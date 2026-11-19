@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { and, asc, desc, eq, inArray, lte, schema, sql } from "@agenteschat/db";
+import { and, asc, desc, eq, inArray, lte, schema, sql } from "@dougbot/db";
 import { getAgentCached } from "./agents";
 import { cutText } from "./format";
 import { formatDuration, getTask, isAgentTask, type MachineTaskRow, taskEndNotice, taskSeconds } from "./machine-tasks";

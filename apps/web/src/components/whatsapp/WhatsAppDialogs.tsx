@@ -16,10 +16,10 @@ import {
   type WhatsAppAccount,
   type WhatsAppPace,
   whatsappVoicePreviewUrl,
-} from "@agenteschat/client";
-import { agentThinks } from "@agenteschat/client/lib/brain";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { freeHandle, handleForName } from "@agenteschat/client/lib/new-agent";
+} from "@dougbot/client";
+import { agentThinks } from "@dougbot/client/lib/brain";
+import { errorText } from "@dougbot/client/lib/errors";
+import { freeHandle, handleForName } from "@dougbot/client/lib/new-agent";
 import {
   AccessDialog,
   type AccessSubject,
@@ -36,7 +36,7 @@ import {
   Spinner,
   Switch,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { type FormEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type BrainTarget, ModelPickerButton } from "@/components/ai/ModelPicker";

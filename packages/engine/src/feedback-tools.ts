@@ -1,5 +1,5 @@
-import type { RateLimiter } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import type { RateLimiter } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import { namesLabel, namesOf } from "./approvals";
 import { FEEDBACK_MAX, FEEDBACK_PER_HOUR, isFeedbackRelay, queueFeedback } from "./feedback";
 import {
@@ -23,7 +23,7 @@ const NOBODY =
 
 /**
  * `send_feedback` (ADR 0160 §11): a person asks an agent to send their feedback, and it goes as the form's does, one
- * email to whoever runs the server (`to`: `FEEDBACK_EMAIL`, or the agentes.chat team's inbox, §13), in that person's
+ * email to whoever runs the server (`to`: `FEEDBACK_EMAIL`, or the DougBot team's inbox, §13), in that person's
  * name and within their ten an hour. It leaves the workspace in their name, so they approve each one, reading its
  * text on the card; only they do. The email says an agent wrote it. Listed only where the server takes feedback; a
  * run nobody is behind (a routine's, an agent's own) sends none.

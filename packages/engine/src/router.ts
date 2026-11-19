@@ -1,4 +1,4 @@
-import type { PubSub } from "@agenteschat/adapters";
+import type { PubSub } from "@dougbot/adapters";
 import {
   and,
   asc,
@@ -13,7 +13,7 @@ import {
   ne,
   schema,
   sql,
-} from "@agenteschat/db";
+} from "@dougbot/db";
 import {
   cheapModelOf,
   ensureOpenRouterModels,
@@ -22,7 +22,7 @@ import {
   modelProvider,
   ProviderError,
   routerModelOf,
-} from "@agenteschat/providers";
+} from "@dougbot/providers";
 import { audienceSql } from "./audience";
 import { TYPING_GRACE_MS, typesInApp, typingLogFor } from "./burst";
 import { caches } from "./cache";

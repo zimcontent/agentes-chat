@@ -1,9 +1,9 @@
-import { type PendingReturn, useCancelFollowUp } from "@agenteschat/client";
-import { markedPieces, markInk } from "@agenteschat/client/lib/activity";
-import { returnClock, returnFaces, returnSentence, returnWhen } from "@agenteschat/client/lib/agent-work";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { Button, Icon, Popover, useNow } from "@agenteschat/ui";
+import { type PendingReturn, useCancelFollowUp } from "@dougbot/client";
+import { markedPieces, markInk } from "@dougbot/client/lib/activity";
+import { returnClock, returnFaces, returnSentence, returnWhen } from "@dougbot/client/lib/agent-work";
+import { errorText } from "@dougbot/client/lib/errors";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { Button, Icon, Popover, useNow } from "@dougbot/ui";
 import { type ReactNode, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActorAvatar, AgentAvatar } from "@/components/AgentAvatar";

@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { AuthConfig, ComputerSetup, Machine, StorageConfig } from "@agenteschat/client";
-import { showsAbout } from "@agenteschat/client/lib/about";
-import { type SetupView, setupView } from "@agenteschat/client/lib/computer";
-import { proofToSend } from "@agenteschat/client/lib/deletion";
-import { changedByText, changesSinceLink, skillPendingViews, skillUpdateWords } from "@agenteschat/client/lib/skills";
-import { storageUsageLine } from "@agenteschat/client/lib/storage";
+import type { AuthConfig, ComputerSetup, Machine, StorageConfig } from "@dougbot/client";
+import { showsAbout } from "@dougbot/client/lib/about";
+import { type SetupView, setupView } from "@dougbot/client/lib/computer";
+import { proofToSend } from "@dougbot/client/lib/deletion";
+import { changedByText, changesSinceLink, skillPendingViews, skillUpdateWords } from "@dougbot/client/lib/skills";
+import { storageUsageLine } from "@dougbot/client/lib/storage";
 import {
   agentComputerPick,
   areaValues,

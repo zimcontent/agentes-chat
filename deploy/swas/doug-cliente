@@ -72,7 +72,7 @@ REGISTRO=$RAIZ/clientes.tsv
 # limpa o ambiente, e um comando lido do ambiente de quem chama rodaria como root. O arquivo não
 # é executado: cada linha é NOME=valor, só de uma chave conhecida, e o valor vale como texto.
 CONF=$RAIZ/doug-cliente.conf
-CONF_CHAVES=" DOUG_CADDY_DIR DOUG_DOMINIO DOUG_PROXY_MODE DOUG_PROXY_CONTAINER DOUG_PROXY_SITES_DIR DOUG_PROXY_RELOAD DOUG_IMAGE_REPO DOUG_CLIENT_QUOTA_GB DOUG_PORTA_INICIAL DOUG_PORTA_FINAL DOUG_HEALTH_TIMEOUT DOUG_TRAVA_ESPERA DOUG_PROXY_CADDYFILE DOUG_PROXY_SITES_GRUPO DOUG_UID_BASE DOUG_ETC_DIR "
+CONF_CHAVES=" DOUG_CADDY_DIR DOUG_DOMINIO DOUG_PROXY_MODE DOUG_PROXY_CONTAINER DOUG_PROXY_SITES_DIR DOUG_PROXY_RELOAD DOUG_IMAGE_REPO DOUG_CLIENT_QUOTA_GB DOUG_PORTA_INICIAL DOUG_PORTA_FINAL DOUG_HEALTH_TIMEOUT DOUG_TRAVA_ESPERA DOUG_PROXY_CADDYFILE DOUG_PROXY_SITES_GRUPO DOUG_UID_BASE DOUG_ETC_DIR DOUG_CHAVE_DA_CASA DOUG_TETO_DA_CASA_USD "
 declare -A CONF_VALORES=()
 
 le_conf() {
@@ -815,6 +815,8 @@ preenche_env() { # <porta> <imagem> <segredo> <senha do banco> <hash do link do 
   texto=${texto//__PORTA__/$1}
   texto=${texto//__UID__/$6}
   texto=${texto//__REDE__/$(rede_do_cliente "$CODIGO")}
+  texto=${texto//__CHAVE_DA_CASA__/$(valor DOUG_CHAVE_DA_CASA "")}
+  texto=${texto//__TETO_DA_CASA__/$(valor DOUG_TETO_DA_CASA_USD "")}
   [[ $texto != *__*__* ]] || erro "o modelo cliente.env.example tem um campo que o instalador não preenche"
   printf '%s\n' "$texto"
 }

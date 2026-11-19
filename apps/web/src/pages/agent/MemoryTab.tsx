@@ -1,4 +1,4 @@
-import type { LearnedSkill, Memory, Proposal } from "@agenteschat/client";
+import type { LearnedSkill, Memory, Proposal } from "@dougbot/client";
 import {
   ApiError,
   useDecideProposal,
@@ -7,14 +7,14 @@ import {
   useMemoryAction,
   useProposals,
   useSkillAction,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { FIELD_LIMITS } from "@agenteschat/client/lib/field-limits";
-import { formatShortDate } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { can } from "@agenteschat/client/lib/permissions";
-import { memoryLine, pendingOnAgent, proposalTitle, proposalWhy } from "@agenteschat/client/lib/proposals";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { FIELD_LIMITS } from "@dougbot/client/lib/field-limits";
+import { formatShortDate } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { can } from "@dougbot/client/lib/permissions";
+import { memoryLine, pendingOnAgent, proposalTitle, proposalWhy } from "@dougbot/client/lib/proposals";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
 import {
   Alert,
   Button,
@@ -35,13 +35,14 @@ import {
   Segmented,
   Textarea,
   Toolbar,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { type ReactNode, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AskAgentButton } from "@/components/AskAgentButton";
 import { HelpLink } from "@/components/HelpLink";
 import { ErrorState, LoadingLine } from "@/components/Loading";
+import { ReachButton, reachLabel, useMemoryReach } from "@/components/MemoryReach";
 import { useOrg } from "@/components/org-context";
 import { useTextLimit } from "@/hooks/useTextLimit";
 import { useLandOn } from "@/lib/land-on";
@@ -190,6 +191,7 @@ function LearnedRow({ m }: { m: Memory }) {
   const { agent } = useAgentEdit();
   const toast = useToast();
   const act = useMemoryAction(org.id, agent.id);
+  const reach = useMemoryReach(agent.id)(m);
   const [draft, setDraft] = useState<string | null>(null);
   const limit = useTextLimit(FIELD_LIMITS.memory);
   const tooLong = draft !== null && overLimit(draft, limit);
@@ -242,11 +244,13 @@ function LearnedRow({ m }: { m: Memory }) {
           ) : (
             memorySource(t, i18n.language, m)
           )}
+          {reach && ` · ${reachLabel(t, reach)}`}
         </span>
       </span>
       <span className="agp-row">
         {draft === null ? (
           <>
+            {reach && <ReachButton agentId={agent.id} m={m} reach={reach} />}
             {(m.lowTrust || !m.verified) && (
               <Button
                 variant="link"

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { LOCALE_CODES } from "@agenteschat/i18n/locale";
+import { LOCALE_CODES } from "@dougbot/i18n/locale";
 import { formatClock, formatTime } from "../src/lib/format";
 
 const AT = "2026-11-14T23:43:00Z";

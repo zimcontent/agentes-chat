@@ -1,7 +1,7 @@
-import type { PlanCard, PortalItem, PortalListKind, PortalPlan } from "@agenteschat/client";
-import { usePortalPlan } from "@agenteschat/client";
-import { portalLink } from "@agenteschat/client/lib/portal";
-import { EmptyState } from "@agenteschat/ui";
+import type { PlanCard, PortalItem, PortalListKind, PortalPlan } from "@dougbot/client";
+import { usePortalPlan } from "@dougbot/client";
+import { portalLink } from "@dougbot/client/lib/portal";
+import { EmptyState } from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorState, LoadingCards } from "@/components/Loading";

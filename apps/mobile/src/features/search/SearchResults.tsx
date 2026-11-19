@@ -1,8 +1,8 @@
-import { useChannels, useDms, useSearch } from "@agenteschat/client";
-import { hitText } from "@agenteschat/client/lib/media";
-import { previewBody } from "@agenteschat/client/lib/message-body";
-import { makesAgents } from "@agenteschat/client/lib/permissions";
-import { searchTerms } from "@agenteschat/client/lib/search-filters";
+import { useChannels, useDms, useSearch } from "@dougbot/client";
+import { hitText } from "@dougbot/client/lib/media";
+import { previewBody } from "@dougbot/client/lib/message-body";
+import { makesAgents } from "@dougbot/client/lib/permissions";
+import { searchTerms } from "@dougbot/client/lib/search-filters";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

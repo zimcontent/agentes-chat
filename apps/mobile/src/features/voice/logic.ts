@@ -1,10 +1,10 @@
-import type { Message } from "@agenteschat/client";
-import { VOICE_SPEEDS, voiceParts } from "@agenteschat/client/lib/voice";
+import type { Message } from "@dougbot/client";
+import { VOICE_SPEEDS, voiceParts } from "@dougbot/client/lib/voice";
 import type { VoiceSend } from "./outbox";
 
 /**
  * Voice on the phone (ADR 0100), the part with no device in it: how levels become a wave, and voice messages on their
- * way. What the web shares is in `@agenteschat/client/lib/voice`.
+ * way. What the web shares is in `@dougbot/client/lib/voice`.
  */
 
 /** A level from 0 to 1 from the recorder's decibels (-160 to 0); what is below -50 is silence. */

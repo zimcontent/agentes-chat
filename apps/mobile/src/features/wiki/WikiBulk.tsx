@@ -1,6 +1,6 @@
-import { useWikiBulk, useWikiTrash, type WikiBulkTarget } from "@agenteschat/client";
-import { relativeTime } from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
+import { useWikiBulk, useWikiTrash, type WikiBulkTarget } from "@dougbot/client";
+import { relativeTime } from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, View } from "react-native";

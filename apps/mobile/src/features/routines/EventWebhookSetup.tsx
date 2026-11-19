@@ -5,15 +5,15 @@ import {
   useWebhookSetupAction,
   type WebhookProvider,
   type WebhookSetup,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import {
   FRAMEIO_WEBHOOKS_PAGE,
   githubHookLink,
   SENTRY_NEW_INTEGRATION,
   WEBHOOK_PROVIDER_NAMES,
   webhookTestState,
-} from "@agenteschat/client/lib/routine-webhooks";
+} from "@dougbot/client/lib/routine-webhooks";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, StyleSheet, TextInput, View } from "react-native";

@@ -458,7 +458,7 @@ const NativeLatest = z
 
 /**
  * `GET /api/native/latest` and `GET /api/native/download/{version}/{file}` (ADR 0060 §2): the packages
- * of agentes.chat without Docker, for the installer. Public, no session; 404 without `DESKTOP_RELEASES_TOKEN`.
+ * of DougBot without Docker, for the installer. Public, no session; 404 without `DESKTOP_RELEASES_TOKEN`.
  */
 export function registerNativeRoutes(api: OpenAPIHono, deps: AppDeps, releases: NativeReleases) {
   api.openapi(

@@ -1,6 +1,6 @@
-import type { PortalClientSummary, PortalColumn, PortalPipelineEntry } from "@agenteschat/client";
-import { useChannels, usePortalPipeline, usePortalTasks } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
+import type { PortalClientSummary, PortalColumn, PortalPipelineEntry } from "@dougbot/client";
+import { useChannels, usePortalPipeline, usePortalTasks } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
 import {
   filterPipeline,
   PORTAL_FOCI,
@@ -17,7 +17,7 @@ import {
   portalTaskNumbers,
   portalWhen,
   sortPipelineByProduction,
-} from "@agenteschat/client/lib/portal";
+} from "@dougbot/client/lib/portal";
 import {
   AvatarStack,
   Button,
@@ -29,7 +29,7 @@ import {
   type IconName,
   type LineFact,
   Select,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
 import { useState } from "react";

@@ -1,6 +1,6 @@
-import { useAgentStatuses } from "@agenteschat/client";
-import { workTime } from "@agenteschat/client/lib/agent-work";
-import { canTalk } from "@agenteschat/client/lib/audience";
+import { useAgentStatuses } from "@dougbot/client";
+import { workTime } from "@dougbot/client/lib/agent-work";
+import { canTalk } from "@dougbot/client/lib/audience";
 import { useTranslation } from "react-i18next";
 import { COMPACT_AVATAR, ListRow } from "@/ui";
 import { router } from "@/ui/navigation";

@@ -1,18 +1,8 @@
-import { type PortalClientAccount, type PortalClientColor, type PortalContact, useApi } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
-import { portalErrorText } from "@agenteschat/client/lib/portal";
-import { readyLocales } from "@agenteschat/i18n/locale";
-import {
-  Button,
-  Card,
-  Dialog,
-  DialogFooter,
-  Field,
-  Input,
-  Select,
-  SettingNote,
-  SettingsSection,
-} from "@agenteschat/ui";
+import { type PortalClientAccount, type PortalClientColor, type PortalContact, useApi } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
+import { portalErrorText } from "@dougbot/client/lib/portal";
+import { readyLocales } from "@dougbot/i18n/locale";
+import { Button, Card, Dialog, DialogFooter, Field, Input, Select, SettingNote, SettingsSection } from "@dougbot/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

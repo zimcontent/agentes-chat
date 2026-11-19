@@ -1,5 +1,5 @@
-import { isLoopback } from "@agenteschat/client/lib/server";
-import { isWorkAreaAnswer, WORK_AREA_ANSWERS } from "@agenteschat/client/lib/work-area";
+import { isLoopback } from "@dougbot/client/lib/server";
+import { isWorkAreaAnswer, WORK_AREA_ANSWERS } from "@dougbot/client/lib/work-area";
 import {
   acceptInvitation,
   accountDeletionPlan,
@@ -77,7 +77,7 @@ import {
   workspaceContents,
   workspaceDeletions,
   workspaceMode,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import {
   authUiConfig,
@@ -230,7 +230,7 @@ export function accountRoutes(deps: AppDeps) {
   const { db, config } = deps;
   /**
    * The installation's owner on a self-hosted server: the person Settings › Company requests belongs to. A public
-   * route, so the session is read here and the owner checked; agentes.chat's own servers never answer true.
+   * route, so the session is read here and the owner checked; DougBot's own servers never answer true.
    */
   const signedInOwner = async (c: { req: { raw: Request } }): Promise<boolean> => {
     if (isAgentesCloud(config.PUBLIC_URL)) return false;

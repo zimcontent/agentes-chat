@@ -1,4 +1,4 @@
-import { DougMark } from "@agenteschat/ui";
+import { DougMark } from "@dougbot/ui";
 import type { CSSProperties, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { MCP_TOOLS_MAX, MISSION_MCP_TOOLS, type ServerFrame } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import { MCP_TOOLS_MAX, MISSION_MCP_TOOLS, type ServerFrame } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   createMission,
   createMissionRunToolSource,

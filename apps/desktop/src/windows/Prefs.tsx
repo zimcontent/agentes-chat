@@ -3,8 +3,8 @@
  * (Folders, Tools, Activity, Advanced). Everything about this computer acts through the runners; nothing is
  * granted from the site.
  */
-import { CLOUD_SERVER } from "@agenteschat/client/lib/server";
-import { CountChip, Icon, type IconName } from "@agenteschat/ui";
+import { CLOUD_SERVER } from "@dougbot/client/lib/server";
+import { CountChip, Icon, type IconName } from "@dougbot/ui";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHost, useSnapshot } from "../app";

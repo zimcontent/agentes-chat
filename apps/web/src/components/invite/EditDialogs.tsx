@@ -1,8 +1,8 @@
-import type { Agent, InvitationWithStatus, InviteLink, InviteLinkTtl } from "@agenteschat/client";
-import { useChannels, useEditInviteLink, useUpdateInvitation } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { formatShortDate, timeLeft } from "@agenteschat/client/lib/format";
-import { Button, Dialog, DialogBody, DialogFooter, Field, FormStack, Input, Locked, SwapLabel } from "@agenteschat/ui";
+import type { Agent, InvitationWithStatus, InviteLink, InviteLinkTtl } from "@dougbot/client";
+import { useChannels, useEditInviteLink, useUpdateInvitation } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { formatShortDate, timeLeft } from "@dougbot/client/lib/format";
+import { Button, Dialog, DialogBody, DialogFooter, Field, FormStack, Input, Locked, SwapLabel } from "@dougbot/ui";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,7 +1,7 @@
-import type { PortalColumn, PortalLabel, PortalLabelColor } from "@agenteschat/client";
-import { usePortalLabels } from "@agenteschat/client";
-import { PORTAL_COLUMNS, PORTAL_LABEL_COLORS, portalErrorText } from "@agenteschat/client/lib/portal";
-import { Button, Dialog, DialogBody, EmptyState, Input, Select } from "@agenteschat/ui";
+import type { PortalColumn, PortalLabel, PortalLabelColor } from "@dougbot/client";
+import { usePortalLabels } from "@dougbot/client";
+import { PORTAL_COLUMNS, PORTAL_LABEL_COLORS, portalErrorText } from "@dougbot/client/lib/portal";
+import { Button, Dialog, DialogBody, EmptyState, Input, Select } from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

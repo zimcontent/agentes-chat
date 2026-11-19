@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { ACCOUNTS_PROTOCOL, orgTopic, type RealtimeEvent } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import { ACCOUNTS_PROTOCOL, orgTopic, type RealtimeEvent } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   ConflictError,
   changeMemberRole,

@@ -131,6 +131,8 @@ import type {
   DirectMessage,
   DmRead,
   DougTeamTemplate,
+  DriveFolder,
+  DriveFolders,
   EmailChange,
   EndpointCheck,
   EndpointModel,
@@ -173,8 +175,10 @@ import type {
   JoinRequest,
   LearnedSkill,
   LegalFacts,
+  LiveActivityStart,
   LiveRoom,
   LiveSession,
+  LiveSessionStart,
   LiveSpeakerPick,
   LiveVoice,
   Machine,
@@ -266,6 +270,8 @@ import type {
   SearchFilterInput,
   SearchHit,
   SecretRequest,
+  SectorPill,
+  SeparateOperation,
   ServerTelemetry,
   SidebarItem,
   SidebarItems,
@@ -358,6 +364,9 @@ const artifactQuery = (f: ArtifactFilters) => ({
   changed: f.changed && f.author ? "1" : undefined,
   authors: csv(f.authors?.map((a) => `${a.type}:${a.id}`)),
   who: f.who,
+  folderId: f.folder === undefined ? undefined : (f.folder.id ?? "root"),
+  deep: f.folder?.deep ? "1" : undefined,
+  drafts: f.drafts ? "1" : undefined,
   sort: f.sort && f.sort !== "recent" ? f.sort : undefined,
 });
 
@@ -370,7 +379,7 @@ const artifactQuery = (f: ArtifactFilters) => ({
 export function createHttpApi(options: TransportOptions = {}): HttpApi {
   const request = createRequester(options);
   const files = createFileRequester(options);
-  // agentes.chat itself, for its public answers (the desktop app's newest build): another origin, no cookie.
+  // DougBot itself, for its public answers (the desktop app's newest build): another origin, no cookie.
   const cloud = createRequester({ baseUrl: CLOUD_SERVER, ...(options.fetch ? { fetch: options.fetch } : {}) });
   /** Prefix for URLs the platform opens itself (file links); "" on the web. */
   const base = (options.baseUrl ?? "").replace(/\/+$/, "");
@@ -848,6 +857,11 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       register: (input) => request<void>("/api/app/push/devices", { json: input }),
       unregister: (token) => request<void>("/api/app/push/devices/forget", { json: { token } }),
       stale: async (ids) => (await request<{ stale: string[] }>("/api/app/push/stale", { json: { ids } })).stale,
+      liveActivityStart: (orgId, messageId, locale) =>
+        request<LiveActivityStart>(`${org(orgId)}/live-activities/start`, { query: { messageId, locale } }),
+      registerLiveActivity: (orgId, input) =>
+        request<void>(`${org(orgId)}/live-activities`, { method: "PUT", json: input }),
+      endLiveActivity: (token) => request<void>("/api/app/push/live-activities/end", { json: { token } }),
     },
     orgs: {
       create: (input) =>
@@ -1177,6 +1191,10 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
           method: "POST",
         }),
       ronda: (orgId, agentId) => request<Ronda>(`${org(orgId)}/agents/${enc(agentId)}/ronda`),
+      sectorPills: async (orgId, agentId) =>
+        (await request<{ pills: SectorPill[] }>(`${org(orgId)}/agents/${enc(agentId)}/sector-pills`)).pills,
+      showSectorCard: (orgId, agentId, sector) =>
+        request<{ id: string }>(`${org(orgId)}/agents/${enc(agentId)}/sector-cards/${enc(sector)}`, { method: "POST" }),
       setRonda: (orgId, agentId, schedule, timezone, model) =>
         request<Ronda>(`${org(orgId)}/agents/${enc(agentId)}/ronda`, {
           method: "PUT",
@@ -1276,6 +1294,11 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       saveKey: (orgId, apiKey) => request<LiveVoice>(`${org(orgId)}/live-voice`, { method: "PUT", json: { apiKey } }),
       removeKey: (orgId) => request<LiveVoice>(`${org(orgId)}/live-voice`, { method: "DELETE" }),
       startSession: (orgId, input) => request<LiveSession>(`${org(orgId)}/live-voice/sessions`, { json: input }),
+      startVoice: (orgId, input) => request<LiveSessionStart>(`${org(orgId)}/live-voice/sessions`, { json: input }),
+      setEngine: (orgId, engine) =>
+        request<LiveVoice>(`${org(orgId)}/live-voice/engine`, { method: "PUT", json: { engine } }),
+      setMonthlyLimit: (orgId, credits) =>
+        request<LiveVoice>(`${org(orgId)}/live-voice/monthly-limit`, { method: "PUT", json: { credits } }),
       endSession: (orgId, sessionId) =>
         request<void>(`${org(orgId)}/live-voice/sessions/${enc(sessionId)}/end`, { json: {} }),
       channelRoom: (orgId, channelId) =>
@@ -1496,6 +1519,9 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<AgentTwins>(`${org(orgId)}/agents/${enc(agentId)}/twins`, { json: { agentId: otherAgentId } }),
       leaveTwin: (orgId, agentId) =>
         request<AgentTwins>(`${org(orgId)}/agents/${enc(agentId)}/twins`, { method: "DELETE" }),
+      separateOperation: (orgId) => request<SeparateOperation>(`${org(orgId)}/separate-operation`),
+      setSeparateOperation: (orgId, input) =>
+        request<SeparateOperation>(`${org(orgId)}/separate-operation`, { method: "PUT", json: input }),
     },
     githubApp: {
       info: (orgId) => request<GitHubAppInfo>(`${org(orgId)}/github-app`),
@@ -1535,6 +1561,8 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         request<Memory>(`${org(orgId)}/memories/${enc(id)}`, { method: "PATCH", json: { pinned } }),
       setArchived: (orgId, id, archived) =>
         request<Memory>(`${org(orgId)}/memories/${enc(id)}`, { method: "PATCH", json: { archived } }),
+      setReach: (orgId, id, reach) =>
+        request<Memory>(`${org(orgId)}/memories/${enc(id)}`, { method: "PATCH", json: { reach } }),
       confirm: (orgId, id) =>
         request<Memory>(`${org(orgId)}/memories/${enc(id)}`, { method: "PATCH", json: { confirmed: true } }),
       revert: async (orgId, id) => {
@@ -1823,10 +1851,19 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         }),
       blockState: (orgId, id, version) =>
         request<BlockState>(`${org(orgId)}/blocks/${enc(id)}/state`, { query: { version } }),
+      blockAct: (orgId, id, act) =>
+        request<{ act: string; done: true; messageId: string | null }>(
+          `${org(orgId)}/blocks/${enc(id)}/acts/${enc(act)}`,
+          { method: "POST" },
+        ),
       setBlockState: (orgId, id, version, values) =>
         request<BlockState>(`${org(orgId)}/blocks/${enc(id)}/state`, { method: "PUT", json: { version, values } }),
       drawBlock: (orgId, id, version, name, options) =>
         request<BlockState>(`${org(orgId)}/blocks/${enc(id)}/draw`, { json: { version, name, options } }),
+      pressBlock: (orgId, id, input) =>
+        request<{ messageId: string | null; changed: boolean }>(`${org(orgId)}/blocks/${enc(id)}/press`, {
+          json: input,
+        }),
       poll: (orgId, id) => request<Poll>(`${org(orgId)}/polls/${enc(id)}`),
       vote: (orgId, id, options) =>
         request<Poll>(`${org(orgId)}/polls/${enc(id)}/vote`, { method: "PUT", json: { options } }),
@@ -1886,10 +1923,24 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       restore: (orgId, id) =>
         request<ArtifactDetail | undefined>(`${org(orgId)}/artifacts/${enc(id)}/restore`, { json: {} }),
       purge: (orgId, id) => request<void>(`${org(orgId)}/artifacts-trash/${enc(id)}`, { method: "DELETE" }),
+      folders: (orgId) => request<DriveFolders>(`${org(orgId)}/drive-folders`),
+      createFolder: (orgId, input) => request<DriveFolder>(`${org(orgId)}/drive-folders`, { json: input }),
+      updateFolder: (orgId, id, patch) =>
+        request<DriveFolder>(`${org(orgId)}/drive-folders/${enc(id)}`, { method: "PATCH", json: patch }),
+      removeFolder: (orgId, id) =>
+        request<{ files: number; folders: number }>(`${org(orgId)}/drive-folders/${enc(id)}`, { method: "DELETE" }),
+      file: async (orgId, ids, folderId) =>
+        (await request<{ artifacts: Artifact[] }>(`${org(orgId)}/drive/file`, { json: { ids, folderId } })).artifacts,
+      keepDraft: (orgId, id) => request<Artifact>(`${org(orgId)}/artifacts/${enc(id)}/draft`, { method: "DELETE" }),
     },
     issues: {
       agenda: (orgId, query) =>
         request<TeamAgenda>(`${org(orgId)}/team-agenda`, { query: { from: query.from, days: query.days } }),
+      moveInQueue: (orgId, move) =>
+        request<{ order: string[] }>(`${org(orgId)}/queues/${enc(move.assignee.type)}/${enc(move.assignee.id)}`, {
+          method: "PUT",
+          json: { taskId: move.taskId, afterId: move.afterId },
+        }),
       list: async (orgId, filters = {}) =>
         (
           await request<{ issues: Issue[] }>(`${org(orgId)}/issues`, {

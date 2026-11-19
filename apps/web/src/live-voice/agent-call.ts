@@ -1,5 +1,5 @@
-import type { ApiClient } from "@agenteschat/client";
-import { LiveLeg } from "./leg";
+import type { ApiClient } from "@dougbot/client";
+import { openVoiceLeg, type VoiceLeg } from "./leg";
 
 /**
  * A call with one agent (ADR doug-0006, as the Nordus Live call): the microphone and the agent's voice go between this
@@ -29,7 +29,7 @@ export class AgentCall {
   private listeners = new Set<() => void>();
   private ctx: AudioContext | null = null;
   private mic: MediaStream | null = null;
-  private leg: LiveLeg | null = null;
+  private leg: VoiceLeg | null = null;
   private audio: HTMLAudioElement | null = null;
   private analyser: AnalyserNode | null = null;
   private level = 0;
@@ -62,12 +62,12 @@ export class AgentCall {
       const track = this.mic.getAudioTracks()[0];
       if (!track) throw new Error("no microphone");
       this.ctx = new AudioContext();
-      this.leg = await LiveLeg.open(
+      this.leg = await openVoiceLeg(
         track,
-        (sdp) =>
-          this.o.api.liveVoice.startSession(this.o.orgId, {
+        (extra) =>
+          this.o.api.liveVoice.startVoice(this.o.orgId, {
+            ...extra,
             kind: "agent",
-            sdp,
             agentId: this.o.agentId,
             channelId: this.o.channelId,
             language: this.o.language,

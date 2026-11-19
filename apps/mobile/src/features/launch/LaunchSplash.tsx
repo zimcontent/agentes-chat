@@ -1,5 +1,5 @@
-import { useClientLook } from "@agenteschat/client";
-import { productName } from "@agenteschat/client/lib/client-custom";
+import { useClientLook } from "@dougbot/client";
+import { productName } from "@dougbot/client/lib/client-custom";
 import { useNetworkState } from "expo-network";
 import { type ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

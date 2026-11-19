@@ -1,9 +1,9 @@
-import type { Machine, MachineTool, Message } from "@agenteschat/client";
-import { useAllowMachineTool, useMachines } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { firstName } from "@agenteschat/client/lib/format";
-import { messageToolOff } from "@agenteschat/client/lib/machine-outages";
-import { type ToolOneClick, toolOneClick, toolWords } from "@agenteschat/client/lib/machines";
+import type { Machine, MachineTool, Message } from "@dougbot/client";
+import { useAllowMachineTool, useMachines } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { firstName } from "@dougbot/client/lib/format";
+import { messageToolOff } from "@dougbot/client/lib/machine-outages";
+import { type ToolOneClick, toolOneClick, toolWords } from "@dougbot/client/lib/machines";
 import { useTranslation } from "react-i18next";
 import { type StyleProp, StyleSheet, View, type ViewStyle } from "react-native";
 import { Button, Text, useToast } from "@/ui";

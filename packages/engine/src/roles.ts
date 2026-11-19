@@ -1,17 +1,5 @@
-import type { PubSub } from "@agenteschat/adapters";
-import {
-  and,
-  asc,
-  type Database,
-  type Executor,
-  eq,
-  inArray,
-  isNull,
-  notInArray,
-  or,
-  schema,
-  sql,
-} from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import { and, asc, type Database, type Executor, eq, inArray, isNull, notInArray, or, schema, sql } from "@dougbot/db";
 import type { AgentMailLoss } from "./audience";
 import { recordAudit } from "./audit";
 import { caches } from "./cache";

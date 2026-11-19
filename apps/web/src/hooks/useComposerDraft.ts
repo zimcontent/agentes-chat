@@ -1,5 +1,5 @@
-import { type ComposerDraft, readDraftBook, withDraft } from "@agenteschat/client/lib/composer-drafts";
-import { joinDrafts } from "@agenteschat/client/lib/message-length";
+import { type ComposerDraft, readDraftBook, withDraft } from "@dougbot/client/lib/composer-drafts";
+import { joinDrafts } from "@dougbot/client/lib/message-length";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AuthClient } from "@/auth/client";
 import { STORAGE_KEYS, storage } from "@/lib/storage";

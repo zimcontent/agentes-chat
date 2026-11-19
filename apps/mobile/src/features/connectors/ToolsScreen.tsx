@@ -1,5 +1,5 @@
-import { useCatalog, useConnections, useCustomServers } from "@agenteschat/client";
-import { connectedItems, itemName } from "@agenteschat/client/lib/connected";
+import { useCatalog, useConnections, useCustomServers } from "@dougbot/client";
+import { connectedItems, itemName } from "@dougbot/client/lib/connected";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";

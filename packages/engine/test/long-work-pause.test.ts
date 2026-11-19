@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from "bun:test";
-import { MACHINE_PROTOCOL_VERSION, userTopic } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import { extraUsageLeft, extraUsageOn, planBinding } from "@agenteschat/ui/plan-state";
+import { MACHINE_PROTOCOL_VERSION, userTopic } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import { extraUsageLeft, extraUsageOn, planBinding } from "@dougbot/ui/plan-state";
 import {
   addChannelMember,
   answerNow,

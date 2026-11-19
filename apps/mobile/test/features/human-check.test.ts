@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync } from "node:fs";
 import { join } from "node:path";
-import { ApiError } from "@agenteschat/client";
-import { createHumanCheck, withHumanCheck } from "@agenteschat/client/lib/human-check";
+import { ApiError } from "@dougbot/client";
+import { createHumanCheck, withHumanCheck } from "@dougbot/client/lib/human-check";
 import appConfig from "../../app.config";
 import {
   checkEvent,

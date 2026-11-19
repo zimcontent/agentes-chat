@@ -1,6 +1,6 @@
-import { type Adapters, createElevenLabsVoiceOut, type VoiceOut } from "@agenteschat/adapters";
-import { type Config, connectorOAuthApps } from "@agenteschat/config";
-import type { Database } from "@agenteschat/db";
+import { type Adapters, createElevenLabsVoiceOut, type VoiceOut } from "@dougbot/adapters";
+import { type Config, connectorOAuthApps } from "@dougbot/config";
+import type { Database } from "@dougbot/db";
 import {
   type AiStatusDeps,
   type ConnectorTriggerDeps,
@@ -17,8 +17,8 @@ import {
   requireAgentDetails,
   type WhatsAppDeps,
   withComposio,
-} from "@agenteschat/engine";
-import type { ClientOverrides } from "@agenteschat/modules";
+} from "@dougbot/engine";
+import type { ClientOverrides } from "@dougbot/modules";
 import { OpenAPIHono, z } from "@hono/zod-openapi";
 import { createMiddleware } from "hono/factory";
 import { type Auth, type SessionUser, sessionUser, signInPageUrl } from "../../auth";

@@ -1,4 +1,4 @@
-# agentes.chat on Coolify
+# DougBot on Coolify
 
 The app and Postgres with pgvector, as one Coolify resource. Coolify supplies the domain and
 every secret; nothing in this folder names a host or holds a value.
@@ -134,7 +134,7 @@ resets and budget alerts; without them those emails go to the container log inst
 for this instance's source, AGPL-3.0 §13 — set it if you run a modified version), `S3_*` (files
 in a bucket instead of the volume), `LOG_LEVEL`.
 
-Two defaults send data to the project that makes agentes.chat:
+Two defaults send data to the project that makes agentes.chat, the upstream DougBot builds on:
 
 - `TELEMETRY=on` posts one anonymous usage report a day to `https://telemetry.agentes.chat`
   (counts, sizes, tokens used; never messages, files, names or sites).

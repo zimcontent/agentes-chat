@@ -1,4 +1,4 @@
-import type { Issue, IssueActivity, IssuePatch, IssuePriority } from "@agenteschat/client";
+import type { Issue, IssueActivity, IssuePatch, IssuePriority } from "@dougbot/client";
 import {
   ApiError,
   keys,
@@ -7,17 +7,17 @@ import {
   useIssueAction,
   useIssueActivity,
   useIssueColumns,
-} from "@agenteschat/client";
-import { FIELD_LIMITS } from "@agenteschat/client/lib/field-limits";
-import { relativeTime, whenAt } from "@agenteschat/client/lib/format";
-import { githubLinkLabel, isGithubLink } from "@agenteschat/client/lib/github-link";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { webUrl } from "@agenteschat/client/lib/guards";
-import { NO_PROJECT } from "@agenteschat/client/lib/issue-projects";
-import { issueEventText } from "@agenteschat/client/lib/issues";
-import { can } from "@agenteschat/client/lib/permissions";
-import { portalClientName } from "@agenteschat/client/lib/portal";
-import { foldSteps, shownSteps } from "@agenteschat/client/lib/work";
+} from "@dougbot/client";
+import { FIELD_LIMITS } from "@dougbot/client/lib/field-limits";
+import { relativeTime, whenAt } from "@dougbot/client/lib/format";
+import { githubLinkLabel, isGithubLink } from "@dougbot/client/lib/github-link";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { webUrl } from "@dougbot/client/lib/guards";
+import { NO_PROJECT } from "@dougbot/client/lib/issue-projects";
+import { issueEventText } from "@dougbot/client/lib/issues";
+import { can } from "@dougbot/client/lib/permissions";
+import { portalClientName } from "@dougbot/client/lib/portal";
+import { foldSteps, shownSteps } from "@dougbot/client/lib/work";
 import {
   Alert,
   Button,
@@ -45,7 +45,7 @@ import {
   Tabs,
   useAutoGrow,
   WorkSweep,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";

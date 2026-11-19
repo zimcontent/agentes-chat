@@ -16,9 +16,9 @@ import {
   SPEED_PROTOCOL,
   STEER_PROTOCOL,
   type WireBrainEvent,
-} from "@agenteschat/adapters";
-import { type Database, schema } from "@agenteschat/db";
-import { autoContextFor } from "@agenteschat/providers/context-limits";
+} from "@dougbot/adapters";
+import { type Database, schema } from "@dougbot/db";
+import { autoContextFor } from "@dougbot/providers/context-limits";
 import { getAgentCached } from "../agents";
 import type { CodeSetup } from "../git/machine";
 import { type MachineCaller, MachineRequestError, type MachineStatus } from "../machine-hub";

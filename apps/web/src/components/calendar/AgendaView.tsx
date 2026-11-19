@@ -1,6 +1,6 @@
-import { type CalItem, dayEntries, sameDay } from "@agenteschat/client/lib/calendar";
-import { toYmd } from "@agenteschat/client/lib/format";
-import { Button, EmptyState } from "@agenteschat/ui";
+import { type CalItem, dayEntries, sameDay } from "@dougbot/client/lib/calendar";
+import { toYmd } from "@dougbot/client/lib/format";
+import { Button, EmptyState } from "@dougbot/ui";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useRightHandLook } from "@/hooks/useRightHandLook";

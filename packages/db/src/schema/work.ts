@@ -145,6 +145,12 @@ export const issues = pgTable(
      */
     threadChannelId: uuid().references((): AnyPgColumn => channels.id, { onDelete: "set null" }),
     threadRootId: uuid(),
+    /**
+     * Its place in its assignee's queue (ADR doug-0022), lowest first: the end of that queue when it gets an assignee,
+     * moved by owners and administrators on Início's agenda; null with no assignee. Fractional, so a move between two
+     * tasks renumbers nothing.
+     */
+    queuePosition: doublePrecision(),
     createdByType: text().notNull(),
     createdById: text().notNull(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
@@ -218,7 +224,7 @@ export const routines = pgTable(
     active: boolean().notNull().default(true),
     /**
      * What it may do while nobody watches (ADR 0053): `read` (the default) looks and reports through
-     * `hand_off`; `act` may also change things inside agentes.chat and on the agent's own branches,
+     * `hand_off`; `act` may also change things inside DougBot and on the agent's own branches,
      * and asks before any change in a connected app.
      */
     access: text().notNull().default("read"),

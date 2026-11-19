@@ -1,4 +1,4 @@
-import { outageKey } from "@agenteschat/client/lib/outages";
+import { outageKey } from "@dougbot/client/lib/outages";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

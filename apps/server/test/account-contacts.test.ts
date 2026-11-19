@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import { enableAccountContacts } from "@agenteschat/engine";
+import { enableAccountContacts } from "@dougbot/engine";
 import { browser, createTestServer, ORIGIN, signUp, type TestServer } from "./harness";
 
 let t: TestServer;

@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { LegalFacts } from "@agenteschat/client";
-import { legalDocument } from "@agenteschat/i18n/legal";
+import type { LegalFacts } from "@dougbot/client";
+import { legalDocument } from "@dougbot/i18n/legal";
 import { cleanup, fireEvent } from "@testing-library/react";
 import { fillLegal, legalText, stripDraftBanner } from "@/legal/text";
 import { createFakeApi, ORG_ID, seedState } from "./fake-api";
@@ -15,7 +15,7 @@ afterEach(() => {
   localStorage.clear();
 });
 
-/** A server that isn't agentes.chat's and links DougBot's own pages (it names its company), signed out. */
+/** A server that isn't DougBot's and links DougBot's own pages (it names its company), signed out. */
 const signedOut = (legal?: Partial<LegalFacts>) =>
   createFakeApi(
     seedState({
@@ -46,6 +46,7 @@ const SERVICES = (on: Partial<LegalFacts["services"]>): LegalFacts["services"] =
   support: false,
   telemetry: false,
   driveBackup: false,
+  houseVoice: false,
   ...on,
 });
 

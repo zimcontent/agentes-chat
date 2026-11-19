@@ -1,11 +1,11 @@
-import { and, desc, eq, gte, isNotNull, isNull, like, schema } from "@agenteschat/db";
+import { and, desc, eq, gte, isNotNull, isNull, like, schema } from "@dougbot/db";
 import {
   chartBlocksOf,
   chartBlockToWidgetSpec,
   clipText,
   isWidgetSchedule,
   isWidgetSize,
-} from "@agenteschat/ui/widgets/spec";
+} from "@dougbot/ui/widgets/spec";
 import { getAgent } from "../agents";
 import { canTalkTo, speakerOf } from "../audience";
 import { requireChannelAccess } from "../channels";

@@ -11,62 +11,56 @@ export function localDay(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-export interface AgendaDay {
-  /** `now` (under way), `late`, or the day (`YYYY-MM-DD`). */
-  key: string;
-  kind: "now" | "late" | "day";
-  tasks: TeamAgendaTask[];
+/** Where a task stands on the agenda: under way, late, due on a day, or with no date. */
+export type AgendaKind = "now" | "late" | "day" | "undated";
+
+export interface AgendaItem {
+  task: TeamAgendaTask;
+  kind: AgendaKind;
 }
 
 export interface AgendaPerson {
   assignee: TeamAgendaTask["assignee"];
-  /** What they are doing now, then late ones, then each day that has something, in order. Empty days don't show. */
-  days: AgendaDay[];
+  /** Their queue (ADR doug-0022): the order they are to do things in, the team's priority. Never sorted by date. */
+  tasks: AgendaItem[];
   count: number;
   now: number;
   late: number;
 }
 
-const KIND_ORDER = { now: 0, late: 1, day: 2 } as const;
 const UNDER_WAY = new Set(["in_progress", "in_review"]);
 
+export function agendaKind(task: TeamAgendaTask, from: string): AgendaKind {
+  if (UNDER_WAY.has(task.status)) return "now";
+  if (!task.dueDate) return "undated";
+  return task.dueDate < from ? "late" : "day";
+}
+
+const tally = (p: Omit<AgendaPerson, "count" | "now" | "late">): AgendaPerson => ({
+  ...p,
+  count: p.tasks.length,
+  now: p.tasks.filter((i) => i.kind === "now").length,
+  late: p.tasks.filter((i) => i.kind === "late").length,
+});
+
 /**
- * The agenda by who has to do it: a person or agent, then what they are doing now (a task in progress or in review,
- * whatever its date), late, then each day. People come before agents; among them, the most late and due today first,
- * then the most in all; `name` breaks ties so the order holds.
+ * The agenda by who has to do it: a person or agent, then their tasks in their queue's order, as the server sends
+ * them. People come before agents; among them, the most late and due today first, then the most in all; `name` breaks
+ * ties so the order holds.
  */
 export function agendaByAssignee(agenda: TeamAgenda, name: (a: TeamAgendaTask["assignee"]) => string): AgendaPerson[] {
-  const byKey = new Map<string, AgendaPerson>();
+  const byKey = new Map<string, { assignee: TeamAgendaTask["assignee"]; tasks: AgendaItem[] }>();
   for (const task of agenda.tasks) {
     const who = `${task.assignee.type}:${task.assignee.id}`;
     let person = byKey.get(who);
     if (!person) {
-      person = { assignee: task.assignee, days: [], count: 0, now: 0, late: 0 };
+      person = { assignee: task.assignee, tasks: [] };
       byKey.set(who, person);
     }
-    const kind: AgendaDay["kind"] = UNDER_WAY.has(task.status)
-      ? "now"
-      : task.dueDate && task.dueDate < agenda.from
-        ? "late"
-        : "day";
-    if (kind === "day" && !task.dueDate) continue;
-    const key = kind === "day" ? (task.dueDate as string) : kind;
-    let day = person.days.find((d) => d.key === key);
-    if (!day) {
-      day = { key, kind, tasks: [] };
-      person.days.push(day);
-    }
-    day.tasks.push(task);
-    person.count += 1;
-    if (kind === "now") person.now += 1;
-    if (kind === "late") person.late += 1;
+    person.tasks.push({ task, kind: agendaKind(task, agenda.from) });
   }
-  const urgent = (p: AgendaPerson) =>
-    p.days.filter((d) => d.kind === "late" || d.key === agenda.from).reduce((n, d) => n + d.tasks.length, 0);
-  const people = [...byKey.values()];
-  for (const p of people) {
-    p.days.sort((a, b) => KIND_ORDER[a.kind] - KIND_ORDER[b.kind] || a.key.localeCompare(b.key));
-  }
+  const people = [...byKey.values()].map(tally);
+  const urgent = (p: AgendaPerson) => p.tasks.filter((i) => i.kind === "late" || i.task.dueDate === agenda.from).length;
   return people.sort(
     (a, b) =>
       // People before agents: the team's own day is what the agenda is for.
@@ -90,22 +84,19 @@ export function addDays(day: string, n: number): string {
 }
 
 /**
- * One week of the agenda, seen from `from`: a week ahead of today shows only its own days (what is under way and what
- * is late belong to today's), and a chosen `day` keeps only that day's tasks (today's with what is under way and late).
- * People with nothing left drop out.
+ * One week of the agenda, seen from `from`: a week ahead of today shows only its own days (what is under way, late or
+ * undated belongs to this week's), and a chosen `day` keeps only that day's tasks (today's with what is under way and
+ * late). Each one's tasks stay in their queue's order. People with nothing left drop out.
  */
 export function agendaView(people: AgendaPerson[], view: { today: string; from: string; day: string | null }) {
   const thisWeek = view.from === view.today;
   return people.flatMap((p) => {
-    const days = p.days.filter((d) => {
-      if (d.kind !== "day") return thisWeek && (view.day === null || view.day === view.today);
-      return view.day === null ? d.key >= view.from : d.key === view.day;
+    const tasks = p.tasks.filter(({ task, kind }) => {
+      if (kind === "day") return view.day === null ? (task.dueDate as string) >= view.from : task.dueDate === view.day;
+      if (kind === "undated") return thisWeek && view.day === null;
+      return thisWeek && (view.day === null || view.day === view.today);
     });
-    if (days.length === 0) return [];
-    const count = days.reduce((n, d) => n + d.tasks.length, 0);
-    const now = days.find((d) => d.kind === "now")?.tasks.length ?? 0;
-    const late = days.find((d) => d.kind === "late")?.tasks.length ?? 0;
-    return [{ ...p, days, count, now, late }];
+    return tasks.length === 0 ? [] : [tally({ assignee: p.assignee, tasks })];
   });
 }
 
@@ -113,6 +104,47 @@ export function agendaView(people: AgendaPerson[], view: { today: string; from: 
 export function tasksByDay(people: AgendaPerson[]): Map<string, number> {
   const out = new Map<string, number>();
   for (const p of people)
-    for (const d of p.days) if (d.kind === "day") out.set(d.key, (out.get(d.key) ?? 0) + d.tasks.length);
+    for (const { task, kind } of p.tasks)
+      if (kind === "day" && task.dueDate) out.set(task.dueDate, (out.get(task.dueDate) ?? 0) + 1);
   return out;
+}
+
+/**
+ * The move a drop makes (ADR doug-0022): `id` put at `index` among the `shown` tasks (the others, in order) of a lane
+ * whose whole loaded queue is `queue`. Right after the shown task before it, or, at the top of what shows, right after
+ * the task the queue has before the first shown one (null: the top of the queue). Undefined: nothing moves.
+ */
+export function queueMoveFor(
+  queue: readonly string[],
+  shown: readonly string[],
+  id: string,
+  index: number,
+): { afterId: string | null } | undefined {
+  const others = shown.filter((x) => x !== id);
+  if (others.length === shown.length || others.length === 0) return undefined;
+  const at = Math.max(0, Math.min(index, others.length));
+  const next = [...others];
+  next.splice(at, 0, id);
+  if (next.join() === shown.join()) return undefined;
+  if (at > 0) return { afterId: others[at - 1] as string };
+  const rest = queue.filter((x) => x !== id);
+  const first = rest.indexOf(others[0] as string);
+  return { afterId: first > 0 ? (rest[first - 1] as string) : null };
+}
+
+/** The agenda's tasks with one moved in its assignee's queue, as the server will have them: for the screen at once. */
+export function movedInAgenda(
+  tasks: readonly TeamAgendaTask[],
+  move: { assignee: TeamAgendaTask["assignee"]; taskId: string; afterId: string | null },
+): TeamAgendaTask[] {
+  const mine = (t: TeamAgendaTask) => t.assignee.type === move.assignee.type && t.assignee.id === move.assignee.id;
+  const lane = tasks.filter(mine);
+  const moving = lane.find((t) => t.id === move.taskId);
+  if (!moving) return [...tasks];
+  const rest = lane.filter((t) => t.id !== move.taskId);
+  const at = move.afterId ? rest.findIndex((t) => t.id === move.afterId) + 1 : 0;
+  if (move.afterId && at === 0) return [...tasks];
+  rest.splice(at, 0, moving);
+  let k = 0;
+  return tasks.map((t) => (mine(t) ? (rest[k++] as TeamAgendaTask) : t));
 }

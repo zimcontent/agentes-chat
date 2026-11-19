@@ -22,7 +22,13 @@
     "itsChannels": "그룹",
     "seeAll": "모두 보기"
   },
+  "sectorPills": {
+    "label": "바로가기",
+    "failed": "카드를 불러오지 못했어요. 다시 시도해 주세요."
+  },
   "blocks": {
+    "done": "완료",
+    "actFailed": "처리하지 못했어요. 다시 시도해 주세요.",
     "send": "보내기",
     "more": "더 보기",
     "thousand": "천",
@@ -42,7 +48,20 @@
     "pollClosed": "투표 마감",
     "pollMultiple": "여러 개를 고를 수 있어요.",
     "pollAnswered_other": "{{total}}명 중 {{count}}명 응답",
-    "voteFailed": "투표가 반영되지 않았어요."
+    "voteFailed": "투표가 반영되지 않았어요.",
+    "openPiece": "크게 열기",
+    "openSlide": "슬라이드 {{at}} 열기",
+    "pieceAt": "{{at}} / {{count}}",
+    "carouselTitle": "캐러셀",
+    "posterTitle": "정적 게시물",
+    "reelTitle": "릴스 대본",
+    "aboutSlide": "슬라이드 {{at}} (“{{title}}”)",
+    "aboutPoster": "정적 게시물 (“{{title}}”)",
+    "aboutBeat": "릴스의 {{time}} 구간",
+    "noteMessage": "{{about}}에 대해: {{note}}",
+    "notePlaceholder": "{{about}}에 의견 남기기",
+    "noteLabel": "내 의견",
+    "noteSent": "{{name}}에게 보냄"
   },
   "choices": {
     "step": "{{step}}/{{total}}",
@@ -2349,6 +2368,16 @@
     "week": "주",
     "month": "월",
     "sheet": {
+      "nowTitle": "지금",
+      "account": "계정",
+      "model": "모델",
+      "effort": "노력",
+      "context": "컨텍스트",
+      "contextFull": "모델의 전체 창",
+      "autoPerTask": "작업마다 선택",
+      "autoLine": "같은 계정에서 작업마다 모델과 노력을 고릅니다.",
+      "switchTitle": "전환 대상",
+      "on": "{{place}}에서",
       "title": "{{name}}의 AI 바꾸기",
       "title_female": "{{name}}의 AI 바꾸기",
       "smart": "가장 똑똑함",

@@ -1,5 +1,5 @@
-import type { ActivityEntry } from "@agenteschat/adapters/runner-control";
-import { Avatar, Button, Icon, PixelSpinner, Segmented } from "@agenteschat/ui";
+import type { ActivityEntry } from "@dougbot/adapters/runner-control";
+import { Avatar, Button, Icon, PixelSpinner, Segmented } from "@dougbot/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSnapshot, useStore } from "../../app";

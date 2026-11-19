@@ -43,46 +43,40 @@ import {
   useThreadMessages,
   useThreadMission,
   useWaitingOnMe,
-} from "@agenteschat/client";
-import { activityVerb, consultDetails, lineStep, listNames } from "@agenteschat/client/lib/activity";
-import { handoffAsk } from "@agenteschat/client/lib/agent-work";
-import { canTalk } from "@agenteschat/client/lib/audience";
-import { runPosition, screenAboveEnd } from "@agenteschat/client/lib/chat";
-import { CHAT_RHYTHM, firstUnreadId, opensAtLastRead, unreadThreadRootId } from "@agenteschat/client/lib/chat-look";
-import { type ConversationWait, conversationWaits } from "@agenteschat/client/lib/computer-queue";
+} from "@dougbot/client";
+import { activityVerb, consultDetails, lineStep, listNames } from "@dougbot/client/lib/activity";
+import { handoffAsk } from "@dougbot/client/lib/agent-work";
+import { canTalk } from "@dougbot/client/lib/audience";
+import { runPosition, screenAboveEnd } from "@dougbot/client/lib/chat";
+import { CHAT_RHYTHM, firstUnreadId, opensAtLastRead, unreadThreadRootId } from "@dougbot/client/lib/chat-look";
+import { type ConversationWait, conversationWaits } from "@dougbot/client/lib/computer-queue";
 import {
   asExchanges,
   consultBlocksNearEnd,
   consultNoticeFolds,
   consultsForLine,
-} from "@agenteschat/client/lib/consult-group";
-import { errorText, sendNeedsEdit } from "@agenteschat/client/lib/errors";
-import { mentionsReader, offersEveryone } from "@agenteschat/client/lib/everyone";
-import { capitalize } from "@agenteschat/client/lib/format";
-import { issueTakenOf, issueWorkOf, taskConversationOf } from "@agenteschat/client/lib/issues";
-import { workIsOver } from "@agenteschat/client/lib/long-work";
-import { supersededBrainNotices } from "@agenteschat/client/lib/machine-outages";
-import {
-  isMediaAfterReply,
-  isMediaAlone,
-  mediaTabsOf,
-  messageMediaOf,
-  textOrMedia,
-} from "@agenteschat/client/lib/media";
-import { isEventLine } from "@agenteschat/client/lib/notices";
-import { can } from "@agenteschat/client/lib/permissions";
-import { pinsIn } from "@agenteschat/client/lib/pins";
-import { localMeta } from "@agenteschat/client/lib/reply";
-import { retryAnswer } from "@agenteschat/client/lib/retry-answer";
-import { isRightHand, rightHandSeenKey } from "@agenteschat/client/lib/right-hand";
-import { ConversationSeat } from "@agenteschat/client/lib/seat-context";
-import { seenMessageId } from "@agenteschat/client/lib/seen";
-import { lastPostedId } from "@agenteschat/client/lib/timeline";
-import { voiceOf } from "@agenteschat/client/lib/voice";
-import { waitingAway, waitingNotification } from "@agenteschat/client/lib/waiting";
-import { makingImage, stopsMovedOn } from "@agenteschat/client/lib/work";
-import type { HexColor } from "@agenteschat/ui/agent/engine";
-import { isIdHandle } from "@agenteschat/ui/names";
+} from "@dougbot/client/lib/consult-group";
+import { errorText, sendNeedsEdit } from "@dougbot/client/lib/errors";
+import { mentionsReader, offersEveryone } from "@dougbot/client/lib/everyone";
+import { capitalize } from "@dougbot/client/lib/format";
+import { issueTakenOf, issueWorkOf, taskConversationOf } from "@dougbot/client/lib/issues";
+import { workIsOver } from "@dougbot/client/lib/long-work";
+import { supersededBrainNotices } from "@dougbot/client/lib/machine-outages";
+import { isMediaAfterReply, isMediaAlone, mediaTabsOf, messageMediaOf, textOrMedia } from "@dougbot/client/lib/media";
+import { isEventLine } from "@dougbot/client/lib/notices";
+import { can } from "@dougbot/client/lib/permissions";
+import { pinsIn } from "@dougbot/client/lib/pins";
+import { localMeta } from "@dougbot/client/lib/reply";
+import { retryAnswer } from "@dougbot/client/lib/retry-answer";
+import { isRightHand, rightHandSeenKey } from "@dougbot/client/lib/right-hand";
+import { ConversationSeat } from "@dougbot/client/lib/seat-context";
+import { seenMessageId } from "@dougbot/client/lib/seen";
+import { lastPostedId } from "@dougbot/client/lib/timeline";
+import { voiceOf } from "@dougbot/client/lib/voice";
+import { waitingAway, waitingNotification } from "@dougbot/client/lib/waiting";
+import { makingImage, stopsMovedOn } from "@dougbot/client/lib/work";
+import type { HexColor } from "@dougbot/ui/agent/engine";
+import { isIdHandle } from "@dougbot/ui/names";
 import { KeyboardAwareLegendList } from "@legendapp/list/keyboard";
 import type { LegendListRef, OnViewableItemsChanged } from "@legendapp/list/react-native";
 import { useQueryClient } from "@tanstack/react-query";
@@ -137,6 +131,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { frameClock } from "@/agent/clock";
 import { StickerStageContext } from "@/agent/StickerCanvas";
 import { createStickerStage } from "@/agent/sticker-stage";
+import { startLiveActivity, startsLiveActivity } from "@/features/live-activity";
 import { GroupPhoto } from "@/features/shared/GroupPhoto";
 import { holdOpenConversation } from "@/lib/push";
 import { rightHandSeen } from "@/lib/storage";
@@ -249,6 +244,7 @@ import { PinnedLines, PinsSheet } from "./PinsSheet";
 import { QuoteBar } from "./QuoteLine";
 import { AgentLocked, UnavailableLines } from "./ReachLines";
 import { ReturnLine, ReturnsSheet, useReturnsHere } from "./Returns";
+import { useSectorPillSuggestions } from "./SectorPills";
 import { SwipeReply } from "./SwipeReply";
 import {
   appendedKeys,
@@ -1017,6 +1013,30 @@ function Chat({
       // A channel with agents: the router (or a mention) decides who answers, and `message.routed` always follows.
       // A GIF or a sticker alone routes to nobody, so it gets no clock to keep.
       if (channel && channelAgents.length > 0 && !isMediaAlone(message)) live.picking(message.id);
+      // Work sent to an agent goes on the lock screen while it runs (docs/adr/doug-0021-lock-screen.md).
+      const toAgent = Boolean(dmAgentId) || message.mentionedAgentIds.length > 0;
+      if (startsLiveActivity({ os: Platform.OS, toAgent, steered, mediaAlone: isMediaAlone(message) })) {
+        void startLiveActivity({
+          api,
+          orgId,
+          messageId: message.id,
+          locale: i18n.language,
+          agentOf: (id) => {
+            const agent = dir.agentById.get(id);
+            if (!agent) return null;
+            const look = agentLook(agent);
+            return {
+              name: agent.name,
+              handle: agent.handle,
+              role: agent.role,
+              id: agent.id,
+              look: look.shape
+                ? { shape: look.shape, color: look.color, eyes: look.eyes, accessory: look.accessory }
+                : null,
+            };
+          },
+        });
+      }
     },
     // Why, in words: the failed row under it says the same and keeps the text.
     onFailed: (error, { waits }) => {
@@ -1966,7 +1986,13 @@ function Chat({
   // shows (`ChatComposer`).
   const suggestionsKey = suggestionsNow.map((s) => `${s.icon}:${s.label}`).join("|");
   // biome-ignore lint/correctness/useExhaustiveDependencies: `suggestionsKey` stands for the pills
-  const suggestions = useMemo(() => suggestionsNow, [suggestionsKey]);
+  const typedSuggestions = useMemo(() => suggestionsNow, [suggestionsKey]);
+  // In a person's conversation with the right hand, its sector pills come first (docs/adr/doug-0020-doug-sector-cards.md).
+  const sectorPills = useSectorPillSuggestions(orgId, rightHand && dmAgent ? dmAgent.id : "");
+  const suggestions = useMemo(
+    () => (sectorPills.length > 0 ? sectorPills : typedSuggestions),
+    [sectorPills, typedSuggestions],
+  );
   rowsRef.current = rows;
   const pinned = mission && isOpenMission(mission) ? mission : null;
   // Something is pinned here: its lines wait above the first message (`PinnedLines`).

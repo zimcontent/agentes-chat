@@ -1,5 +1,5 @@
-import type { ErrorReporter, KeyWrapper, PlatformCredentials, PubSub, SearchKind } from "@agenteschat/adapters";
-import { and, type Database, desc, type Executor, eq, gte, isNull, lt, rowsOf, schema, sql } from "@agenteschat/db";
+import type { ErrorReporter, KeyWrapper, PlatformCredentials, PubSub, SearchKind } from "@dougbot/adapters";
+import { and, type Database, desc, type Executor, eq, gte, isNull, lt, rowsOf, schema, sql } from "@dougbot/db";
 import {
   costNanoUsd,
   customModelOf,
@@ -34,7 +34,7 @@ import {
   promptChars,
   type SystemPrompt,
   type ToolSpec,
-} from "@agenteschat/providers";
+} from "@dougbot/providers";
 import { type Agent, getAgent } from "./agents";
 import { caches } from "./cache";
 import { decryptCredential, usableCredentialRow } from "./credentials";
@@ -1117,7 +1117,15 @@ export async function assertLiveVoiceAllowed(db: Database, orgId: string, agent:
 
 export async function recordLiveVoiceUsage(
   db: Database,
-  input: { orgId: string; agentId: string | null; personId: string | null; model: string; costNanoUsd: number },
+  input: {
+    orgId: string;
+    agentId: string | null;
+    personId: string | null;
+    model: string;
+    costNanoUsd: number;
+    /** `openai` for GPT-Live; `empirio` for the house voice (docs/adr/doug-0036-house-voice.md). */
+    provider?: string;
+  },
   at = new Date(),
 ) {
   await db.insert(usageRecords).values({
@@ -1125,7 +1133,7 @@ export async function recordLiveVoiceUsage(
     agentId: input.agentId,
     kind: "agent",
     credentialId: null,
-    provider: "openai",
+    provider: input.provider ?? "openai",
     model: input.model,
     requestedModel: input.model,
     inputTokens: 0,

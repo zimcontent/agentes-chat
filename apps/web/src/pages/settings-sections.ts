@@ -1,11 +1,11 @@
-import type { AuthConfig, OrgSummary } from "@agenteschat/client";
-import { showsAbout } from "@agenteschat/client/lib/about";
-import { can } from "@agenteschat/client/lib/permissions";
-import { personalSettingsShort } from "@agenteschat/client/lib/personal-view";
-import { settingsEntry, teamSettings } from "@agenteschat/client/lib/settings-nav";
-import { supportContactOf } from "@agenteschat/client/lib/support";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
-import type { IconName } from "@agenteschat/ui";
+import type { AuthConfig, OrgSummary } from "@dougbot/client";
+import { showsAbout } from "@dougbot/client/lib/about";
+import { can } from "@dougbot/client/lib/permissions";
+import { personalSettingsShort } from "@dougbot/client/lib/personal-view";
+import { settingsEntry, teamSettings } from "@dougbot/client/lib/settings-nav";
+import { supportContactOf } from "@dougbot/client/lib/support";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
+import type { IconName } from "@dougbot/ui";
 
 // Apart from the settings page so the shell (⌘K, the sidebar) and the settings routes' guards can read
 // the sections without loading the page itself.

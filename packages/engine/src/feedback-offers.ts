@@ -1,5 +1,5 @@
-import type { PubSub, RateLimiter } from "@agenteschat/adapters";
-import { and, type Database, desc, type Executor, eq, gt, isNull, schema, sql } from "@agenteschat/db";
+import type { PubSub, RateLimiter } from "@dougbot/adapters";
+import { and, type Database, desc, type Executor, eq, gt, isNull, schema, sql } from "@dougbot/db";
 import { ConflictError, ForbiddenError, NotFoundError, TooManyError } from "./errors";
 import { publishChannelEvent } from "./events";
 import { FEEDBACK_MAX, FEEDBACK_PER_HOUR, type Feedback, queueFeedback } from "./feedback";

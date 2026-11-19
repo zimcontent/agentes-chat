@@ -22,7 +22,7 @@ import {
   setCompanyClientCode,
   setCompanyNotes,
   setCompanyStatus,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
 import { requestLimitIp } from "../../http/client-ip";
 import { apiError, errorResponse } from "../../http/errors";
@@ -196,12 +196,12 @@ const erase = createRoute({
  * the installation's list of requests: `GET /api/app/companies` and one by id, with the team's moves (its step, its
  * notes, its client's code), the Delete that erases it and the Invite that sends it the early-access link.
  *
- * The public part is self-hosting's alone: agentes.chat's own servers register no route and serve no page, so a
+ * The public part is self-hosting's alone: DougBot's own servers register no route and serve no page, so a
  * company that asks there finds nothing (`registerCompanyRequests` answers nothing when `isAgentesCloud`).
  */
 export function registerCompanyRequests(api: OpenAPIHono, deps: AppDeps) {
   const { config } = deps;
-  // agentes.chat's own servers offer the form nowhere: no route, no page (`companiesPage`).
+  // DougBot's own servers offer the form nowhere: no route, no page (`companiesPage`).
   if (isAgentesCloud(config.PUBLIC_URL)) return;
   const { rateLimiter, humanCheck } = deps.adapters;
 
@@ -276,7 +276,7 @@ const Count = z.number().int().min(0);
  * The team's list of company requests, in Settings ("Empresas"), for the installation's pinned owner (ADR doug-0033):
  * the requests, filtered and searched, each moved through its step, given notes and its client's code, deleted, and
  * invited through early access. A server without email refuses the Invite. The routes answer 404 to everyone else and
- * on agentes.chat itself, and live under `/api/app/companies`; the public form alone is `/api/companies`.
+ * on DougBot itself, and live under `/api/app/companies`; the public form alone is `/api/companies`.
  */
 export function companyRequestRoutes(deps: AppDeps) {
   const { db, config } = deps;

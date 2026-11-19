@@ -1,6 +1,6 @@
-import { redactCommon } from "@agenteschat/adapters";
-import { and, type Database, eq, inArray, isNull, schema } from "@agenteschat/db";
-import { type BlockSpec, compileBlock, type Value, viewBlock } from "@agenteschat/ui/blocks/spec";
+import { redactCommon } from "@dougbot/adapters";
+import { and, type Database, eq, inArray, isNull, schema } from "@dougbot/db";
+import { ACTED_STATE, type BlockSpec, compileBlock, type Value, viewBlock } from "@dougbot/ui/blocks/spec";
 import { type ArtifactDeps, getArtifact } from "./artifacts";
 import { requireChannelAccess } from "./channels";
 import { ForbiddenError, NotFoundError, ValidationError } from "./errors";
@@ -116,6 +116,8 @@ async function write(
   version: number,
   values: Record<string, unknown>,
   drawn?: number,
+  /** The server's own mark that a button's action ran (`ACTED_STATE`), merged into what is there. */
+  acted?: string,
 ): Promise<BlockStateView> {
   const a = await blockFor(deps, userId, orgId, artifactId, version);
   const { membership } = await requireChannelAccess(deps.db, userId, orgId, a.channelId);
@@ -124,6 +126,8 @@ async function write(
   if (keys.length === 0) throw new ValidationError("Nothing to set");
   if (keys.length > BLOCK_STATE_KEYS) throw new ValidationError("Too many values at once");
   if (keys.some((k) => !KEY.test(k))) throw new ValidationError("A value has an invalid name");
+  // Only the server says a button's action ran (docs/adr/doug-0020-doug-sector-cards.md §4).
+  if (!acted && keys.includes(ACTED_STATE)) throw new ValidationError("A value has an invalid name");
   if (holdsSecret(values)) {
     throw new ValidationError("That looks like a password or a key: everyone here would see it", "block.secret");
   }
@@ -139,7 +143,9 @@ async function write(
       .where(and(eq(blockStates.artifactId, artifactId), eq(blockStates.version, version)))
       .for("update");
     if (!old) throw new NotFoundError("Block not found");
-    const state = { ...old.state, ...values };
+    const was = old.state[ACTED_STATE];
+    const marks = typeof was === "object" && was !== null && !Array.isArray(was) ? was : {};
+    const state = acted ? { ...old.state, [ACTED_STATE]: { ...marks, [acted]: "done" } } : { ...old.state, ...values };
     if (JSON.stringify(state).length > BLOCK_STATE_BYTES) throw new ValidationError("This block holds too much");
     const changes = { ...old.changes };
     for (const key of keys) changes[key] = { by: userId, at, ...(drawn ? { drawn } : {}) };
@@ -164,6 +170,18 @@ export function setBlockState(
   input: { version: number; values: Record<string, unknown> },
 ): Promise<BlockStateView> {
   return write(deps, userId, orgId, artifactId, input.version, input.values);
+}
+
+/** The server marks that a button's action ran (`act`), for everyone looking: the button shows it is done. */
+export function markBlockActed(
+  deps: ArtifactDeps,
+  userId: string,
+  orgId: string,
+  artifactId: string,
+  version: number,
+  act: string,
+): Promise<BlockStateView> {
+  return write(deps, userId, orgId, artifactId, version, { [ACTED_STATE]: true }, undefined, act);
 }
 
 /** A uniform pick in [0, n), from the system's random source. */

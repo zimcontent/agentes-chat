@@ -1,5 +1,5 @@
-import type { LiveSession } from "@agenteschat/client";
-import type { HostLeg } from "@agenteschat/client/lib/live-host";
+import type { LiveSession } from "@dougbot/client";
+import type { HostLeg } from "@dougbot/client/lib/live-host";
 import { MediaStream, type MediaStreamTrack, RTCPeerConnection, type RTCRtpSender } from "react-native-webrtc";
 
 type RTCDataChannel = ReturnType<RTCPeerConnection["createDataChannel"]>;

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import type { ControlEvent, ControlStatus } from "@agenteschat/adapters/runner-control";
+import type { ControlEvent, ControlStatus } from "@dougbot/adapters/runner-control";
 import { filesFolder } from "../src/control/local-server";
 import { DesktopStore, type Home } from "../src/control/store";
 import { answerThisMac, connect, type PrefsTab, toolsHere, whenHostHomeReady } from "../src/control/this-mac";

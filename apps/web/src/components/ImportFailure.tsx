@@ -1,7 +1,7 @@
-import { useCatalog } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
-import { hiddenRepoOf } from "@agenteschat/client/lib/skills";
-import { Alert, Button } from "@agenteschat/ui";
+import { useCatalog } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
+import { hiddenRepoOf } from "@dougbot/client/lib/skills";
+import { Alert, Button } from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { failedOffline } from "@/chat/offline";

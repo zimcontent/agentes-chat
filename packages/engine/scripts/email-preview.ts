@@ -16,7 +16,7 @@
  */
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join, relative, resolve } from "node:path";
-import { createMillionSendSender, createSmtpEmailSender } from "@agenteschat/adapters";
+import { createMillionSendSender, createSmtpEmailSender } from "@dougbot/adapters";
 import { defaultEmailFrom, emailArtFor, renderEmail } from "../src/email";
 import { EMAIL_SAMPLES, PERSONAL_EMAIL_SAMPLES } from "../test/email-samples";
 

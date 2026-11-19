@@ -1,13 +1,13 @@
-import type { PortalItem } from "@agenteschat/client";
-import { usePortalPlan } from "@agenteschat/client";
+import type { PortalItem } from "@dougbot/client";
+import { usePortalPlan } from "@dougbot/client";
 import {
   portalLink,
   portalMonthName,
   portalPostedAt,
   portalPostedByMonth,
   portalWhen,
-} from "@agenteschat/client/lib/portal";
-import { Chip, EmptyState, GroupHeading, Icon } from "@agenteschat/ui";
+} from "@dougbot/client/lib/portal";
+import { Chip, EmptyState, GroupHeading, Icon } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

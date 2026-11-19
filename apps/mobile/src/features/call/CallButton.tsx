@@ -1,4 +1,4 @@
-import { useChannelLiveRoom, useLiveVoice } from "@agenteschat/client";
+import { useChannelLiveRoom, useLiveVoice } from "@dougbot/client";
 import { useTranslation } from "react-i18next";
 import { Alert } from "react-native";
 import { IconButton } from "@/ui";

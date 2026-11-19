@@ -1,9 +1,4 @@
-import {
-  BROWSER_VIEW,
-  encodeBrowserFrame,
-  type RunnerFrame,
-  STREAM_CLOSE,
-} from "@agenteschat/adapters/machine-protocol";
+import { BROWSER_VIEW, encodeBrowserFrame, type RunnerFrame, STREAM_CLOSE } from "@dougbot/adapters/machine-protocol";
 import { RunnerError } from "./errors";
 import type { DataSocket } from "./streams";
 

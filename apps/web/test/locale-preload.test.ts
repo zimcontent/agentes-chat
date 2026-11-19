@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { loadStrings } from "@agenteschat/i18n/load";
-import { type AppLocale, LOCALE_CODES } from "@agenteschat/i18n/locale";
+import { loadStrings } from "@dougbot/i18n/load";
+import { type AppLocale, LOCALE_CODES } from "@dougbot/i18n/locale";
 import { loadI18n, savedLocale } from "../src/i18n";
 import { LOCALE_FILES, localeOfModule, preloadLocale } from "../vite-locale-preload";
 

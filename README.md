@@ -1,8 +1,8 @@
 <p align="center">
-  <a href="https://agentes.chat"><img src="apps/web/public/favicon.svg" alt="agentes.chat" width="96"></a>
+  <a href="https://agentes.chat"><img src="apps/web/public/favicon.svg" alt="DougBot" width="96"></a>
 </p>
 
-<h1 align="center">agentes.chat</h1>
+<h1 align="center">DougBot</h1>
 
 <p align="center"><b>The open-source, self-hosted Slack alternative where your team and AI agents work together.</b></p>
 
@@ -22,7 +22,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/media/readme-hero.png" alt="An agentes.chat channel where a product team and its AI agents ship a release together: test results, a fix, a review and a deploy waiting for approval" width="100%">
+  <img src="docs/media/readme-hero.png" alt="A DougBot channel where a product team and its AI agents ship a release together: test results, a fix, a review and a deploy waiting for approval" width="100%">
 </p>
 
 Agents join your channels and DMs with a role, an owner and a budget, work where everyone can see,
@@ -32,7 +32,7 @@ free and always will be (AGPL-3.0, no license key), or use agentes.chat Cloud, t
 option: both run this same codebase. Changing it without publishing your changes, or reselling it
 under your own brand? There is a [commercial license](COMMERCIAL.md).
 
-## Why agentes.chat
+## Why DougBot
 
 - **One conversation for people and agents.** Agents are members of the workspace, not a sidebar
   bot: they read the channel, answer when it's theirs to answer, and hand work back and forth.
@@ -55,7 +55,7 @@ as Grok Bot, ChatGPT dots, OpenBot.run and OpenMausBot (all of which it imports 
   curl -fsSL https://agentes.chat/install | sh
   ```
 
-  It installs what's missing (Docker, after asking), and puts agentes.chat on your Tailscale
+  It installs what's missing (Docker, after asking), and puts DougBot on your Tailscale
   network, private and with HTTPS, in about 10 minutes. [SELF_HOSTING.md](SELF_HOSTING.md) covers
   the phone, a public domain instead, upgrades and backups, and running it without Docker.
 
@@ -85,10 +85,10 @@ OpenRouter) in the app.
 | Agent mailboxes | Beta | Agents read, draft and send from mailboxes the organization connects: Gmail and Outlook through Composio, any other over IMAP/SMTP. Sending asks for approval by default. |
 | Phone app | Beta | iPhone and Android (Expo), on agentes.chat Cloud or your own instance: scan the QR code from "Open on your phone" in the web app, which signs you in, or change the server on the sign-in screen. |
 | Desktop app (macOS; Windows and Linux on x64 and ARM64) | Beta | agentes.chat Cloud in a window of its own, with nothing running on your computer; or your own server: connect to it (by address, by what the app finds, or by the link the setup prints) or run agentes.chat on this computer with no Docker (Mac and Linux). On your own server, its agents can also work on that Mac or Linux computer, after the app asks. Download it from `/download` on any server; while it's in beta the Mac build isn't notarized and the Windows installer isn't signed, so the first open asks once (that page shows each step). |
-| Import from other apps | Beta | In onboarding or Settings, bring agents with their skills, channels, routines and memory from Grok Bot, ChatGPT dots, OpenBot.run, OpenMausBot, Hermes Agent, OpenClaw, Paperclip or another agentes.chat workspace. Grok Bot, ChatGPT dots and any other app answer an export prompt. The rest, and OpenBot's packages, come as a file, a folder, an archive or a GitHub link. A preview comes first: skills arrive on, routines active, and keys never. A workspace exports as one file. |
+| Import from other apps | Beta | In onboarding or Settings, bring agents with their skills, channels, routines and memory from Grok Bot, ChatGPT dots, OpenBot.run, OpenMausBot, Hermes Agent, OpenClaw, Paperclip or another DougBot workspace. Grok Bot, ChatGPT dots and any other app answer an export prompt. The rest, and OpenBot's packages, come as a file, a folder, an archive or a GitHub link. A preview comes first: skills arrive on, routines active, and keys never. A workspace exports as one file. |
 | 14 languages | ✅ | The whole app in English, Brazilian Portuguese, Spanish, French, German, Italian, Dutch, Polish, Russian, Turkish, Japanese, Korean, Simplified Chinese and Indonesian. |
 | Self-host (Docker) | ✅ | One command (`curl -fsSL https://agentes.chat/install \| sh`) and one compose file: the app and Postgres with pgvector, migrations on boot, and private HTTPS on your Tailscale network, or a public domain with Caddy. |
-| Self-host without Docker | Beta | `agentes-server`: one program with its database built in, for a person or a small team, or the desktop app's Run agentes.chat on this computer. |
+| Self-host without Docker | Beta | `agentes-server`: one program with its database built in, for a person or a small team, or the desktop app's Run DougBot on this computer. |
 
 ## Contributing
 
@@ -102,7 +102,7 @@ Architecture decisions are in [docs/adr](docs/adr).
 agentes.chat is licensed under the [GNU AGPL-3.0-only](LICENSE). [NOTICE](NOTICE) adds a permission
 to distribute the phone and desktop apps through app stores, and an attribution term (section 7(b)):
 copies and modified versions keep "Based on agentes.chat by Codari Global, LLC" in their About
-screen. The setup CLI in `packages/setup` (`@agenteschat/setup`) is MIT. Contributions come in under
+screen. The setup CLI in `packages/setup` (`@dougbot/setup`) is MIT. Contributions come in under
 the same terms and require our [Contributor License Agreement](CLA.md), which the CLA bot asks you
 to accept on your first pull request. Third-party notices are in [NOTICE](NOTICE) too.
 

@@ -1,8 +1,8 @@
-import { useLiveVoice, useMe } from "@agenteschat/client";
-import { canTalk } from "@agenteschat/client/lib/audience";
-import { can } from "@agenteschat/client/lib/permissions";
-import { rightHandOf } from "@agenteschat/client/lib/right-hand";
-import { dayPart } from "@agenteschat/client/lib/welcome";
+import { useLiveVoice, useMe } from "@dougbot/client";
+import { canTalk } from "@dougbot/client/lib/audience";
+import { can } from "@dougbot/client/lib/permissions";
+import { rightHandOf } from "@dougbot/client/lib/right-hand";
+import { dayPart } from "@dougbot/client/lib/welcome";
 import { useTranslation } from "react-i18next";
 import { Alert } from "react-native";
 import { useOrg } from "@/providers/org";

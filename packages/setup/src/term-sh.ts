@@ -1,5 +1,5 @@
 /**
- * The agentes.chat look in POSIX sh, for the two installers: install.sh carries this text between its
+ * The DougBot look in POSIX sh, for the two installers: install.sh carries this text between its
  * `# --- term.sh` lines, and the runner's installer (apps/server/runner/install-script.ts) inlines it. Tests keep
  * both copies equal, and its logo equal to term.ts's in every color depth.
  */

@@ -1,5 +1,5 @@
-import { REPORT_OPTIONS, scrubEvent } from "@agenteschat/adapters/error-scrub";
-import type { ErrorReportsConfig } from "@agenteschat/client";
+import { REPORT_OPTIONS, scrubEvent } from "@dougbot/adapters/error-scrub";
+import type { ErrorReportsConfig } from "@dougbot/client";
 import { captureException, init, setTags, setUser } from "@sentry/browser";
 import { reloadingForNewVersion } from "./app-version";
 import { desktopReportTags } from "./desktop";

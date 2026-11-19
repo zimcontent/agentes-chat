@@ -1,7 +1,7 @@
-import { opensDetails } from "@agenteschat/client/lib/audience";
-import { isOutOfOffice } from "@agenteschat/client/lib/presence";
-import { splitAtNames } from "@agenteschat/client/lib/text";
-import type { Expression } from "@agenteschat/ui/agent/engine";
+import { opensDetails } from "@dougbot/client/lib/audience";
+import { isOutOfOffice } from "@dougbot/client/lib/presence";
+import { splitAtNames } from "@dougbot/client/lib/text";
+import type { Expression } from "@dougbot/ui/agent/engine";
 import { Fragment, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, Text as RNText, StyleSheet, View } from "react-native";

@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { ArtifactDetail } from "@agenteschat/client";
-import { pictureRatio } from "@agenteschat/client/lib/files";
+import type { ArtifactDetail } from "@dougbot/client";
+import { pictureRatio } from "@dougbot/client/lib/files";
 import {
   decodeFileList,
   driveWebUrl,

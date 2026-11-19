@@ -1,4 +1,4 @@
-import type { Agent, ComputerDevice, DevicesList, Member, PhoneDevice } from "@agenteschat/client";
+import type { Agent, ComputerDevice, DevicesList, Member, PhoneDevice } from "@dougbot/client";
 import { ORG_ID, seedState } from "../fake-api";
 
 /**

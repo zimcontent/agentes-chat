@@ -1,5 +1,5 @@
-import type { AppLocale } from "@agenteschat/i18n/locale";
-import type { PlanModel } from "@agenteschat/providers/plans";
+import type { AppLocale } from "@dougbot/i18n/locale";
+import type { PlanModel } from "@dougbot/providers/plans";
 import type { DashboardsApi } from "../dashboards/api";
 import type { ChatPrefs } from "../lib/chat-look";
 import type { OnboardingStepId } from "../lib/onboarding";
@@ -177,6 +177,8 @@ import type {
   DmRead,
   DmTarget,
   DougTeamTemplate,
+  DriveFolder,
+  DriveFolders,
   EmailChange,
   EndpointCheck,
   EndpointModel,
@@ -231,12 +233,16 @@ import type {
   JoinRequest,
   LearnedSkill,
   LegalFacts,
+  LiveActivityInput,
+  LiveActivityStart,
   LiveRoom,
   LiveSession,
   LiveSessionInput,
+  LiveSessionStart,
   LiveSpeakerAsk,
   LiveSpeakerPick,
   LiveVoice,
+  LiveVoiceEngine,
   Machine,
   MachineAccess,
   MachineAccessReduce,
@@ -367,6 +373,9 @@ import type {
   SearchKind,
   SecretBox,
   SecretRequest,
+  SectorName,
+  SectorPill,
+  SeparateOperation,
   SeriesScope,
   ServerTelemetry,
   SetupStep,
@@ -395,6 +404,7 @@ import type {
   SuggestedAi,
   TaskManagerView,
   TaskOutput,
+  TaskQueueMove,
   TaskSteps,
   Team,
   TeamAgenda,
@@ -456,7 +466,7 @@ export interface ApiClient {
     instance(): Promise<Instance>;
     /** The company details the legal pages fill in (`LEGAL_*`): public, nothing secret. */
     legal(): Promise<LegalFacts>;
-    /** `null` unless I am the installation's owner (and not on agentes.chat itself). */
+    /** `null` unless I am the installation's owner (and not on DougBot itself). */
     telemetry(): Promise<ServerTelemetry | null>;
     setTelemetry(enabled: boolean): Promise<ServerTelemetry>;
     /** By email to whoever runs the server; only where it takes feedback (`AuthConfig.feedback`). */
@@ -509,7 +519,7 @@ export interface ApiClient {
   };
   /** Voice messages (ADR 0100). */
   voice: {
-    /** Whether I may record now: fair use, on agentes.chat's own servers. */
+    /** Whether I may record now: fair use, on DougBot's own servers. */
     allowed(orgId: string): Promise<{ allowed: boolean }>;
     /** Stores a recording; its message arrives over the socket with this `clientId`. */
     send(
@@ -537,6 +547,15 @@ export interface ApiClient {
     removeKey(orgId: string): Promise<LiveVoice>;
     /** Opens a session from this app's WebRTC offer: OpenAI's answer comes back. */
     startSession(orgId: string, input: LiveSessionInput): Promise<LiveSession>;
+    /**
+     * Opens a session on the workspace's engine (docs/adr/doug-0036-house-voice.md): with `relay` in `transports`, a
+     * house voice session's ticket; on GPT-Live, its answer, or `{ transport: "offer" }` when sent without the offer.
+     */
+    startVoice(orgId: string, input: LiveSessionInput): Promise<LiveSessionStart>;
+    /** Picks the voice of calls here (`configure`); null: the default. */
+    setEngine(orgId: string, engine: LiveVoiceEngine | null): Promise<LiveVoice>;
+    /** The most credits the house voice may spend here in a month (`configure`); null: no limit. */
+    setMonthlyLimit(orgId: string, credits: number | null): Promise<LiveVoice>;
     endSession(orgId: string, sessionId: string): Promise<void>;
     channelRoom(orgId: string, channelId: string): Promise<{ room: LiveRoom | null }>;
     joinRoom(
@@ -651,6 +670,15 @@ export interface ApiClient {
      * body, not the path: an endpoint's encoded slashes don't survive every proxy.
      */
     unregister(token: string): Promise<void>;
+    /**
+     * What a Live Activity for a message I sent would follow (docs/adr/doug-0021-lock-screen.md): the run it started
+     * and what it shows first; `available` false when this server sends none (through the push relay).
+     */
+    liveActivityStart(orgId: string, messageId: string, locale: string): Promise<LiveActivityStart>;
+    /** Registers a Live Activity's push token for that run; the server then updates and ends it. */
+    registerLiveActivity(orgId: string, input: LiveActivityInput): Promise<void>;
+    /** A Live Activity ended on the phone: nothing more is sent to it. */
+    endLiveActivity(token: string): Promise<void>;
     /**
      * Of these notification ids (at most 100), the ones no longer open and unread for me (read, done, snoozed or
      * gone): a browser closes the notifications it still shows for them (clear on read, ADR 0071).
@@ -1030,6 +1058,10 @@ export interface ApiClient {
     cancelUsageQueue(orgId: string, agentId: string): Promise<{ canceled: number; skipped: number }>;
     /** The agent's ronda (ADR 9004). */
     ronda(orgId: string, agentId: string): Promise<Ronda>;
+    /** The right hand's pills above the composer: the sectors with something for me (doug-0020). */
+    sectorPills(orgId: string, agentId: string): Promise<SectorPill[]>;
+    /** A pill pressed: the right hand shows that sector's card in my conversation with it, now. */
+    showSectorCard(orgId: string, agentId: string, sector: SectorName): Promise<{ id: string }>;
     /** Turns the agent's ronda on, changes when it passes, or switches it off (who manages agents, or its owner). */
     setRonda(
       orgId: string,
@@ -1097,7 +1129,7 @@ export interface ApiClient {
     /** This month's usage per agent; `null` without the `view_usage` permission. */
     usage(orgId: string): Promise<AgentUsage[] | null>;
   };
-  /** Bringing agents and what's around them from another app or another agentes.chat (ADR 0055); admins. */
+  /** Bringing agents and what's around them from another app or another DougBot (ADR 0055); admins. */
   imports: {
     /** The plan of a bundle (`dryRun`), or the picked items applied: either way every item with its action. */
     apply(orgId: string, input: ImportInput): Promise<ImportPlan>;
@@ -1252,7 +1284,7 @@ export interface ApiClient {
     undoRightHand(orgId: string, decisionId: string): Promise<void>;
   };
   connectors: {
-    /** Connectors agentes.chat knows, with their scopes, plus the built-in scopes. */
+    /** Connectors DougBot knows, with their scopes, plus the built-in scopes. */
     catalog(): Promise<ConnectorCatalog>;
     /** The organization's connections (no secrets). */
     list(orgId: string): Promise<Connection[]>;
@@ -1295,6 +1327,10 @@ export interface ApiClient {
     joinTwin(orgId: string, agentId: string, otherAgentId: string): Promise<AgentTwins>;
     /** Takes this copy out: trained here alone from now on. */
     leaveTwin(orgId: string, agentId: string): Promise<AgentTwins>;
+    /** Whether this workspace is a separate operation (ADR doug-0035). */
+    separateOperation(orgId: string): Promise<SeparateOperation>;
+    /** Owners: turns it on or off, or changes the names kept here. */
+    setSeparateOperation(orgId: string, input: { on?: boolean; names?: string[] }): Promise<SeparateOperation>;
   };
   githubApp: {
     /** Whether this server can install the GitHub App, the organization's installations, and the server's app. */
@@ -1551,6 +1587,8 @@ export interface ApiClient {
     edit(orgId: string, memoryId: string, text: string): Promise<Memory>;
     setPinned(orgId: string, memoryId: string, pinned: boolean): Promise<Memory>;
     setArchived(orgId: string, memoryId: string, archived: boolean): Promise<Memory>;
+    /** Kept in this workspace or sent to the agent's copies in the others (ADR doug-0013). */
+    setReach(orgId: string, memoryId: string, reach: "all" | "here"): Promise<Memory>;
     /** Confirmar (ADR 0167): trusted and verified, by who may edit it or the person who said it. */
     confirm(orgId: string, memoryId: string): Promise<Memory>;
     /** Undoes a change the agent made from the chat (`update.undo.path`). */
@@ -1638,6 +1676,8 @@ export interface ApiClient {
      * and admins only. Optional so older fakes type-check.
      */
     agenda?(orgId: string, query: { from: string; days?: number }): Promise<TeamAgenda>;
+    /** Moves a task in its assignee's queue (owners and admins); answers the queue's ids in their new order. */
+    moveInQueue?(orgId: string, move: TaskQueueMove): Promise<{ order: string[] }>;
     /** `projectId`: only that project's tasks, or `none` for the ones with no project. */
     list(orgId: string, filters?: { q?: string; projectId?: string }): Promise<Issue[]>;
     get(orgId: string, number: number): Promise<Issue>;
@@ -2121,12 +2161,23 @@ export interface ApiClient {
     keep(orgId: string, id: string): Promise<Artifact>;
     /** Sends what a person picked in a block to the agent that made it, as their own message. */
     reply(orgId: string, id: string, text: string, clientId: string): Promise<{ id: string }>;
+    /** A card's button that runs on the server (`act`), once (doug-0020). */
+    blockAct(orgId: string, id: string, act: string): Promise<{ act: string; done: true; messageId: string | null }>;
     /** A block's state, the same for everyone (ADR 0113). */
     blockState(orgId: string, id: string, version: number): Promise<BlockState>;
     /** Sets values in a block for everyone. */
     setBlockState(orgId: string, id: string, version: number, values: Record<string, unknown>): Promise<BlockState>;
     /** A random pick the server makes once, for everyone. */
     drawBlock(orgId: string, id: string, version: number, name: string, options: string[]): Promise<BlockState>;
+    /**
+     * A block's button pressed away from the block (a notification's, docs/adr/doug-0021-lock-screen.md): the server
+     * runs it as a tap would. `clientId` keeps a press that arrives twice from sending twice.
+     */
+    pressBlock(
+      orgId: string,
+      id: string,
+      input: { version: number; key: string; clientId?: string | null },
+    ): Promise<{ messageId: string | null; changed: boolean }>;
     poll(orgId: string, id: string): Promise<Poll>;
     /** Replaces the viewer's marks in a vote; empty takes them back. */
     vote(orgId: string, id: string, options: number[]): Promise<Poll>;
@@ -2196,6 +2247,18 @@ export interface ApiClient {
     restore(orgId: string, id: string): Promise<ArtifactDetail | undefined>;
     /** Out of the trash for good, now. */
     purge(orgId: string, id: string): Promise<void>;
+    /** The Drive's folders, with how many files the viewer sees in each (docs/adr/doug-0036-drive-folders.md). */
+    folders(orgId: string): Promise<DriveFolders>;
+    /** 409 `drive.folder_exists` for a name already there. */
+    createFolder(orgId: string, input: { name: string; parentId?: string | null }): Promise<DriveFolder>;
+    /** Renames it or moves it under another (null: the top). */
+    updateFolder(orgId: string, id: string, patch: { name?: string; parentId?: string | null }): Promise<DriveFolder>;
+    /** What was in it goes up to its parent: no file is deleted. */
+    removeFolder(orgId: string, id: string): Promise<{ files: number; folders: number }>;
+    /** Files files in a folder (null: the top of the Drive). */
+    file(orgId: string, ids: string[], folderId: string | null): Promise<Artifact[]>;
+    /** A draft is kept: it no longer goes to the trash on its own. */
+    keepDraft(orgId: string, id: string): Promise<Artifact>;
   };
   storage: {
     get(orgId: string): Promise<StorageConfig>;

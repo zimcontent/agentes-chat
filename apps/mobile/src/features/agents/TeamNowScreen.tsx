@@ -1,5 +1,5 @@
-import { lowerFirst } from "@agenteschat/client/lib/format";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
+import { lowerFirst } from "@dougbot/client/lib/format";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { router } from "@/ui/navigation";

@@ -45,7 +45,7 @@ export interface JevKey {
 export type JevKeyInput = string | { orgId: string; credentialId: string };
 
 /**
- * The installation's GIPHY key, for its pinned owner on a server that isn't agentes.chat's own (`GET
+ * The installation's GIPHY key, for its pinned owner on a server that isn't DougBot's own (`GET
  * /api/app/gif-key`, ADR 0091): with it, every workspace has GIFs (`OrgSettings.gifsAvailable`).
  */
 export interface GifKey {
@@ -113,7 +113,7 @@ export interface CompanyRequestInvite {
 }
 
 /**
- * The installation's speech engine, for its pinned owner on a server that isn't agentes.chat's own (`GET
+ * The installation's speech engine, for its pinned owner on a server that isn't DougBot's own (`GET
  * /api/app/speech-key`, ADR 0100): with one, every workspace has voice messages (`OrgSettings.voiceAvailable`).
  */
 export interface SpeechKey {
@@ -218,13 +218,13 @@ export interface AuthConfig {
   clientCode?: string | null;
   /** The server takes feedback (`POST /api/app/feedback`): the apps show the form; absent: a server too old to. */
   feedback?: boolean;
-  /** It goes to the agentes.chat team, not to whoever runs this server: the form says so and takes pictures only. */
+  /** It goes to the DougBot team, not to whoever runs this server: the form says so and takes pictures only. */
   feedbackRelay?: boolean;
   /** Every workspace gets a computer of its own (the Cloud); absent: a server too old to say. */
   workspaceComputer?: boolean;
   /** The billing service (ADR 0079): owners and admins open a workspace's plan there; null or absent: no billing. */
   billingUrl?: string | null;
-  /** One of agentes.chat's own servers (`Instance.cloud`); absent: a self-hosted server too old to say. */
+  /** One of DougBot's own servers (`Instance.cloud`); absent: a self-hosted server too old to say. */
   cloud?: boolean;
   /** The bot check's site key (Cloudflare Turnstile, ADR 0075); null or absent: no check, nothing from Cloudflare. */
   turnstileSiteKey?: string | null;
@@ -305,7 +305,7 @@ export interface SignInOptions {
 
 /** `GET /api/instance`: what the phone and desktop apps check before using a server. Public, nothing secret. */
 export interface Instance {
-  /** Always "agentes.chat". */
+  /** Always "DougBot". */
   name: string;
   version: string;
   /** The app API contract the server speaks, and the oldest one it still serves. */
@@ -363,7 +363,7 @@ export interface LegalFacts {
   backup: boolean;
   /** Where files are kept. */
   storage: "s3" | "disk" | "database";
-  /** One of agentes.chat's own servers, where the usage report is not optional. */
+  /** One of DougBot's own servers, where the usage report is not optional. */
   telemetryForced: boolean;
   /** Days a company's waiting-list request is kept; null: this server has no such form. */
   companyRequestsRetentionDays: number | null;
@@ -389,7 +389,8 @@ export type LegalService =
   | "billing"
   | "support"
   | "telemetry"
-  | "driveBackup";
+  | "driveBackup"
+  | "houseVoice";
 
 /** "Abrir no celular": a sign-in for the phone, single use, a few minutes long. */
 export interface PhoneSignIn {
@@ -1011,6 +1012,9 @@ export interface Agent {
   voice?: string;
   /** A person picked its voice (else it is the one its id gives). */
   voiceChosen?: boolean;
+  /** Its house voice (docs/adr/doug-0036-house-voice.md); absent from a server without it. */
+  houseVoice?: string;
+  houseVoiceChosen?: boolean;
   /** How it behaves on voice calls, on top of the base and the workspace's notes. */
   liveCallNotes?: string | null;
   /** Its autonomy brakes (ADR 0131); absent from an older server (the defaults). */
@@ -1219,6 +1223,8 @@ export interface AgentInput {
   mediaAskAbove?: number | null;
   /** Its voice (ADR doug-0006); null: the one its id gives. Its owner or an admin. */
   voice?: string | null;
+  /** Its house voice (docs/adr/doug-0036-house-voice.md); null: one like its GPT-Live voice. */
+  houseVoice?: string | null;
   /** How it behaves on voice calls (doug-0006 §11); null clears. Its owner or an admin. */
   liveCallNotes?: string | null;
   /** The Autonomia it starts with (the last setup's, ADR 0094): only an admin or its own owner sends it. */
@@ -2463,7 +2469,7 @@ export type ConnectorCategory =
   | "automation"
   | "social";
 
-/** A connector agentes.chat knows (`GET /connectors/catalog`: ours and the one-click MCP servers, one per service). */
+/** A connector DougBot knows (`GET /connectors/catalog`: ours and the one-click MCP servers, one per service). */
 export interface ConnectorDef {
   id: string;
   label: string;
@@ -2481,7 +2487,7 @@ export interface ConnectorDef {
   oauthConfigured: boolean;
   /** Can be connected on this server; `false` shows "Em breve". */
   available: boolean;
-  /** The vendor hasn't approved agentes.chat yet: greyed out with a lock, nothing to open. Older servers leave it out. */
+  /** The vendor hasn't approved DougBot yet: greyed out with a lock, nothing to open. Older servers leave it out. */
   soon?: boolean;
   /** Connects through Composio (ADR 0107): its page signs in. Unavailable on a server without Composio. */
   via?: "composio";
@@ -2569,6 +2575,22 @@ export interface AgentTwins {
   off: boolean;
   syncedAt: string | null;
   missing: { orgName: string; kind: "connection" | "skill"; label: string }[];
+  /** A separate operation among its workspaces (ADR doug-0035): only its craft crosses. */
+  craftOnly?: boolean;
+}
+
+/**
+ * A separate operation (ADR doug-0035): the copies of this workspace's agents elsewhere carry only their craft, both
+ * ways; facts, decisions, notes, clients and connections stay in each company.
+ */
+export interface SeparateOperation {
+  on: boolean;
+  /** Names kept here by hand: clients, projects, people. */
+  names: string[];
+  /** Whether the person may change it (the owners). */
+  canEdit: boolean;
+  /** Connections here signed in with an account another workspace also uses. */
+  sharedSignIns: { id: string; label: string; workspaces: string[] }[];
 }
 
 /** What bringing did: what came, what was here already and what stayed behind, with why. */
@@ -2631,9 +2653,9 @@ export interface GitHubAppSetup {
 export interface GitHubAppInfo {
   installable: boolean;
   installations: GitHubAppInstallation[];
-  /** The server's pinned owner only; null for everyone else and on agentes.chat. */
+  /** The server's pinned owner only; null for everyone else and on DougBot. */
   setup?: GitHubAppSetup | null;
-  /** The server has no app and its owner can make one in Settings (never on agentes.chat). */
+  /** The server has no app and its owner can make one in Settings (never on DougBot). */
   ownerCreates?: boolean;
 }
 
@@ -2707,6 +2729,11 @@ export interface Memory {
   /** Another memory says otherwise, until a person decides. */
   disputed?: boolean;
   /** Where it was learned. */
+  /**
+   * Among the agent's copies in other workspaces (ADR doug-0013): `all` goes to every copy, `here` stays in this
+   * workspace; null (or absent) never leaves it.
+   */
+  reach?: "all" | "here" | null;
   channelId?: string | null;
   /** A `rule` the viewer may remove: its giver, the agent's owner or an admin. */
   removable?: boolean;
@@ -3343,7 +3370,7 @@ export type CustomConnectStart =
   /** `pasteBack`: the sign-in ends on the person's computer; they paste that address to finish (Frame.io). */
   | { status: "oauth"; authorizeUrl: string; pasteBack?: true }
   /**
-   * `not_approved`: it has OAuth but only lets in apps it approved, and agentes.chat isn't one yet. `detail`: how it
+   * `not_approved`: it has OAuth but only lets in apps it approved, and DougBot isn't one yet. `detail`: how it
    * refused our registration, in its own words (`error: error_description`, short).
    */
   | { status: "needs_key"; reason?: "not_approved"; detail?: string };
@@ -4004,7 +4031,7 @@ export type ArtifactContent =
   | { kind: "diagram"; mermaid: string }
   | { kind: "html"; html: string }
   /**
-   * Parts the apps draw (`spec`, checked and drawn by `@agenteschat/ui/blocks/spec`), or the agent's own page (`html`),
+   * Parts the apps draw (`spec`, checked and drawn by `@dougbot/ui/blocks/spec`), or the agent's own page (`html`),
    * which runs only when a person asks (ADR 0113). Exactly one of the two.
    */
   | { kind: "block"; spec?: Record<string, unknown>; html?: string; subtitle?: string }
@@ -4093,6 +4120,29 @@ export interface Artifact {
   sharing?: ArtifactSharing;
   /** I may change `sharing`: it lives in a conversation not everyone reads, and I read it there. */
   canShare?: boolean;
+  /** Its Drive folder; null: the top of the Drive. Absent from an older server (docs/adr/doug-0036-drive-folders.md). */
+  folderId?: string | null;
+  /** A draft: it goes to the trash on its own at this time unless a new version comes first. */
+  expiresAt?: string | null;
+}
+
+/** A folder of the Drive (docs/adr/doug-0036-drive-folders.md): every member sees them all. */
+export interface DriveFolder {
+  id: string;
+  parentId: string | null;
+  name: string;
+  createdBy: ArtifactAuthor;
+  createdAt: string;
+  updatedAt: string;
+  /** Files the viewer sees in it, not counting its folders'; absent on a folder just made or changed. */
+  files?: number;
+}
+
+/** `GET …/drive-folders`. */
+export interface DriveFolders {
+  folders: DriveFolder[];
+  /** Files the viewer sees in no folder. */
+  loose: number;
 }
 
 /**
@@ -4172,6 +4222,10 @@ export interface ArtifactFilters {
   who?: "agents" | "people";
   /** Newest update first (default), by name, or by kind. */
   sort?: "recent" | "name" | "kind";
+  /** In this folder (null: in none); `deep`: also in the folders under it (with null: anywhere). */
+  folder?: { id: string | null; deep?: boolean };
+  /** Only drafts. */
+  drafts?: boolean;
 }
 
 /** A page of the Drive: the next one starts at `nextCursor`; the first also counts the files per kind. */
@@ -4226,11 +4280,18 @@ export interface TeamAgendaTask {
   title: string;
   status: "todo" | "in_progress" | "in_review";
   priority: "low" | "normal" | "high";
-  /** `YYYY-MM-DD`; before `from` when it is late; null for one under way with no date. */
+  /** `YYYY-MM-DD`; before `from` when it is late; null when it has no date. */
   dueDate: string | null;
   assignee: { type: "person" | "agent"; id: string };
   project: { name: string; color: string } | null;
   blocked: boolean;
+}
+
+/** One task's move in its assignee's queue (ADR doug-0022): right after `afterId`, or to the top with null. */
+export interface TaskQueueMove {
+  assignee: TeamAgendaTask["assignee"];
+  taskId: string;
+  afterId: string | null;
 }
 
 export interface TeamAgenda {
@@ -5463,6 +5524,16 @@ export interface Ronda {
   recent: { at: string; status: string; code: string | null; summary: string }[];
 }
 
+/** The right hand's sectors (docs/adr/doug-0020-doug-sector-cards.md), each a card and a pill. */
+export type SectorName = "whatsapp" | "calendar" | "approvals" | "proposals" | "tasks" | "review" | "portal";
+
+/** A pill above the composer in a person's conversation with the right hand (`GET …/agents/{agentId}/sector-pills`). */
+export interface SectorPill {
+  sector: SectorName;
+  /** What waits there; 0: a pill with no number (the agenda). */
+  count: number;
+}
+
 /** What an agent picks up when its plan or budget is back, in order (`GET …/agents/{agentId}/usage-queue`). */
 export interface UsageQueue {
   agentId: string;
@@ -6647,7 +6718,7 @@ export interface AccountLoginStart {
   expiresAt: string;
 }
 
-/** Why a sign-in ended on the computer (mirror of `ACCOUNT_LOGIN_FAILURES` in `@agenteschat/adapters`). */
+/** Why a sign-in ended on the computer (mirror of `ACCOUNT_LOGIN_FAILURES` in `@dougbot/adapters`). */
 export type AccountLoginFailure =
   | "not_installed"
   | "no_tty"
@@ -8625,7 +8696,7 @@ export interface WifiIphone {
   osVersion: string;
 }
 
-/** The iPhones a Mac offers over Wi-Fi; `update`: its agentes.chat is too old for it. */
+/** The iPhones a Mac offers over Wi-Fi; `update`: its DougBot is too old for it. */
 export interface WifiIphones {
   available: WifiIphone[];
   update?: true;
@@ -8659,7 +8730,7 @@ export interface CliInstall {
   cause?: "git_missing" | "still_missing";
 }
 
-/** `fix: null`: none ran; `update`: the Mac's agentes.chat is too old to fix it (the Terminal way instead). */
+/** `fix: null`: none ran; `update`: the Mac's DougBot is too old to fix it (the Terminal way instead). */
 export interface XcodeFixView {
   fix: XcodeFix | null;
   update?: true;
@@ -8670,7 +8741,7 @@ export interface WifiPairing {
   id: string;
   way: "qr" | "code";
   state: "waiting" | "pairing" | "connecting" | "connected" | "failed";
-  /** Why it failed; `update`: the computer's agentes.chat is too old for it. */
+  /** Why it failed; `update`: the computer's DougBot is too old for it. */
   reason?: WifiPairFailure;
   /** Only when it starts: Android's QR text for Wireless debugging. */
   qr?: string;
@@ -9125,9 +9196,24 @@ export interface PhoneLine {
 
 export type PhoneEngine = "gpt-live" | "qwen";
 
+export type LiveVoiceEngine = "house" | "gpt-live";
+
 export interface LiveVoice {
   /** `ok`: calls with agents and "Ouvir" work. */
   state: "off" | "ok";
+  /** The voice calls use here now (docs/adr/doug-0036-house-voice.md); absent from an older server: GPT-Live. */
+  engine?: LiveVoiceEngine;
+  /** What the workspace picked; null: the default (the house voice where the server has it). */
+  chosenEngine?: LiveVoiceEngine | null;
+  /** The workspace has its own GPT-Live key. */
+  gptLiveKey?: boolean;
+  /** The house voice where the server has it: credits a minute, the wallet, and the month against its limit. */
+  house?: {
+    perMinute: number;
+    balance: number | null;
+    monthlyCredits: number | null;
+    spentThisMonth: number;
+  } | null;
   /** The key's last 4 characters, for who configures the workspace. */
   hint: string | null;
   editable: boolean;
@@ -9174,8 +9260,10 @@ export interface LiveRoom {
 
 export interface LiveSessionInput {
   kind: "call" | "agent" | "listen" | "sample";
-  /** The app's WebRTC offer. */
-  sdp: string;
+  /** The app's WebRTC offer, for GPT-Live; without it, a workspace on GPT-Live answers `{ transport: "offer" }`. */
+  sdp?: string | null;
+  /** How the app can carry the audio (docs/adr/doug-0036-house-voice.md); absent: WebRTC alone. */
+  transports?: ("webrtc" | "relay")[];
   agentId?: string | null;
   roomId?: string | null;
   /** `agent`: the conversation with the agent, where what is asked by voice goes. */
@@ -9185,11 +9273,50 @@ export interface LiveSessionInput {
   language?: string | null;
 }
 
+/** A GPT-Live session: OpenAI's WebRTC answer. */
 export interface LiveSession {
+  transport?: "webrtc";
   id: string;
   /** OpenAI's WebRTC answer. */
   sdp: string;
   voice: string;
   maxSeconds: number;
   minSeconds: number;
+}
+
+/** A house voice session (docs/adr/doug-0036-house-voice.md): its relay socket's ticket, once, within a minute. */
+export interface HouseLiveSession {
+  transport: "relay";
+  id: string;
+  ticket: string;
+  path: string;
+  sampleRate: number;
+  voice: string;
+  maxSeconds: number;
+  minSeconds: number;
+}
+
+/** What a session's start answers: a session, or (GPT-Live, asked without an offer) a request for the offer. */
+export type LiveSessionStart = LiveSession | HouseLiveSession | { transport: "offer" };
+/** What a Live Activity shows (docs/adr/doug-0021-lock-screen.md), as the server sends it and the widget draws it. */
+export interface LiveActivityState {
+  title: string;
+  line: string;
+  progress: number;
+  phase: "queued" | "work" | "wait" | "done" | "stopped" | "failed";
+}
+
+/** The run a message I sent started, for a Live Activity; `available` false: this server sends none. */
+export interface LiveActivityStart {
+  available: boolean;
+  start: { runId: string; agentId: string; agentName: string; agentHandle: string; state: LiveActivityState } | null;
+}
+
+/** A Live Activity's push token for a run (an iPhone's app and Apple's environment, as its pushes). */
+export interface LiveActivityInput {
+  runId: string;
+  token: string;
+  appId?: string;
+  sandbox?: boolean;
+  locale: string;
 }

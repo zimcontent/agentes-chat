@@ -1,9 +1,9 @@
-import type { AiAccounts } from "@agenteschat/client";
-import { keys, useAiAccounts, useApi } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { brandOf } from "@agenteschat/client/lib/plan-usage";
-import { Button, Card, CardHeader, EmptyState, Menu, MenuItem } from "@agenteschat/ui";
-import { planState } from "@agenteschat/ui/plan-state";
+import type { AiAccounts } from "@dougbot/client";
+import { keys, useAiAccounts, useApi } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { brandOf } from "@dougbot/client/lib/plan-usage";
+import { Button, Card, CardHeader, EmptyState, Menu, MenuItem } from "@dougbot/ui";
+import { planState } from "@dougbot/ui/plan-state";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,4 +1,4 @@
-import type { BrainKind, Machine } from "@agenteschat/client";
+import type { BrainKind, Machine } from "@dougbot/client";
 import {
   DESKTOP_TOOL_SCOPE,
   profilesApply,
@@ -11,12 +11,12 @@ import {
   useModels,
   useSetComputerTarget,
   useUpdateAgentBrowserSettings,
-} from "@agenteschat/client";
-import { saveLevels } from "@agenteschat/client/lib/access-levels";
-import type { BrainScreen } from "@agenteschat/client/lib/agent-edit";
-import { ownSignInName } from "@agenteschat/client/lib/ai-accounts";
-import { effortOf } from "@agenteschat/client/lib/brain-advanced";
-import { computerNameOf, setupPortrait, WORKSPACE_COMPUTER_KIND } from "@agenteschat/client/lib/computer";
+} from "@dougbot/client";
+import { saveLevels } from "@dougbot/client/lib/access-levels";
+import type { BrainScreen } from "@dougbot/client/lib/agent-edit";
+import { ownSignInName } from "@dougbot/client/lib/ai-accounts";
+import { effortOf } from "@dougbot/client/lib/brain-advanced";
+import { computerNameOf, setupPortrait, WORKSPACE_COMPUTER_KIND } from "@dougbot/client/lib/computer";
 import {
   allowsInApp,
   commandInReason,
@@ -24,20 +24,13 @@ import {
   computerState,
   machineReasonText,
   toolOnCommand,
-} from "@agenteschat/client/lib/machines";
-import {
-  type AiChoice,
-  aiChoiceOf,
-  aiStateOf,
-  planLabel,
-  planMark,
-  planOfAccount,
-} from "@agenteschat/client/lib/no-ai";
-import { can as canDo } from "@agenteschat/client/lib/permissions";
-import { brainModelChoice, brainModelChoices, isPlanId, planOf } from "@agenteschat/client/lib/plans";
-import { apiProviderOf, isAuto } from "@agenteschat/client/lib/providers";
-import { cleanSite, SITE } from "@agenteschat/client/lib/sites";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/machines";
+import { type AiChoice, aiChoiceOf, aiStateOf, planLabel, planMark, planOfAccount } from "@dougbot/client/lib/no-ai";
+import { can as canDo } from "@dougbot/client/lib/permissions";
+import { brainModelChoice, brainModelChoices, isPlanId, planOf } from "@dougbot/client/lib/plans";
+import { apiProviderOf, isAuto } from "@dougbot/client/lib/providers";
+import { cleanSite, SITE } from "@dougbot/client/lib/sites";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
 import {
   Button,
   ComputerPortrait,
@@ -53,12 +46,13 @@ import {
   OptionList,
   ProviderLogo,
   SettingNote,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NO_COMPUTER, useNoComputer } from "@/components/AgentComputer";
 import { usePlanHold } from "@/components/ai/ConnectAiSteps";
+import { ModelPickerDialog } from "@/components/ai/ModelPicker";
 import { useConnectAi } from "@/components/ConnectAi";
 import { ToolOffWayOut, useToolOneClick } from "@/components/devices/ToolOneClick";
 import { CommandBlock } from "@/components/machine-bits";
@@ -497,8 +491,22 @@ export function WorkDialogs({
   brainAt?: BrainScreen;
   onClose: () => void;
 }) {
-  // Who thinks has its own dialog, under the sky like Connect's (ADR 0032 §5, addendum 2026-11-10).
-  if (open === "brain") return <BrainDialog onClose={onClose} at={brainAt} />;
+  const { agent } = useAgentEdit();
+  // "Mais opções" of the picker: the full "Quem pensa", until the dialog closes.
+  const [full, setFull] = useState(false);
+  const close = () => {
+    setFull(false);
+    onClose();
+  };
+  // Who thinks opens on the model picker, the same one a conversation has (tiles, account, models, effort); its "Mais
+  // opções", and a link to a screen of its own, open the full dialog under the sky like Connect's (ADR 0032 §5,
+  // addendum 2026-11-10).
+  if (open === "brain")
+    return brainAt || full ? (
+      <BrainDialog onClose={close} at={brainAt} />
+    ) : (
+      <ModelPickerDialog agent={agent} onClose={close} onMore={() => setFull(true)} />
+    );
   if (open === "computer") return <ComputerDialog onClose={onClose} />;
   if (open === "browser") return <BrowserDialog onClose={onClose} />;
   return null;

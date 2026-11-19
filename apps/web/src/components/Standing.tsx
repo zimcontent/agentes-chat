@@ -9,9 +9,9 @@ import {
   useComputerSetup,
   useRestoreAccount,
   useRestoreWorkspace,
-} from "@agenteschat/client";
-import { billingHoldOf } from "@agenteschat/client/lib/billing";
-import { computerEdition } from "@agenteschat/client/lib/computer";
+} from "@dougbot/client";
+import { billingHoldOf } from "@dougbot/client/lib/billing";
+import { computerEdition } from "@dougbot/client/lib/computer";
 import {
   accountDeletingText,
   accountOutOfReach,
@@ -22,15 +22,15 @@ import {
   workspaceLabel,
   workspaceNotes,
   workspaceOpens,
-} from "@agenteschat/client/lib/deletion";
-import { errorText, holdText, sessionEnded, supportLineOf, suspendedText } from "@agenteschat/client/lib/errors";
-import { stepPermissions } from "@agenteschat/client/lib/home";
-import { planHoldOf } from "@agenteschat/client/lib/no-ai";
-import { can } from "@agenteschat/client/lib/permissions";
-import { isRightHand, leadsWithPlan, rightHandOf } from "@agenteschat/client/lib/right-hand";
-import type { FirstRunPowers } from "@agenteschat/client/lib/setup-checklist";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
-import { Button, cx, Icon, InfoHint, Spinner } from "@agenteschat/ui";
+} from "@dougbot/client/lib/deletion";
+import { errorText, holdText, sessionEnded, supportLineOf, suspendedText } from "@dougbot/client/lib/errors";
+import { stepPermissions } from "@dougbot/client/lib/home";
+import { planHoldOf } from "@dougbot/client/lib/no-ai";
+import { can } from "@dougbot/client/lib/permissions";
+import { isRightHand, leadsWithPlan, rightHandOf } from "@dougbot/client/lib/right-hand";
+import type { FirstRunPowers } from "@dougbot/client/lib/setup-checklist";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
+import { Button, cx, Icon, InfoHint, Spinner } from "@dougbot/ui";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useMatchRoute, useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";

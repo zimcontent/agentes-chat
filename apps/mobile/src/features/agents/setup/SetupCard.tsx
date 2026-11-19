@@ -1,12 +1,12 @@
-import type { Agent, AgentSetupStep } from "@agenteschat/client";
-import { useAgentAccess, useAgentDetail, useAiStatus, useMe } from "@agenteschat/client";
-import { levelOf, resourcesOf } from "@agenteschat/client/lib/access-levels";
-import { audienceOf } from "@agenteschat/client/lib/audience";
-import { firstName, NAMES_SHOWN, namesText } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { aiStateOf, planHoldPhoneLine } from "@agenteschat/client/lib/no-ai";
-import { addsAgentsTo, can } from "@agenteschat/client/lib/permissions";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
+import type { Agent, AgentSetupStep } from "@dougbot/client";
+import { useAgentAccess, useAgentDetail, useAiStatus, useMe } from "@dougbot/client";
+import { levelOf, resourcesOf } from "@dougbot/client/lib/access-levels";
+import { audienceOf } from "@dougbot/client/lib/audience";
+import { firstName, NAMES_SHOWN, namesText } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { aiStateOf, planHoldPhoneLine } from "@dougbot/client/lib/no-ai";
+import { addsAgentsTo, can } from "@dougbot/client/lib/permissions";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
 import {
   askedLine,
   nextStep,
@@ -17,8 +17,8 @@ import {
   setupTaskKeys,
   suggestedChannels,
   suggestedLevels,
-} from "@agenteschat/client/lib/setup-checklist";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/setup-checklist";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";

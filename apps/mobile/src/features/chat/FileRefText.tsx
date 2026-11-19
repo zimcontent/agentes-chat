@@ -1,5 +1,5 @@
-import { useArtifact } from "@agenteschat/client";
-import { type FileLink, filePath } from "@agenteschat/client/lib/message-links";
+import { useArtifact } from "@dougbot/client";
+import { type FileLink, filePath } from "@dougbot/client/lib/message-links";
 import type { Href } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Text as RNText, StyleSheet } from "react-native";

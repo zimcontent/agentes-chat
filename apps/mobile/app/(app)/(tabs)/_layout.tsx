@@ -1,4 +1,4 @@
-import { useVideoReviews } from "@agenteschat/client";
+import { useVideoReviews } from "@dougbot/client";
 import { NativeTabs } from "expo-router/native-tabs";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";

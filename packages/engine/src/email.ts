@@ -1,25 +1,13 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { EmailError, type EmailSender, type PubSub } from "@agenteschat/adapters";
-import {
-  and,
-  asc,
-  type Database,
-  type Executor,
-  eq,
-  inArray,
-  isNotNull,
-  isNull,
-  lt,
-  schema,
-  sql,
-} from "@agenteschat/db";
-import { serverText } from "@agenteschat/i18n";
-import { BRAND_NAME, brandText } from "@agenteschat/i18n/brand";
-import { formatMoneyUsd } from "@agenteschat/i18n/format";
-import { appLocale, localeInfo } from "@agenteschat/i18n/locale";
-import { deepMerge } from "@agenteschat/i18n/tree";
-import { nanoUsdToUsd } from "@agenteschat/providers";
+import { EmailError, type EmailSender, type PubSub } from "@dougbot/adapters";
+import { and, asc, type Database, type Executor, eq, inArray, isNotNull, isNull, lt, schema, sql } from "@dougbot/db";
+import { serverText } from "@dougbot/i18n";
+import { BRAND_NAME, brandText } from "@dougbot/i18n/brand";
+import { formatMoneyUsd } from "@dougbot/i18n/format";
+import { appLocale, localeInfo } from "@dougbot/i18n/locale";
+import { deepMerge } from "@dougbot/i18n/tree";
+import { nanoUsdToUsd } from "@dougbot/providers";
 import { z } from "zod";
 import { notifiedIds } from "./approvals";
 import { isComputerBrain, planName } from "./brains/types";
@@ -540,7 +528,7 @@ const inMode = <G extends { personal: object }>(group: G, personal: boolean | un
 
 /**
  * One email's content: our words in the subject, preheader, headline and buttons; what people typed or
- * agents wrote only in the body, made inert. `sender`: the self-hosted server's host, or null on agentes.chat.
+ * agents wrote only in the body, made inert. `sender`: the self-hosted server's host, or null on DougBot.
  */
 function docOf(t: EmailTemplate, sender: string | null): EmailDoc {
   const lang = emailLocale(t.locale);

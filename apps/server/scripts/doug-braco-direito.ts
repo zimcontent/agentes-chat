@@ -12,9 +12,9 @@
 // - right_hand_brains (each person's AI for the right hand, §11) apply to it; with none for a person it thinks with
 //   its own model and credential; right_hand_approvals / decisions are the workspace's and stay;
 // - `agents_one_right_hand` (one per workspace): one transaction takes the mark off the old one before giving it.
-import { createMemoryPubSub } from "@agenteschat/adapters";
-import { and, createDatabase, eq, isNull, schema } from "@agenteschat/db";
-import { makeRightHand, RIGHT_HAND } from "@agenteschat/engine";
+import { createMemoryPubSub } from "@dougbot/adapters";
+import { and, createDatabase, eq, isNull, schema } from "@dougbot/db";
+import { makeRightHand, RIGHT_HAND } from "@dougbot/engine";
 
 const [workspace = "Time Zim", handle = "doug"] = process.argv.slice(2).filter((a) => !a.startsWith("--"));
 const dry = process.argv.includes("--dry");

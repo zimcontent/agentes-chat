@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, setSystemTime, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
@@ -11,10 +11,10 @@ import type {
   Member,
   NotificationLatest,
   OrgRole,
-} from "@agenteschat/client";
-import { ApiError, keys } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { icons } from "@agenteschat/ui";
+} from "@dougbot/client";
+import { ApiError, keys } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { icons } from "@dougbot/ui";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { createI18n } from "@/i18n";
 import { ADA_ID, ADMIN_ROLE_ID, ATLAS_ID, createFakeApi, ORG_ID, seedRoles, seedState } from "./fake-api";

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, mock, setSystemTime, spyOn, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
@@ -24,8 +24,8 @@ class FakeRfb {
 }
 mock.module("@novnc/novnc", () => ({ default: FakeRfb }));
 
-import { BROWSER_STUCK_MS, type BrowserHandoff, type DesktopStatus, type SocketFactory } from "@agenteschat/client";
-import { icons, isApple } from "@agenteschat/ui";
+import { BROWSER_STUCK_MS, type BrowserHandoff, type DesktopStatus, type SocketFactory } from "@dougbot/client";
+import { icons, isApple } from "@dougbot/ui";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { useState } from "react";
 import { BrowserCard, titleKind } from "@/components/browser/BrowserCard";

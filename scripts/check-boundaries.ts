@@ -2,10 +2,10 @@
  * Rules for the public repository, run in CI via `bun run check:boundaries`:
  *
  * - The edition boundary (docs/adr/0002-editions-and-modules.md): open-source code under apps/ and
- *   packages/ must never import a Cloud-only package (`@agenteschat/cloud`) or an `@agenteschat/ee` module.
+ *   packages/ must never import a Cloud-only package (`@dougbot/cloud`) or an `@dougbot/ee` module.
  * - A client's folder (clients/<code>/, ADR doug-0032) extends only through the module API: its `client.ts` may
- *   import `@agenteschat/modules` and the public packages named in CLIENT_PACKAGES, and nothing else -- never the
- *   engine's internals, another client's folder or a private package -- so it can add through `AgentesModule` and
+ *   import `@dougbot/modules` and the public packages named in CLIENT_PACKAGES, and nothing else -- never the
+ *   engine's internals, another client's folder or a private package -- so it can add through `DougBotModule` and
  *   never change what the product does for every server.
  * - No private files: nothing under PRIVATE_PATHS may be tracked here.
  * - No internal notes: every file is public, comments included, so none may point at the maintainers'
@@ -37,14 +37,14 @@ export function isPrivate(path: string): boolean {
 /**
  * What a client's `client.ts` may import (ADR doug-0032 §4): the module API it extends through, and the public packages
  * a module's context is typed with. Anything else -- the engine's internals, the server's own routes, a private
- * package, another client's folder -- is refused: a folder adds through `AgentesModule`, never by reaching inside.
+ * package, another client's folder -- is refused: a folder adds through `DougBotModule`, never by reaching inside.
  */
 export const CLIENT_PACKAGES = [
-  "@agenteschat/modules",
-  "@agenteschat/adapters",
-  "@agenteschat/config",
-  "@agenteschat/db",
-  "@agenteschat/providers",
+  "@dougbot/modules",
+  "@dougbot/adapters",
+  "@dougbot/config",
+  "@dougbot/db",
+  "@dougbot/providers",
   "@hono/zod-openapi",
   "zod",
 ] as const;
@@ -224,7 +224,7 @@ export function internalNotes(text: string, privateWords = PRIVATE_WORDS): strin
 
 if (import.meta.main) {
   const forbidden =
-    /(from\s+|import\s*\(\s*|require\s*\(\s*)["'](@agenteschat\/(cloud|ee)(\/[^"']*)?|(\.\.\/)+(cloud|ee)(\/[^"']*)?)["']/;
+    /(from\s+|import\s*\(\s*|require\s*\(\s*)["'](@dougbot\/(cloud|ee)(\/[^"']*)?|(\.\.\/)+(cloud|ee)(\/[^"']*)?)["']/;
   const violations: string[] = [];
 
   for (const dir of ["apps", "packages"]) {
@@ -240,7 +240,7 @@ if (import.meta.main) {
   for (const pkgFile of ["apps", "packages"].flatMap((d) => [...new Glob(`${d}/*/package.json`).scanSync()])) {
     const pkg = await Bun.file(pkgFile).json();
     const deps = { ...pkg.dependencies, ...pkg.devDependencies, ...pkg.peerDependencies };
-    for (const name of ["@agenteschat/cloud", "@agenteschat/ee"]) {
+    for (const name of ["@dougbot/cloud", "@dougbot/ee"]) {
       if (name in deps) violations.push(`${pkgFile}: depends on ${name}`);
     }
   }

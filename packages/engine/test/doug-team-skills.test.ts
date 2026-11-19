@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { and, eq, inArray, schema } from "@agenteschat/db";
+import { and, eq, inArray, schema } from "@dougbot/db";
 import {
   DOUG_TEAM_SKILLS_JOB,
   type DougSkillItem,

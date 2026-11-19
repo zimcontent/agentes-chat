@@ -1,4 +1,4 @@
-import { type Agent, type Approval, type Member, useApprovalsDeciding } from "@agenteschat/client";
+import { type Agent, type Approval, type Member, useApprovalsDeciding } from "@dougbot/client";
 import {
   approvalLine,
   approvalRuns,
@@ -9,9 +9,9 @@ import {
   itemOwnWords,
   type LinePlace,
   runKeys,
-} from "@agenteschat/client/lib/approval-card";
-import { aheadPhase } from "@agenteschat/client/lib/approval-kind";
-import { approvalOriginShort, approvalWords } from "@agenteschat/client/lib/approval-origin";
+} from "@dougbot/client/lib/approval-card";
+import { aheadPhase } from "@dougbot/client/lib/approval-kind";
+import { approvalOriginShort, approvalWords } from "@dougbot/client/lib/approval-origin";
 import {
   aheadEndLine,
   approvalAskLine,
@@ -23,10 +23,10 @@ import {
   approvalWaitsFor,
   decisionOutcome,
   requesterDecidesLine,
-} from "@agenteschat/client/lib/approval-words";
-import { changesWhenAsks } from "@agenteschat/client/lib/approvals-level";
-import { formatTime, nextLabel, whenAt } from "@agenteschat/client/lib/format";
-import { Button } from "@agenteschat/ui";
+} from "@dougbot/client/lib/approval-words";
+import { changesWhenAsks } from "@dougbot/client/lib/approvals-level";
+import { formatTime, nextLabel, whenAt } from "@dougbot/client/lib/format";
+import { Button } from "@dougbot/ui";
 import type { TFunction } from "i18next";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";

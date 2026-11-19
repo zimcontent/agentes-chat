@@ -1,5 +1,5 @@
-import { type SignInProvider, useAuthConfig } from "@agenteschat/client";
-import { jwtEmail } from "@agenteschat/client/lib/text";
+import { type SignInProvider, useAuthConfig } from "@dougbot/client";
+import { jwtEmail } from "@dougbot/client/lib/text";
 import * as AppleAuthentication from "expo-apple-authentication";
 import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,5 +1,5 @@
-import type { LiveRoom } from "@agenteschat/client";
-import type { Who } from "@agenteschat/client/lib/live-host";
+import type { LiveRoom } from "@dougbot/client";
+import type { Who } from "@dougbot/client/lib/live-host";
 
 /** Pure rules of a call on the phone (docs/adr/doug-0006-live-voice.md, the phone app), kept apart to be tested. */
 

@@ -1,5 +1,5 @@
-import { bareJid, isGroupJid, type PortalItem, type WhatsAppMessage } from "@agenteschat/adapters";
-import { and, asc, type Database, desc, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+import { bareJid, isGroupJid, type PortalItem, type WhatsAppMessage } from "@dougbot/adapters";
+import { and, asc, type Database, desc, eq, inArray, isNull, schema, sql } from "@dougbot/db";
 import type { DesignDelivery } from "./design-delivery";
 import { NotFoundError, ValidationError } from "./errors";
 import { requirePermission } from "./organizations";

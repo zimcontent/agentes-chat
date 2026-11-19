@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { KeyWrapper } from "@agenteschat/adapters";
-import { and, asc, type Database, eq, isNull, schema } from "@agenteschat/db";
+import type { KeyWrapper } from "@dougbot/adapters";
+import { and, asc, type Database, eq, isNull, schema } from "@dougbot/db";
 import { type AuditEntry, recordAudit } from "../audit";
 import { clientRefused, OAUTH_STATE_TTL_MS, type OAuthApps, syncGitHubAppConnection } from "../connectors/connections";
 import { desktopReturnPath, isDesktopReturn, oauthReturnTo } from "../connectors/oauth-return";

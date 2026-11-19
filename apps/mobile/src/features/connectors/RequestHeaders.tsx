@@ -1,5 +1,5 @@
-import type { RequestHeader } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+import type { RequestHeader } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import {
   HEADER_NAME_EXAMPLE,
   type HeaderRefused,
@@ -7,7 +7,7 @@ import {
   MAX_HEADER_NAME,
   MAX_REQUEST_HEADERS,
   savedHeadersLine,
-} from "@agenteschat/client/lib/request-headers";
+} from "@dougbot/client/lib/request-headers";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, TextInput, type TextInputInstance, View } from "react-native";

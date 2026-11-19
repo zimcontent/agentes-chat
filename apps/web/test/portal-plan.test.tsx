@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { ApiError } from "@agenteschat/client";
-import { peekDraft } from "@agenteschat/client/lib/drafts";
+import { ApiError } from "@dougbot/client";
+import { peekDraft } from "@dougbot/client/lib/drafts";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { orderAfterDrop, pansBoard } from "@/components/portal/board-parts";
 import { ADA_ID, createFakeApi, fakePortalOf, meWithRole, ORG_ID, seedState } from "./fake-api";
@@ -960,7 +960,7 @@ describe("the client's materials (ADR 9001 §20)", () => {
     expect(calls(state, "portal.createList")).toEqual([[ORG_ID, "acme", "Geral", "materials"]]);
     const made = portal.lists.find((l) => l.name === "Geral");
     expect(made?.kind).toBe("materials");
-    expect((calls(state, "portal.updateCard")[0]?.[2] as { list: string }).list).toBe(made?.id as string);
+    expect((calls(state, "portal.updateCard")[0]?.[2] as { list: string } | undefined)?.list).toBe(made?.id as string);
     expect(screen().getByText("“Story de enquete” foi para Materiais do cliente, na lista Geral.")).toBeTruthy();
   });
 

@@ -8,8 +8,8 @@ import type {
   SearchIndexResolver,
   SearchKind,
   WebPushSender,
-} from "@agenteschat/adapters";
-import { and, count, eq, inArray, isNull, ne, queryTrace, schema, sql } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, count, eq, inArray, isNull, ne, queryTrace, schema, sql } from "@dougbot/db";
 import { ACCOUNT_CONTACT_JOB, saveAccountContact } from "./account-contacts";
 import { AGENT_MEDIA_JOB, enqueueAgentMedia, maybeSendAgentMedia } from "./agent-media";
 import { aiConnectIntent, type ConnectIntent } from "./ai-intent";
@@ -178,7 +178,7 @@ export interface JobDeps extends RunExecutorDeps {
   email?: EmailSender;
   /** Where feedback's pictures and videos are kept (jobs `feedback.send`, `feedback.file.purge`). */
   feedbackBlobs?: BlobStore;
-  /** How a feedback reaches the agentes.chat team's inbox (ADR 0160 §13); the network's own by default. */
+  /** How a feedback reaches the DougBot team's inbox (ADR 0160 §13); the network's own by default. */
   feedbackFetch?: typeof fetch;
   /** Where emails get their pictures (`emailArtFor`); absent: from each link's own server. */
   emailArt?: EmailArt;
@@ -944,6 +944,17 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
           ai: { gateway: deps.gateway, machines: deps.machines ?? null },
           mail: deps.mail,
           keyWrappers: deps.connectors?.keyWrappers,
+          ...(deps.artifacts
+            ? {
+                sectorCards: {
+                  ...deps.artifacts,
+                  pubsub: deps.pubsub,
+                  connectors: deps.connectors ?? null,
+                  portal: deps.videoReviews?.portal ?? null,
+                  judge: deps.context?.judge,
+                },
+              }
+            : {}),
         },
         String(job.payload.routineRunId),
       );
@@ -1281,7 +1292,14 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
     // A notification for a person's phones and browsers (ADR 0035, 0071): skipped if read, done or snoozed meanwhile.
     "push.send": async (job) => {
       await deliverPush(
-        { db: deps.db, push: deps.push, webPush: deps.webPush, presence: deps.presence, server: deps.pushServer },
+        {
+          db: deps.db,
+          push: deps.push,
+          webPush: deps.webPush,
+          presence: deps.presence,
+          server: deps.pushServer,
+          artifacts: deps.artifacts ?? null,
+        },
         String(job.payload.notificationId),
         { held: job.payload.held === true },
       );

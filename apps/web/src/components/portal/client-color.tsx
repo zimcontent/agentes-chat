@@ -1,11 +1,11 @@
-import type { PortalClientColor } from "@agenteschat/client";
+import type { PortalClientColor } from "@dougbot/client";
 import {
   usePortalAfterApprove,
   usePortalOverview,
   useSetPortalAfterApprove,
   useSetPortalClientColor,
   useSetPortalClientLogo,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   PORTAL_CLIENT_COLORS,
   portalClientColors,
@@ -14,8 +14,8 @@ import {
   portalClientLogos,
   portalClientName,
   portalErrorText,
-} from "@agenteschat/client/lib/portal";
-import { Button, Menu, MenuHeading, MenuItem, MenuSeparator } from "@agenteschat/ui";
+} from "@dougbot/client/lib/portal";
+import { Button, Menu, MenuHeading, MenuItem, MenuSeparator } from "@dougbot/ui";
 import { type CSSProperties, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

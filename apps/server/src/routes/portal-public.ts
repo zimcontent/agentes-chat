@@ -1,4 +1,4 @@
-import { eq, schema } from "@agenteschat/db";
+import { eq, schema } from "@dougbot/db";
 import {
   CLIENT_NOTE_MAX,
   clientDecision,
@@ -10,7 +10,7 @@ import {
   portalLogoKeyOf,
   STANDING_COLUMNS,
   workRefusal,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import { z } from "zod";
 import { requestLimitIp } from "../http/client-ip";

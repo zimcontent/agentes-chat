@@ -1,5 +1,5 @@
-import type { ArtifactFileContent } from "@agenteschat/client";
-import { useArtifactBlob } from "@agenteschat/client";
+import type { ArtifactFileContent } from "@dougbot/client";
+import { useArtifactBlob } from "@dougbot/client";
 import {
   fileIcon,
   formatBytes,
@@ -8,8 +8,8 @@ import {
   MAX_UPLOAD_BYTES,
   previewKind,
   previewType,
-} from "@agenteschat/client/lib/files";
-import { Icon, Spinner, Tip, VideoPlayer, type VideoPlayerLabels } from "@agenteschat/ui";
+} from "@dougbot/client/lib/files";
+import { Icon, Spinner, Tip, VideoPlayer, type VideoPlayerLabels } from "@dougbot/ui";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";

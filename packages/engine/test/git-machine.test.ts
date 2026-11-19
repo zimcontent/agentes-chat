@@ -7,8 +7,8 @@ import {
   type GitSyncRepo,
   MACHINE_PROTOCOL_VERSION,
   type ServerFrame,
-} from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   addChannelMember,
   type ConnectorDeps,

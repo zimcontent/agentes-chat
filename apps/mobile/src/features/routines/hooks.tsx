@@ -5,12 +5,12 @@ import {
   useDms,
   useMailAccounts,
   useRoutineAction,
-} from "@agenteschat/client";
-import { knownErrorText } from "@agenteschat/client/lib/errors";
-import { relativeTime, toYmd, whenAt } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { type RoutineFix, routineChannelOf, runPixels, type Words } from "@agenteschat/client/lib/routine-view";
-import { browserTimezone, onceParts, routineHookUrl, timezoneName } from "@agenteschat/client/lib/routines";
+} from "@dougbot/client";
+import { knownErrorText } from "@dougbot/client/lib/errors";
+import { relativeTime, toYmd, whenAt } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { type RoutineFix, routineChannelOf, runPixels, type Words } from "@dougbot/client/lib/routine-view";
+import { browserTimezone, onceParts, routineHookUrl, timezoneName } from "@dougbot/client/lib/routines";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ActionSheetIOS, Alert, Platform } from "react-native";

@@ -1,4 +1,4 @@
-import type { PubSub } from "@agenteschat/adapters";
+import type { PubSub } from "@dougbot/adapters";
 import {
   and,
   arrayContains,
@@ -12,7 +12,7 @@ import {
   rowsOf,
   schema,
   sql,
-} from "@agenteschat/db";
+} from "@dougbot/db";
 import {
   AUTO_MODEL,
   customModelId,
@@ -20,9 +20,9 @@ import {
   isAutoModel,
   MODEL_CATALOG,
   parseCustomModel,
-} from "@agenteschat/providers";
-import { isLiveVoice, LIVE_VOICES, liveVoiceFor } from "@agenteschat/providers/live-voice";
-import { isIdHandle } from "@agenteschat/ui/names";
+} from "@dougbot/providers";
+import { houseVoiceFor, isLiveVoice, LIVE_VOICES, liveVoiceFor } from "@dougbot/providers/live-voice";
+import { isIdHandle } from "@dougbot/ui/names";
 import type { AgentAppearance } from "./appearance";
 import { dropAgentRules } from "./approval-rules";
 import { answersOthers, audienceOf, canTalkTo, speakerFor } from "./audience";
@@ -805,6 +805,9 @@ export const agentView = (a: Agent) => ({
   voice: liveVoiceFor(a.id, a.voice),
   /** Whether a person picked it (else it follows `liveVoiceFor`). */
   voiceChosen: a.voice != null,
+  /** Its house voice (docs/adr/doug-0036-house-voice.md): the one picked, or one that sounds like its GPT-Live voice. */
+  houseVoice: houseVoiceFor(a.id, a.houseVoice, a.voice),
+  houseVoiceChosen: a.houseVoice != null,
   liveCallNotes: a.liveCallNotes ?? null,
   /** A built-in agent the product ships (ADR 0137): `right_hand`, the team's right hand. Null for the others. */
   builtin: a.builtin ?? null,

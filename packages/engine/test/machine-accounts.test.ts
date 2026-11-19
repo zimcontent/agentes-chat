@@ -22,9 +22,9 @@ import {
   SHARED_GEMINI_PROTOCOL,
   SHARED_GROK_PROTOCOL,
   sealSecret,
-} from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import { runMigration } from "@agenteschat/db/testing";
+} from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import { runMigration } from "@dougbot/db/testing";
 import {
   accountLoginStatus,
   beginAccountLogin,

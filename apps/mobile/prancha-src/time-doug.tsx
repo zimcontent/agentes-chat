@@ -1,5 +1,5 @@
-import type { ApiClient, DougTemplateMember, TeamTemplate } from "@agenteschat/client";
-import { ApiProvider } from "@agenteschat/client";
+import type { ApiClient, DougTemplateMember, TeamTemplate } from "@dougbot/client";
+import { ApiProvider } from "@dougbot/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { View } from "react-native";

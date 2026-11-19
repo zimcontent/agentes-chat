@@ -14,11 +14,11 @@ import {
   widgetCardStatus,
   widgetWaitFix,
   widgetWaiting,
-} from "@agenteschat/client";
-import { upcomingAt, whenAt } from "@agenteschat/client/lib/format";
-import { plainInline } from "@agenteschat/client/lib/markdown";
-import { can } from "@agenteschat/client/lib/permissions";
-import { WIDGET_LIMITS, WIDGET_SCHEDULES } from "@agenteschat/ui/widgets/spec";
+} from "@dougbot/client";
+import { upcomingAt, whenAt } from "@dougbot/client/lib/format";
+import { plainInline } from "@dougbot/client/lib/markdown";
+import { can } from "@dougbot/client/lib/permissions";
+import { WIDGET_LIMITS, WIDGET_SCHEDULES } from "@dougbot/ui/widgets/spec";
 import { LinearGradient } from "expo-linear-gradient";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

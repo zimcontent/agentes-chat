@@ -1,8 +1,10 @@
-import { type BlockChange, newClientId, useBlockReply, useBlockValues } from "@agenteschat/client";
-import type { ChartSpec } from "@agenteschat/client/lib/chart";
-import { formatTime } from "@agenteschat/client/lib/format";
-import { Button, Field, Input, Segmented, Switch, Textarea, widgetTones } from "@agenteschat/ui";
+import { type BlockChange, newClientId, useBlockAct, useBlockReply, useBlockValues } from "@dougbot/client";
+import { blockOpenWeb } from "@dougbot/client/lib/block-open";
+import type { ChartSpec } from "@dougbot/client/lib/chart";
+import { formatTime } from "@dougbot/client/lib/format";
+import { Button, Field, Input, Segmented, Switch, Textarea, widgetTones } from "@dougbot/ui";
 import {
+  type BlockOpen,
   type BlockViewPart,
   type BlockWords,
   compileBlock,
@@ -10,7 +12,8 @@ import {
   type MarkedText,
   parseBlockSpec,
   viewBlock,
-} from "@agenteschat/ui/blocks/spec";
+} from "@dougbot/ui/blocks/spec";
+import { useNavigate } from "@tanstack/react-router";
 import {
   type CSSProperties,
   createContext,
@@ -31,6 +34,7 @@ import { useReveal } from "@/hooks/useReveal";
 import { copyText } from "@/lib/context-menu";
 import { useDarkTheme } from "@/lib/grow";
 import { useToast } from "@/lib/toast";
+import { SourceMark } from "./SourceMark";
 import "./spec-block.css";
 
 /** A button's message to the agent (`say`), sent at once, and which of the block's buttons already sent theirs. */
@@ -38,6 +42,15 @@ const Say = createContext<{ say: (key: string, text: string) => void; said: Read
   say: () => {},
   said: new Set(),
   busy: false,
+});
+
+/**
+ * A button's server action (`act`) and a place it opens (`open`), for the parts below (docs/adr/doug-0020).
+ */
+const Acts = createContext<{ act: (name: string) => void; busy: string | null; open: (to: BlockOpen) => void }>({
+  act: () => {},
+  busy: null,
+  open: () => {},
 });
 
 /** In the conversation a block is at most this tall; a taller one is cut with a fade until "Show all". */
@@ -58,7 +71,7 @@ const keptOf = (key: string) => {
 /**
  * A live block drawn by the app itself (ADR 0113): the parts the agent described, with the app's own controls, over
  * the state everyone in the conversation shares. Nothing the agent wrote runs here: its words reach the screen only
- * as text, and its formulas are read by our interpreter (`@agenteschat/ui/blocks/spec`).
+ * as text, and its formulas are read by our interpreter (`@dougbot/ui/blocks/spec`).
  */
 export function SpecBlock({
   id,
@@ -88,6 +101,8 @@ export function SpecBlock({
   }, [raw]);
   const values = useBlockValues(org.id, id, version);
   const reply = useBlockReply(org.id, id);
+  const acting = useBlockAct(org.id, id);
+  const navigate = useNavigate();
   const thousand = t("blocks.thousand");
   const words = useMemo<BlockWords>(() => ({ locale: i18n.language, thousand }), [i18n.language, thousand]);
   const view = useMemo(
@@ -163,6 +178,18 @@ export function SpecBlock({
     );
   };
 
+  const act = (name: string) => {
+    if (acting.isPending) return;
+    acting.mutate(name, { onError: () => toast.show(t("blocks.actFailed"), "error") });
+  };
+  const openPlace = (to: BlockOpen) => {
+    const target = blockOpenWeb(org.id, to);
+    if (target?.kind === "outside") window.open(target.href, "_blank", "noopener,noreferrer");
+    else if (target?.kind === "app")
+      void navigate({ to: target.path, ...(target.search ? { search: target.search } : {}) });
+  };
+  const busyAct = acting.isPending ? (acting.variables ?? null) : null;
+
   return (
     <ChartAccent.Provider value={chartColorOf(agent)}>
       <div
@@ -177,7 +204,9 @@ export function SpecBlock({
           style={{ "--block-accent": tones.fill, "--block-accent-ink": tones.stroke } as CSSProperties}
         >
           <Say.Provider value={{ say, said, busy: reply.isPending }}>
-            <Parts parts={view.parts} values={values} />
+            <Acts.Provider value={{ act, busy: busyAct, open: openPlace }}>
+              <Parts parts={view.parts} values={values} />
+            </Acts.Provider>
           </Say.Provider>
         </div>
       </div>
@@ -231,6 +260,7 @@ function Parts({ parts, values }: { parts: BlockViewPart[]; values: Values }) {
 function Part({ part: p, values }: { part: BlockViewPart; values: Values }) {
   const id = useId();
   const speak = useContext(Say);
+  const acts = useContext(Acts);
   const set = (raw: unknown) => {
     const name = "name" in p ? p.name : undefined;
     if (typeof name !== "string") return;
@@ -422,25 +452,67 @@ function Part({ part: p, values }: { part: BlockViewPart; values: Values }) {
       return (
         <div className="spec-block__actions" data-align={p.align}>
           {p.buttons.map((b, i) => {
-            const said = speak.said.has(b.key);
-            // A row of buttons that speak for the person: the last one is the main answer ("Aprovar").
-            const lead = b.lead || (b.say !== null && i === p.buttons.length - 1);
+            const said = speak.said.has(b.key) || b.done;
+            // A row of buttons that speak for the person: the last one is the main answer ("Aprovar"), unless the
+            // row names its own (`primary`).
+            const lead = p.chosen ? b.lead : b.lead || (b.say !== null && i === p.buttons.length - 1);
             return (
               <Button
                 key={b.key}
-                variant={lead ? "primary" : "default"}
+                variant={lead && !said ? "primary" : "default"}
                 icon={said ? "check" : undefined}
-                disabled={said || (b.say !== null && speak.busy)}
+                disabled={said || (b.say !== null && speak.busy) || (b.act !== null && acts.busy !== null)}
                 onClick={() => {
                   if (b.set) values.set(b.set);
                   if (b.draw) void values.draw(b.draw.name, b.draw.options);
                   if (b.say) speak.say(b.key, b.say);
+                  if (b.act) acts.act(b.act);
+                  if (b.open) acts.open(b.open);
                 }}
               >
-                {said ? <SaidLabel /> : b.label}
+                {b.done ? <DoneLabel /> : said ? <SaidLabel /> : b.label}
               </Button>
             );
           })}
+        </div>
+      );
+    case "source":
+      return (
+        <div className="spec-block__source">
+          <SourceMark service={p.service} />
+          <b>{p.title}</b>
+          {p.count && <small>{p.count}</small>}
+        </div>
+      );
+    case "agenda":
+      return (
+        <div className="spec-block__agenda">
+          <ol>
+            {p.items.map((e, i) => (
+              // Events of one day have no id but their place.
+              // biome-ignore lint/suspicious/noArrayIndexKey: see above
+              <li key={i}>
+                <time>{e.time}</time>
+                <div className="spec-block__event" data-tone={e.tone}>
+                  <b>{e.title}</b>
+                  {e.sub && <small>{e.sub}</small>}
+                </div>
+              </li>
+            ))}
+          </ol>
+          {(p.note || p.link) && (
+            <p className="spec-block__agenda-foot">
+              {p.note}
+              {p.link && (
+                <>
+                  {p.note ? " " : null}
+                  <button type="button" className="ac-link" onClick={() => p.link && acts.open(p.link.open)}>
+                    {p.link.label}
+                  </button>
+                </>
+              )}
+            </p>
+          )}
         </div>
       );
     case "tags":
@@ -570,6 +642,11 @@ function CopyText({ label, text }: { label: string; text: string }) {
       <p>{text}</p>
     </div>
   );
+}
+
+function DoneLabel() {
+  const { t } = useTranslation();
+  return <>{t("blocks.done")}</>;
 }
 
 function SaidLabel() {

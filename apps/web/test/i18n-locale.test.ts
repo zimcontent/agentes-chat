@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { titledWithUnread } from "@agenteschat/client/lib/unread";
-import { setClientProductName } from "@agenteschat/i18n/brand";
+import { titledWithUnread } from "@dougbot/client/lib/unread";
+import { setClientProductName } from "@dougbot/i18n/brand";
 import {
   chooseLocale,
   createI18n,

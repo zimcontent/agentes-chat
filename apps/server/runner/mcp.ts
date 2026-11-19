@@ -18,7 +18,7 @@ import {
   SECRET_BASH_DENY_RULES,
   SECRET_READ_DENY_RULES,
   unaskedMessage,
-} from "@agenteschat/adapters/command-policy";
+} from "@dougbot/adapters/command-policy";
 import {
   isSafeRule,
   MCP_ARGS_MAX_CHARS,
@@ -31,7 +31,7 @@ import {
   PERMISSION_WAIT_MS,
   type RunnerFrame,
   type ServerFrame,
-} from "@agenteschat/adapters/machine-protocol";
+} from "@dougbot/adapters/machine-protocol";
 import { commandApproval, lonePush, pushesOwnBranches, pushThroughProxy } from "./command-gate";
 import { RUNNER_VERSION } from "./errors";
 
@@ -199,7 +199,7 @@ export interface IpcRequest {
 }
 
 /**
- * `transient`: the link to the runner or to agentes.chat was down; asking again later may work. `tools`: a list's
+ * `transient`: the link to the runner or to DougBot was down; asking again later may work. `tools`: a list's
  * answer. `memo`: a list the daemon answers again by itself for the same run (`LIST_MEMO_MS`), so asking often is free.
  */
 export type IpcReply =
@@ -1327,7 +1327,7 @@ const readOnlyShell = () => READ_ONLY_COMMANDS.flatMap((c) => [`Bash(${c})`, `Ba
 const gitC = (rules: string[]) =>
   rules.flatMap((r) => (r.startsWith("Bash(git ") ? [r, r.replace("Bash(git ", "Bash(git -C * ")] : [r]));
 
-/** The deny list (`MISSION_DENY_RULES` in @agenteschat/adapters/command-policy, shared with the server). */
+/** The deny list (`MISSION_DENY_RULES` in @dougbot/adapters/command-policy, shared with the server). */
 export const DENY_RULES = MISSION_DENY_RULES;
 
 /**

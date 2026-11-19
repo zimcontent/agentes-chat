@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeEmailSender, createMemoryBlobStore, createPostgresBlobStore } from "@agenteschat/adapters";
-import { schema } from "@agenteschat/db";
+import { createFakeEmailSender, createMemoryBlobStore, createPostgresBlobStore } from "@dougbot/adapters";
+import { schema } from "@dougbot/db";
 import {
   attachFeedbackFiles,
   dropFeedbackFile,

@@ -7,9 +7,9 @@ import {
   PushError,
   type PushMessage,
   type PushSender,
-} from "@agenteschat/adapters";
-import { type Database, eq, schema } from "@agenteschat/db";
-import { createTestDatabase } from "@agenteschat/db/testing";
+} from "@dougbot/adapters";
+import { type Database, eq, schema } from "@dougbot/db";
+import { createTestDatabase } from "@dougbot/db/testing";
 import { createLocalKeyWrapper, sha256 } from "../src/crypto";
 import { ValidationError } from "../src/errors";
 import {

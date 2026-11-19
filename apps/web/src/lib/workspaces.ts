@@ -1,5 +1,5 @@
-import type { DeviceAccount } from "@agenteschat/client";
-import { CLOUD_SERVER, serverHost } from "@agenteschat/client/lib/server";
+import type { DeviceAccount } from "@dougbot/client";
+import { CLOUD_SERVER, serverHost } from "@dougbot/client/lib/server";
 
 /**
  * The workspace menu's "Your workspaces" by server and by account. In the desktop app (ADR 0154): this server's
@@ -86,7 +86,7 @@ export const serverLabel = (server: string) => (server === CLOUD_SERVER ? "DougB
 /**
  * Whether the workspace menus offer New workspace, made on the server open now: when the person may make one there (on
  * agentes.chat Cloud, while sign-up is by invitation, only an invitation does, ADR 0078). In the desktop app (`groups`)
- * on agentes.chat, Add workspace makes one instead; its window can't make one on a server of one's own.
+ * on DougBot, Add workspace makes one instead; its window can't make one on a server of one's own.
  */
 export const offersNewWorkspace = (canCreateWorkspace: boolean | undefined, groups: WorkspaceGroup[] | null) =>
   canCreateWorkspace !== false && !groups?.some((g) => g.here && g.cloud && g.desktop);

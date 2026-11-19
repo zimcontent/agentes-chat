@@ -1,4 +1,4 @@
-import { Button, Card, Logo, Textarea } from "@agenteschat/ui";
+import { Button, Card, Logo, Textarea } from "@dougbot/ui";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 /**

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
-import { type ModelRequest, systemText } from "@agenteschat/providers";
-import type { BlockSpec } from "@agenteschat/ui/blocks/spec";
+import { eq, schema } from "@dougbot/db";
+import { type ModelRequest, systemText } from "@dougbot/providers";
+import type { BlockSpec } from "@dougbot/ui/blocks/spec";
 import {
   addChannelMember,
   BLOCK_MANUAL,

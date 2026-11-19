@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, expect, test } from "bun:test";
-import { orgTopic } from "@agenteschat/adapters";
-import { testConfig } from "@agenteschat/config";
-import { desc, eq, schema, sql } from "@agenteschat/db";
+import { orgTopic } from "@dougbot/adapters";
+import { testConfig } from "@dougbot/config";
+import { desc, eq, schema, sql } from "@dougbot/db";
 import {
   countComposio,
   countToolCall,
@@ -9,7 +9,7 @@ import {
   purgeWorkspace,
   setRestrictionNotices,
   wantMachine,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createLogger } from "../src/logger";
 import { createOperatorApp, type OperatorDeps, serveOperatorApi } from "../src/operator/app";
 import { type Browser, browser, createTestServer, deletionCode, seedOrg, signUp, type TestServer } from "./harness";

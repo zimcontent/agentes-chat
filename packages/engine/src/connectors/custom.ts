@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import type { BlobStore } from "@agenteschat/adapters";
-import { and, asc, type Database, type Executor, eq, inArray, isNull, like, schema, sql } from "@agenteschat/db";
+import type { BlobStore } from "@dougbot/adapters";
+import { and, asc, type Database, type Executor, eq, inArray, isNull, like, schema, sql } from "@dougbot/db";
 import { recordAudit } from "../audit";
 import { caches } from "../cache";
 import { type ConnectorEventId, connectorEventsOf } from "../connector-triggers";
@@ -207,7 +207,7 @@ export type CustomConnectStart =
   /** `pasteBack`: the sign-in comes back to the person's computer; they paste its address (`LOOPBACK_OAUTH_REDIRECT`). */
   | { status: "oauth"; authorizeUrl: string; pasteBack?: true }
   /**
-   * `not_approved`: it has OAuth but only lets in apps it approved, and agentes.chat isn't one yet. `detail`: how it
+   * `not_approved`: it has OAuth but only lets in apps it approved, and DougBot isn't one yet. `detail`: how it
    * refused our registration, in its own words (`error: error_description`, short).
    */
   | { status: "needs_key"; reason?: "not_approved"; detail?: string };

@@ -1,4 +1,4 @@
-import { type ApiClient, createHttpApi } from "@agenteschat/client";
+import { type ApiClient, createHttpApi } from "@dougbot/client";
 import { appHeaders, readCookie } from "./auth";
 import { serverOf } from "./server-choice";
 

@@ -1,4 +1,4 @@
-import type { Agent } from "@agenteschat/client";
+import type { Agent } from "@dougbot/client";
 import {
   browserOnlyWhy,
   controlledBy,
@@ -6,7 +6,7 @@ import {
   isWaitingHandoff,
   useBrowserHandoffMutations,
   useMachineOutages,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   asksMe,
   type ComputerSurface,
@@ -15,16 +15,16 @@ import {
   entryState,
   liveSubLine,
   surfaceOf,
-} from "@agenteschat/client/lib/agent-computer";
-import { computerName, READY_FLASH_MS, WORKSPACE_COMPUTER_KIND } from "@agenteschat/client/lib/computer";
-import { clockAt } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { computerKind, isPaused } from "@agenteschat/client/lib/machines";
-import { can } from "@agenteschat/client/lib/permissions";
-import { type Seat, screenId } from "@agenteschat/client/lib/seat";
-import { SeatContext, useSeat } from "@agenteschat/client/lib/seat-context";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
-import { Button, ComputerPortrait, cx, Dialog, gradientOf, Icon, SkyStrip } from "@agenteschat/ui";
+} from "@dougbot/client/lib/agent-computer";
+import { computerName, READY_FLASH_MS, WORKSPACE_COMPUTER_KIND } from "@dougbot/client/lib/computer";
+import { clockAt } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { computerKind, isPaused } from "@dougbot/client/lib/machines";
+import { can } from "@dougbot/client/lib/permissions";
+import { type Seat, screenId } from "@dougbot/client/lib/seat";
+import { SeatContext, useSeat } from "@dougbot/client/lib/seat-context";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
+import { Button, ComputerPortrait, cx, Dialog, gradientOf, Icon, SkyStrip } from "@dougbot/ui";
 import { useNavigate } from "@tanstack/react-router";
 import {
   type CSSProperties,

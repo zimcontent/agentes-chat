@@ -3800,7 +3800,20 @@
     "synced": "Même entraînement partout, vérifié {{when}}.",
     "syncing": "Réunion de l'entraînement en cours. Cela prend jusqu'à une minute.",
     "missing": "N'est pas arrivé dans {{workspace}} : {{what}}.",
-    "failed": "Impossible de modifier. Réessaie."
+    "failed": "Impossible de modifier. Réessaie.",
+    "craftOnly": "Activité séparée : seul le savoir-faire circule."
+  },
+  "separateOperation": {
+    "title": "Activité séparée",
+    "help": "Les agents d'ici travaillent aussi dans vos autres espaces de travail, comme des salariés de deux entreprises. Seul le savoir-faire circule : instructions, skills, leçons, règles et préférences qui ne nomment rien de l'autre entreprise. Les faits, décisions, notes, clients et connexions restent dans chacune.",
+    "switch": "Seul le savoir-faire circule",
+    "switchHelp": "Une fois activé, ce qui est déjà venu d'une autre entreprise y retourne en moins d'une minute. L'original reste là où il a été appris.",
+    "ownersOnly": "Seuls les propriétaires peuvent le modifier.",
+    "names": "Noms de cette activité",
+    "namesHelp": "Clients, projets et personnes de cette activité, séparés par des virgules. Rien de ce qui nomme l'un d'eux n'atteint une copie dans un autre espace de travail. Le nom de l'espace de travail et les clients que ses agents connaissent déjà comptent d'office.",
+    "namesExample": "Ex. : Boulangerie Aurora, Tour Nord",
+    "sharedSignIn": "{{label}} utilise la même connexion que {{workspaces}}. Reconnectez-le avec le compte propre à cette activité.",
+    "failed": "Enregistrement impossible. Réessayez."
   },
   "ronda": {
     "title": "Ronde",
@@ -5376,6 +5389,11 @@
       "status": {
         "in_progress": "En cours",
         "in_review": "En revue"
+      },
+      "queue": {
+        "list": "File de {{name}}",
+        "move": "Déplacer la tâche #{{number}} dans la file. Faites-la glisser, ou utilisez les flèches haut et bas.",
+        "moved": "La tâche #{{number}} est maintenant {{place}} sur {{count}}."
       }
     },
     "mission": "<b>{{name}}</b> a besoin de vous dans une mission",
@@ -6602,6 +6620,12 @@
       "cancel": "Annuler",
       "forgotten": "Oublié. C'est dans Archivés si vous voulez le récupérer.",
       "saved": "Enregistré. C'est maintenant considéré comme vérifié.",
+      "reachAll": "Dans tous les workspaces",
+      "reachHere": "Seulement dans ce workspace",
+      "keepHere": "Garder ici seulement",
+      "sendAll": "Envoyer partout",
+      "keptHere": "Il reste dans ce workspace. Les copies des autres workspaces sont archivées en moins d'une minute.",
+      "sentAll": "Il arrive à l'agent dans vos autres workspaces en moins d'une minute.",
       "rules": "Règles données par l'équipe",
       "rulesNote": "Suivies dans tout le travail pour la personne qui a donné chacune, d'où que vienne la demande. Celles du responsable ou d'un admin valent pour tous.",
       "rulesNoteRightHand": "Les règles que vous donnez dans votre DM valent seulement pour vous. Vous seul les voyez.",
@@ -11574,7 +11598,7 @@
       "notesExample": "Ex. : Terminez toujours par qui fait quoi et pour quand. Appelez le client par son nom.",
       "agentNotes": "{{name}} en appel",
       "agentNotesExample": "Ex. : Apporte des chiffres avant les opinions. Conteste quand le budget ne colle pas.",
-      "title": "Voix en direct (GPT-Live)",
+      "title": "Voix en direct",
       "lead": "Des appels vocaux avec vos agents et Écouter sur chaque message, chaque agent avec sa propre voix.",
       "on": "Activée",
       "off": "Désactivée",
@@ -11598,7 +11622,19 @@
       "current": "Actuelle",
       "previewOf": "Écouter {{voice}}",
       "use": "Utiliser {{voice}}",
-      "refused": "Cette clé n'a pas cette voix : {{voice}} a parlé à la place."
+      "refused": "Cette clé n'a pas cette voix : {{voice}} a parlé à la place.",
+      "engine": "Voix des appels",
+      "house": "Voix maison (Qwen)",
+      "gptLive": "GPT-Live (votre clé)",
+      "houseCredits": "Payée avec les crédits de cet espace : {{perMinute}} crédits par minute. Solde : {{balance}} crédits, environ {{minutes}} min.",
+      "houseNoWallet": "Payée en crédits, {{perMinute}} par minute. Le solde ne peut pas être lu pour le moment.",
+      "gptLiveHint": "La voix d’OpenAI, avec la clé de cet espace. Environ 0,05 US$ par minute et par agent.",
+      "addCredits": "Acheter des crédits",
+      "monthly": "Limite mensuelle en crédits",
+      "monthlyNone": "Sans limite",
+      "spent": "Utilisé ce mois-ci : {{spent}} sur {{limit}} crédits.",
+      "spentNoLimit": "Utilisé ce mois-ci : {{spent}} crédits. Les appels ne s’arrêtent que lorsque le solde est épuisé.",
+      "pickerLeadHouse": "Écoutez chaque voix comme {{name}} et choisissez. Chaque extrait coûte un ou deux crédits."
     },
     "phoneLine": {
       "title": "Appels téléphoniques",
@@ -11652,7 +11688,12 @@
       "noWords": "Ce message n'a pas de mots à raconter.",
       "notHost": "Seule la personne qui anime l'appel ouvre les voix des agents.",
       "ended": "Cet appel est terminé.",
-      "notIn": "Vous n'êtes plus dans cet appel."
+      "notIn": "Vous n'êtes plus dans cet appel.",
+      "noCredits": "Pas assez de crédits pour une minute d’appel. Achetez des crédits sur la page Médias.",
+      "monthLimit": "Les appels ont atteint la limite de crédits du mois. La personne qui configure l’espace peut l’augmenter dans Paramètres › Voix.",
+      "updateApp": "Les appels ici utilisent la voix maison. Mettez l’app à jour pour appeler.",
+      "noHouse": "La voix maison n’est pas disponible ici.",
+      "badLimit": "Une limite est un nombre entier de crédits."
     }
   },
   "media": {
@@ -13110,6 +13151,17 @@
     "htmlError": "La page a rencontré une erreur : {{message}}",
     "markdownSource": "Texte Markdown"
   },
+  "sectorPills": {
+    "label": "Raccourcis",
+    "failed": "La carte n'est pas arrivée. Réessayez.",
+    "whatsapp": "WhatsApp",
+    "calendar": "Agenda",
+    "approvals": "Approbations",
+    "proposals": "Propositions",
+    "tasks": "Tâches",
+    "review": "Relecture",
+    "portal": "Portail"
+  },
   "blocks": {
     "send": "Envoyer",
     "more": "Plus",
@@ -13139,7 +13191,9 @@
     "pollAnswered_one": "{{count}} sur {{total}} a répondu",
     "pollAnswered_many": "{{count}} sur {{total}} ont répondu",
     "pollAnswered_other": "{{count}} sur {{total}} ont répondu",
-    "voteFailed": "Votre vote n'est pas passé."
+    "voteFailed": "Votre vote n'est pas passé.",
+    "done": "Fait",
+    "actFailed": "Ça n'a pas marché. Réessayez."
   },
   "choices": {
     "step": "{{step}} sur {{total}}",
@@ -13153,6 +13207,48 @@
     "tooLongFix": "Raccourcissez la réponse."
   },
   "drive": {
+    "draft": "Brouillon",
+    "draftUntil": "Ira à la corbeille tout seul le {{date}}, sauf s’il change ou si quelqu’un le conserve.",
+    "keepDraft": "Conserver",
+    "kept": "{{title}} est conservé.",
+    "folders": {
+      "title": "Dossiers",
+      "path": "Chemin du dossier",
+      "new": "Nouveau dossier",
+      "newTitle": "Nouveau dossier",
+      "newInside": "Nouveau dossier à l’intérieur",
+      "create": "Créer",
+      "created": "Dossier {{name}} créé.",
+      "name": "Nom",
+      "namePlaceholder": "Client ou projet",
+      "menu": "Dossier {{name}} : plus",
+      "menuShort": "Plus",
+      "rename": "Renommer",
+      "renameTitle": "Renommer le dossier",
+      "renameConfirm": "Renommer",
+      "move": "Déplacer",
+      "moveTo": "Déplacer vers…",
+      "moveHere": "Déplacer ici",
+      "here": "Se trouve ici",
+      "moveFolderTitle": "Déplacer {{name}}",
+      "moveFilesTitle_one": "Déplacer {{count}} fichier",
+      "moveFilesTitle_many": "Déplacer {{count}} de fichiers",
+      "moveFilesTitle_other": "Déplacer {{count}} fichiers",
+      "moved": "{{name}} a été déplacé vers {{folder}}.",
+      "filed_one": "{{count}} fichier a été déplacé vers {{folder}}.",
+      "filed_many": "{{count}} de fichiers ont été déplacés vers {{folder}}.",
+      "filed_other": "{{count}} fichiers ont été déplacés vers {{folder}}.",
+      "files_one": "{{count}} fichier",
+      "files_many": "{{count}} de fichiers",
+      "files_other": "{{count}} fichiers",
+      "remove": "Supprimer le dossier",
+      "removeTitle": "Supprimer {{name}} ?",
+      "removeBody": "Aucun fichier n’est supprimé. Le contenu remonte d’un niveau.",
+      "removeConfirm": "Supprimer le dossier",
+      "removed": "Dossier {{name}} supprimé.",
+      "emptyTitle": "Ce dossier est vide",
+      "emptyText": "Faites glisser des fichiers ici, importez-les ou demandez à un agent de classer son travail dans ce dossier."
+    },
     "title": "Drive",
     "subtitle": "Tout ce que les personnes et les agents ont créé ou importé.",
     "search": "Rechercher des fichiers",
@@ -14990,6 +15086,10 @@
       "request_folder_access": "Demander l'accès à un dossier",
       "create_artifact": "Créer un fichier dans Drive",
       "update_artifact": "Modifier un fichier dans Drive",
+      "drive_folders": "Voir les dossiers du Drive",
+      "file_artifacts": "Classer dans un dossier du Drive",
+      "drive_folder": "Organiser un dossier du Drive",
+      "trash_artifacts": "Nettoyer des fichiers",
       "read_artifact": "Lire un fichier dans Drive",
       "list_artifacts": "Lister les fichiers Drive",
       "share_artifact": "Partager un fichier",
@@ -16167,6 +16267,14 @@
       "sharingEmpty": "Choisissez qui le voit.",
       "sharingTooMany": "Choisissez au plus {{max}} personnes et {{max}} rôles.",
       "notInDrive": "Ceci ne vit que dans sa conversation, il ne peut donc pas être partagé."
+    },
+    "drive": {
+      "folderExists": "Un dossier portant ce nom existe déjà ici.",
+      "folderNotFound": "Ce dossier n’existe plus.",
+      "folderCycle": "Un dossier ne peut pas se trouver dans lui-même.",
+      "folderTooDeep": "Les dossiers ne peuvent pas dépasser {{max}} niveaux de profondeur.",
+      "foldersFull": "Cet espace de travail compte déjà {{max}} dossiers.",
+      "folderName": "Donnez un nom au dossier."
     },
     "device": {
       "notLinkMaker": "Seule la personne qui a créé le lien peut laisser cet ordinateur rejoindre.",
@@ -18357,7 +18465,7 @@
   },
   "gallery": {
     "title": "Galerie de composants",
-    "subtitle": "Développement uniquement : les composants de @agenteschat/ui."
+    "subtitle": "Développement uniquement : les composants de @dougbot/ui."
   },
   "format": {
     "list": "{{names, list}}",
@@ -19146,6 +19254,22 @@
     "update_artifact": {
       "label": "Mettre à jour un fichier",
       "description": "Enregistre une nouvelle version d'un fichier."
+    },
+    "drive_folders": {
+      "label": "Voir les dossiers",
+      "description": "Voit les dossiers du Drive."
+    },
+    "file_artifacts": {
+      "label": "Classer dans des dossiers",
+      "description": "Range les fichiers du Drive dans les dossiers de projet."
+    },
+    "drive_folder": {
+      "label": "Organiser les dossiers",
+      "description": "Renomme, déplace ou supprime des dossiers du Drive (jamais des fichiers)."
+    },
+    "trash_artifacts": {
+      "label": "Nettoyer ses fichiers",
+      "description": "Met à la corbeille les fichiers qu’il a créés et dont personne n’a besoin (30 jours pour les restaurer)."
     },
     "list_issues": {
       "label": "Voir les tâches",

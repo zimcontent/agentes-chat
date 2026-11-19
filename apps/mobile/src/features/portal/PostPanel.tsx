@@ -1,6 +1,6 @@
-import type { PortalColumn, PortalItem } from "@agenteschat/client";
-import { useApproveForClient, useSchedulePortalItem } from "@agenteschat/client";
-import { portalLink, portalScheduling, portalWhen } from "@agenteschat/client/lib/portal";
+import type { PortalColumn, PortalItem } from "@dougbot/client";
+import { useApproveForClient, useSchedulePortalItem } from "@dougbot/client";
+import { portalLink, portalScheduling, portalWhen } from "@dougbot/client/lib/portal";
 import { openBrowserAsync } from "expo-web-browser";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

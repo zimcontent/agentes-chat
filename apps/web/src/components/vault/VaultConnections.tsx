@@ -1,14 +1,8 @@
-import type {
-  VaultConnectField,
-  VaultConnection,
-  VaultOverview,
-  VaultScope,
-  VaultSourceInfo,
-} from "@agenteschat/client";
-import { vaultConnectRefusal } from "@agenteschat/client/lib/errors";
-import { relativeTime } from "@agenteschat/client/lib/format";
-import { vaultNoAgents } from "@agenteschat/client/lib/vault";
-import { modeKey } from "@agenteschat/client/lib/workspace-mode";
+import type { VaultConnectField, VaultConnection, VaultOverview, VaultScope, VaultSourceInfo } from "@dougbot/client";
+import { vaultConnectRefusal } from "@dougbot/client/lib/errors";
+import { relativeTime } from "@dougbot/client/lib/format";
+import { vaultNoAgents } from "@dougbot/client/lib/vault";
+import { modeKey } from "@dougbot/client/lib/workspace-mode";
 import {
   Alert,
   Button,
@@ -29,7 +23,7 @@ import {
   Segmented,
   Select,
   SettingNote,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import type { TFunction } from "i18next";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

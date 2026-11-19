@@ -1,5 +1,5 @@
-import type { Database } from "@agenteschat/db";
-import { and, eq, schema } from "@agenteschat/db";
+import type { Database } from "@dougbot/db";
+import { and, eq, schema } from "@dougbot/db";
 import { NotFoundError } from "./errors";
 import { can, getMembership } from "./organizations";
 

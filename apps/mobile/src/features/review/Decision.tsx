@@ -1,5 +1,5 @@
-import { useAddVoiceReviewNote, useDecideVideoReview, type VideoReview } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+import { useAddVoiceReviewNote, useDecideVideoReview, type VideoReview } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, TextInput, View } from "react-native";

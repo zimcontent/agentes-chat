@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { ControlStatus } from "@agenteschat/adapters/runner-control";
+import type { ControlStatus } from "@dougbot/adapters/runner-control";
 import { appServer, homeServer, serverKind, serverName } from "../src/control/server";
 import type { Home } from "../src/control/store";
 

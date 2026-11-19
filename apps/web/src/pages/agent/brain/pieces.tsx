@@ -1,8 +1,8 @@
-import type { BrainSpeed, PlanUsage } from "@agenteschat/client";
-import { SPEEDS } from "@agenteschat/client/lib/brain-advanced";
-import { autoContextLine, type ContextLimit, contextSize } from "@agenteschat/client/lib/context-limits";
-import { planMeterText } from "@agenteschat/client/lib/plan-usage";
-import { AUTO } from "@agenteschat/client/lib/providers";
+import type { BrainSpeed, PlanUsage } from "@dougbot/client";
+import { SPEEDS } from "@dougbot/client/lib/brain-advanced";
+import { autoContextLine, type ContextLimit, contextSize } from "@dougbot/client/lib/context-limits";
+import { planMeterText } from "@dougbot/client/lib/plan-usage";
+import { AUTO } from "@dougbot/client/lib/providers";
 import {
   Icon,
   InfoHint,
@@ -14,7 +14,7 @@ import {
   RadioGroup,
   Segmented,
   Switch,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import {
   type CSSProperties,
   Fragment,

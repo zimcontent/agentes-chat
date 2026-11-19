@@ -24,7 +24,13 @@
     "itsChannels": "Groupes",
     "seeAll": "Tout voir"
   },
+  "sectorPills": {
+    "label": "Raccourcis",
+    "failed": "La carte n'est pas arrivée. Réessayez."
+  },
   "blocks": {
+    "done": "Fait",
+    "actFailed": "Ça n'a pas marché. Réessayez.",
     "send": "Envoyer",
     "more": "Plus",
     "thousand": "k",
@@ -46,7 +52,20 @@
     "pollAnswered_one": "{{count}} sur {{total}} a répondu",
     "pollAnswered_many": "{{count}} sur {{total}} ont répondu",
     "pollAnswered_other": "{{count}} sur {{total}} ont répondu",
-    "voteFailed": "Votre vote n'a pas été pris en compte."
+    "voteFailed": "Votre vote n'a pas été pris en compte.",
+    "openPiece": "Ouvrir en grand",
+    "openSlide": "Ouvrir la diapo {{at}}",
+    "pieceAt": "{{at}} sur {{count}}",
+    "carouselTitle": "Carrousel",
+    "posterTitle": "Post statique",
+    "reelTitle": "Script du reel",
+    "aboutSlide": "la diapo {{at}} (« {{title}} »)",
+    "aboutPoster": "le post statique (« {{title}} »)",
+    "aboutBeat": "le passage {{time}} du reel",
+    "noteMessage": "À propos de {{about}} : {{note}}",
+    "notePlaceholder": "Commenter {{about}}",
+    "noteLabel": "Votre commentaire",
+    "noteSent": "Envoyé à {{name}}"
   },
   "choices": {
     "step": "{{step}} sur {{total}}",
@@ -2580,6 +2599,16 @@
     "week": "Semaine",
     "month": "Mois",
     "sheet": {
+      "nowTitle": "Maintenant",
+      "account": "Compte",
+      "model": "Modèle",
+      "effort": "Effort",
+      "context": "Contexte",
+      "contextFull": "Toute la fenêtre du modèle",
+      "autoPerTask": "choisi à chaque tâche",
+      "autoLine": "Choisit le modèle et l'effort à chaque tâche, sur le même compte.",
+      "switchTitle": "Passer à",
+      "on": "sur {{place}}",
       "title": "Changer l'IA de {{name}}",
       "title_female": "Changer l'IA de {{name}}",
       "smart": "La plus intelligente",

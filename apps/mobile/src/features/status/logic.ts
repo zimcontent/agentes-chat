@@ -1,6 +1,6 @@
-import type { Availability, MemberPresence, MemberStatus, StatusInput } from "@agenteschat/client";
-import { lowerFirst } from "@agenteschat/client/lib/format";
-import { clearsText, type UntilChoice, untilFor } from "@agenteschat/client/lib/presence";
+import type { Availability, MemberPresence, MemberStatus, StatusInput } from "@dougbot/client";
+import { lowerFirst } from "@dougbot/client/lib/format";
+import { clearsText, type UntilChoice, untilFor } from "@dougbot/client/lib/presence";
 import type { TFunction } from "i18next";
 
 /**

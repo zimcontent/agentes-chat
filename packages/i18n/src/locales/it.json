@@ -3802,7 +3802,20 @@
     "synced": "Stesso addestramento ovunque, controllato {{when}}.",
     "syncing": "Sto unendo l'addestramento. Ci vuole fino a un minuto.",
     "missing": "Non è arrivato a {{workspace}}: {{what}}.",
-    "failed": "Non è stato possibile cambiarlo. Riprova."
+    "failed": "Non è stato possibile cambiarlo. Riprova.",
+    "craftOnly": "Attività separata: solo il mestiere va e viene."
+  },
+  "separateOperation": {
+    "title": "Attività separata",
+    "help": "Gli agenti di qui lavorano anche negli altri tuoi workspace, come dipendenti di due aziende. Solo il mestiere va e viene: istruzioni, skill, lezioni, regole e preferenze che non nominano nulla dell'altra azienda. Fatti, decisioni, note, clienti e connessioni restano in ciascuna.",
+    "switch": "Solo il mestiere va e viene",
+    "switchHelp": "Una volta attivo, ciò che è già arrivato da un'altra azienda torna lì entro un minuto. L'originale resta dove è stato imparato.",
+    "ownersOnly": "Solo i proprietari possono modificarlo.",
+    "names": "Nomi di questa attività",
+    "namesHelp": "Clienti, progetti e persone di questa attività, separati da virgole. Nulla che ne nomini uno arriva a una copia in un altro workspace. Il nome del workspace e i clienti che i suoi agenti conoscono già contano da soli.",
+    "namesExample": "Es.: Panificio Aurora, Torre Nord",
+    "sharedSignIn": "{{label}} usa lo stesso accesso di {{workspaces}}. Ricollegalo con l'account proprio di questa attività.",
+    "failed": "Impossibile salvare. Riprova."
   },
   "ronda": {
     "title": "Ronda",
@@ -5376,6 +5389,11 @@
       "status": {
         "in_progress": "In corso",
         "in_review": "In revisione"
+      },
+      "queue": {
+        "list": "Coda di {{name}}",
+        "move": "Sposta l'attività #{{number}} nella coda. Trascinala, o usa le frecce su e giù.",
+        "moved": "L'attività #{{number}} ora è {{place}} di {{count}}."
       }
     },
     "mission": "<b>{{name}}</b> ha bisogno di te in una missione",
@@ -6604,6 +6622,12 @@
       "cancel": "Annulla",
       "forgotten": "Dimenticato. È in Archiviati se lo rivuoi.",
       "saved": "Salvato. Ora conta come verificato.",
+      "reachAll": "In tutti i workspace",
+      "reachHere": "Solo in questo workspace",
+      "keepHere": "Tieni solo qui",
+      "sendAll": "Porta ovunque",
+      "keptHere": "Resta in questo workspace. Le copie negli altri workspace vengono archiviate entro un minuto.",
+      "sentAll": "Arriva all'agente nei tuoi altri workspace entro un minuto.",
       "rules": "Regole date dalle persone",
       "rulesNote": "Valgono in tutto il lavoro per chi ha dato ciascuna, da dovunque arrivi la richiesta. Quelle del responsabile o di un admin valgono per tutti.",
       "rulesNoteRightHand": "Le regole che dai nella tua DM valgono solo per te. Solo tu le vedi.",
@@ -11591,7 +11615,7 @@
       "notesExample": "Es.: Chiudete sempre con chi fa cosa ed entro quando. Chiamate il cliente per nome.",
       "agentNotes": "{{name}} nelle chiamate",
       "agentNotesExample": "Es.: Porta numeri prima delle opinioni. Contesta quando il budget non torna.",
-      "title": "Voce dal vivo (GPT-Live)",
+      "title": "Voce dal vivo",
       "lead": "Chiamate vocali con i tuoi agenti e Ascolta su ogni messaggio, ogni agente con la sua voce.",
       "on": "Attivata",
       "off": "Disattivata",
@@ -11615,7 +11639,19 @@
       "current": "Attuale",
       "previewOf": "Ascolta {{voice}}",
       "use": "Usa {{voice}}",
-      "refused": "Questa chiave non ha questa voce: al suo posto ha parlato {{voice}}."
+      "refused": "Questa chiave non ha questa voce: al suo posto ha parlato {{voice}}.",
+      "engine": "Voce delle chiamate",
+      "house": "Voce della casa (Qwen)",
+      "gptLive": "GPT-Live (la tua chiave)",
+      "houseCredits": "Pagata con i crediti di questo workspace: {{perMinute}} crediti al minuto. Saldo: {{balance}} crediti, circa {{minutes}} min.",
+      "houseNoWallet": "Pagata in crediti, {{perMinute}} al minuto. Il saldo ora non si può leggere.",
+      "gptLiveHint": "La voce di OpenAI, con la chiave di questo workspace. Circa 0,05 US$ al minuto per agente.",
+      "addCredits": "Compra crediti",
+      "monthly": "Limite mensile in crediti",
+      "monthlyNone": "Nessun limite",
+      "spent": "Usati questo mese: {{spent}} di {{limit}} crediti.",
+      "spentNoLimit": "Usati questo mese: {{spent}} crediti. Le chiamate si fermano solo quando il saldo finisce.",
+      "pickerLeadHouse": "Ascolta ogni voce come {{name}} e scegli. Ogni anteprima costa uno o due crediti."
     },
     "phoneLine": {
       "title": "Chiamate telefoniche",
@@ -11669,7 +11705,12 @@
       "noWords": "Questo messaggio non ha parole da raccontare.",
       "notHost": "Solo chi conduce la chiamata apre le voci degli agenti.",
       "ended": "Questa chiamata è terminata.",
-      "notIn": "Non sei più in questa chiamata."
+      "notIn": "Non sei più in questa chiamata.",
+      "noCredits": "Non ci sono crediti per un minuto di chiamata. Compra crediti nella pagina Media.",
+      "monthLimit": "Le chiamate hanno raggiunto il limite di crediti del mese. Chi configura il workspace può alzarlo in Impostazioni › Voce.",
+      "updateApp": "Qui le chiamate usano la voce della casa. Aggiorna l’app per chiamare.",
+      "noHouse": "La voce della casa non è disponibile qui.",
+      "badLimit": "Un limite è un numero intero di crediti."
     }
   },
   "media": {
@@ -13126,6 +13167,17 @@
     "htmlError": "La pagina ha avuto un errore: {{message}}",
     "markdownSource": "Testo Markdown"
   },
+  "sectorPills": {
+    "label": "Scorciatoie",
+    "failed": "La scheda non è arrivata. Riprova.",
+    "whatsapp": "WhatsApp",
+    "calendar": "Agenda",
+    "approvals": "Approvazioni",
+    "proposals": "Proposte",
+    "tasks": "Attività",
+    "review": "Revisione",
+    "portal": "Portale"
+  },
   "blocks": {
     "send": "Invia",
     "more": "Altro",
@@ -13155,7 +13207,9 @@
     "pollAnswered_one": "{{count}} su {{total}} ha risposto",
     "pollAnswered_many": "{{count}} su {{total}} hanno risposto",
     "pollAnswered_other": "{{count}} su {{total}} hanno risposto",
-    "voteFailed": "Il tuo voto non è stato registrato."
+    "voteFailed": "Il tuo voto non è stato registrato.",
+    "done": "Fatto",
+    "actFailed": "Non è andata. Riprova."
   },
   "choices": {
     "step": "{{step}} di {{total}}",
@@ -13169,6 +13223,48 @@
     "tooLongFix": "Accorcia la risposta."
   },
   "drive": {
+    "draft": "Bozza",
+    "draftUntil": "Andrà nel cestino da sola il {{date}}, a meno che non cambi o qualcuno la tenga.",
+    "keepDraft": "Mantieni",
+    "kept": "{{title}} viene mantenuto.",
+    "folders": {
+      "title": "Cartelle",
+      "path": "Percorso della cartella",
+      "new": "Nuova cartella",
+      "newTitle": "Nuova cartella",
+      "newInside": "Nuova cartella all’interno",
+      "create": "Crea",
+      "created": "Cartella {{name}} creata.",
+      "name": "Nome",
+      "namePlaceholder": "Cliente o progetto",
+      "menu": "Cartella {{name}}: altro",
+      "menuShort": "Altro",
+      "rename": "Rinomina",
+      "renameTitle": "Rinomina cartella",
+      "renameConfirm": "Rinomina",
+      "move": "Sposta",
+      "moveTo": "Sposta in…",
+      "moveHere": "Sposta qui",
+      "here": "È qui",
+      "moveFolderTitle": "Sposta {{name}}",
+      "moveFilesTitle_one": "Sposta {{count}} file",
+      "moveFilesTitle_many": "Sposta {{count}} di file",
+      "moveFilesTitle_other": "Sposta {{count}} file",
+      "moved": "{{name}} è stato spostato in {{folder}}.",
+      "filed_one": "{{count}} file è stato spostato in {{folder}}.",
+      "filed_many": "{{count}} di file sono stati spostati in {{folder}}.",
+      "filed_other": "{{count}} file sono stati spostati in {{folder}}.",
+      "files_one": "{{count}} elemento",
+      "files_many": "{{count}} di elementi",
+      "files_other": "{{count}} elementi",
+      "remove": "Rimuovi cartella",
+      "removeTitle": "Rimuovere {{name}}?",
+      "removeBody": "Nessun file viene eliminato. Il contenuto sale di un livello.",
+      "removeConfirm": "Rimuovi cartella",
+      "removed": "Cartella {{name}} rimossa.",
+      "emptyTitle": "Questa cartella è vuota",
+      "emptyText": "Trascina i file qui, caricali oppure chiedi a un agente di archiviare il suo lavoro in questa cartella."
+    },
     "title": "Drive",
     "subtitle": "Tutto ciò che persone e agenti hanno creato o caricato.",
     "search": "Cerca file",
@@ -15002,6 +15098,10 @@
       "request_folder_access": "Chiedi una cartella",
       "create_artifact": "Crea file in Drive",
       "update_artifact": "Modifica file in Drive",
+      "drive_folders": "Vedi le cartelle del Drive",
+      "file_artifacts": "Archivia in una cartella del Drive",
+      "drive_folder": "Riordina una cartella del Drive",
+      "trash_artifacts": "Pulisci i file",
       "read_artifact": "Leggi file in Drive",
       "list_artifacts": "Elenca file di Drive",
       "share_artifact": "Condividi file",
@@ -16179,6 +16279,14 @@
       "sharingEmpty": "Scegli chi lo vede.",
       "sharingTooMany": "Scegli al massimo {{max}} persone e {{max}} ruoli.",
       "notInDrive": "Questo vive solo nella sua conversazione, quindi non si può condividere."
+    },
+    "drive": {
+      "folderExists": "Qui esiste già una cartella con questo nome.",
+      "folderNotFound": "Questa cartella non esiste più.",
+      "folderCycle": "Una cartella non può stare dentro se stessa.",
+      "folderTooDeep": "Le cartelle possono arrivare al massimo a {{max}} livelli di profondità.",
+      "foldersFull": "Questo spazio di lavoro ha già {{max}} cartelle.",
+      "folderName": "Dai un nome alla cartella."
     },
     "device": {
       "notLinkMaker": "Solo chi ha creato il link può far entrare questo computer.",
@@ -18363,7 +18471,7 @@
   },
   "gallery": {
     "title": "Galleria dei componenti",
-    "subtitle": "Solo per lo sviluppo: i componenti di @agenteschat/ui."
+    "subtitle": "Solo per lo sviluppo: i componenti di @dougbot/ui."
   },
   "format": {
     "list": "{{names, list}}",
@@ -19152,6 +19260,22 @@
     "update_artifact": {
       "label": "Aggiorna file",
       "description": "Salva una nuova versione di un file."
+    },
+    "drive_folders": {
+      "label": "Vedi cartelle",
+      "description": "Vede le cartelle del Drive."
+    },
+    "file_artifacts": {
+      "label": "Archivia in cartelle",
+      "description": "Mette i file del Drive nelle cartelle dei progetti."
+    },
+    "drive_folder": {
+      "label": "Riordina cartelle",
+      "description": "Rinomina, sposta o rimuove le cartelle del Drive (mai i file)."
+    },
+    "trash_artifacts": {
+      "label": "Pulisci i propri file",
+      "description": "Sposta nel cestino i file che ha creato e che non servono a nessuno (30 giorni per ripristinarli)."
     },
     "list_issues": {
       "label": "Vedi attività",

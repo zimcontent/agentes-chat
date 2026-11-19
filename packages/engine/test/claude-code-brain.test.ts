@@ -13,8 +13,8 @@ import {
   type PubSub,
   type ServerFrame,
   type WireBrainEvent,
-} from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   type BrainEvent,
   type BrainTurn,

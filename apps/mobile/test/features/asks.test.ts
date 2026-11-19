@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { LiveRun, SecretRequest } from "@agenteschat/client";
-import { firstChange } from "@agenteschat/client/lib/proposals";
+import type { LiveRun, SecretRequest } from "@dougbot/client";
+import { firstChange } from "@dougbot/client/lib/proposals";
 import {
   APPROVAL_TTL_MS,
   AskStore,

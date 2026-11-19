@@ -1,5 +1,5 @@
-import { type DesktopViewState, keys } from "@agenteschat/client";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
+import { type DesktopViewState, keys } from "@dougbot/client";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
 import { useQueryClient } from "@tanstack/react-query";
 import { type Ref, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { Issue, TeamAgenda } from "@agenteschat/client";
+import type { Issue, TeamAgenda } from "@dougbot/client";
 import {
   agendaTasks,
   inRange,

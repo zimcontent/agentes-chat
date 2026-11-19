@@ -1,8 +1,8 @@
 import { expect, test } from "bun:test";
-import { resources } from "@agenteschat/i18n";
+import { resources } from "@dougbot/i18n";
 import i18next, { type TFunction } from "i18next";
 import type { Approval } from "../src/index";
-import { digestCounts, digestGroups, digestRows } from "../src/lib/approval-card";
+import { digestCounts, digestGroups, digestRows, workApproval } from "../src/lib/approval-card";
 import { digestLine } from "../src/lib/approval-words";
 
 const HOUR = 3_600_000;
@@ -120,4 +120,24 @@ test("a routine group's rows: one agent's requests that read the same are one ro
   // Shown whole it still folds, so it can close again.
   expect(cut.folds).toBe(true);
   expect(digestRows(long, titleOf, detailOf, true)).toMatchObject({ hidden: 0, rows: { length: 9 }, folds: true });
+});
+
+test("a work's line shows its run's request that waits on this reader, and keeps it once shown", () => {
+  const list = [
+    ask("other", { runId: "run-x", messageId: "m-x" }),
+    ask("late", { runId: "run-w", messageId: "m-w", createdAt: new Date(NOW - 10_000).toISOString() }),
+    ask("first", { runId: "run-w", messageId: "m-w", createdAt: new Date(NOW - 20_000).toISOString() }),
+  ];
+  expect(workApproval(list, "run-w", null, NOW)?.id).toBe("first");
+  expect(workApproval(list, null, null, NOW)).toBeNull();
+  expect(workApproval(undefined, "run-w", null, NOW)).toBeNull();
+  // Not this reader's to decide, without a card, or past its deadline: the line says who it waits on instead.
+  expect(workApproval([ask("a", { runId: "r", messageId: "m", canDecide: false })], "r", null, NOW)).toBeNull();
+  expect(workApproval([ask("a", { runId: "r" })], "r", null, NOW)).toBeNull();
+  const expired = ask("a", { runId: "r", messageId: "m", expiresAt: new Date(NOW - 1).toISOString() });
+  expect(workApproval([expired], "r", null, NOW)).toBeNull();
+  // Decided after it showed: the same card stays, saying how it ended.
+  const decided = ask("a", { runId: "r", messageId: "m", status: "approved" });
+  expect(workApproval([decided], "r", null, NOW)).toBeNull();
+  expect(workApproval([decided], "r", "a", NOW)?.status).toBe("approved");
 });

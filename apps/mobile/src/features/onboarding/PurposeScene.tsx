@@ -5,7 +5,7 @@ import {
   SCENE_H,
   SCENE_LINES,
   SCENE_W,
-} from "@agenteschat/client/lib/purpose-scene";
+} from "@dougbot/client/lib/purpose-scene";
 import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { AgentAvatar } from "@/agent/AgentAvatar";
@@ -20,8 +20,8 @@ import { useTheme } from "@/ui";
 const PAD = 6;
 
 /**
- * The drawing of an answer to "what will you use agentes.chat for?" (ADR 0159), as the web's `PurposeScene`, from the
- * same numbers (`@agenteschat/client/lib/purpose-scene`): you in the middle of your agents, each joined to you, or on
+ * The drawing of an answer to "what will you use DougBot for?" (ADR 0159), as the web's `PurposeScene`, from the
+ * same numbers (`@dougbot/client/lib/purpose-scene`): you in the middle of your agents, each joined to you, or on
  * top of a small org chart, over the cards' horizon at its foot. The answer not chosen rests: its agents sleep and its
  * lines fade. Decorative: the card's words say it.
  */

@@ -1,5 +1,5 @@
-import type { Agent } from "@agenteschat/client";
-import { AvatarStack, FoldRow } from "@agenteschat/ui";
+import type { Agent } from "@dougbot/client";
+import { AvatarStack, FoldRow } from "@dougbot/ui";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";

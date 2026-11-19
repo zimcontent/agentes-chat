@@ -1,5 +1,5 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, count, type Database, desc, eq, gte, lt, or, schema } from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import { and, count, type Database, desc, eq, gte, lt, or, schema } from "@dougbot/db";
 import { requireChannelAccess } from "./channels";
 import { ForbiddenError, NotFoundError, ValidationError } from "./errors";
 import { publishChannelEvent } from "./events";

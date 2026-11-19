@@ -1,7 +1,7 @@
-import { ApiError, keys } from "@agenteschat/client";
-import { formatTimeLeft } from "@agenteschat/client/lib/actions";
-import { connectLink, isLoopback, isTailnet } from "@agenteschat/client/lib/server";
-import { Alert, Button, Chip, Dialog, DialogBody, PixelSpinner, QrCode } from "@agenteschat/ui";
+import { ApiError, keys } from "@dougbot/client";
+import { formatTimeLeft } from "@dougbot/client/lib/actions";
+import { connectLink, isLoopback, isTailnet } from "@dougbot/client/lib/server";
+import { Alert, Button, Chip, Dialog, DialogBody, PixelSpinner, QrCode } from "@dougbot/ui";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";

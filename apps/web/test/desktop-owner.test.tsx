@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { SignInOptions } from "@agenteschat/client";
+import type { SignInOptions } from "@dougbot/client";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import type { ThisMacStatus } from "@/lib/desktop";
 import { createFakeApi, ORG_ID, seedState } from "./fake-api";
@@ -254,10 +254,10 @@ test("the app's “Show QR code” opens “Abrir no celular” over the page th
   const state = seedState();
   const { router } = await renderApp(`/org/${ORG_ID}/issues`, { api: createFakeApi(state) });
   await settle(6);
-  expect(screen().queryByRole("dialog", { name: "Abrir no celular" })).toBeNull();
+  expect(screen().queryByRole("dialog", { name: "Parear celular" })).toBeNull();
   await act(async () => win().__agentesNavigate?.("/?open=phone"));
   await settle(6);
-  expect(screen().getByRole("dialog", { name: "Abrir no celular" })).toBeTruthy();
+  expect(screen().getByRole("dialog", { name: "Parear celular" })).toBeTruthy();
   expect(router.state.location.pathname).toBe(`/org/${ORG_ID}/issues`);
   expect(state.calls.filter((c) => c.method === "account.phoneSignIn")).toHaveLength(1);
 });

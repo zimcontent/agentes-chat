@@ -1,16 +1,10 @@
-import type { Routine, Team, TeamAgent } from "@agenteschat/client";
-import { useAgentGroups, useApprovals, useProposeChannelMove, useRoutines } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { can } from "@agenteschat/client/lib/permissions";
-import {
-  mapColumns,
-  mayReportTo,
-  sharedSupervisor,
-  supervisorOf,
-  supervisors,
-} from "@agenteschat/client/lib/team-views";
-import { excerpt } from "@agenteschat/client/lib/text";
-import { Button, EmptyState, HintLine, Icon } from "@agenteschat/ui";
+import type { Routine, Team, TeamAgent } from "@dougbot/client";
+import { useAgentGroups, useApprovals, useProposeChannelMove, useRoutines } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { can } from "@dougbot/client/lib/permissions";
+import { mapColumns, mayReportTo, sharedSupervisor, supervisorOf, supervisors } from "@dougbot/client/lib/team-views";
+import { excerpt } from "@dougbot/client/lib/text";
+import { Button, EmptyState, HintLine, Icon } from "@dougbot/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { type DragEvent, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

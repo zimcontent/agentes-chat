@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { MACHINE_PROTOCOL_VERSION, SHARED_COMPUTER_PROTOCOL } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
-import { systemText } from "@agenteschat/providers";
+import { MACHINE_PROTOCOL_VERSION, SHARED_COMPUTER_PROTOCOL } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
+import { systemText } from "@dougbot/providers";
 import {
   type AgentRun,
   addChannelMember,

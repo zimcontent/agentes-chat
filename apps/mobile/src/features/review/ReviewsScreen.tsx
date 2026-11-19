@@ -8,7 +8,7 @@ import {
   useApi,
   useVideoReviews,
   type VideoReviewSummary,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

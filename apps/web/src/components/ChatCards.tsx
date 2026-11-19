@@ -1,17 +1,17 @@
-import type { AgentQuestion, MemoryUpdate, Proposal, SecretRequest, SecretToVaultInput } from "@agenteschat/client";
+import type { AgentQuestion, MemoryUpdate, Proposal, SecretRequest, SecretToVaultInput } from "@dougbot/client";
 import {
   useCardProposals,
   useDecideProposal,
   useDecideProposals,
   useModelLabel,
   useSaveSecretToVault,
-} from "@agenteschat/client";
-import { questionWaitsOn } from "@agenteschat/client/lib/agent-questions";
-import { formatTime, whenAt } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { MAX_MESSAGE_LENGTH } from "@agenteschat/client/lib/message-length";
-import { messagePath } from "@agenteschat/client/lib/message-links";
-import { can } from "@agenteschat/client/lib/permissions";
+} from "@dougbot/client";
+import { questionWaitsOn } from "@dougbot/client/lib/agent-questions";
+import { formatTime, whenAt } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { MAX_MESSAGE_LENGTH } from "@dougbot/client/lib/message-length";
+import { messagePath } from "@dougbot/client/lib/message-links";
+import { can } from "@dougbot/client/lib/permissions";
 import {
   appLabel,
   cardDecidedBy,
@@ -28,8 +28,8 @@ import {
   rowStatus,
   settingLineText,
   staleCount,
-} from "@agenteschat/client/lib/proposals";
-import { sealSecret, secretAad } from "@agenteschat/client/lib/secret-box";
+} from "@dougbot/client/lib/proposals";
+import { sealSecret, secretAad } from "@dougbot/client/lib/secret-box";
 import {
   latestSecret,
   secretClosedBy,
@@ -37,9 +37,9 @@ import {
   secretRefusalKey,
   secretValueProblem,
   secretWhere,
-} from "@agenteschat/client/lib/secret-requests";
-import { secretEndedAt, secretOutcome } from "@agenteschat/client/lib/secret-words";
-import { Button, Chip, CodeInput, diffLines, Field, Icon, Input, overLimit, Switch, Textarea } from "@agenteschat/ui";
+} from "@dougbot/client/lib/secret-requests";
+import { secretEndedAt, secretOutcome } from "@dougbot/client/lib/secret-words";
+import { Button, Chip, CodeInput, diffLines, Field, Icon, Input, overLimit, Switch, Textarea } from "@dougbot/ui";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { TFunction } from "i18next";

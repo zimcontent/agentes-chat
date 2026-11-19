@@ -1,4 +1,4 @@
-import type { AgentPointer, RunnerFrame } from "@agenteschat/adapters";
+import type { AgentPointer, RunnerFrame } from "@dougbot/adapters";
 import { type Stream, screenOf } from "../streams";
 
 /** Screens a computer keeps a last pointer for: it names them itself, so only its newest few are kept. */

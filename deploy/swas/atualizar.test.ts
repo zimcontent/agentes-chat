@@ -1850,7 +1850,8 @@ exec /usr/bin/awk "$@"
   // ─── o seguimento da revisão ─────────────────────────────────────────────────────────────────────────────────────
 
   describe("seguimento: dumps com o slug, aviso reconferido, migrate com nome, imagem que roda, disjuntor", () => {
-    const kills = (a: Ambiente, c: Cliente) => deste(a.chamadas(), c).filter((l) => l === "compose kill -s SIGUSR2 agentes");
+    const kills = (a: Ambiente, c: Cliente) =>
+      deste(a.chamadas(), c).filter((l) => l === "compose kill -s SIGUSR2 agentes");
 
     test("a rotação filtra pelo slug: os dumps de outro slug com o mesmo código e os de antes do slug ficam", () => {
       const a = ambiente([c1]);

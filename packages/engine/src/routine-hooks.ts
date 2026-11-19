@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { KeyWrapper, PubSub, RateLimiter } from "@agenteschat/adapters";
+import type { KeyWrapper, PubSub, RateLimiter } from "@dougbot/adapters";
 import {
   and,
   type Database,
@@ -13,7 +13,7 @@ import {
   rowsOf,
   schema,
   sql,
-} from "@agenteschat/db";
+} from "@dougbot/db";
 import { recordAudit } from "./audit";
 import { connectorCallPasses, connectorTriggerAllowed, sourceOf } from "./connector-triggers";
 import { openSecret, randomToken, routineHookToken, sealSecret, sha256 } from "./crypto";

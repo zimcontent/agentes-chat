@@ -1,4 +1,4 @@
-import { and, asc, type Database, type Executor, eq, inArray, isNull, schema } from "@agenteschat/db";
+import { and, asc, type Database, type Executor, eq, inArray, isNull, schema } from "@dougbot/db";
 import { getAgent } from "./agents";
 import { recordAudit } from "./audit";
 import { BROWSER_SCOPE, BROWSER_TOOL_INFO, BROWSER_TOOLS, DESKTOP_SCOPE, DESKTOP_TOOL_INFO } from "./browser/types";
@@ -42,8 +42,8 @@ export const BUILTIN_TOOLS: Record<string, string[]> = {
   "": ["ask_user", "request_approval", "react", "show_block", "start_poll", "ask_choices", "web_search", "web_fetch"],
   "context:read": ["search_context", "get_summary", "expand"],
   "memory:write": ["remember", "update_memory", "forget", "save_how_to", "propose_instruction_change"],
-  "drive:read": ["read_artifact", "list_artifacts", "share_artifact"],
-  "drive:write": ["create_artifact", "update_artifact"],
+  "drive:read": ["read_artifact", "list_artifacts", "share_artifact", "drive_folders"],
+  "drive:write": ["create_artifact", "update_artifact", "file_artifacts", "drive_folder", "trash_artifacts"],
   "issues:read": ["list_issues"],
   "issues:write": ["create_issue", "update_issue", "comment_issue"],
   "calendar:read": ["list_events", "find_free_time"],
@@ -177,6 +177,13 @@ export const BUILTIN_TOOL_INFO: Record<string, { label: string; description: str
   },
   create_artifact: { label: "Create file", description: "Creates a document, table, diff, diagram or page." },
   update_artifact: { label: "Update file", description: "Saves a new version of a file." },
+  drive_folders: { label: "See folders", description: "Sees the Drive's folders." },
+  file_artifacts: { label: "File in folders", description: "Puts Drive files in project folders." },
+  drive_folder: { label: "Arrange folders", description: "Renames, moves or removes Drive folders (never files)." },
+  trash_artifacts: {
+    label: "Clear out its files",
+    description: "Moves files it made and nobody needs to the trash (30 days to restore).",
+  },
   list_issues: { label: "View issues", description: "Lists and opens issues." },
   create_issue: { label: "Create issue", description: "Creates an issue with acceptance criteria." },
   update_issue: { label: "Update issue", description: "Changes status or priority, or links a PR." },

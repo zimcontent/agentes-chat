@@ -11,9 +11,9 @@ import {
   type SpeechFetch,
   STREAM_CLOSE,
   type StorageHost,
-} from "@agenteschat/adapters";
-import { type Config, connectorOAuthApps, githubAppConfig, mcpCallerIdentity } from "@agenteschat/config";
-import type { Database } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { type Config, connectorOAuthApps, githubAppConfig, mcpCallerIdentity } from "@dougbot/config";
+import type { Database } from "@dougbot/db";
 import {
   AntigravityBrain,
   APP_FAULT_HINT,
@@ -24,6 +24,7 @@ import {
   authorizeStream,
   type BrainTurn,
   blockSpecAt,
+  bunHouseSocket,
   bunSideband,
   CodexBrain,
   type ContextDeps,
@@ -81,6 +82,7 @@ import {
   createReleaseAsksToolSource,
   createSandboxToolSource,
   createScheduleToolSource,
+  createSectorCardToolSource,
   createSessionScreening,
   createSetStatusToolSource,
   createSetupToolSource,
@@ -156,8 +158,8 @@ import {
   warmAgentBrowser,
   withComposio,
   withJudgeFallback,
-} from "@agenteschat/engine";
-import { createOpenAIEmbeddings, createVoyageEmbeddings, type ModelProvider, modelInfo } from "@agenteschat/providers";
+} from "@dougbot/engine";
+import { createOpenAIEmbeddings, createVoyageEmbeddings, type ModelProvider, modelInfo } from "@dougbot/providers";
 import { type AppleTokenRevoker, appleTokenRevoker } from "./auth";
 import { hookConfig, whatsappVoiceOut } from "./routes/app/context";
 import { version } from "./version";
@@ -513,6 +515,13 @@ export function buildEngine(o: EngineOptions) {
       createFollowUpToolSource({ pubsub: adapters.pubsub }),
       // The right hand sees what the team is doing, with no model call (ADR 0137 §13).
       createTeamStatusToolSource(),
+      // Its sector cards when asked (docs/adr/doug-0020-doug-sector-cards.md): read in code, live buttons.
+      createSectorCardToolSource({
+        ...artifacts,
+        pubsub: adapters.pubsub,
+        connectors: connectorDeps,
+        portal: adapters.approvalPortal ?? null,
+      }),
       // Background runs (routines) speak only through it, with a GIF where the agent may send one (ADR 0091).
       createHandOffToolSource({
         pubsub: adapters.pubsub,
@@ -881,6 +890,11 @@ export function buildEngine(o: EngineOptions) {
     keyWrapper: adapters.keyWrapper,
     keyWrappers,
     openSideband: bunSideband,
+    // The house voice (docs/adr/doug-0036-house-voice.md): with the server's Empirio key and the credit wallet.
+    house:
+      config.EMPIRIO_API_KEY && adapters.zimMedia
+        ? { apiKey: config.EMPIRIO_API_KEY, media: adapters.zimMedia, open: bunHouseSocket }
+        : null,
     pickWithSmallModel: async (orgId, system, prompt) => {
       const model = await smallModelFor({ db, gateway }, orgId, smallModels);
       if (!model) return null;

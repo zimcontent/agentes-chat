@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { CLAUDE_SHARED_PROTOCOL, channelTopic } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
+import { CLAUDE_SHARED_PROTOCOL, channelTopic } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
 import {
   addChannelMember,
   agentsByHandle,

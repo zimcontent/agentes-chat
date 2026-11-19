@@ -1,4 +1,4 @@
-import type { ApiClient } from "@agenteschat/client";
+import type { ApiClient } from "@dougbot/client";
 import { fileSaver } from "@/components/artifacts/fileSaver";
 
 /** Downloads the workspace as a file: its agents, skills, routines and shared memory, never conversations or files. */

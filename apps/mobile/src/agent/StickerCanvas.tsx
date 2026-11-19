@@ -1,4 +1,4 @@
-import type { StickerLook, StickerMood } from "@agenteschat/ui/agent/stickers";
+import type { StickerLook, StickerMood } from "@dougbot/ui/agent/stickers";
 import { createContext, memo, useContext, useEffect, useId, useMemo, useState, useSyncExternalStore } from "react";
 import { View } from "react-native";
 import Animated, {

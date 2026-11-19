@@ -1,20 +1,25 @@
-import type { Agent } from "@agenteschat/client";
+import type { Agent, LiveVoiceEngine } from "@dougbot/client";
 import {
   useAgents,
   useLiveVoice,
   useRemoveLiveVoiceKey,
   useSaveCallNotes,
   useSaveLiveVoiceKey,
+  useSetLiveVoiceEngine,
+  useSetLiveVoiceLimit,
   useUpdateAgent,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import {
+  DEFAULT_HOUSE_VOICE,
+  HOUSE_VOICE_CATALOG,
+  houseVoiceInfo,
   LIVE_VOICE_CATALOG,
   type LiveVoiceInfo,
   liveVoiceInfo,
   liveVoiceLabel,
-} from "@agenteschat/client/lib/live-voices";
-import { can } from "@agenteschat/client/lib/permissions";
+} from "@dougbot/client/lib/live-voices";
+import { can } from "@dougbot/client/lib/permissions";
 import {
   Button,
   Card,
@@ -29,7 +34,8 @@ import {
   Locked,
   Segmented,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
+import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useId, useMemo, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";
@@ -41,8 +47,9 @@ import { PhoneLineCard } from "./PhoneLineCard";
 import { type VoicePreview, voiceRefused } from "./preview";
 
 /*
- * Configurações › Voz (ADR doug-0006): the workspace's OpenAI key for GPT-Live (calls with agents, Ouvir), the same rows as
- * the other keys (`GifKeyCard`), and each agent's voice with a sample to hear it.
+ * Configurações › Voz (ADR doug-0006): which voice calls use (the house voice paid in credits, or GPT-Live on the
+ * workspace's OpenAI key, docs/adr/doug-0036-house-voice.md), the house voice's monthly limit, the GPT-Live key in the
+ * same rows as the other keys (`GifKeyCard`), and each agent's voice with a sample to hear it.
  */
 
 const OPENAI_KEYS = "https://platform.openai.com/api-keys";
@@ -62,6 +69,8 @@ export function LiveVoiceCard() {
   const id = useId();
   if (!view) return null;
   const on = view.state === "ok";
+  const engine: LiveVoiceEngine = view.engine ?? "gpt-live";
+  const house = engine === "house";
   const close = () => {
     setSteps(false);
     setDraft("");
@@ -139,7 +148,16 @@ export function LiveVoiceCard() {
           }
         />
         <List>
-          {!on ? (
+          {view.house && <EngineRow engine={engine} editable={view.editable} />}
+          {house && view.house && (
+            <MonthlyLimitRow
+              key={view.house.monthlyCredits ?? "none"}
+              limit={view.house.monthlyCredits}
+              spent={view.house.spentThisMonth}
+              editable={view.editable}
+            />
+          )}
+          {house ? null : !on ? (
             <div className="ac-list__row jev__body">
               <span className="small muted">{t("liveVoice.settings.without")}</span>
               {steps ? (
@@ -172,7 +190,7 @@ export function LiveVoiceCard() {
             </>
           )}
         </List>
-        <CardFooter>{t("liveVoice.settings.price")}</CardFooter>
+        {!house && <CardFooter>{t("liveVoice.settings.price")}</CardFooter>}
         <Dialog
           open={removing}
           onOpenChange={setRemoving}
@@ -200,12 +218,114 @@ export function LiveVoiceCard() {
           <CardHeader id={`${id}-voices`} icon="sound" title={t("liveVoice.settings.voicesTitle")} />
           <div className="settings-rows">
             {team.map((agent) => (
-              <AgentVoiceRow key={agent.id} agent={agent} />
+              <AgentVoiceRow key={`${agent.id}-${engine}`} agent={agent} />
             ))}
           </div>
         </Card>
       )}
     </>
+  );
+}
+
+/** Which voice calls use here: the house voice, paid in credits, or GPT-Live on the workspace's key. */
+function EngineRow({ engine, editable }: { engine: LiveVoiceEngine; editable: boolean }) {
+  const { t } = useTranslation();
+  const { org } = useOrg();
+  const view = useLiveVoice(org.id).data;
+  const set = useSetLiveVoiceEngine(org.id);
+  const [error, setError] = useState<string | null>(null);
+  const house = view?.house;
+  const hint =
+    engine === "house"
+      ? house?.balance == null
+        ? t("liveVoice.settings.houseNoWallet", { perMinute: house?.perMinute ?? 0 })
+        : t("liveVoice.settings.houseCredits", {
+            perMinute: house.perMinute,
+            balance: house.balance,
+            minutes: Math.floor(house.balance / Math.max(1, house.perMinute)),
+          })
+      : t("liveVoice.settings.gptLiveHint");
+  return (
+    <div className="ac-list__row jev__body">
+      <span className="list-col">
+        <span className="ai-accounts__name">{t("liveVoice.settings.engine")}</span>
+        <Locked when={set.isPending}>
+          <Segmented<LiveVoiceEngine>
+            size="sm"
+            label={t("liveVoice.settings.engine")}
+            value={engine}
+            disabled={!editable}
+            onValueChange={(next) => {
+              setError(null);
+              set.mutate(next, { onError: (e) => setError(errorText(t, e)) });
+            }}
+            options={[
+              { value: "house", label: t("liveVoice.settings.house") },
+              { value: "gpt-live", label: t("liveVoice.settings.gptLive") },
+            ]}
+          />
+        </Locked>
+        <span className={error ? "small ac-field__error" : "small muted"}>{error ?? hint}</span>
+        {engine === "house" && (
+          <Link to="/org/$orgId/media" params={{ orgId: org.id }} className="small">
+            {t("liveVoice.settings.addCredits")}
+          </Link>
+        )}
+      </span>
+    </div>
+  );
+}
+
+/** The most credits the house voice may spend here in a month, and what it spent so far. */
+function MonthlyLimitRow({ limit, spent, editable }: { limit: number | null; spent: number; editable: boolean }) {
+  const { t } = useTranslation();
+  const { org } = useOrg();
+  const set = useSetLiveVoiceLimit(org.id);
+  const [draft, setDraft] = useState(limit === null ? "" : String(limit));
+  const [error, setError] = useState<string | null>(null);
+  const id = useId();
+  const value = draft.trim() === "" ? null : Number(draft);
+  const valid = value === null || (Number.isInteger(value) && value >= 0);
+  const changed = value !== limit;
+  return (
+    <div className="ac-list__row jev__body">
+      <span className="list-col">
+        <label className="ai-accounts__name" htmlFor={`${id}-limit`}>
+          {t("liveVoice.settings.monthly")}
+        </label>
+        <span className="lv-limit">
+          <Input
+            id={`${id}-limit`}
+            inputMode="numeric"
+            value={draft}
+            disabled={!editable}
+            invalid={!valid || Boolean(error)}
+            placeholder={t("liveVoice.settings.monthlyNone")}
+            aria-describedby={`${id}-spent`}
+            onChange={(e) => {
+              setDraft(e.target.value.replace(/[^\d]/g, ""));
+              setError(null);
+            }}
+          />
+          {editable && (
+            <Button
+              variant="primary"
+              disabled={!valid || !changed}
+              loading={set.isPending}
+              onClick={() => set.mutate(value, { onError: (e) => setError(errorText(t, e)) })}
+            >
+              {t("common.save")}
+            </Button>
+          )}
+        </span>
+        <span id={`${id}-spent`} className={error ? "small ac-field__error" : "small muted"}>
+          {error ??
+            (limit === null
+              ? t("liveVoice.settings.spentNoLimit", { spent })
+              : t("liveVoice.settings.spent", { spent, limit }))}
+        </span>
+      </span>
+    </div>
   );
 }
 
@@ -338,7 +458,10 @@ function VoiceChoice({ agent, size }: { agent: Agent; size?: "sm" }) {
   const live = useLiveVoiceActions();
   const describe = useVoiceWords();
   const [open, setOpen] = useState(false);
-  const chosen = (update.isPending ? update.variables?.voice : undefined) ?? agent.voice ?? "marin";
+  const house = useLiveVoice(org.id).data?.engine === "house";
+  const pending = update.isPending ? (house ? update.variables?.houseVoice : update.variables?.voice) : undefined;
+  const chosen = pending ?? (house ? (agent.houseVoice ?? DEFAULT_HOUSE_VOICE) : (agent.voice ?? "marin"));
+  const label = voiceLabel(chosen);
   const mayEdit = can(org, "manage_agents") || agent.ownerUserId === me.user.id;
   return (
     <>
@@ -347,22 +470,23 @@ function VoiceChoice({ agent, size }: { agent: Agent; size?: "sm" }) {
         icon="sound"
         disabled={!live?.available}
         loading={update.isPending}
-        aria-label={`${t("liveVoice.settings.voiceOf", { name: agent.name })}: ${liveVoiceLabel(chosen)}`}
+        aria-label={`${t("liveVoice.settings.voiceOf", { name: agent.name })}: ${label}`}
         title={describe(chosen)}
         onClick={() => setOpen(true)}
       >
-        {liveVoiceLabel(chosen)}
+        {label}
       </Button>
       {open && live && (
         <VoicePicker
           agent={agent}
+          house={house}
           current={chosen}
           preview={live.preview}
           mayEdit={mayEdit}
           onClose={() => setOpen(false)}
           onPick={(voice) => {
             setOpen(false);
-            if (voice !== chosen) update.mutate({ voice });
+            if (voice !== chosen) update.mutate(house ? { houseVoice: voice } : { voice });
           }}
         />
       )}
@@ -382,6 +506,8 @@ function useVoiceWords() {
   }, [i18n.language]);
   return useCallback(
     (voice: string) => {
+      const own = houseVoiceInfo(voice);
+      if (own) return t(own.presentation === "feminine" ? "liveVoice.voices.feminine" : "liveVoice.voices.masculine");
       const info = liveVoiceInfo(voice);
       if (!info) return "";
       const lang = names?.of(info.lang) ?? info.lang;
@@ -399,6 +525,9 @@ function useVoiceWords() {
 
 type VoiceFilter = "all" | "feminine" | "masculine";
 
+/** A voice's name as shown: the house voice's own label, a GPT-Live voice's capitalized id. */
+const voiceLabel = (voice: string) => houseVoiceInfo(voice)?.label ?? liveVoiceLabel(voice);
+
 const ACCENT = {
   australian: "liveVoice.voices.accent.australian",
   british: "liveVoice.voices.accent.british",
@@ -415,6 +544,7 @@ const ACCENT = {
  */
 function VoicePicker({
   agent,
+  house,
   current,
   preview,
   mayEdit,
@@ -422,6 +552,8 @@ function VoicePicker({
   onPick,
 }: {
   agent: Agent;
+  /** The house voice's own voices instead of GPT-Live's. */
+  house: boolean;
   current: string;
   preview: VoicePreview;
   mayEdit: boolean;
@@ -441,17 +573,20 @@ function VoicePicker({
   const lang = i18n.language.slice(0, 2);
   const voices = useMemo(
     () =>
-      [...LIVE_VOICE_CATALOG]
-        .sort((a, b) => Number(b.lang === lang) - Number(a.lang === lang))
-        .filter((v) => filter === "all" || v.presentation === filter),
-    [lang, filter],
+      (house
+        ? [...HOUSE_VOICE_CATALOG]
+        : [...LIVE_VOICE_CATALOG].sort((a, b) => Number(b.lang === lang) - Number(a.lang === lang))
+      ).filter((v) => filter === "all" || v.presentation === filter),
+    [house, lang, filter],
   );
   return (
     <Dialog
       open
       onOpenChange={(open) => !open && onClose()}
       title={t("liveVoice.settings.voiceOf", { name: agent.name })}
-      description={t("liveVoice.settings.pickerLead", { name: agent.name })}
+      description={t(house ? "liveVoice.settings.pickerLeadHouse" : "liveVoice.settings.pickerLead", {
+        name: agent.name,
+      })}
       closeLabel={t("common.close")}
       width={560}
     >
@@ -469,10 +604,10 @@ function VoicePicker({
         />
         <div className="lv-voices" ref={list}>
           {voices.map((v) => {
-            const name = liveVoiceLabel(v.id);
+            const name = voiceLabel(v.id);
             const phase = preview.isOn(agent.id, v.id) ? state.phase : "idle";
             const playing = phase === "connecting" || phase === "playing";
-            const instead = preview.fellBack(agent.id, v.id) ?? (voiceRefused(v.id) ? "marin" : null);
+            const instead = house ? null : (preview.fellBack(agent.id, v.id) ?? (voiceRefused(v.id) ? "marin" : null));
             return (
               <div key={v.id} className="lv-voice" data-picked={picked === v.id || undefined}>
                 <button
@@ -514,7 +649,7 @@ function VoicePicker({
         <Button onClick={onClose}>{t("common.cancel")}</Button>
         {mayEdit && (
           <Button variant="primary" disabled={picked === current} onClick={() => onPick(picked)}>
-            {t("liveVoice.settings.use", { voice: liveVoiceLabel(picked) })}
+            {t("liveVoice.settings.use", { voice: voiceLabel(picked) })}
           </Button>
         )}
       </DialogFooter>

@@ -1,4 +1,4 @@
-import { listWaiting, NOTIFICATION_KINDS } from "@agenteschat/engine";
+import { listWaiting, NOTIFICATION_KINDS } from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { type AppDeps, createAppRouter, errors, json, OrgParams, requireSession, security } from "./context";
 import { NotificationSource } from "./notifications";

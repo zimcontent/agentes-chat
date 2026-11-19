@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { contrastOf } from "@agenteschat/ui/agent/engine";
+import { contrastOf } from "@dougbot/ui/agent/engine";
 import { BACKDROP_STEP, BRAND_GREEN, backdropTones } from "../../src/features/chat/backdrop";
 import { ownBubble } from "../../src/features/chat/logic";
 import { appColors } from "../../src/ui/palette";

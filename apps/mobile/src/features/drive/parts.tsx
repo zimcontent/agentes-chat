@@ -1,4 +1,4 @@
-import type { Artifact } from "@agenteschat/client";
+import type { Artifact } from "@dougbot/client";
 import { memo, type ReactNode } from "react";
 import { Text as RNText, StyleSheet, View } from "react-native";
 import Svg, { Circle, Path, Rect, Text as SvgText } from "react-native-svg";

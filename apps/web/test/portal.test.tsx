@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { ApiError, keys, PORTAL_JOB_POLL_MS } from "@agenteschat/client";
+import { ApiError, keys, PORTAL_JOB_POLL_MS } from "@dougbot/client";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { createFakeApi, fakePortalOf, meWithRole, ORG_ID, seedState } from "./fake-api";
 import { notification } from "./fakes/notifications";

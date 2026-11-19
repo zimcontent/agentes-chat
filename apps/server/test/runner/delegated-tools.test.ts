@@ -12,8 +12,8 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { PassThrough } from "node:stream";
-import { ASK_AFTER_TASK, PLAN_MESSAGE } from "@agenteschat/adapters/command-policy";
-import { PERMISSION_TOOL } from "@agenteschat/adapters/machine-protocol";
+import { ASK_AFTER_TASK, PLAN_MESSAGE } from "@dougbot/adapters/command-policy";
+import { PERMISSION_TOOL } from "@dougbot/adapters/machine-protocol";
 import {
   BASH_MAX_TIMEOUT_MS,
   DELEGATED_RESULT_TOKENS,

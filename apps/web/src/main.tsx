@@ -2,11 +2,13 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { I18nextProvider } from "react-i18next";
+// Doug: ahead of styles.css, the stylesheets in their old order (vite-boot-styles.ts).
+import "./boot-styles";
 import "./styles.css";
-import { authConfigQuery, createApiClient, createSnapshot, keys, type Me, meQuery, outbox } from "@agenteschat/client";
-import { ErrorBoundary } from "@agenteschat/client/lib/error-boundary";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { holdSkies, installLiquidGlass, installTitleTips, setClientProductName, trackInput } from "@agenteschat/ui";
+import { authConfigQuery, createApiClient, createSnapshot, keys, type Me, meQuery, outbox } from "@dougbot/client";
+import { ErrorBoundary } from "@dougbot/client/lib/error-boundary";
+import { errorText } from "@dougbot/client/lib/errors";
+import { holdSkies, installLiquidGlass, installTitleTips, setClientProductName, trackInput } from "@dougbot/ui";
 import { AppProviders, type AppServices } from "./app/providers";
 import { createQueryClient } from "./app/query-client";
 import { backToSignIn } from "./app/unauthorized";

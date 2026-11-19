@@ -1,7 +1,7 @@
-import type { ReviewRound } from "@agenteschat/client";
-import { useReviewWhatsApp, useSetReviewWhatsApp, useWhatsApp, useWhatsAppChats } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
-import { Button, Dialog, DialogBody, DialogFooter, Field, FormStack, Icon, Select } from "@agenteschat/ui";
+import type { ReviewRound } from "@dougbot/client";
+import { useReviewWhatsApp, useSetReviewWhatsApp, useWhatsApp, useWhatsAppChats } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
+import { Button, Dialog, DialogBody, DialogFooter, Field, FormStack, Icon, Select } from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

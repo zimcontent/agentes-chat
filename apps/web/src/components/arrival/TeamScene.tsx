@@ -1,17 +1,8 @@
-import type { Agent } from "@agenteschat/client";
-import { WORKSPACE_COMPUTER_KIND } from "@agenteschat/client/lib/computer";
-import { planMark, SCENE_PLANS } from "@agenteschat/client/lib/no-ai";
-import { rightHandOf, sceneTeam } from "@agenteschat/client/lib/right-hand";
-import {
-  ComputerPortrait,
-  cx,
-  DAWN_MS,
-  type Expression,
-  PixelSky,
-  ProviderLogo,
-  teamSky,
-  useDawn,
-} from "@agenteschat/ui";
+import type { Agent } from "@dougbot/client";
+import { WORKSPACE_COMPUTER_KIND } from "@dougbot/client/lib/computer";
+import { planMark, SCENE_PLANS } from "@dougbot/client/lib/no-ai";
+import { rightHandOf, sceneTeam } from "@dougbot/client/lib/right-hand";
+import { ComputerPortrait, cx, DAWN_MS, type Expression, PixelSky, ProviderLogo, teamSky, useDawn } from "@dougbot/ui";
 import { type CSSProperties, type ReactNode, useMemo } from "react";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import "./arrival.css";

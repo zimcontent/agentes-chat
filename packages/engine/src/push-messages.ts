@@ -9,7 +9,8 @@
  * approved from the notification.
  */
 
-import { type AppLocale, appLocale } from "@agenteschat/i18n/locale";
+import { type AppLocale, appLocale } from "@dougbot/i18n/locale";
+import { clipWhole } from "@dougbot/ui/clip";
 import { pushStrings } from "./push/messages";
 
 export type PushLocale = AppLocale;
@@ -60,10 +61,8 @@ export interface PushTextInput {
   personal?: boolean;
 }
 
-const clip = (s: string, max: number) => {
-  const one = s.replace(/\s+/g, " ").trim();
-  return one.length > max ? `${one.slice(0, max - 1).trimEnd()}…` : one;
-};
+// Doug: cut on a whole character, never half of an emoji.
+const clip = (s: string, max: number) => clipWhole(s.replace(/\s+/g, " ").trim(), max);
 
 /**
  * Title and body of one push, in the device's language. A reminder of everything left unread says how many things

@@ -6,8 +6,8 @@ import {
   useNotificationCount,
   useTaskManager,
   useWaitingOnMe,
-} from "@agenteschat/client";
-import { returnWhen, WORK_TICK_MS } from "@agenteschat/client/lib/agent-work";
+} from "@dougbot/client";
+import { returnWhen, WORK_TICK_MS } from "@dougbot/client/lib/agent-work";
 import {
   type AgoraItem,
   type AgoraSection,
@@ -19,10 +19,10 @@ import {
   helpsWhom,
   SHORT_NAME,
   waitsOnSomeone,
-} from "@agenteschat/client/lib/agora";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { formatLineTime } from "@agenteschat/client/lib/format";
-import { linePlace, taskWaitWords, todayStart } from "@agenteschat/client/lib/task-manager";
+} from "@dougbot/client/lib/agora";
+import { errorText } from "@dougbot/client/lib/errors";
+import { formatLineTime } from "@dougbot/client/lib/format";
+import { linePlace, taskWaitWords, todayStart } from "@dougbot/client/lib/task-manager";
 import {
   Button,
   cx,
@@ -34,7 +34,7 @@ import {
   PixelSpinner,
   Popover,
   Spinner,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

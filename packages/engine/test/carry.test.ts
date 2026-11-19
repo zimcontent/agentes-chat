@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
-import { and, eq, isNull, schema } from "@agenteschat/db";
+import { and, eq, isNull, schema } from "@dougbot/db";
 import {
   type CarryDeps,
   type ConnectorDeps,

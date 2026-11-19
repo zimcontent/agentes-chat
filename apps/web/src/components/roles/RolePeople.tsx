@@ -1,9 +1,9 @@
-import type { OrgRole, OrgRoles, Person, RoleMailLoss } from "@agenteschat/client";
-import { useApi, useSetMemberRoles } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { useHeldWhile } from "@agenteschat/client/lib/hold";
-import { can } from "@agenteschat/client/lib/permissions";
-import { isBelow, PEOPLE_SEARCH_FROM, peopleWith, roleLock, roleName } from "@agenteschat/client/lib/roles";
+import type { OrgRole, OrgRoles, Person, RoleMailLoss } from "@dougbot/client";
+import { useApi, useSetMemberRoles } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { useHeldWhile } from "@dougbot/client/lib/hold";
+import { can } from "@dougbot/client/lib/permissions";
+import { isBelow, PEOPLE_SEARCH_FROM, peopleWith, roleLock, roleName } from "@dougbot/client/lib/roles";
 import {
   Avatar,
   Button,
@@ -18,7 +18,7 @@ import {
   Locked,
   SearchField,
   Toolbar,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import type { TFunction } from "i18next";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

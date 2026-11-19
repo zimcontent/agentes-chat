@@ -6,9 +6,9 @@ import {
   routinesQuery,
   type TeamTemplate,
   useApi,
-} from "@agenteschat/client";
-import { joinNames } from "@agenteschat/client/lib/format";
-import { teamFailureText } from "@agenteschat/client/lib/team-plan";
+} from "@dougbot/client";
+import { joinNames } from "@dougbot/client/lib/format";
+import { teamFailureText } from "@dougbot/client/lib/team-plan";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as DocumentPicker from "expo-document-picker";
 import { type ReactNode, useEffect, useRef, useState } from "react";

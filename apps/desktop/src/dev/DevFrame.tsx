@@ -3,7 +3,7 @@
  * (go offline, raise a folder request), and a frame the size of each real window. `?bare=1` drops the bar
  * (screenshots). Not product UI.
  */
-import { switchTheme } from "@agenteschat/ui";
+import { switchTheme } from "@dougbot/ui";
 import { useEffect, useReducer } from "react";
 import type { FakeHost } from "../host/fake";
 import type { WindowName } from "../host/types";

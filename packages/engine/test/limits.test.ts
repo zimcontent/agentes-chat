@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createMemoryRateLimiter } from "@agenteschat/adapters";
-import { eq, schema, sql } from "@agenteschat/db";
+import { createMemoryRateLimiter } from "@dougbot/adapters";
+import { eq, schema, sql } from "@dougbot/db";
 import {
   acceptInvitation,
   approveJoinRequest,
   askToJoin,
   assertMemberRoom,
+  cappedPlatformCredentials,
   createFakeJudge,
   createFileArtifact,
   createInvitation,
@@ -32,6 +33,7 @@ import {
   saveStorage,
   sendInvitation,
   setOrgLimits,
+  setPlatformCapDefault,
   startMigration,
   storageUsage,
   testStorage,
@@ -414,5 +416,22 @@ describe("the platform's AI", () => {
     expect((await events()).filter((e) => e.month === next.toISOString().slice(0, 7))).toEqual([
       { month: next.toISOString().slice(0, 7), percent: 50, spentUsd: 2, limitUsd: 3 },
     ]);
+  });
+
+  test("a server's default cap holds a workspace with none, and its key goes away past it", async () => {
+    f = await setup();
+    const inner = { resolve: async () => ({ apiKey: "house" }) };
+    const keys = cappedPlatformCredentials(f.db, inner);
+    try {
+      setPlatformCapDefault(2);
+      await spend(1);
+      expect(await keys.resolve(f.org.id, "anthropic")).toEqual({ apiKey: "house" });
+      expect(await keys.available?.(f.org.id, "anthropic")).toBe(true);
+      await spend(1.5);
+      expect(await keys.resolve(f.org.id, "anthropic")).toBeNull();
+      expect(await keys.available?.(f.org.id, "anthropic")).toBe(false);
+    } finally {
+      setPlatformCapDefault(null);
+    }
   });
 });

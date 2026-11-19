@@ -1,4 +1,4 @@
-import { contentWords, type PubSub } from "@agenteschat/adapters";
+import { contentWords, type PubSub } from "@dougbot/adapters";
 import {
   and,
   asc,
@@ -14,8 +14,8 @@ import {
   rowsOf,
   schema,
   sql,
-} from "@agenteschat/db";
-import { plainLine } from "@agenteschat/ui/markdown";
+} from "@dougbot/db";
+import { plainLine } from "@dougbot/ui/markdown";
 import { getAgent } from "./agents";
 import { ARTIFACT_TRASH_DAYS } from "./artifacts";
 import { recordAudit } from "./audit";

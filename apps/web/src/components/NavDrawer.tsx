@@ -1,5 +1,5 @@
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
-import { Button, OPEN_LAYER } from "@agenteschat/ui";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
+import { Button, OPEN_LAYER } from "@dougbot/ui";
 import { useRouterState } from "@tanstack/react-router";
 import {
   createContext,
@@ -14,9 +14,9 @@ import {
   useSyncExternalStore,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { openPalette } from "./CommandMenu";
 import { useOrg } from "./org-context";
 import { MyFace, OrgMark } from "./ProfilePhoto";
+import { openPalette } from "./shell-events"; // Doug: not CommandMenu.tsx, see shell-events.ts
 
 /**
  * Breakpoints (layout.css keeps the same numbers):

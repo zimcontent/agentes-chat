@@ -11,9 +11,9 @@ import {
   type PushSender,
   type RealtimeEvent,
   userTopic,
-} from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
-import { LOCALE_CODES } from "@agenteschat/i18n/locale";
+} from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
+import { LOCALE_CODES } from "@dougbot/i18n/locale";
 import { unplainLeaves } from "../../i18n/test/plain-marks";
 import {
   addChannelMember,

@@ -1,9 +1,9 @@
-import type { CanceledReturn, ComputerSummary, EndedTask, ManagedTask, PendingReturn } from "@agenteschat/client";
-import { useCancelFollowUp, useTaskManager } from "@agenteschat/client";
-import { returnClock, returnWhen } from "@agenteschat/client/lib/agent-work";
-import { listsAgent } from "@agenteschat/client/lib/audience";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { formatLineTime } from "@agenteschat/client/lib/format";
+import type { CanceledReturn, ComputerSummary, EndedTask, ManagedTask, PendingReturn } from "@dougbot/client";
+import { useCancelFollowUp, useTaskManager } from "@dougbot/client";
+import { returnClock, returnWhen } from "@dougbot/client/lib/agent-work";
+import { listsAgent } from "@dougbot/client/lib/audience";
+import { errorText } from "@dougbot/client/lib/errors";
+import { formatLineTime } from "@dougbot/client/lib/format";
 import {
   type AgentTasks,
   activityLine,
@@ -31,8 +31,8 @@ import {
   taskWhere,
   todayStart,
   type WaitCause,
-} from "@agenteschat/client/lib/task-manager";
-import { formatDuration } from "@agenteschat/client/lib/work";
+} from "@dougbot/client/lib/task-manager";
+import { formatDuration } from "@dougbot/client/lib/work";
 import {
   type AgentColor,
   Button,
@@ -51,7 +51,7 @@ import {
   ProviderLogo,
   SearchField,
   Tip,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useNavigate } from "@tanstack/react-router";
 import { type CSSProperties, Fragment, type ReactNode, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";

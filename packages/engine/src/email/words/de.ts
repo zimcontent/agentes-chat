@@ -1,10 +1,10 @@
-import { plural } from "@agenteschat/i18n/format";
+import { plural } from "@dougbot/i18n/format";
 import { atHost, sentences } from "./en";
 import type { EmailWords } from "./index";
 
 /**
  * The emails in de: whatever is here replaces English, word group by word group (`deepMerge`); write a count's
- * forms with `plural("de", n, { one, few, many, other })` from `@agenteschat/i18n/format`.
+ * forms with `plural("de", n, { one, few, many, other })` from `@dougbot/i18n/format`.
  */
 export const words: EmailWords = {
   sentBy: (host) => (host ? atHost("Gesendet vom DougBot-Server", "auf", host) : "Gesendet von DougBot."),

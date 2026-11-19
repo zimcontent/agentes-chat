@@ -12,11 +12,16 @@ import {
   BLOCK_REPLY_CHARS,
   BLOCK_STATE_KEYS,
   countArtifacts,
+  countByFolder,
   createArtifact,
   createFileArtifact,
+  createFolder,
   DRAW_OPTIONS,
   deleteArtifact,
+  deleteFolder,
   drawBlock,
+  FILE_BATCH_MAX,
+  fileArtifacts,
   getArtifact,
   getBlockState,
   getChoices,
@@ -25,18 +30,22 @@ import {
   listArtifacts,
   listArtifactVersions,
   listDeletedArtifacts,
+  listFolders,
   MAX_MESSAGE_LENGTH,
+  pressBlockButton,
   purgeArtifactNow,
   replyToBlock,
   requireVideoReview,
   restoreArtifact,
   setBlockState,
+  setDraft,
   setFileSharing,
   updateArtifact,
+  updateFolder,
   ValidationError,
   votePoll,
   withPersonFacts,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
 import { rangedResponse } from "../../http/byte-range";
@@ -221,8 +230,25 @@ const Artifact = z
     canShare: z.boolean().openapi({
       description: "I may change its sharing: it lives in a conversation not everyone reads, and I read it there.",
     }),
+    folderId: z.uuid().nullable().openapi({ description: "Its Drive folder; null: the top of the Drive." }),
+    expiresAt: z.string().nullable().openapi({
+      description: "A draft: it goes to the trash on its own at this time unless a new version comes first.",
+    }),
   })
   .openapi("Artifact");
+
+const DriveFolder = z
+  .object({
+    id: z.uuid(),
+    parentId: z.uuid().nullable(),
+    name: z.string(),
+    createdBy: Author,
+    createdAt: z.string(),
+    updatedAt: z.string(),
+    files: z.number().int().openapi({ description: "Files I see in it, not counting its folders'." }),
+  })
+  .openapi("DriveFolder", { description: "A folder of the Drive (docs/adr/doug-0036-drive-folders.md)." });
+const FolderParams = OrgParams.extend({ folderId: z.uuid() });
 
 const Poll = z
   .object({
@@ -370,6 +396,15 @@ export function artifactRoutes(deps: AppDeps) {
             AuthorKey,
           ),
           who: z.enum(["agents", "people"]).optional().openapi({ description: "Made by an agent or by a person." }),
+          folderId: z
+            .union([z.uuid(), z.literal("root")])
+            .optional()
+            .openapi({ description: "In this Drive folder; `root`: in no folder. Absent: anywhere." }),
+          deep: z
+            .literal("1")
+            .optional()
+            .openapi({ description: "With `folderId`: also in the folders under it (with `root`: anywhere)." }),
+          drafts: z.literal("1").optional().openapi({ description: "Only drafts." }),
           sort: z.enum(["recent", "name", "kind"]).optional(),
           cursor: z
             .string()
@@ -407,6 +442,10 @@ export function artifactRoutes(deps: AppDeps) {
         authors: query.authors,
         who: query.who,
         ...(query.changed ? { changedBy: author } : { author }),
+        ...(query.folderId
+          ? { folder: { id: query.folderId === "root" ? null : query.folderId, deep: query.deep === "1" } }
+          : {}),
+        drafts: query.drafts === "1",
       };
       const limit = query.limit ?? 100;
       const offset = Number(query.cursor ?? 0);
@@ -756,6 +795,53 @@ export function artifactRoutes(deps: AppDeps) {
 
   app.openapi(
     createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/blocks/{artifactId}/press",
+      tags,
+      security,
+      summary: "Press a live block's button away from the block (a notification's button)",
+      description:
+        "Runs the button as it shows now, as the person, through the same calls a tap in the block makes: its values, its draw, its message to the agent (docs/adr/doug-0021-lock-screen.md). `clientId` keeps a press that arrives twice from sending twice.",
+      request: {
+        params: ArtifactParams,
+        body: body(
+          z.object({
+            version: z.number().int().min(1),
+            key: z.string().min(1).max(64),
+            clientId: z.string().max(64).nullable().optional(),
+          }),
+        ),
+      },
+      responses: {
+        200: json(z.object({ messageId: z.string().nullable(), changed: z.boolean() })),
+        ...errors,
+        429: errorResponse("Too many presses (`rate_limited`)"),
+      },
+    }),
+    async (c) => {
+      const { orgId, artifactId } = c.req.valid("param");
+      const user = c.get("user");
+      const limit = await deps.adapters.rateLimiter.consume(`post:${user.id}`, { limit: 30, windowMs: 10_000 });
+      if (!limit.allowed) return apiError(c, 429, "rate_limited", "Slow down");
+      const press = await pressBlockButton(
+        {
+          ...artifacts(),
+          pubsub: deps.adapters.pubsub,
+          judge: deps.extras?.context?.judge,
+          talker: deps.extras?.talker,
+        },
+        user.id,
+        orgId,
+        artifactId,
+        c.req.valid("json"),
+      );
+      if (press.messageId) deps.wakeWorkers?.();
+      return c.json(press, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
       method: "get",
       path: "/organizations/{orgId}/blocks/{artifactId}/state",
       tags,
@@ -1014,6 +1100,138 @@ export function artifactRoutes(deps: AppDeps) {
       const { orgId, artifactId } = c.req.valid("param");
       await purgeArtifactNow(artifacts(), c.get("user").id, orgId, artifactId);
       return c.body(null, 204);
+    },
+  );
+
+  // ── Folders and drafts (docs/adr/doug-0036-drive-folders.md) ─────────────────────────────────────────────────
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/drive-folders",
+      tags,
+      security,
+      summary: "The Drive's folders, with how many files I see in each",
+      request: { params: OrgParams },
+      responses: {
+        200: json(
+          z.object({
+            folders: z.array(DriveFolder),
+            loose: z.number().int().openapi({ description: "Files I see in no folder." }),
+          }),
+        ),
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      const actor = person(c.get("user").id);
+      const [folders, counts] = await Promise.all([listFolders(db, actor, orgId), countByFolder(db, actor, orgId)]);
+      return c.json({ folders: folders.map((f) => ({ ...f, files: counts[f.id] ?? 0 })), loose: counts[""] ?? 0 }, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/drive-folders",
+      tags,
+      security,
+      summary: "Make a folder (needs upload_files)",
+      request: {
+        params: OrgParams,
+        body: body(z.object({ name: z.string().min(1).max(200), parentId: z.uuid().nullable().optional() })),
+      },
+      responses: { 201: json(DriveFolder.omit({ files: true }), "Created"), ...errors },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      return c.json(await createFolder(artifacts(), person(c.get("user").id), orgId, c.req.valid("json")), 201);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "patch",
+      path: "/organizations/{orgId}/drive-folders/{folderId}",
+      tags,
+      security,
+      summary: "Rename a folder or move it under another (null: the top)",
+      request: {
+        params: FolderParams,
+        body: body(z.object({ name: z.string().min(1).max(200).optional(), parentId: z.uuid().nullable().optional() })),
+      },
+      responses: { 200: json(DriveFolder.omit({ files: true })), ...errors },
+    }),
+    async (c) => {
+      const { orgId, folderId } = c.req.valid("param");
+      return c.json(
+        await updateFolder(artifacts(), person(c.get("user").id), orgId, folderId, c.req.valid("json")),
+        200,
+      );
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/organizations/{orgId}/drive-folders/{folderId}",
+      tags,
+      security,
+      summary: "Remove a folder; what is in it goes up to its parent (no file is deleted)",
+      request: { params: FolderParams },
+      responses: {
+        200: json(
+          z.object({ files: z.number().int(), folders: z.number().int() }).openapi({ description: "What moved up." }),
+        ),
+        ...errors,
+      },
+    }),
+    async (c) => {
+      const { orgId, folderId } = c.req.valid("param");
+      return c.json(await deleteFolder(artifacts(), person(c.get("user").id), orgId, folderId), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/drive/file",
+      tags,
+      security,
+      summary: "File files in a folder (null: the top of the Drive); who sees them doesn't change",
+      request: {
+        params: OrgParams,
+        body: body(z.object({ ids: z.array(z.uuid()).min(1).max(FILE_BATCH_MAX), folderId: z.uuid().nullable() })),
+      },
+      responses: { 200: json(z.object({ artifacts: z.array(Artifact) })), ...errors },
+    }),
+    async (c) => {
+      const { orgId } = c.req.valid("param");
+      const userId = c.get("user").id;
+      const { ids, folderId } = c.req.valid("json");
+      const moved = await fileArtifacts(artifacts(), person(userId), orgId, ids, folderId);
+      return c.json({ artifacts: await withPersonFacts(db, userId, orgId, moved) }, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/organizations/{orgId}/artifacts/{artifactId}/draft",
+      tags,
+      security,
+      summary: "Keep a draft: it no longer goes to the trash on its own",
+      request: { params: ArtifactParams },
+      responses: { 200: json(Artifact), ...errors },
+    }),
+    async (c) => {
+      const { orgId, artifactId } = c.req.valid("param");
+      const userId = c.get("user").id;
+      return c.json(
+        await withFacts(userId, orgId, await setDraft(artifacts(), person(userId), orgId, artifactId, false)),
+        200,
+      );
     },
   );
 

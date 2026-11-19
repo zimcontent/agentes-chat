@@ -1,4 +1,4 @@
-import type { LocaleStrings } from "@agenteschat/i18n/plurals";
+import type { LocaleStrings } from "@dougbot/i18n/plurals";
 
 /**
  * The screens' strings (pt-BR; English, `keys.en.ts`, is the source), under `mobile.*`, next
@@ -32,7 +32,15 @@ export const featureKeysPtBR = {
     itsChannels: "Grupos",
     seeAll: "Ver todos",
   },
+  /** The right hand's sector buttons above the composer (docs/adr/doug-0020-doug-sector-cards.md). */
+  sectorPills: {
+    label: "Atalhos",
+    failed: "O cartão não veio. Tente de novo.",
+  },
   blocks: {
+    /** A card's button that ran on the server (docs/adr/doug-0020-doug-sector-cards.md). */
+    done: "Feito",
+    actFailed: "Não deu certo. Tente de novo.",
     send: "Mandar",
     more: "Mais",
     thousand: "mil",
@@ -54,6 +62,19 @@ export const featureKeysPtBR = {
     pollAnswered_one: "{{count}} de {{total}} respondeu",
     pollAnswered_other: "{{count}} de {{total}} responderam",
     voteFailed: "Não deu para registrar seu voto.",
+    openPiece: "Abrir grande",
+    openSlide: "Abrir o slide {{at}}",
+    pieceAt: "{{at}} de {{count}}",
+    carouselTitle: "Carrossel",
+    posterTitle: "Estático",
+    reelTitle: "Roteiro do reels",
+    aboutSlide: "o slide {{at}} (“{{title}}”)",
+    aboutPoster: "o estático (“{{title}}”)",
+    aboutBeat: "o trecho {{time}} do reels",
+    noteMessage: "Sobre {{about}}: {{note}}",
+    notePlaceholder: "Comentar {{about}}",
+    noteLabel: "Seu comentário",
+    noteSent: "Mandado para {{name}}",
   },
   choices: {
     step: "{{step}} de {{total}}",
@@ -2513,6 +2534,19 @@ export const featureKeysPtBR = {
     week: "Semana",
     month: "Mês",
     sheet: {
+      nowTitle: "Agora",
+      account: "Conta",
+      model: "Modelo",
+      effort: "Esforço",
+      context: "Contexto",
+      /** No context limit chosen: the model reads up to its whole window. */
+      contextFull: "Janela inteira do modelo",
+      /** Under "Automático" in Agora. */
+      autoPerTask: "escolhe a cada tarefa",
+      autoLine: "Escolhe o modelo e o esforço a cada tarefa, na mesma conta.",
+      switchTitle: "Trocar para",
+      /** A choice that moves the agent to another account or key: "Haiku 5.5 · em ChatGPT Pro". */
+      on: "em {{place}}",
       title: "Trocar a IA do {{name}}",
       title_female: "Trocar a IA da {{name}}",
       smart: "Mais inteligente",

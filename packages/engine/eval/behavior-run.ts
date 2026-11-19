@@ -10,16 +10,10 @@ import {
   createMemoryPubSub,
   createPostgresSearchResolver,
   noPlatformCredentials,
-} from "@agenteschat/adapters";
-import { and, asc, eq, gt, gte, inArray, schema, sql } from "@agenteschat/db";
-import { createTestDatabase } from "@agenteschat/db/testing";
-import {
-  type ContentBlock,
-  costNanoUsd,
-  type ModelProvider,
-  type ModelRequest,
-  systemText,
-} from "@agenteschat/providers";
+} from "@dougbot/adapters";
+import { and, asc, eq, gt, gte, inArray, schema, sql } from "@dougbot/db";
+import { createTestDatabase } from "@dougbot/db/testing";
+import { type ContentBlock, costNanoUsd, type ModelProvider, type ModelRequest, systemText } from "@dougbot/providers";
 import { ptBR } from "../../i18n/src/pt-BR";
 import {
   addChannelMember,

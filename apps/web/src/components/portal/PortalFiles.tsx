@@ -1,8 +1,8 @@
-import type { PortalCardFile } from "@agenteschat/client";
-import { useArtifact, useArtifacts } from "@agenteschat/client";
-import { fileIcon, previewKindOfName } from "@agenteschat/client/lib/files";
-import { PORTAL_SEND_FILES } from "@agenteschat/client/lib/portal";
-import { Button, Checkbox, Dialog, DialogBody, DialogFooter, EmptyState, Icon, SearchField } from "@agenteschat/ui";
+import type { PortalCardFile } from "@dougbot/client";
+import { useArtifact, useArtifacts } from "@dougbot/client";
+import { fileIcon, previewKindOfName } from "@dougbot/client/lib/files";
+import { PORTAL_SEND_FILES } from "@dougbot/client/lib/portal";
+import { Button, Checkbox, Dialog, DialogBody, DialogFooter, EmptyState, Icon, SearchField } from "@dougbot/ui";
 import { type ReactNode, useDeferredValue, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useMaybeArtifactViewer } from "@/components/artifacts/ArtifactViewer";

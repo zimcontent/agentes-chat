@@ -18,7 +18,7 @@ import type {
   ScreenKind,
   SecretRequest,
   ThreadInfo,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   ApiError,
   agentStateOfRun,
@@ -79,8 +79,8 @@ import {
   useWaitingOnMe,
   useWikiTree,
   type WaitingItem,
-} from "@agenteschat/client";
-import { actionCardOf } from "@agenteschat/client/lib/action-cards";
+} from "@dougbot/client";
+import { actionCardOf } from "@dougbot/client/lib/action-cards";
 import {
   barConsultTime,
   barElapsed,
@@ -92,17 +92,17 @@ import {
   runElapsed,
   someoneTypes,
   waitsForWords,
-} from "@agenteschat/client/lib/activity";
-import type { AgentTab } from "@agenteschat/client/lib/agent-edit";
-import { foldTalk, TALK_LINE_CHARS, talksToAgent } from "@agenteschat/client/lib/agent-talk";
-import { returnsHere } from "@agenteschat/client/lib/agent-work";
-import { looksLikeApiKey } from "@agenteschat/client/lib/api-key-text";
-import { approvalCardItems, asOfNow, cardDeadline } from "@agenteschat/client/lib/approval-card";
-import { artifactRefs } from "@agenteschat/client/lib/artifacts";
-import { canTalk, unavailableNotice } from "@agenteschat/client/lib/audience";
-import { accessInput, accessOf, accessValid, type ChannelAccess } from "@agenteschat/client/lib/channel-access";
-import { channelTitle } from "@agenteschat/client/lib/channel-name";
-import { channelRefsOf } from "@agenteschat/client/lib/channel-refs";
+} from "@dougbot/client/lib/activity";
+import type { AgentTab } from "@dougbot/client/lib/agent-edit";
+import { foldTalk, TALK_LINE_CHARS, talksToAgent } from "@dougbot/client/lib/agent-talk";
+import { returnsHere } from "@dougbot/client/lib/agent-work";
+import { looksLikeApiKey } from "@dougbot/client/lib/api-key-text";
+import { approvalCardItems, asOfNow, cardDeadline } from "@dougbot/client/lib/approval-card";
+import { artifactRefs } from "@dougbot/client/lib/artifacts";
+import { canTalk, unavailableNotice } from "@dougbot/client/lib/audience";
+import { accessInput, accessOf, accessValid, type ChannelAccess } from "@dougbot/client/lib/channel-access";
+import { channelTitle } from "@dougbot/client/lib/channel-name";
+import { channelRefsOf } from "@dougbot/client/lib/channel-refs";
 import {
   entersWithMotion,
   greetingSuggestions,
@@ -113,15 +113,15 @@ import {
   runPosition,
   screenAboveEnd,
   usageLine,
-} from "@agenteschat/client/lib/chat";
-import { firstUnreadId, opensAtLastRead, unreadThreadRootId } from "@agenteschat/client/lib/chat-look";
-import { choiceReplyLine } from "@agenteschat/client/lib/choices";
-import { draftKeyOf } from "@agenteschat/client/lib/composer-drafts";
-import { type ConsultPairItem, consultsForLine } from "@agenteschat/client/lib/consult-group";
-import { consultationsOf } from "@agenteschat/client/lib/consultations";
-import { deviceWaitOf } from "@agenteschat/client/lib/devices";
-import { clearDraft, draftJoins, peekDraft } from "@agenteschat/client/lib/drafts";
-import { ErrorBoundary } from "@agenteschat/client/lib/error-boundary";
+} from "@dougbot/client/lib/chat";
+import { firstUnreadId, opensAtLastRead, unreadThreadRootId } from "@dougbot/client/lib/chat-look";
+import { choiceReplyLine } from "@dougbot/client/lib/choices";
+import { draftKeyOf } from "@dougbot/client/lib/composer-drafts";
+import { type ConsultPairItem, consultsForLine } from "@dougbot/client/lib/consult-group";
+import { consultationsOf } from "@dougbot/client/lib/consultations";
+import { deviceWaitOf } from "@dougbot/client/lib/devices";
+import { clearDraft, draftJoins, peekDraft } from "@dougbot/client/lib/drafts";
+import { ErrorBoundary } from "@dougbot/client/lib/error-boundary";
 import {
   errorCode,
   errorText,
@@ -132,26 +132,19 @@ import {
   runFailureLine,
   sendFailureText,
   sendNeedsEdit,
-} from "@agenteschat/client/lib/errors";
-import { everyoneWord, isEveryoneMention, mentionsReader, offersEveryone } from "@agenteschat/client/lib/everyone";
-import {
-  droppedLink,
-  fileIcon,
-  fitsUpload,
-  formatBytes,
-  MAX_UPLOAD_MB,
-  previewKind,
-} from "@agenteschat/client/lib/files";
-import { dayLabel, formatClock, formatFullDate, formatTime } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { useHeldWhile } from "@agenteschat/client/lib/hold";
-import { issueTakenOf, issueWorkOf, taskConversationOf } from "@agenteschat/client/lib/issues";
-import { workAnchorBody, workContinuable, workIsOver } from "@agenteschat/client/lib/long-work";
-import { supersededBrainNotices } from "@agenteschat/client/lib/machine-outages";
-import { hasWideBlock, plainLine } from "@agenteschat/client/lib/markdown";
-import { isMediaAfterReply, isMediaAlone, messageMediaOf, quoteText, textOrMedia } from "@agenteschat/client/lib/media";
-import { serverBody } from "@agenteschat/client/lib/message-body";
-import { joinDrafts, tooLongToSend } from "@agenteschat/client/lib/message-length";
+} from "@dougbot/client/lib/errors";
+import { everyoneWord, isEveryoneMention, mentionsReader, offersEveryone } from "@dougbot/client/lib/everyone";
+import { droppedLink, fileIcon, fitsUpload, formatBytes, MAX_UPLOAD_MB, previewKind } from "@dougbot/client/lib/files";
+import { dayLabel, formatClock, formatFullDate, formatTime } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { useHeldWhile } from "@dougbot/client/lib/hold";
+import { issueTakenOf, issueWorkOf, taskConversationOf } from "@dougbot/client/lib/issues";
+import { workAnchorBody, workContinuable, workIsOver } from "@dougbot/client/lib/long-work";
+import { supersededBrainNotices } from "@dougbot/client/lib/machine-outages";
+import { hasWideBlock, plainLine } from "@dougbot/client/lib/markdown";
+import { isMediaAfterReply, isMediaAlone, messageMediaOf, quoteText, textOrMedia } from "@dougbot/client/lib/media";
+import { serverBody } from "@dougbot/client/lib/message-body";
+import { joinDrafts, tooLongToSend } from "@dougbot/client/lib/message-length";
 import {
   isOpenMission,
   missionCommandOf,
@@ -163,28 +156,29 @@ import {
   missionSuggestionOf,
   parseMissionCommand,
   taskNoticeOf,
-} from "@agenteschat/client/lib/missions";
-import { noAiCardOf } from "@agenteschat/client/lib/no-ai";
-import { isTalkerReply, noticeOf, routineReportText, talkerWaited } from "@agenteschat/client/lib/notices";
-import { brainUnavailableOf, isOfflineNotice } from "@agenteschat/client/lib/outages";
-import { can, leavesChannel, makesAgents, managesChannel, setsAutoReply } from "@agenteschat/client/lib/permissions";
-import { modelStandInText } from "@agenteschat/client/lib/plan-usage";
-import { reachHandoffs } from "@agenteschat/client/lib/reach";
-import { localMeta, replyOf } from "@agenteschat/client/lib/reply";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
-import { isReminderMessage, reminderBody, routineReplyOf } from "@agenteschat/client/lib/routines";
-import { picksForMe, replyAloneKey } from "@agenteschat/client/lib/routing";
-import { ConversationSeat } from "@agenteschat/client/lib/seat-context";
-import { seenMessageId } from "@agenteschat/client/lib/seen";
-import { simpleScreens } from "@agenteschat/client/lib/simple-mode";
-import { hiddenCount, tasksOf, todayStart } from "@agenteschat/client/lib/task-manager";
-import { contextMarks, hiddenByThreads, rangeCandidates, threadStartOf } from "@agenteschat/client/lib/threads";
-import { buildTimeline, lastPostedId, mergeTimeline, type TimelineItem } from "@agenteschat/client/lib/timeline";
-import { usageWaitOf } from "@agenteschat/client/lib/usage-pause";
-import { appVia } from "@agenteschat/client/lib/via";
-import { listedText, voiceOf } from "@agenteschat/client/lib/voice";
-import { waitingAway, waitingNotification } from "@agenteschat/client/lib/waiting";
-import { barStep, makingImage, showsActivity, splitCanceled } from "@agenteschat/client/lib/work";
+} from "@dougbot/client/lib/missions";
+import { noAiCardOf } from "@dougbot/client/lib/no-ai";
+import { isTalkerReply, noticeOf, routineReportText, talkerWaited } from "@dougbot/client/lib/notices";
+import { brainUnavailableOf, isOfflineNotice } from "@dougbot/client/lib/outages";
+import { can, leavesChannel, makesAgents, managesChannel, setsAutoReply } from "@dougbot/client/lib/permissions";
+import { modelStandInText } from "@dougbot/client/lib/plan-usage";
+import { reachHandoffs } from "@dougbot/client/lib/reach";
+import { localMeta, replyOf } from "@dougbot/client/lib/reply";
+import { reviewDecisionOf } from "@dougbot/client/lib/review-decision";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
+import { isReminderMessage, reminderBody, routineReplyOf } from "@dougbot/client/lib/routines";
+import { picksForMe, replyAloneKey } from "@dougbot/client/lib/routing";
+import { ConversationSeat } from "@dougbot/client/lib/seat-context";
+import { seenMessageId } from "@dougbot/client/lib/seen";
+import { simpleScreens } from "@dougbot/client/lib/simple-mode";
+import { hiddenCount, tasksOf, todayStart } from "@dougbot/client/lib/task-manager";
+import { contextMarks, hiddenByThreads, rangeCandidates, threadStartOf } from "@dougbot/client/lib/threads";
+import { buildTimeline, lastPostedId, mergeTimeline, type TimelineItem } from "@dougbot/client/lib/timeline";
+import { usageWaitOf } from "@dougbot/client/lib/usage-pause";
+import { appVia } from "@dougbot/client/lib/via";
+import { listedText, voiceOf } from "@dougbot/client/lib/voice";
+import { waitingAway, waitingNotification } from "@dougbot/client/lib/waiting";
+import { barStep, makingImage, showsActivity, splitCanceled } from "@dougbot/client/lib/work";
 import {
   AffixInput,
   Avatar,
@@ -229,7 +223,7 @@ import {
   Spinner,
   skeletonOnScreen,
   type VoiceNotice,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, Navigate, useNavigate, useRouter } from "@tanstack/react-router";
 import {
@@ -261,6 +255,8 @@ import { useConversationLook } from "@/chat/look";
 import { MessageBody } from "@/chat/MessageBody";
 import { useBrowserOffline } from "@/chat/offline";
 import { readingLanding } from "@/chat/reading";
+// Doug: the text a failed run copies.
+import { failedRunDetails } from "@/chat/run-details";
 import {
   blockRowByRun,
   nextSlots,
@@ -387,6 +383,7 @@ import {
   WaitMark,
 } from "@/components/RequestCard";
 import { ReturnLine } from "@/components/ReturnLine";
+import { SectorPills } from "@/components/SectorPills";
 import { SidePanel } from "@/components/SidePanel";
 import { ActivitySky, ChannelWelcome, chartColorOf, colorOf } from "@/components/Sky";
 import { isStoppable, StopButton, useContinueRun, useStopRun, useWasContinued } from "@/components/StopRun";
@@ -409,6 +406,7 @@ import {
 } from "@/components/threads/ThreadLines";
 import { UsageWaitCancel, UsageWaitClosed } from "@/components/UsagePauseCard";
 import { ReviewCards } from "@/components/video-review/ReviewCards";
+import { ReviewDecisionHead } from "@/components/video-review/ReviewDecision";
 import { PushAskContext, PushAskInline, usePushAsk } from "@/components/WebPush";
 import { useWikiLinkRenderer } from "@/components/WikiLinks";
 import { BarAlsoTyping, BarPhrase, BarStep, ConsultClock, TypingMark, WorkingStack } from "@/components/WorkingLine";
@@ -424,7 +422,7 @@ import { useHeaderSearch } from "@/hooks/useWorkspaceSearch";
 import { TYPED_VALUES } from "@/i18n";
 import { onAgentPanel, takeAgentPanel } from "@/lib/agent-panel-ask";
 import { onChannelDetails, takeChannelDetails } from "@/lib/channel-details";
-import { selectingIn } from "@/lib/context-menu";
+import { copyText, selectingIn } from "@/lib/context-menu";
 import { desktopPlatform, thisMac, useDocumentTitle } from "@/lib/desktop";
 import { holdOnScreen } from "@/lib/island";
 import { composes, typingInField } from "@/lib/keys";
@@ -2886,6 +2884,7 @@ function ChannelView({
                             </p>
                           ) : (
                             <>
+                              {dmAgent && isRightHand(dmAgent) && <SectorPills agentId={dmAgent.id} />}
                               <Composer
                                 header={
                                   quote ? (
@@ -3928,7 +3927,8 @@ function ConnectionBanner({ status }: { status: ConnectionStatus }) {
   return (
     <p className="channel__conn ac-iconline" data-back={!down || undefined} role="status">
       <Icon name={down ? "cloud" : "check"} size={16} />
-      {down ? t("channel.offline") : t("channel.backOnline")}
+      {/* Doug: no internet and a server that is only unreachable read differently. */}
+      {down ? t(offline ? "channel.offline" : "channel.serverReconnecting") : t("channel.backOnline")}
     </p>
   );
 }
@@ -4373,6 +4373,8 @@ export const TimelineMessage = memo(function TimelineMessage({
   const { org, me } = useOrg();
   const dismissRun = useDismissRun();
   const simple = simpleScreens(org);
+  // Doug: copy a failed run's details (error, code, run id) for a report.
+  const toast = useToast();
   const liveFailed = live?.status === "failed";
   // Refused by the workspace's standing: its own words, not the server's English.
   const refusal = liveFailed ? restrictionLine(t, live?.errorCode, live?.errorParams) : null;
@@ -4434,7 +4436,9 @@ export const TimelineMessage = memo(function TimelineMessage({
   // A voice message's own text is what was typed beside its recording: its words are in the player.
   const said = reminderBody(listedText(stopped.body, m.meta), m.meta);
   // A long work's anchor once it's over: no promise left, and dimmed (its line says how it ended).
-  const body = m.longWork ? workAnchorBody(t, said, m.meta, m.longWork) : said;
+  // A review's decision: its body is the agent's instructions, shown whole only in the technical style.
+  const decided = simple ? reviewDecisionOf(m.body, m.meta) : null;
+  const body = decided ? decided.said : m.longWork ? workAnchorBody(t, said, m.meta, m.longWork) : said;
   const workOver = Boolean(m.longWork && workIsOver(m.longWork));
   // The person's pick on a choice card (ADR 0124): one compact line.
   const choiceReply = Boolean(m.meta?.choiceReply);
@@ -4629,7 +4633,7 @@ export const TimelineMessage = memo(function TimelineMessage({
       !(question && body.trim() === question.text.trim()) &&
       !(voice && !body.trim()) &&
       !choiceReply &&
-      Boolean(body.trim() || (!card && !stopped.canceled && artifacts.length === 0 && !media));
+      Boolean(decided || body.trim() || (!card && !stopped.canceled && artifacts.length === 0 && !media));
   // People see name, time and text; the date, model and tokens wait behind the time. An agent's sticker after its
   // reply carries the reply's run: its model and tokens are the reply's, never said twice.
   const usage = m.author.type === "agent" && !mediaAfter ? messageUsage(m) : null;
@@ -4818,14 +4822,44 @@ export const TimelineMessage = memo(function TimelineMessage({
                   </span>
                 </p>
                 {live.agentId && <FailedRunFix code={live.errorCode} agentId={live.agentId} />}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  iconOnly
-                  icon="close"
-                  aria-label={t("common.close")}
-                  onClick={() => dismissRun(live.runId)}
-                />
+                {/* Doug: the copy button joins the close ×, both in the row's last column, 8 apart. */}
+                <span className="ac-msg__error-acts">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
+                    icon="copy"
+                    aria-label={t("channel.copyRunDetails")}
+                    title={t("channel.copyRunDetails")}
+                    onClick={() =>
+                      void copyText(
+                        failedRunDetails({
+                          agent: name,
+                          line:
+                            runFailureLine(
+                              t,
+                              name,
+                              { code: live.errorCode, params: live.errorParams },
+                              i18n.language,
+                            ) ?? t("channel.runFailedNoReason", { agent: name }),
+                          ...(live.error ? { error: live.error } : {}),
+                          ...(live.errorCode ? { code: live.errorCode } : {}),
+                          runId: live.runId,
+                          at: new Date(),
+                        }),
+                        () => toast.show(t("channel.runDetailsCopied")),
+                      )
+                    }
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
+                    icon="close"
+                    aria-label={t("common.close")}
+                    onClick={() => dismissRun(live.runId)}
+                  />
+                </span>
               </div>
             )}
             <LiveTools work={live.work ?? []} agentName={name} color={colorOf(agent)} steerNote={steerNote} stopped />
@@ -4837,25 +4871,28 @@ export const TimelineMessage = memo(function TimelineMessage({
             {routine && report && reportOpen && <RoutineReport text={report} />}
             {bodyShown && (
               <MessageText key="body" style={workOver ? { opacity: 0.6 } : undefined}>
-                <ClippedBody lead={talk?.lead}>
-                  {(clip, lead) => (
-                    <MessageBody
-                      className={clip}
-                      body={lead ?? body}
-                      resolveMention={dir.mentionName}
-                      mentionTone={dir.mentionTone}
-                      renderMention={renderMention}
-                      wikiLink={wikiLink}
-                      channelRefs={channelRefsOf(m.meta)}
-                      accent={chartColorOf(agent)}
-                      pinFrom={
-                        m.author.type === "agent" && m.author.id && !m.local && !readOnly
-                          ? { messageId: m.id, agentId: m.author.id }
-                          : null
-                      }
-                    />
-                  )}
-                </ClippedBody>
+                {decided && <ReviewDecisionHead decision={decided} mention={renderMention} />}
+                {(!decided || body.trim()) && (
+                  <ClippedBody lead={talk?.lead}>
+                    {(clip, lead) => (
+                      <MessageBody
+                        className={clip}
+                        body={lead ?? body}
+                        resolveMention={dir.mentionName}
+                        mentionTone={dir.mentionTone}
+                        renderMention={renderMention}
+                        wikiLink={wikiLink}
+                        channelRefs={channelRefsOf(m.meta)}
+                        accent={chartColorOf(agent)}
+                        pinFrom={
+                          m.author.type === "agent" && m.author.id && !m.local && !readOnly
+                            ? { messageId: m.id, agentId: m.author.id }
+                            : null
+                        }
+                      />
+                    )}
+                  </ClippedBody>
+                )}
               </MessageText>
             )}
             {choiceReply && (

@@ -1,5 +1,5 @@
-import { and, asc, type Database, type Executor, eq, schema } from "@agenteschat/db";
-import { serverText } from "@agenteschat/i18n";
+import { and, asc, type Database, type Executor, eq, schema } from "@dougbot/db";
+import { serverText } from "@dougbot/i18n";
 import { getAgentCached } from "../agents";
 import { accountablePerson, runAuthorityById } from "../authority";
 import { emailLocale } from "../email";
@@ -10,12 +10,12 @@ const { accounts, organizationMembers, organizationSettings, users } = schema;
 
 /**
  * What an agent writes on GitHub says whose agent it is (ADR 0156): every body ends with one line naming the agent and
- * the person it works for ("Theo, agente de Ana no agentes.chat", in the workspace owner's language), and commits
+ * the person it works for ("Theo, agente de Ana no DougBot", in the workspace owner's language), and commits
  * credit that person (`Co-authored-by`) when they linked GitHub to sign in, never with their email. Every commit also
  * ends with the agent's own line (`agentCoAuthor`), unless a person asked an agent to turn it off for the workspace.
  */
 
-/** The agents' address in their own line: GitHub shows the account that verified it, agentes.chat's. */
+/** The agents' address in their own line: GitHub shows the account that verified it, DougBot's. */
 export const AGENT_CO_AUTHOR_EMAIL = "noreply@agentes.chat";
 
 /** Where the line starts in a body, so an edit can replace it. */

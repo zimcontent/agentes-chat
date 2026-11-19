@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { eq, migrationsFolder, schema, sql } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
-import { systemText } from "@agenteschat/providers";
+import { eq, migrationsFolder, schema, sql } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
+import { systemText } from "@dougbot/providers";
 import {
   addChannelMember,
   consolidateItem,
@@ -410,6 +410,6 @@ describe("list_artifacts for agents", () => {
       },
     );
     expect(out?.content).toContain(`${report.id} "Relatório de visitas" (document, v1,`);
-    expect(out?.content).toContain("from: here; created by @dev");
+    expect(out?.content).toContain("from: here; in no folder; created by @dev");
   });
 });
