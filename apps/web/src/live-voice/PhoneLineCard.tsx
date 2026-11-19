@@ -1,4 +1,10 @@
-import { usePhoneLine, useRemovePhoneLine, useSavePhoneLine } from "@agenteschat/client";
+import {
+  type PhoneEngine,
+  usePhoneLine,
+  useRemovePhoneLine,
+  useSavePhoneLine,
+  useSetPhoneEngine,
+} from "@agenteschat/client";
 import { errorText } from "@agenteschat/client/lib/errors";
 import {
   Button,
@@ -12,7 +18,9 @@ import {
   Input,
   List,
   Locked,
+  Segmented,
 } from "@agenteschat/ui";
+import { Link } from "@tanstack/react-router";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
@@ -20,7 +28,8 @@ import { useOrg } from "@/components/org-context";
 /*
  * Configurações › Voz, phone calls (docs/adr/doug-0035-phone-calls.md): an owner connects their own calling service (its
  * address and token) once, for every workspace they own; the Doug here calls through an owner's line. Everyone sees
- * whether calls are on and the number they go out from; only the owner sees and changes their own line.
+ * whether calls are on and the number they go out from; only the owner sees and changes their own line. Who configures
+ * picks the calls' voice: GPT-Live 1, or the house Qwen paid by the second from the workspace's credits (Mídia).
  */
 
 const TOKEN_MIN = 16;
@@ -31,6 +40,8 @@ export function PhoneLineCard() {
   const view = usePhoneLine(org.id).data;
   const save = useSavePhoneLine(org.id);
   const remove = useRemovePhoneLine(org.id);
+  const setEngine = useSetPhoneEngine(org.id);
+  const [engineError, setEngineError] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState("");
   const [token, setToken] = useState("");
@@ -121,6 +132,46 @@ export function PhoneLineCard() {
         {on && view.fromNumber && (
           <div className="ac-list__row jev__body">
             <span className="small muted">{t("liveVoice.phoneLine.fromHere", { number: view.fromNumber })}</span>
+          </div>
+        )}
+        {on && (
+          <div className="ac-list__row jev__body">
+            <span className="list-col">
+              <span className="ai-accounts__name">{t("liveVoice.phoneLine.voice")}</span>
+              <Locked when={setEngine.isPending}>
+                <Segmented<PhoneEngine>
+                  size="sm"
+                  label={t("liveVoice.phoneLine.voice")}
+                  value={view.engine}
+                  disabled={!view.canChoose}
+                  onValueChange={(engine) => {
+                    setEngineError(null);
+                    setEngine.mutate(engine, { onError: (e) => setEngineError(errorText(t, e)) });
+                  }}
+                  options={view.engines.map((engine) => ({
+                    value: engine,
+                    label: t(engine === "qwen" ? "liveVoice.phoneLine.qwen" : "liveVoice.phoneLine.gptLive"),
+                  }))}
+                />
+              </Locked>
+              <span className={engineError ? "small ac-field__error" : "small muted"}>
+                {engineError ??
+                  (view.engine === "qwen"
+                    ? view.credits
+                      ? t("liveVoice.phoneLine.qwenCredits", {
+                          perMinute: view.credits.perMinute,
+                          balance: view.credits.balance,
+                          minutes: Math.floor(view.credits.balance / view.credits.perMinute),
+                        })
+                      : t("liveVoice.phoneLine.qwenNoWallet")
+                    : t("liveVoice.phoneLine.gptLiveHint"))}
+              </span>
+              {view.engine === "qwen" && view.credits && (
+                <Link to="/org/$orgId/media" params={{ orgId: org.id }} className="small">
+                  {t("liveVoice.phoneLine.addCredits")}
+                </Link>
+              )}
+            </span>
           </div>
         )}
         {view.mine ? (

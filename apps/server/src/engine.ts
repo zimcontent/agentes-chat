@@ -230,6 +230,9 @@ export function buildEngine(o: EngineOptions) {
     keyWrapper: adapters.keyWrapper,
     keyWrappers,
     publicUrl: config.PUBLIC_URL,
+    // The house voice is paid from the same credits as Mídia (ADR doug-0011).
+    media: adapters.zimMedia ?? null,
+    log: o.log,
   };
   const tuning = { kinds: config.EMBEDDINGS_KINDS, queryTimeoutMs: config.EMBEDDINGS_QUERY_TIMEOUT_MS };
   const embeddings: GatewayEmbeddings | undefined =

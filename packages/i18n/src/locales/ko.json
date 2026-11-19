@@ -10740,7 +10740,14 @@
       "save": "연결",
       "footer": "회선은 이 워크스페이스가 아닌 당신의 것입니다. 당신이 소유한 모든 워크스페이스에서 쓰입니다. 각 통화 요금은 당신의 서비스에서 청구됩니다.",
       "removeTitle": "전화 회선 연결을 끊을까요?",
-      "removeText": "당신이 소유한 워크스페이스의 Doug는 더 이상 이 회선으로 전화를 걸지 않습니다."
+      "removeText": "당신이 소유한 워크스페이스의 Doug는 더 이상 이 회선으로 전화를 걸지 않습니다.",
+      "voice": "통화 음성",
+      "gptLive": "GPT-Live 1",
+      "qwen": "Qwen Audio 3.1 Flash",
+      "gptLiveHint": "OpenAI의 음성으로, 통화 서비스 자체 키를 씁니다.",
+      "qwenCredits": "이 워크스페이스의 크레딧으로 결제: 분당 {{perMinute}} 크레딧, 초 단위. 잔액: {{balance}} 크레딧, 약 {{minutes}}분.",
+      "qwenNoWallet": "크레딧으로 결제하지만 이 서버가 지금은 읽을 수 없습니다.",
+      "addCredits": "크레딧 구매"
     },
     "voices": {
       "feminine": "여성",

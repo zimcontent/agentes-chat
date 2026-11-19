@@ -50,3 +50,23 @@ minute to a Brazilian mobile (Twilio US$ 0.066, GPT-Live US$ 0.05) and US$ 0.064
   transcript. Bringing the call's delegations to the Doug while it lasts (as the call with one agent does, ADR doug-0006
   §9) is the next step.
 - Voicemail is not told apart from a person yet: the service should detect it and leave a short message or hang up.
+
+## Addendum 2026-11-19: the calls' voice, GPT-Live 1 or the house Qwen paid in credits
+
+Who configures a workspace picks the voice of its calls in Configurações › Voz › Ligações por telefone
+(`organization_settings.phone_engine`, `PUT …/phone-line/engine`):
+
+- **GPT-Live 1** (`gpt-live`), as above: the calling service's own OpenAI key.
+- **Qwen Audio 3.1 Realtime Flash** (`qwen`), through EmpirioLabs, on the house key kept in the calling service. It
+  hears 16 kHz PCM and speaks 24 kHz PCM, so the service converts the phone's µ-law both ways; it detects the person
+  talking over it itself (`input_audio_buffer.speech_started`), and greets when asked with a text item and
+  `response.create`. Measured on 2026-11-19: 12.5 audio tokens a second, so its own cost is about US$ 0.005 to 0.01 a
+  minute, against GPT-Live's US$ 0.05.
+
+The house voice is paid from the workspace's credits, the same wallet as Mídia (ADR doug-0011): Zim Mídia owns the price
+(`CALL_CREDITS_PER_MINUTE_QWEN`, 100 credits a minute by default, 1,000 credits = US$ 1, covering the voice and the
+carrier's minute) and the charge (`POST /v1/wallets/{org}/calls`, by the second, once per call id, never below zero).
+Before a call the Doug checks there are credits for at least a minute (`PHONE_MIN_SECONDS`) and tells the service how
+long they pay for (`maxSeconds`, the call's time limit); when the service reports the end, the call is charged and its
+credits kept on `phone_calls.credits`. The line says which voices it can use (`GET <url>/line` answers `engines`), and a
+call refuses a voice the line can't use. A charge that fails is logged and not retried yet.

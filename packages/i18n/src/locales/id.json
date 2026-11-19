@@ -10797,7 +10797,14 @@
       "save": "Hubungkan",
       "footer": "Saluran ini milikmu, bukan milik workspace ini: berlaku untuk setiap workspace milikmu. Setiap panggilan ditagih oleh layananmu.",
       "removeTitle": "Putuskan saluran teleponmu?",
-      "removeText": "Doug di workspace milikmu berhenti menelepon lewat saluran ini."
+      "removeText": "Doug di workspace milikmu berhenti menelepon lewat saluran ini.",
+      "voice": "Suara panggilan",
+      "gptLive": "GPT-Live 1",
+      "qwen": "Qwen Audio 3.1 Flash",
+      "gptLiveHint": "Suara OpenAI, dengan kunci layanan panggilan itu sendiri.",
+      "qwenCredits": "Dibayar dengan kredit workspace ini: {{perMinute}} kredit per menit, dihitung per detik. Saldo: {{balance}} kredit, sekitar {{minutes}} mnt.",
+      "qwenNoWallet": "Dibayar dengan kredit, yang tidak bisa dibaca server ini sekarang.",
+      "addCredits": "Beli kredit"
     },
     "voices": {
       "feminine": "Feminin",

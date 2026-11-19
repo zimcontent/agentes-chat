@@ -136,6 +136,9 @@ function fakeZim(balance = 100) {
       balance: 3100,
     }),
     topups: async () => [],
+    chargeCall: async () => {
+      throw new Error("not in these tests");
+    },
   };
   return { zim, state };
 }

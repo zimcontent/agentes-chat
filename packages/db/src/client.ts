@@ -681,6 +681,12 @@ export const EXTRA_COLUMNS = [
     "ended_at" timestamp with time zone
   )`,
   `CREATE INDEX IF NOT EXISTS "phone_calls_org_id_created_at_index" ON "phone_calls" ("org_id", "created_at")`,
+  // The voice of the calls (docs/adr/doug-0035-phone-calls.md, addendum 2026-11-19): chosen per workspace, offered by
+  // the line, and kept on each call with what it cost in credits.
+  `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "phone_engine" text NOT NULL DEFAULT 'gpt-live'`,
+  `ALTER TABLE "phone_lines" ADD COLUMN IF NOT EXISTS "engines" jsonb NOT NULL DEFAULT '["gpt-live"]'::jsonb`,
+  `ALTER TABLE "phone_calls" ADD COLUMN IF NOT EXISTS "engine" text NOT NULL DEFAULT 'gpt-live'`,
+  `ALTER TABLE "phone_calls" ADD COLUMN IF NOT EXISTS "credits" integer`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

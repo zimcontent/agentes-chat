@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
+import type { ZimMedia } from "@agenteschat/adapters";
 import { and, eq, schema } from "@agenteschat/db";
 import {
   createPhoneToolSource,
@@ -11,6 +12,7 @@ import {
   removePhoneLine,
   rightHandId,
   savePhoneLine,
+  setPhoneEngine,
   type ToolContext,
 } from "../src";
 import { addMember, type Fixture, setup } from "./fixtures";
@@ -34,7 +36,7 @@ function service() {
     const u = String(url);
     const auth = new Headers(init?.headers).get("authorization");
     if (auth !== `Bearer ${TOKEN}`) return Response.json({ error: "no" }, { status: 401 });
-    if (u === `${URL_}/line`) return Response.json({ from: "+19788980563" });
+    if (u === `${URL_}/line`) return Response.json({ from: "+19788980563", engines: ["gpt-live", "qwen", "other"] });
     if (u === `${URL_}/call`) {
       calls.push(JSON.parse(String(init?.body)));
       return Response.json({ sid: "CA123" });
@@ -44,8 +46,9 @@ function service() {
   return { fetch, calls };
 }
 
-function deps(fetch: typeof globalThis.fetch): PhoneDeps {
+function deps(fetch: typeof globalThis.fetch, media: ZimMedia | null = null): PhoneDeps {
   return {
+    media,
     db: f.db,
     pubsub: f.pubsub,
     keyWrapper: f.keyWrapper,
@@ -95,6 +98,10 @@ describe("an owner's phone line", () => {
       fromNumber: "",
       mine: null,
       editable: true,
+      engine: "gpt-live",
+      engines: ["gpt-live"],
+      canChoose: true,
+      credits: null,
     });
     await expect(
       savePhoneLine(d, f.owner.id, f.org.id, { url: URL_, token: "wrong-token-0123456789" }),
@@ -108,6 +115,10 @@ describe("an owner's phone line", () => {
       fromNumber: "+19788980563",
       mine: { url: URL_, fromNumber: "+19788980563", hint: "abcd" },
       editable: true,
+      engine: "gpt-live",
+      engines: ["gpt-live", "qwen"],
+      canChoose: true,
+      credits: null,
     });
     const [row] = await f.db.select().from(schema.phoneLines);
     expect(JSON.stringify(row)).not.toContain("line-token");
@@ -117,6 +128,10 @@ describe("an owner's phone line", () => {
       fromNumber: "+19788980563",
       mine: null,
       editable: false,
+      engine: "gpt-live",
+      engines: ["gpt-live", "qwen"],
+      canChoose: true,
+      credits: null,
     });
     await expect(savePhoneLine(d, admin.id, f.org.id, { url: URL_, token: TOKEN })).rejects.toThrow("owner");
     expect(await removePhoneLine(d, f.owner.id, f.org.id)).toMatchObject({ state: "off", mine: null });
@@ -208,5 +223,74 @@ describe("the Doug's phone_call", () => {
     expect(await handlePhoneCallReport(d, call?.id as string, secret, { status: "failed", lines: [] })).toBe(true);
     const [ended] = await f.db.select().from(schema.phoneCalls);
     expect(ended?.status).toBe("failed");
+  });
+});
+
+/** A fake credits wallet: a price per minute, a balance, and the charges it took. */
+function wallet(balance: number, perMinute = 100) {
+  const charges: { orgId: string; idempotencyKey: string; engine?: string; seconds: number }[] = [];
+  const media = {
+    catalog: async () => ({ models: [], packs: [], calls: { qwen: { creditsPerMinute: perMinute } } }),
+    balance: async () => ({ balance }),
+    chargeCall: async (orgId: string, input: { idempotencyKey: string; engine?: string; seconds: number }) => {
+      charges.push({ orgId, ...input });
+      const credits = Math.ceil((perMinute * input.seconds) / 60);
+      balance -= credits;
+      return { credits, unpaid: 0, balance, repeated: false };
+    },
+  } as unknown as ZimMedia;
+  return { media, charges };
+}
+
+describe("the house voice (Qwen), paid in credits", () => {
+  test("chosen by who configures; only with a wallet", async () => {
+    f = await setup({ rightHand: true });
+    await expect(setPhoneEngine(deps(service().fetch), f.owner.id, f.org.id, "qwen")).rejects.toThrow("credits");
+    const { media } = wallet(500);
+    const d = deps(service().fetch, media);
+    const member = await addMember(f.db, f.org.id, "member", "Caio");
+    await expect(setPhoneEngine(d, member.id, f.org.id, "qwen")).rejects.toThrow();
+    await expect(setPhoneEngine(d, f.owner.id, f.org.id, "nope")).rejects.toThrow("Unknown voice");
+    const view = await setPhoneEngine(d, f.owner.id, f.org.id, "qwen");
+    expect(view).toMatchObject({ engine: "qwen", credits: { perMinute: 100, balance: 500 } });
+  });
+
+  test("no call without a minute of credits; a call lasts what they pay for, and is charged by the second", async () => {
+    f = await setup({ rightHand: true });
+    const fake = service();
+    const poor = wallet(50);
+    await savePhoneLine(deps(fake.fetch, poor.media), f.owner.id, f.org.id, { url: URL_, token: TOKEN });
+    await setPhoneEngine(deps(fake.fetch, poor.media), f.owner.id, f.org.id, "qwen");
+    const { ctx } = await dougRun(f.owner.id);
+    const [tool] = await createPhoneToolSource(deps(fake.fetch, poor.media)).tools(ctx);
+    const refused = await tool?.execute({ to: "+5511990173148", brief: "Diga oi." }, ctx);
+    expect(refused?.isError).toBe(true);
+    expect(refused?.content).toContain("Not enough credits");
+    expect(fake.calls).toHaveLength(0);
+
+    const rich = wallet(1000);
+    const d = deps(fake.fetch, rich.media);
+    const out = await tool?.execute({ to: "+5511990173148", brief: "Diga oi." }, ctx);
+    expect(out?.isError).toBe(true); // the tool keeps the deps it was made with
+    const [paid] = await createPhoneToolSource(d).tools(ctx);
+    expect((await paid?.execute({ to: "+5511990173148", brief: "Diga oi." }, ctx))?.isError).toBeFalsy();
+    const sent = fake.calls[0] as { engine: string; maxSeconds: number; report: string };
+    expect(sent.engine).toBe("qwen");
+    expect(sent.maxSeconds).toBe(600);
+    const [call] = await f.db.select().from(schema.phoneCalls);
+    expect(call?.engine).toBe("qwen");
+    const secret = sent.report.split("/").at(-1) as string;
+    const lines = [
+      { who: "agent", text: "Oi!" },
+      { who: "person", text: "Oi, Doug." },
+    ];
+    expect(await handlePhoneCallReport(d, call?.id as string, secret, { status: "ended", seconds: 90, lines })).toBe(
+      true,
+    );
+    expect(rich.charges).toEqual([
+      { orgId: f.org.id, idempotencyKey: call?.id as string, engine: "qwen", seconds: 90 },
+    ]);
+    const [ended] = await f.db.select().from(schema.phoneCalls);
+    expect(ended?.credits).toBe(150);
   });
 });

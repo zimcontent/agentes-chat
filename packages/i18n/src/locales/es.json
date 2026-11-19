@@ -11548,7 +11548,14 @@
       "save": "Conectar",
       "footer": "La línea es tuya, no de este workspace: sirve para cada workspace que es tuyo. Cada llamada la cobra tu servicio.",
       "removeTitle": "¿Desconectar tu línea telefónica?",
-      "removeText": "El Doug de los workspaces que son tuyos deja de llamar por ella."
+      "removeText": "El Doug de los workspaces que son tuyos deja de llamar por ella.",
+      "voice": "Voz de las llamadas",
+      "gptLive": "GPT-Live 1",
+      "qwen": "Qwen Audio 3.1 Flash",
+      "gptLiveHint": "La voz de OpenAI, con la clave del propio servicio de llamadas.",
+      "qwenCredits": "Se paga con los créditos de este workspace: {{perMinute}} créditos por minuto, por segundo. Saldo: {{balance}} créditos, unos {{minutes}} min.",
+      "qwenNoWallet": "Se paga con créditos, que este servidor no puede leer ahora.",
+      "addCredits": "Comprar créditos"
     },
     "voices": {
       "feminine": "Femenina",

@@ -399,6 +399,11 @@ export const organizationSettings = pgTable("organization_settings", {
   routerModel: text(),
   /** How the agents behave on voice calls here, on top of the base (docs/adr/doug-0006-live-voice.md §11). */
   liveCallNotes: text(),
+  /**
+   * The voice of the Doug's phone calls here (docs/adr/doug-0035-phone-calls.md): `gpt-live` (GPT-Live 1, the
+   * calling service's own key) or `qwen` (Qwen Audio 3.1 Flash, the house key, paid in the workspace's credits).
+   */
+  phoneEngine: text().notNull().default("gpt-live"),
   /** Model that writes thread/period summaries. Null = `SUMMARY_MODEL` of the deployment. */
   summaryModel: text(),
   /** IANA time zone used as the default for routines, e.g. `America/Sao_Paulo`. */

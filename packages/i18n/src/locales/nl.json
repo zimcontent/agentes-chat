@@ -11251,7 +11251,14 @@
       "save": "Koppelen",
       "footer": "De lijn is van jou, niet van deze workspace: hij geldt voor elke workspace die van jou is. Elk gesprek wordt door je dienst gefactureerd.",
       "removeTitle": "Je telefoonlijn ontkoppelen?",
-      "removeText": "De Doug van de workspaces die van jou zijn belt er niet meer mee."
+      "removeText": "De Doug van de workspaces die van jou zijn belt er niet meer mee.",
+      "voice": "Stem van de gesprekken",
+      "gptLive": "GPT-Live 1",
+      "qwen": "Qwen Audio 3.1 Flash",
+      "gptLiveHint": "De stem van OpenAI, met de eigen sleutel van de beldienst.",
+      "qwenCredits": "Betaald met de credits van deze workspace: {{perMinute}} credits per minuut, per seconde. Saldo: {{balance}} credits, ongeveer {{minutes}} min.",
+      "qwenNoWallet": "Betaald met credits, die deze server nu niet kan lezen.",
+      "addCredits": "Credits kopen"
     },
     "voices": {
       "feminine": "Vrouwelijk",

@@ -20,6 +20,8 @@ export const phoneLines = pgTable("phone_lines", {
   wrappedDataKey: text().notNull(),
   kekId: text().notNull(),
   tokenHint: text().notNull(),
+  /** The voices the service can call with, as it says (`gpt-live`, `qwen`). */
+  engines: jsonb().$type<string[]>().notNull().default(["gpt-live"]),
   updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -55,7 +57,11 @@ export const phoneCalls = pgTable(
     status: text().notNull().default("calling"),
     hookHash: text().notNull(),
     providerCallId: text(),
+    /** The voice it went out with (`gpt-live`, `qwen`). */
+    engine: text().notNull().default("gpt-live"),
     seconds: integer(),
+    /** Credits charged for it (a house voice only); null until charged. */
+    credits: integer(),
     lines: jsonb().$type<PhoneCallLine[]>().notNull().default([]),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp({ withTimezone: true }),

@@ -1,5 +1,5 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import type { KeyWrapper, PubSub } from "@agenteschat/adapters";
+import type { KeyWrapper, PubSub, ZimMedia } from "@agenteschat/adapters";
 import { and, type Database, eq, schema } from "@agenteschat/db";
 import { getAgent } from "./agents";
 import { recordAudit } from "./audit";
@@ -28,7 +28,17 @@ export interface PhoneDeps {
   publicUrl: string;
   fetch?: typeof fetch;
   now?: () => Date;
+  /** The credit wallet (Zim Mídia, ADR doug-0011) that pays the house voice; null: only GPT-Live calls. */
+  media?: ZimMedia | null;
+  log?: { warn(message: string, extra?: Record<string, unknown>): void };
 }
+
+/** The voices a call can go out with: GPT-Live 1 on the calling service's own key, or the house Qwen paid in credits. */
+export const PHONE_ENGINES = ["gpt-live", "qwen"] as const;
+export type PhoneEngine = (typeof PHONE_ENGINES)[number];
+const isEngine = (v: unknown): v is PhoneEngine => PHONE_ENGINES.includes(v as PhoneEngine);
+/** A house-voice call needs credits for at least this long to go out. */
+export const PHONE_MIN_SECONDS = 60;
 
 const AAD = (userId: string) => `phone-line|${userId}`;
 const hash = (secret: string) => createHash("sha256").update(secret).digest("hex");
@@ -60,6 +70,13 @@ export interface PhoneLineView {
   mine: { url: string; fromNumber: string; hint: string } | null;
   /** Only an owner connects a line, and only their own. */
   editable: boolean;
+  /** The voice calls here go out with, and the ones the line can use. */
+  engine: PhoneEngine;
+  engines: PhoneEngine[];
+  /** Whether this person may change the voice (`configure`). */
+  canChoose: boolean;
+  /** The house voice's price and the workspace's credits, when the wallet answers. */
+  credits: { perMinute: number; balance: number } | null;
 }
 
 /** The owners of a workspace with a line, the given person's own first. */
@@ -83,11 +100,16 @@ export async function phoneLineView(deps: PhoneDeps, userId: string, orgId: stri
   if (!membership) throw new ForbiddenError();
   const [line] = await linesFor(deps, orgId, userId);
   const [mine] = await deps.db.select().from(schema.phoneLines).where(eq(schema.phoneLines.userId, userId));
+  const engines = (line?.engines ?? ["gpt-live"]).filter(isEngine);
   return {
     state: line ? "ok" : "off",
     fromNumber: line?.fromNumber ?? "",
     mine: mine ? { url: mine.url, fromNumber: mine.fromNumber, hint: mine.tokenHint } : null,
     editable: membership.role === "owner",
+    engine: await phoneEngineOf(deps, orgId),
+    engines: engines.length ? engines : ["gpt-live"],
+    canChoose: can(membership, "configure"),
+    credits: await houseCredits(deps, orgId),
   };
 }
 
@@ -105,9 +127,55 @@ async function checkLine(deps: PhoneDeps, url: string, token: string) {
   }).catch(() => null);
   if (res && (res.status === 401 || res.status === 403))
     throw new ValidationError("The calling service refused this token", "phone.token_invalid");
-  const body = res?.ok ? ((await res.json().catch(() => null)) as { from?: unknown } | null) : null;
+  const body = res?.ok ? ((await res.json().catch(() => null)) as { from?: unknown; engines?: unknown } | null) : null;
   if (!body) throw new ValidationError("Couldn't reach the calling service at that address", "phone.unreachable");
-  return typeof body.from === "string" ? body.from.slice(0, 20) : "";
+  const engines = Array.isArray(body.engines) ? body.engines.filter(isEngine) : [];
+  return {
+    fromNumber: typeof body.from === "string" ? body.from.slice(0, 20) : "",
+    engines: engines.length ? engines : (["gpt-live"] as PhoneEngine[]),
+  };
+}
+
+/** The voice the workspace's calls go out with. */
+export async function phoneEngineOf(deps: Pick<PhoneDeps, "db">, orgId: string): Promise<PhoneEngine> {
+  const [row] = await deps.db
+    .select({ engine: schema.organizationSettings.phoneEngine })
+    .from(schema.organizationSettings)
+    .where(eq(schema.organizationSettings.orgId, orgId));
+  return isEngine(row?.engine) ? row.engine : "gpt-live";
+}
+
+/** The house voice's price per minute and the workspace's credits; null when there is no wallet or it doesn't answer. */
+async function houseCredits(deps: Pick<PhoneDeps, "media">, orgId: string) {
+  if (!deps.media) return null;
+  try {
+    const [catalog, wallet] = await Promise.all([deps.media.catalog(), deps.media.balance(orgId)]);
+    const perMinute = catalog.calls?.qwen?.creditsPerMinute;
+    return typeof perMinute === "number" && perMinute > 0 ? { perMinute, balance: wallet.balance } : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Picks the voice of the workspace's calls (`configure`). The house voice needs the wallet. */
+export async function setPhoneEngine(deps: PhoneDeps, userId: string, orgId: string, engine: string) {
+  const membership = await getMembership(deps.db, userId, orgId);
+  if (!can(membership, "configure")) throw new ForbiddenError();
+  if (!isEngine(engine)) throw new ValidationError("Unknown voice", "phone.engine_unknown");
+  if (engine === "qwen" && !deps.media)
+    throw new ValidationError("The house voice needs credits, which this server doesn't have", "phone.no_credits");
+  await deps.db
+    .insert(schema.organizationSettings)
+    .values({ orgId, phoneEngine: engine })
+    .onConflictDoUpdate({ target: schema.organizationSettings.orgId, set: { phoneEngine: engine } });
+  await recordAudit(deps.db, {
+    orgId,
+    actor: { type: "person", id: userId },
+    action: "phone.engine_changed",
+    target: { type: "phone_line", id: orgId },
+    details: { engine },
+  });
+  return phoneLineView(deps, userId, orgId);
 }
 
 /** Connects or replaces the person's own line (an owner of this workspace): it serves every workspace they own. */
@@ -129,9 +197,9 @@ export async function savePhoneLine(
   const base = `${url.origin}${url.pathname.replace(/\/+$/, "")}`;
   const token = input.token.trim();
   if (!/^[\x21-\x7e]{16,300}$/.test(token)) throw new ValidationError("That isn't a token", "phone.token_invalid");
-  const fromNumber = await checkLine(deps, base, token);
+  const { fromNumber, engines } = await checkLine(deps, base, token);
   const sealed = await sealSecret(deps.keyWrapper, token, AAD(userId));
-  const values = { url: base, fromNumber, ...sealed, tokenHint: token.slice(-4), updatedAt: now(deps) };
+  const values = { url: base, fromNumber, engines, ...sealed, tokenHint: token.slice(-4), updatedAt: now(deps) };
   await deps.db
     .insert(schema.phoneLines)
     .values({ userId, ...values })
@@ -163,7 +231,7 @@ export async function removePhoneLine(deps: PhoneDeps, userId: string, orgId: st
 async function openLine(deps: PhoneDeps, orgId: string, preferUserId: string | null) {
   for (const row of await linesFor(deps, orgId, preferUserId)) {
     const token = await openSecret(deps.keyWrappers, row, AAD(row.userId)).catch(() => null);
-    if (token) return { userId: row.userId, url: row.url, token };
+    if (token) return { userId: row.userId, url: row.url, token, engines: row.engines };
   }
   return null;
 }
@@ -222,6 +290,21 @@ function phoneCallTool(deps: PhoneDeps): ToolDefinition {
       if (!line) return { content: "This workspace has no phone line now.", isError: true };
       const agent = await getAgent(deps.db, ctx.orgId, ctx.agentId);
       if (!agent) return { content: "Agent not found.", isError: true };
+      const engine = await phoneEngineOf(deps, ctx.orgId);
+      if (!line.engines.includes(engine))
+        return { content: `The phone line can't call with the voice chosen here (${engine}) now.`, isError: true };
+      // The house voice is paid in credits: the call goes out only with a minute of them, and lasts what they pay for.
+      let maxSeconds: number | null = null;
+      if (engine === "qwen") {
+        const credits = await houseCredits(deps, ctx.orgId);
+        if (!credits) return { content: "The credits wallet didn't answer: the call can't go out now.", isError: true };
+        maxSeconds = Math.floor((credits.balance / credits.perMinute) * 60);
+        if (maxSeconds < PHONE_MIN_SECONDS)
+          return {
+            content: `Not enough credits for a call: a minute costs ${credits.perMinute} credits and the workspace has ${credits.balance}. Tell the person to add credits in Mídia, or to switch the calls' voice to GPT-Live in Settings › Voice.`,
+            isError: true,
+          };
+      }
       const id = randomUUID();
       const secret = randomBytes(24).toString("hex");
       await deps.db.insert(schema.phoneCalls).values({
@@ -234,6 +317,7 @@ function phoneCallTool(deps: PhoneDeps): ToolDefinition {
         triggerMessageId: ctx.triggerMessageId,
         requestedBy,
         lineUserId: line.userId,
+        engine,
         to,
         brief,
         hookHash: hash(secret),
@@ -247,6 +331,8 @@ function phoneCallTool(deps: PhoneDeps): ToolDefinition {
           about: brief,
           ...(name ? { name } : {}),
           agent: { name: agent.name, role: agent.role },
+          engine,
+          ...(maxSeconds !== null ? { maxSeconds } : {}),
           report: `${deps.publicUrl.replace(/\/+$/, "")}/api/webhooks/phone-call/${id}/${secret}`,
         }),
         signal: AbortSignal.timeout(20_000),
@@ -331,6 +417,18 @@ export async function handlePhoneCallReport(deps: PhoneDeps, callId: string, sec
     .where(and(eq(schema.phoneCalls.id, callId), eq(schema.phoneCalls.hookHash, call.hookHash)))
     .returning({ id: schema.phoneCalls.id });
   if (!ended) return false;
+  // The house voice is charged by the second from the workspace's credits, once (the call's id is the key).
+  if (call.engine === "qwen" && deps.media && seconds !== null && seconds > 0) {
+    try {
+      const charged = await deps.media.chargeCall(call.orgId, { idempotencyKey: call.id, engine: "qwen", seconds });
+      await deps.db
+        .update(schema.phoneCalls)
+        .set({ credits: charged.credits })
+        .where(eq(schema.phoneCalls.id, call.id));
+    } catch (error) {
+      deps.log?.warn("phone call not charged", { callId: call.id, error: String(error) });
+    }
+  }
   const said = lines.map((l) => `${l.who === "agent" ? "You" : "Them"}: ${l.text}`).join("\n");
   const length = seconds === null ? "" : ` (${Math.max(1, Math.round(seconds / 60))} min)`;
   const text = answered

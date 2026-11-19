@@ -10746,7 +10746,14 @@
       "save": "接続",
       "footer": "回線はこのワークスペースではなくあなたのものです。あなたがオーナーのすべてのワークスペースで使われます。各通話はあなたのサービスで課金されます。",
       "removeTitle": "電話回線を切断しますか？",
-      "removeText": "あなたがオーナーのワークスペースの Doug は、この回線で電話をかけなくなります。"
+      "removeText": "あなたがオーナーのワークスペースの Doug は、この回線で電話をかけなくなります。",
+      "voice": "通話の音声",
+      "gptLive": "GPT-Live 1",
+      "qwen": "Qwen Audio 3.1 Flash",
+      "gptLiveHint": "OpenAI の音声。通話サービス自身のキーを使います。",
+      "qwenCredits": "このワークスペースのクレジットで支払います：1 分 {{perMinute}} クレジット、秒単位。残高：{{balance}} クレジット（約 {{minutes}} 分）。",
+      "qwenNoWallet": "クレジットで支払いますが、このサーバーは今それを読めません。",
+      "addCredits": "クレジットを購入"
     },
     "voices": {
       "feminine": "女性",

@@ -11627,6 +11627,14 @@ export const en = {
         "The line is yours, not this workspace's: it serves every workspace you own. Each call is billed by your service.",
       removeTitle: "Disconnect your phone line?",
       removeText: "The Doug of the workspaces you own stops calling through it.",
+      voice: "The calls' voice",
+      gptLive: "GPT-Live 1",
+      qwen: "Qwen Audio 3.1 Flash",
+      gptLiveHint: "OpenAI's voice, on the calling service's own key.",
+      qwenCredits:
+        "Paid from this workspace's credits: {{perMinute}} credits a minute, by the second. Balance: {{balance}} credits, about {{minutes}} min.",
+      qwenNoWallet: "Paid in credits, which this server can't read now.",
+      addCredits: "Add credits",
     },
     voices: {
       feminine: "Feminine",

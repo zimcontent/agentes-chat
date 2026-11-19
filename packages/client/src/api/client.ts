@@ -303,6 +303,7 @@ import type {
   PersonUsage,
   PhoneDevice,
   PhoneDeviceInput,
+  PhoneEngine,
   PhoneLine,
   PhoneSignIn,
   PlanServes,
@@ -550,6 +551,7 @@ export interface ApiClient {
     phoneLine(orgId: string): Promise<PhoneLine>;
     savePhoneLine(orgId: string, input: { url: string; token: string }): Promise<PhoneLine>;
     removePhoneLine(orgId: string): Promise<PhoneLine>;
+    setPhoneEngine(orgId: string, engine: PhoneEngine): Promise<PhoneLine>;
     /** Calls people into the call (added to the conversation when needed, mentioned there, rung). */
     invite(
       orgId: string,

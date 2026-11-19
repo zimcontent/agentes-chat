@@ -9114,7 +9114,16 @@ export interface PhoneLine {
   mine: { url: string; fromNumber: string; hint: string } | null;
   /** Only an owner connects a line, and only their own. */
   editable: boolean;
+  /** The voice calls here go out with: GPT-Live 1, or the house Qwen paid in credits. */
+  engine: PhoneEngine;
+  engines: PhoneEngine[];
+  /** Whether this person may change the voice. */
+  canChoose: boolean;
+  /** The house voice's price per minute and the workspace's credits (Mídia). */
+  credits: { perMinute: number; balance: number } | null;
 }
+
+export type PhoneEngine = "gpt-live" | "qwen";
 
 export interface LiveVoice {
   /** `ok`: calls with agents and "Ouvir" work. */

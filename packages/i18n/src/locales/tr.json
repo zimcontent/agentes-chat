@@ -11129,7 +11129,14 @@
       "save": "Bağla",
       "footer": "Hat bu çalışma alanının değil, senin: sahibi olduğun her çalışma alanında geçerli. Her aramayı senin hizmetin ücretlendirir.",
       "removeTitle": "Telefon hattının bağlantısı kesilsin mi?",
-      "removeText": "Sahibi olduğun çalışma alanlarındaki Doug artık bu hattan aramaz."
+      "removeText": "Sahibi olduğun çalışma alanlarındaki Doug artık bu hattan aramaz.",
+      "voice": "Aramaların sesi",
+      "gptLive": "GPT-Live 1",
+      "qwen": "Qwen Audio 3.1 Flash",
+      "gptLiveHint": "OpenAI'ın sesi, arama hizmetinin kendi anahtarıyla.",
+      "qwenCredits": "Bu çalışma alanının kredileriyle ödenir: dakikada {{perMinute}} kredi, saniye bazında. Bakiye: {{balance}} kredi, yaklaşık {{minutes}} dk.",
+      "qwenNoWallet": "Kredilerle ödenir, ama bu sunucu onları şu an okuyamıyor.",
+      "addCredits": "Kredi satın al"
     },
     "voices": {
       "feminine": "Kadın",

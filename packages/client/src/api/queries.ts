@@ -173,6 +173,7 @@ import type {
   Person,
   PersonalTokenInput,
   PersonLimits,
+  PhoneEngine,
   PhoneLine,
   PortalBoard,
   PortalCard,
@@ -583,6 +584,8 @@ export const useSavePhoneLine = (orgId: string) =>
   usePhoneLineChange(orgId, (api, input: { url: string; token: string }) => api.liveVoice.savePhoneLine(orgId, input));
 export const useRemovePhoneLine = (orgId: string) =>
   usePhoneLineChange<void>(orgId, (api) => api.liveVoice.removePhoneLine(orgId));
+export const useSetPhoneEngine = (orgId: string) =>
+  usePhoneLineChange(orgId, (api, engine: PhoneEngine) => api.liveVoice.setPhoneEngine(orgId, engine));
 
 /** A conversation's live voice room, for its Join banner: kept fresh by `live.room` events and a slow poll. */
 export const useChannelLiveRoom = (orgId: string, channelId: string, enabled = true) => {

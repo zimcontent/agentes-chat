@@ -11185,7 +11185,14 @@
       "save": "Verbinden",
       "footer": "Die Leitung gehört dir, nicht diesem Workspace: Sie gilt für jeden Workspace, der dir gehört. Jeder Anruf wird von deinem Dienst abgerechnet.",
       "removeTitle": "Deine Telefonleitung trennen?",
-      "removeText": "Der Doug der Workspaces, die dir gehören, ruft nicht mehr über sie an."
+      "removeText": "Der Doug der Workspaces, die dir gehören, ruft nicht mehr über sie an.",
+      "voice": "Stimme der Anrufe",
+      "gptLive": "GPT-Live 1",
+      "qwen": "Qwen Audio 3.1 Flash",
+      "gptLiveHint": "Die Stimme von OpenAI, mit dem eigenen Schlüssel des Anrufdienstes.",
+      "qwenCredits": "Bezahlt mit den Credits dieses Workspaces: {{perMinute}} Credits pro Minute, sekundengenau. Guthaben: {{balance}} Credits, etwa {{minutes}} Min.",
+      "qwenNoWallet": "Bezahlt mit Credits, die dieser Server gerade nicht lesen kann.",
+      "addCredits": "Credits kaufen"
     },
     "voices": {
       "feminine": "Weiblich",

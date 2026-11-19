@@ -12006,7 +12006,14 @@
       "save": "Połącz",
       "footer": "Linia należy do Ciebie, nie do tego workspace: działa w każdym Twoim workspace. Każde połączenie rozlicza Twoja usługa.",
       "removeTitle": "Odłączyć Twoją linię telefoniczną?",
-      "removeText": "Doug w Twoich workspace przestanie przez nią dzwonić."
+      "removeText": "Doug w Twoich workspace przestanie przez nią dzwonić.",
+      "voice": "Głos połączeń",
+      "gptLive": "GPT-Live 1",
+      "qwen": "Qwen Audio 3.1 Flash",
+      "gptLiveHint": "Głos OpenAI, na własnym kluczu usługi połączeń.",
+      "qwenCredits": "Płatne kredytami tego workspace: {{perMinute}} kredytów za minutę, naliczane co sekundę. Saldo: {{balance}} kredytów, około {{minutes}} min.",
+      "qwenNoWallet": "Płatne kredytami, których ten serwer nie może teraz odczytać.",
+      "addCredits": "Kup kredyty"
     },
     "voices": {
       "feminine": "Żeński",

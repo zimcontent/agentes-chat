@@ -10812,7 +10812,14 @@
       "save": "连接",
       "footer": "线路属于你，而不是此工作区：它适用于你拥有的每个工作区。每次通话由你的服务计费。",
       "removeTitle": "断开你的电话线路？",
-      "removeText": "你拥有的工作区里的 Doug 将不再通过它拨打电话。"
+      "removeText": "你拥有的工作区里的 Doug 将不再通过它拨打电话。",
+      "voice": "通话语音",
+      "gptLive": "GPT-Live 1",
+      "qwen": "Qwen Audio 3.1 Flash",
+      "gptLiveHint": "OpenAI 的语音，使用通话服务自己的密钥。",
+      "qwenCredits": "用此工作区的积分支付：每分钟 {{perMinute}} 积分，按秒计费。余额：{{balance}} 积分，约 {{minutes}} 分钟。",
+      "qwenNoWallet": "用积分支付，但此服务器现在无法读取积分。",
+      "addCredits": "购买积分"
     },
     "voices": {
       "feminine": "女声",

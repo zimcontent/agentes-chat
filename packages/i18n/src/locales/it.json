@@ -11634,7 +11634,14 @@
       "save": "Collega",
       "footer": "La linea è tua, non di questo workspace: vale per ogni workspace tuo. Ogni chiamata è addebitata dal tuo servizio.",
       "removeTitle": "Scollegare la tua linea telefonica?",
-      "removeText": "Il Doug dei workspace tuoi smette di chiamare tramite essa."
+      "removeText": "Il Doug dei workspace tuoi smette di chiamare tramite essa.",
+      "voice": "Voce delle chiamate",
+      "gptLive": "GPT-Live 1",
+      "qwen": "Qwen Audio 3.1 Flash",
+      "gptLiveHint": "La voce di OpenAI, con la chiave del servizio di chiamate stesso.",
+      "qwenCredits": "Pagata con i crediti di questo workspace: {{perMinute}} crediti al minuto, al secondo. Saldo: {{balance}} crediti, circa {{minutes}} min.",
+      "qwenNoWallet": "Pagata in crediti, che questo server ora non riesce a leggere.",
+      "addCredits": "Compra crediti"
     },
     "voices": {
       "feminine": "Femminile",

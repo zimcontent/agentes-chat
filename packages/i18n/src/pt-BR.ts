@@ -11638,6 +11638,13 @@ export const ptBR = {
       footer: "A linha é sua, não deste workspace: vale para todos os workspaces que são seus. Cada ligação é cobrada pelo seu serviço.",
       removeTitle: "Desconectar a sua linha de telefone?",
       removeText: "O Doug dos workspaces que são seus deixa de ligar por ela.",
+      voice: "Voz das ligações",
+      gptLive: "GPT-Live 1",
+      qwen: "Qwen Audio 3.1 Flash",
+      gptLiveHint: "A voz da OpenAI, com a chave do próprio serviço de ligação.",
+      qwenCredits: "Paga com os créditos deste workspace: {{perMinute}} créditos por minuto, cobrados por segundo. Saldo: {{balance}} créditos, uns {{minutes}} min.",
+      qwenNoWallet: "Paga em créditos, que este servidor não consegue ler agora.",
+      addCredits: "Comprar créditos",
     },
     voices: {
       feminine: "Feminina",

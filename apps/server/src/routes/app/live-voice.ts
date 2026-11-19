@@ -23,6 +23,7 @@ import {
   saveLiveVoiceKey,
   savePhoneLine,
   setLiveFloor,
+  setPhoneEngine,
   startLiveSession,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
@@ -63,6 +64,13 @@ const PhoneLine = z
       .nullable()
       .openapi({ description: "The person's own line, only to them: its token's last 4 characters, never the token." }),
     editable: z.boolean().openapi({ description: "Only an owner connects a line, and only their own." }),
+    engine: z.enum(["gpt-live", "qwen"]).openapi({ description: "The voice calls here go out with." }),
+    engines: z.array(z.enum(["gpt-live", "qwen"])).openapi({ description: "The voices the line can use." }),
+    canChoose: z.boolean().openapi({ description: "Whether this person may change the voice (`configure`)." }),
+    credits: z
+      .object({ perMinute: z.number(), balance: z.number() })
+      .nullable()
+      .openapi({ description: "The house voice's price per minute and the workspace's credits (Mídia)." }),
   })
   .openapi("PhoneLine");
 
@@ -210,6 +218,25 @@ export function liveVoiceRoutes(deps: AppDeps) {
         return apiError(c, 429, "rate_limited", "Too many tries. Wait a minute.");
       return c.json(await savePhoneLine(phone(), user.id, c.req.valid("param").orgId, c.req.valid("json")), 200);
     },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/phone-line/engine",
+      tags,
+      security,
+      summary: "Pick the voice of the Doug's phone calls here",
+      description:
+        "Needs `configure`. `gpt-live`: GPT-Live 1 on the calling service's key. `qwen`: Qwen Audio 3.1 Flash on the house key, paid by the second from the workspace's credits (422 `phone.no_credits` without a wallet on this server).",
+      request: { params: OrgParams, body: body(z.object({ engine: z.enum(["gpt-live", "qwen"]) })) },
+      responses: { 200: json(PhoneLine), ...errors },
+    }),
+    async (c) =>
+      c.json(
+        await setPhoneEngine(phone(), c.get("user").id, c.req.valid("param").orgId, c.req.valid("json").engine),
+        200,
+      ),
   );
 
   app.openapi(
