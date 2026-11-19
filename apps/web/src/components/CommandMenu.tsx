@@ -26,8 +26,8 @@ import { SETTINGS_SECTIONS } from "@/pages/settings-sections";
 export const isPaletteShortcut = (e: Pick<KeyboardEvent, "key" | "metaKey" | "ctrlKey" | "altKey" | "shiftKey">) =>
   (e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "k";
 
-/** Opens the palette from elsewhere (a button). */
-export const openPalette = () => window.dispatchEvent(new Event("agentes:palette"));
+// Doug: openPalette lives in shell-events.ts, so the shell can open the palette without loading it (see there).
+export { openPalette } from "./shell-events";
 
 /**
  * The ⌘K palette: go to any channel, agent, person, page or settings section,

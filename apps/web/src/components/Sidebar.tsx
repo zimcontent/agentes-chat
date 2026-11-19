@@ -124,7 +124,6 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";
@@ -192,6 +191,13 @@ import {
 } from "./SidebarSetup";
 import { AgentGlow, AgentTrail, colorOf, WorkspaceSky } from "./Sky";
 import { SetStatusDialog, useSaveStatus } from "./StatusDialog";
+import {
+  closeTabletSidebar,
+  NEW_CHANNEL_EVENT,
+  TABLET_QUERY,
+  toggleSidebar,
+  useSidebarCollapsed,
+} from "./shell-events";
 import { useReviewWords } from "./video-review/words";
 import { WhatsAppMark } from "./whatsapp/WhatsAppMark";
 
@@ -226,50 +232,8 @@ function UnshownRow() {
 }
 export const unshownRow = () => <UnshownRow />;
 
-/** Tablet widths: the sidebar starts as an icon rail (NavDrawer.tsx has the other breakpoints). */
-export const TABLET_QUERY = "(min-width: 761px) and (max-width: 1199px)";
-
-/**
- * The sidebar shrunk to its icon rail, shared with the Mac app's title bar, which carries the toggle there
- * (DesktopTitleBar.tsx). Desktop widths remember the person's choice (in memory too, for when storage is blocked).
- * Tablet widths start as the rail every time: their toggle opens the whole sidebar over the page until a link, Esc,
- * a click outside or the toggle closes it, since the page's tablet layout has no room for it beside.
- */
-const SIDEBAR_EVENT = "agentes:sidebar";
-let sidebarCollapsed = storage.get(STORAGE_KEYS.sidebarCollapsed) === "1";
-let tabletOpen = false;
-const onSidebarChange = (cb: () => void) => {
-  window.addEventListener(SIDEBAR_EVENT, cb);
-  return () => window.removeEventListener(SIDEBAR_EVENT, cb);
-};
-const isTablet = () => typeof window.matchMedia === "function" && window.matchMedia(TABLET_QUERY).matches;
-export const toggleSidebar = () => {
-  if (isTablet()) tabletOpen = !tabletOpen;
-  else {
-    sidebarCollapsed = !sidebarCollapsed;
-    storage.set(STORAGE_KEYS.sidebarCollapsed, sidebarCollapsed ? "1" : "0");
-  }
-  window.dispatchEvent(new Event(SIDEBAR_EVENT));
-};
-/** A tablet's open sidebar back to its rail. */
-export const closeTabletSidebar = () => {
-  if (!tabletOpen) return;
-  tabletOpen = false;
-  window.dispatchEvent(new Event(SIDEBAR_EVENT));
-};
-/** Whether the sidebar is its icon rail at this width (a phone's drawer never reads it), and its toggle. */
-export function useSidebarCollapsed(): [boolean, () => void] {
-  const tablet = useMediaQuery(TABLET_QUERY);
-  const collapsed = useSyncExternalStore(
-    onSidebarChange,
-    () => (tablet ? !tabletOpen : sidebarCollapsed),
-    () => false,
-  );
-  return [collapsed, toggleSidebar];
-}
-
-/** File → Novo canal in the desktop app's menu bar (DesktopMenus.tsx): the sidebar opens its dialog. */
-export const NEW_CHANNEL_EVENT = "agentes:new-channel";
+// Doug: these live in shell-events.ts, so the shell can use them without loading the sidebar (see there).
+export { closeTabletSidebar, NEW_CHANNEL_EVENT, TABLET_QUERY, toggleSidebar, useSidebarCollapsed };
 
 /**
  * On the icon rail every channel would be the same "#": its initials instead ("eng-backend" → "Eb",

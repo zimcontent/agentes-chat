@@ -14,9 +14,9 @@ import {
   useSyncExternalStore,
 } from "react";
 import { useTranslation } from "react-i18next";
-import { openPalette } from "./CommandMenu";
 import { useOrg } from "./org-context";
 import { MyFace, OrgMark } from "./ProfilePhoto";
+import { openPalette } from "./shell-events"; // Doug: not CommandMenu.tsx, see shell-events.ts
 
 /**
  * Breakpoints (layout.css keeps the same numbers):

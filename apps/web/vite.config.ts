@@ -3,6 +3,7 @@ import babel from "@rolldown/plugin-babel";
 import { tanstackRouter } from "@tanstack/router-plugin/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import { bootStyles } from "./vite-boot-styles";
 import { preloadLocale } from "./vite-locale-preload";
 import { precompress } from "./vite-precompress";
 
@@ -18,6 +19,8 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] }),
     preloadLocale(),
+    // Doug: the first paint keeps its stylesheets and their order (vite-boot-styles.ts).
+    bootStyles(),
     precompress(),
   ],
   resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
