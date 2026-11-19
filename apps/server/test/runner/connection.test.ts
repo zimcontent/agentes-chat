@@ -15,8 +15,10 @@ import {
   type ConnectionOptions,
   type Dial,
   RunnerConnection,
+  SERVER_STOP_SPREAD_MS,
   type Socket,
   type SocketHandlers,
+  serverStopDelay,
 } from "../../runner/connection";
 import { MIN_FREE_BYTES } from "../../runner/desktop-session";
 import { RunnerError } from "../../runner/errors";
@@ -297,6 +299,49 @@ test("reconnects when the socket closes, and when no ping arrives for two heartb
   connection.stop();
   expect((await done).reason).toBe("stopped");
 }, 15_000);
+
+test("any frame from the server keeps the link; silence for two heartbeats still drops it", async () => {
+  const { sockets, connection, lines } = setup();
+  const done = connection.run();
+  await waitFor(() => sockets.length === 1);
+  const first = sock(sockets, 0);
+  first.handlers.onOpen();
+  first.frame({ type: "welcome", machineId: "m1", name: "box", heartbeatMs: 30 });
+  // No ping for five heartbeats, but the server keeps talking (a busy server's pings come late).
+  for (let i = 0; i < 10; i++) {
+    await Bun.sleep(15);
+    first.frame({ type: "task.ack", taskId: "t1" });
+  }
+  expect(first.closed).toBe(false);
+  await waitFor(() => first.closed, 1000);
+  expect(lines).toContain("no ping from the server; reconnecting");
+  connection.stop();
+  expect((await done).reason).toBe("stopped");
+});
+
+test("a server that says it is stopping is dialed again at a random point within the spread, not at once", async () => {
+  expect(serverStopDelay(() => 0)).toBe(1000);
+  expect(serverStopDelay(() => 1)).toBe(SERVER_STOP_SPREAD_MS);
+  const { sockets, connection, lines } = setup({ random: () => 0.5 });
+  const done = connection.run();
+  await waitFor(() => sockets.length === 1);
+  const first = sock(sockets, 0);
+  first.handlers.onOpen();
+  first.frame({ type: "welcome", machineId: "m1", name: "box", heartbeatMs: 25_000 });
+  first.handlers.onClose(1001, "server stopping");
+  await waitFor(() => lines.some((l) => l.startsWith("disconnected; reconnecting in")));
+  expect(lines).toContain("disconnected; reconnecting in 15.5 s");
+  connection.reconnect();
+  await waitFor(() => sockets.length === 2, 300);
+  const second = sock(sockets, 1);
+  second.handlers.onOpen();
+  second.frame({ type: "welcome", machineId: "m1", name: "box", heartbeatMs: 25_000 });
+  // Any other drop: the usual backoff.
+  second.handlers.onClose(1006, "");
+  await waitFor(() => lines.includes("disconnected; reconnecting in 1.0 s"));
+  connection.stop();
+  expect((await done).reason).toBe("stopped");
+});
 
 test("reconnect(): drops the welcomed socket and dials again without backoff; while backing off, dials now", async () => {
   const { sockets, connection, lines } = setup({ random: () => 0.99 });
