@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test";
+import { afterEach, expect, test } from "bun:test";
 import { eq, schema } from "@dougbot/db";
 import {
   connectVaultSource,
@@ -18,8 +18,15 @@ import { runAskedBy, SOURCE_PASSWORD, SOURCE_TOKEN, type VaultFixture, vaultSetu
 const TITLE = "Payroll-console-login";
 const USERNAME = "finance-bot@acme.example";
 
+/** Every workspace a test of this file opened, closed after it (each holds a database in memory). */
+const opened: VaultFixture[] = [];
+afterEach(async () => {
+  for (const v of opened.splice(0)) await v.f.close();
+});
+
 async function world() {
   const v = await vaultSetup();
+  opened.push(v);
   v.source.items = [
     {
       ref: "item-1",

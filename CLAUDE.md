@@ -37,6 +37,7 @@ Licensing: AGPL-3.0-only for everything public, outside contributions under the 
 - Unit tests are required. They run on in-memory PGlite and fakes (a fake model provider from `@dougbot/providers/testing`): no Docker, no local Postgres, no `.env`, no network.
 - Real credentials go only in `.env` (only `dev`/`start` read it). Local development uses its own `DATABASE_URL`, never a production one.
 - To fix a failure, run one test file (`bun test path/to/file.test.ts`); CI runs the full suite.
+- Memory (`packages/db/test/memory-guard.ts`, `pglite.ts`): every test database is about 450 MB while it lives, and a test that does not close it is the usual cause of a `bun test` that eats the machine (one reached 68 GB). A process past `TEST_MAX_RSS_MB` (default 8192, 0 turns it off) stops with a message that names the databases still open, and more than `TEST_MAX_OPEN_DBS` (default 12) databases open at once fail with the places that opened them. A test file that opens a workspace closes it in `afterEach`.
 
 ## Commands
 

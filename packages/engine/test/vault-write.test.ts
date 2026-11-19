@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 import { eq, schema } from "@dougbot/db";
 import {
   connectVaultSource,
@@ -38,8 +38,15 @@ const MADE_AGAIN = "made-again-NEVER-SHOWN-8765";
 const SITE = "https://shop.acme.example";
 const FOR_ALL: VaultAccess = { everyone: true, roleIds: [], userIds: [], allAgents: true, agentIds: [] };
 
+/** Every workspace a test of this file opened, closed after it (each holds a database in memory). */
+const opened: VaultFixture[] = [];
+afterEach(async () => {
+  for (const v of opened.splice(0)) await v.f.close();
+});
+
 async function setup() {
   const v = await vaultSetup();
+  opened.push(v);
   const source = writableSource();
   v.deps.sources = { fakepass: source };
   return { v, source };

@@ -27,7 +27,47 @@ export async function createTestDatabase(): Promise<{ db: Database; close: () =>
 
   const client = new PGlite({ extensions: { vector }, loadDataDir: await migratedTemplate() });
   const db = drizzlePglite(client, { schema, casing: "snake_case", logger: tracingLogger });
-  return { db: db as unknown as Database, close: () => client.close(), pglite: client };
+  const opened = trackOpen();
+  let closing: Promise<void> | undefined;
+  return {
+    db: db as unknown as Database,
+    close: () => (closing ??= client.close().finally(() => closed(opened))),
+    pglite: client,
+  };
+}
+
+/**
+ * A PGlite holds about 450 MB while it lives (its WebAssembly memory plus the data directory). A test that leaves
+ * one open keeps all of it for the rest of the process, and a few test files did (about 90 databases between them,
+ * more than 40 GB). So every open database is counted: past `TEST_MAX_OPEN_DBS` (default 12) in one process the next
+ * one fails with the places that opened the oldest ones, instead of eating the machine.
+ */
+const openDatabases = new Map<symbol, string>();
+
+/** How many test databases this process has open right now, and where the oldest ones were opened. */
+export function openTestDatabases(): { count: number; where: string[] } {
+  return { count: openDatabases.size, where: [...openDatabases.values()].slice(0, 5) };
+}
+
+function trackOpen(): symbol {
+  const limit = Number(process.env.TEST_MAX_OPEN_DBS ?? 12);
+  if (openDatabases.size >= limit) {
+    const where = [...openDatabases.values()].slice(0, 5).join("\n  ");
+    throw new Error(
+      `${openDatabases.size} test databases are open in this process (limit ${limit}, TEST_MAX_OPEN_DBS): a test opens ` +
+        `them without closing. Opened at:\n  ${where}`,
+    );
+  }
+  const id = Symbol("test-database");
+  const stack = (new Error().stack ?? "")
+    .split("\n")
+    .filter((line) => line.includes("/test/") && !line.includes("pglite.ts"));
+  openDatabases.set(id, stack.slice(0, 3).join(" < ").trim() || "unknown");
+  return id;
+}
+
+function closed(id: symbol) {
+  openDatabases.delete(id);
 }
 
 /**
