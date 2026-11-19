@@ -89,6 +89,32 @@ describe("the company request page", () => {
     }
   });
 
+  test("the landing compares with Grok Bot, shows the team, and the waiting list answers in its own card", async () => {
+    stubFetch();
+    try {
+      window.history.replaceState(null, "", "/empresas");
+      await renderApp("/empresas", { api: createFakeApi(seedState({ me: null, instance: { cloud: false } })) });
+      expect(screen().getByRole("heading", { level: 1, name: /Seu braço direito/ })).toBeDefined();
+      // The comparison names the other service as its own column, and every row says both sides.
+      expect(screen().getAllByText("Grok Bot").length).toBeGreaterThan(0);
+      expect(screen().getAllByText("Onde roda").length).toBe(2);
+      expect(screen().getAllByText("Num servidor só seu").length).toBeGreaterThan(0);
+      for (const name of ["Doug", "Rosa", "Sony", "Mark", "Chess", "Kiara", "Junin"])
+        expect(screen().getAllByText(name).length).toBeGreaterThan(0);
+      // The hero's button leads to the waiting list, whose form is the company request.
+      expect(screen().getByRole("link", { name: "Entrar na lista de espera" }).getAttribute("href")).toBe("#lista");
+      await fill("ana@aurora.com");
+      await act(async () => fireEvent.click(screen().getByRole("button", { name: "Enviar pedido" })));
+      await settle(4);
+      expect(posted).toHaveLength(1);
+      // The answer takes the list's place on the same page: the landing stays around it.
+      expect(screen().getByRole("heading", { level: 2, name: "Seu pedido chegou" })).toBeDefined();
+      expect(screen().getByRole("heading", { level: 1, name: /Seu braço direito/ })).toBeDefined();
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+  });
+
   test("the delete link asks first, and only its button posts the token to erase", async () => {
     stubFetch();
     try {

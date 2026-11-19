@@ -11,6 +11,7 @@ import { AuthShell } from "@/components/AuthLayout";
 import { TYPED_VALUES } from "@/i18n";
 import { useDocumentTitle } from "@/lib/desktop";
 import { useHumanCheck } from "@/lib/human-check";
+import { CompaniesLanding } from "./CompaniesLanding";
 import "./companies.css";
 
 /** The six things the form asks a company what it wants to automate (`COMPANY_INTERESTS`, the server's list). */
@@ -43,10 +44,29 @@ type State =
 export function CompaniesPage() {
   const { t } = useTranslation();
   const { confirm, delete: deleteToken } = useSearch({ strict: false }) as { confirm?: string; delete?: string };
-  useDocumentTitle(`${t("companies.page.title")} · DougBot`);
+  useDocumentTitle(t("companies.landing.docTitle"));
   const [state, setState] = useState<State>(
     confirm ? { step: "confirm" } : deleteToken ? { step: "delete" } : { step: "form" },
   );
+
+  // The confirmation and delete links keep the calm column of the sign-in: one question, nothing else to read.
+  if (state.step === "form" || state.step === "done")
+    return (
+      <CompaniesLanding
+        done={state.step === "done"}
+        form={
+          state.step === "done" ? (
+            <div className="companies__done">
+              <Button variant="primary" onClick={() => setState({ step: "form" })}>
+                {t("companies.page.again")}
+              </Button>
+            </div>
+          ) : (
+            <CompaniesForm onDone={() => setState({ step: "done" })} />
+          )
+        }
+      />
+    );
 
   return (
     <AuthShell languages={false}>
@@ -59,28 +79,8 @@ export function CompaniesPage() {
             onDeleted={() => setState({ step: "deleted" })}
             onFailed={() => setState({ step: "deleteFailed" })}
           />
-        ) : state.step === "deleted" || state.step === "deleteFailed" ? (
-          <DeleteOutcome failed={state.step === "deleteFailed"} onAgain={() => setState({ step: "form" })} />
         ) : (
-          <>
-            <header className="companies__head">
-              <h1 className="auth__title">
-                {state.step === "done" ? t("companies.page.doneTitle") : t("companies.page.title")}
-              </h1>
-              <p className="auth__lead">
-                {state.step === "done" ? t("companies.page.doneLead") : t("companies.page.lead")}
-              </p>
-            </header>
-            {state.step === "done" ? (
-              <div className="companies__done">
-                <Button variant="primary" onClick={() => setState({ step: "form" })}>
-                  {t("companies.page.again")}
-                </Button>
-              </div>
-            ) : (
-              <CompaniesForm onDone={() => setState({ step: "done" })} />
-            )}
-          </>
+          <DeleteOutcome failed={state.step === "deleteFailed"} onAgain={() => setState({ step: "form" })} />
         )}
       </div>
     </AuthShell>

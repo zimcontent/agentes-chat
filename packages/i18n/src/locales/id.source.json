@@ -1847,6 +1847,15 @@
   "companies.page.messageOptional": {
     "value": "Optional"
   },
+  "companies.page.messageTooLong": {
+    "value": "This is longer than the form takes. Shorten it."
+  },
+  "companies.page.invalidField": {
+    "value": "Check this part of the form and try again."
+  },
+  "companies.page.invalidEmail": {
+    "value": "Type an email like ana@company.com."
+  },
   "companies.page.consent": {
     "value": "I agree that DougBot may keep these answers to get in touch, as described in the <link>Privacy Policy</link>."
   },
@@ -1868,11 +1877,500 @@
   "companies.page.again": {
     "value": "Send another request"
   },
+  "companies.page.confirmTitle": {
+    "value": "Confirming your email…"
+  },
+  "companies.page.confirmLead": {
+    "value": "One moment."
+  },
+  "companies.page.confirmFailedTitle": {
+    "value": "This link is unknown or expired"
+  },
+  "companies.page.confirmFailedLead": {
+    "value": "Send the form again to get a new link."
+  },
+  "companies.page.confirmAgain": {
+    "value": "Send the form again"
+  },
+  "companies.page.deleteTitle": {
+    "value": "Delete your request?"
+  },
+  "companies.page.deleteLead": {
+    "value": "This erases the request and everything it holds, the consent included, and it does not come back. If you only wanted changes, send the form again from your email instead."
+  },
+  "companies.page.deleteConfirm": {
+    "value": "Delete my request"
+  },
+  "companies.page.deletedTitle": {
+    "value": "Request deleted"
+  },
+  "companies.page.deletedLead": {
+    "value": "Everything it held is gone. Nothing else is kept."
+  },
+  "companies.page.deleteFailedTitle": {
+    "value": "This link is unknown or already used"
+  },
+  "companies.page.deleteFailedLead": {
+    "value": "There's nothing left to delete with it, or it has expired."
+  },
   "companies.page.failed": {
     "value": "Couldn't send the request. Try again."
   },
   "companies.page.privacy": {
     "value": "Privacy Policy"
+  },
+  "companies.landing.docTitle": {
+    "value": "DougBot · Your right hand, with an AI team"
+  },
+  "companies.landing.home": {
+    "value": "DougBot home"
+  },
+  "companies.landing.navLabel": {
+    "value": "Page sections"
+  },
+  "companies.landing.nav.difference": {
+    "value": "The difference"
+  },
+  "companies.landing.nav.team": {
+    "value": "The team"
+  },
+  "companies.landing.nav.how": {
+    "value": "How it works"
+  },
+  "companies.landing.nav.join": {
+    "value": "Waiting list"
+  },
+  "companies.landing.nav.signIn": {
+    "value": "Sign in"
+  },
+  "companies.landing.hero.eyebrow": {
+    "value": "Waiting list open"
+  },
+  "companies.landing.hero.title": {
+    "value": "Your right hand, with a whole AI team."
+  },
+  "companies.landing.hero.lead": {
+    "value": "Doug is your CEO. He runs the operation and leads a team of specialists, from management to the agency. For any company, or several at once."
+  },
+  "companies.landing.hero.join": {
+    "value": "Join the waiting list"
+  },
+  "companies.landing.hero.compare": {
+    "value": "See how it works"
+  },
+  "companies.landing.hero.note": {
+    "value": "Installed by our team, on a server that is yours alone."
+  },
+  "companies.landing.chat.label": {
+    "value": "Example conversation: Ana asks for the campaign, Doug splits the work, Rosa delivers the artwork and Mark asks for approval to publish."
+  },
+  "companies.landing.chat.channel": {
+    "value": "launch"
+  },
+  "companies.landing.chat.ask": {
+    "value": "@Doug I need Friday's campaign ready by tomorrow."
+  },
+  "companies.landing.chat.plan": {
+    "value": "Done. Rosa does the artwork, Sony cuts the video and Mark sets up the ads."
+  },
+  "companies.landing.chat.delivered": {
+    "value": "Three pieces ready, in the brand's tone."
+  },
+  "companies.landing.chat.askApproval": {
+    "value": "Ads are ready. Can I publish?"
+  },
+  "companies.landing.chat.approval": {
+    "value": "Publish 3 ads, $60 a day"
+  },
+  "companies.landing.chat.approve": {
+    "value": "Approve"
+  },
+  "companies.landing.chat.notNow": {
+    "value": "Not now"
+  },
+  "companies.landing.manifesto": {
+    "value": "You talk to Doug. He splits the work, keeps the team on track and only calls you for what matters."
+  },
+  "companies.landing.compare.eyebrow": {
+    "value": "The difference"
+  },
+  "companies.landing.compare.title": {
+    "value": "A rented bot, or a team of your own?"
+  },
+  "companies.landing.compare.lead": {
+    "value": "Grok Bot and others rent catalog bots in their cloud. DougBot is set up for your business."
+  },
+  "companies.landing.compare.them": {
+    "value": "Grok Bot"
+  },
+  "companies.landing.compare.themNote": {
+    "value": "and other cloud bots"
+  },
+  "companies.landing.compare.rows.where.label": {
+    "value": "Where it runs"
+  },
+  "companies.landing.compare.rows.where.them": {
+    "value": "In their cloud"
+  },
+  "companies.landing.compare.rows.where.us": {
+    "value": "On a server that is yours alone"
+  },
+  "companies.landing.compare.rows.talk.label": {
+    "value": "Where you talk"
+  },
+  "companies.landing.compare.rows.talk.them": {
+    "value": "Slack, Teams and their apps"
+  },
+  "companies.landing.compare.rows.talk.us": {
+    "value": "App, phone and WhatsApp"
+  },
+  "companies.landing.compare.rows.setup.label": {
+    "value": "Who sets it up"
+  },
+  "companies.landing.compare.rows.setup.them": {
+    "value": "You, from a catalog"
+  },
+  "companies.landing.compare.rows.setup.us": {
+    "value": "Our team, for your business"
+  },
+  "companies.landing.compare.rows.price.label": {
+    "value": "How you pay"
+  },
+  "companies.landing.compare.rows.price.them": {
+    "value": "A monthly plan"
+  },
+  "companies.landing.compare.rows.price.us": {
+    "value": "A setup with support"
+  },
+  "companies.landing.pillars.ops.title": {
+    "value": "Doug runs the operation"
+  },
+  "companies.landing.pillars.ops.text": {
+    "value": "Splits the tasks, chases deadlines and looks after several companies at once."
+  },
+  "companies.landing.pillars.agency.title": {
+    "value": "A built-in agency"
+  },
+  "companies.landing.pillars.agency.text": {
+    "value": "Design, video, ads and social media, reviewed by your team before they go out."
+  },
+  "companies.landing.pillars.whatsapp.title": {
+    "value": "Answers on WhatsApp"
+  },
+  "companies.landing.pillars.whatsapp.text": {
+    "value": "Replies to your customers on the company's number, your way."
+  },
+  "companies.landing.pillars.portal.title": {
+    "value": "Clients approve by link"
+  },
+  "companies.landing.pillars.portal.text": {
+    "value": "No account needed. They only see what your team approved."
+  },
+  "companies.landing.why.eyebrow": {
+    "value": "Why DougBot"
+  },
+  "companies.landing.why.title": {
+    "value": "Everything a business needs, in one team."
+  },
+  "companies.landing.scenes.ops.a": {
+    "value": "Aurora Bakery"
+  },
+  "companies.landing.scenes.ops.b": {
+    "value": "Luz Studio"
+  },
+  "companies.landing.scenes.ops.c": {
+    "value": "Vida Clinic"
+  },
+  "companies.landing.scenes.ops.todo": {
+    "value": "To do"
+  },
+  "companies.landing.scenes.ops.doing": {
+    "value": "Doing"
+  },
+  "companies.landing.scenes.ops.done": {
+    "value": "Done"
+  },
+  "companies.landing.scenes.ops.t1": {
+    "value": "Bill 3 clients"
+  },
+  "companies.landing.scenes.ops.t2": {
+    "value": "Friday's post"
+  },
+  "companies.landing.scenes.ops.t3": {
+    "value": "Holiday campaign"
+  },
+  "companies.landing.scenes.ops.t4": {
+    "value": "New website"
+  },
+  "companies.landing.scenes.ops.t5": {
+    "value": "Monthly report"
+  },
+  "companies.landing.scenes.ops.t6": {
+    "value": "Answer reviews"
+  },
+  "companies.landing.scenes.ops.brief": {
+    "value": "12 tasks across 3 companies"
+  },
+  "companies.landing.scenes.video.file": {
+    "value": "launch-reel.mp4"
+  },
+  "companies.landing.scenes.video.review": {
+    "value": "Review"
+  },
+  "companies.landing.scenes.video.caption": {
+    "value": "Made to last"
+  },
+  "companies.landing.scenes.video.note1": {
+    "value": "Cut the breath before the line"
+  },
+  "companies.landing.scenes.video.note2": {
+    "value": "Make the caption a bit bigger here"
+  },
+  "companies.landing.scenes.video.by": {
+    "value": "Edited by Sony"
+  },
+  "companies.landing.scenes.video.askChanges": {
+    "value": "Ask for changes"
+  },
+  "companies.landing.scenes.whatsapp.contact": {
+    "value": "Client"
+  },
+  "companies.landing.scenes.whatsapp.online": {
+    "value": "online"
+  },
+  "companies.landing.scenes.whatsapp.ask": {
+    "value": "Hi! Do you deliver tomorrow?"
+  },
+  "companies.landing.scenes.whatsapp.answer": {
+    "value": "We do, until 6 pm. Want me to book yours now?"
+  },
+  "companies.landing.scenes.whatsapp.via": {
+    "value": "answered by the agent"
+  },
+  "companies.landing.scenes.whatsapp.agent": {
+    "value": "Mark answers your number"
+  },
+  "companies.landing.scenes.portal.url": {
+    "value": "Client link"
+  },
+  "companies.landing.scenes.portal.title": {
+    "value": "This week's posts"
+  },
+  "companies.landing.scenes.portal.status": {
+    "value": "Waiting for you"
+  },
+  "companies.landing.scenes.portal.team": {
+    "value": "Approved by the team"
+  },
+  "companies.landing.scenes.portal.adjust": {
+    "value": "Ask for changes"
+  },
+  "companies.landing.scenes.portal.by": {
+    "value": "Made by Rosa"
+  },
+  "companies.landing.stage.team": {
+    "value": "Team"
+  },
+  "companies.landing.stage.channels.money": {
+    "value": "finance"
+  },
+  "companies.landing.stage.channels.support": {
+    "value": "support"
+  },
+  "companies.landing.stage.composer": {
+    "value": "Write to the team…"
+  },
+  "companies.landing.stage.done": {
+    "value": "done"
+  },
+  "companies.landing.stage.working": {
+    "value": "working"
+  },
+  "companies.landing.stage.waiting": {
+    "value": "needs approval"
+  },
+  "companies.landing.activity.label": {
+    "value": "What the team is doing"
+  },
+  "companies.landing.activity.items.a": {
+    "value": "Rosa delivered 3 pieces for Luz Studio"
+  },
+  "companies.landing.activity.items.b": {
+    "value": "Sony is editing Aurora Bakery's video"
+  },
+  "companies.landing.activity.items.c": {
+    "value": "Mark wants to publish 3 ads"
+  },
+  "companies.landing.activity.items.d": {
+    "value": "Kiara billed Vida Clinic's clients"
+  },
+  "companies.landing.activity.items.e": {
+    "value": "Junin connected the store to WhatsApp"
+  },
+  "companies.landing.activity.items.f": {
+    "value": "Chess wrapped up the competitor analysis"
+  },
+  "companies.landing.activity.items.g": {
+    "value": "Doug split 12 tasks across 3 companies"
+  },
+  "companies.landing.team.eyebrow": {
+    "value": "Doug's team"
+  },
+  "companies.landing.team.title": {
+    "value": "A right hand and six specialists."
+  },
+  "companies.landing.team.lead": {
+    "value": "You talk to Doug. He leads the rest."
+  },
+  "companies.landing.team.chief": {
+    "value": "Leads the team"
+  },
+  "companies.landing.team.members.doug.role": {
+    "value": "Your right hand"
+  },
+  "companies.landing.team.members.doug.text": {
+    "value": "Runs the operation, leads the team and calls you only to decide."
+  },
+  "companies.landing.team.members.rosa.role": {
+    "value": "Design"
+  },
+  "companies.landing.team.members.rosa.text": {
+    "value": "Posts, carousels and covers in the client's brand."
+  },
+  "companies.landing.team.members.sony.role": {
+    "value": "Video"
+  },
+  "companies.landing.team.members.sony.text": {
+    "value": "Edits Reels and ad videos."
+  },
+  "companies.landing.team.members.mark.role": {
+    "value": "Ads"
+  },
+  "companies.landing.team.members.mark.text": {
+    "value": "Paid ads, with a budget cap and your approval."
+  },
+  "companies.landing.team.members.chess.role": {
+    "value": "Strategy"
+  },
+  "companies.landing.team.members.chess.text": {
+    "value": "Researches the niche and writes the copy."
+  },
+  "companies.landing.team.members.kiara.role": {
+    "value": "Finance"
+  },
+  "companies.landing.team.members.kiara.text": {
+    "value": "Billing, bills and sales reports."
+  },
+  "companies.landing.team.members.junin.role": {
+    "value": "Sites and automations"
+  },
+  "companies.landing.team.members.junin.text": {
+    "value": "Sites, integrations and automations."
+  },
+  "companies.landing.team.demo.doug.title": {
+    "value": "Operations morning brief"
+  },
+  "companies.landing.team.demo.doug.one": {
+    "value": "3 deliveries today"
+  },
+  "companies.landing.team.demo.doug.two": {
+    "value": "2 waiting on the client"
+  },
+  "companies.landing.team.demo.doug.three": {
+    "value": "1 stuck: the logo is missing"
+  },
+  "companies.landing.team.demo.rosa.label": {
+    "value": "Carousel, 5 slides"
+  },
+  "companies.landing.team.demo.mark.cpa": {
+    "value": "Cost per sale"
+  },
+  "companies.landing.team.demo.mark.cpaValue": {
+    "value": "$18.40"
+  },
+  "companies.landing.team.demo.mark.roas": {
+    "value": "Return"
+  },
+  "companies.landing.team.demo.mark.roasValue": {
+    "value": "3.2x"
+  },
+  "companies.landing.team.demo.chess.hooks": {
+    "value": "Hooks"
+  },
+  "companies.landing.team.demo.chess.one": {
+    "value": "The mistake that costs the most"
+  },
+  "companies.landing.team.demo.chess.two": {
+    "value": "3 signs it's time"
+  },
+  "companies.landing.team.demo.chess.three": {
+    "value": "Before and after in 30s"
+  },
+  "companies.landing.team.demo.kiara.first": {
+    "value": "Invoice #1042"
+  },
+  "companies.landing.team.demo.kiara.second": {
+    "value": "Invoice #1043"
+  },
+  "companies.landing.team.demo.kiara.amount": {
+    "value": "$4,800"
+  },
+  "companies.landing.team.demo.kiara.due": {
+    "value": "due tomorrow"
+  },
+  "companies.landing.team.demo.kiara.approve": {
+    "value": "Approve sending"
+  },
+  "companies.landing.team.demo.junin.deploy": {
+    "value": "Site published"
+  },
+  "companies.landing.team.demo.junin.tests": {
+    "value": "12 tests passing"
+  },
+  "companies.landing.how.eyebrow": {
+    "value": "How it works"
+  },
+  "companies.landing.how.title": {
+    "value": "From request to a team at work."
+  },
+  "companies.landing.how.steps.join.title": {
+    "value": "Join the list"
+  },
+  "companies.landing.how.steps.join.text": {
+    "value": "Tell us about your business."
+  },
+  "companies.landing.how.steps.talk.title": {
+    "value": "We talk"
+  },
+  "companies.landing.how.steps.talk.text": {
+    "value": "We reach you on WhatsApp."
+  },
+  "companies.landing.how.steps.install.title": {
+    "value": "Your team goes live"
+  },
+  "companies.landing.how.steps.install.text": {
+    "value": "Installed on a server that is yours alone."
+  },
+  "companies.landing.join.eyebrow": {
+    "value": "Waiting list"
+  },
+  "companies.landing.join.title": {
+    "value": "Join the waiting list."
+  },
+  "companies.landing.join.lead": {
+    "value": "We open one company at a time. We'll call you."
+  },
+  "companies.landing.join.points.one": {
+    "value": "No card, no commitment"
+  },
+  "companies.landing.join.points.two": {
+    "value": "We reply on WhatsApp"
+  },
+  "companies.landing.join.points.three": {
+    "value": "Your details only to reach you"
+  },
+  "companies.landing.foot.line": {
+    "value": "Your right hand, with an AI team."
   },
   "companies.interests.design": {
     "value": "Design"
@@ -2023,6 +2521,24 @@
   },
   "companies.list.codeInvalid": {
     "value": "The client code has three digits."
+  },
+  "companies.list.pendingConfirm": {
+    "value": "This address has a new form to confirm: the team sees the request as it was until it is confirmed."
+  },
+  "companies.list.delete": {
+    "value": "Delete"
+  },
+  "companies.list.deleteTitle": {
+    "value": "Delete the request from {{company}}?"
+  },
+  "companies.list.deleteText": {
+    "value": "Everything it holds goes, the consent included, and nothing comes back. This is what the LGPD asks when a company asks to be forgotten."
+  },
+  "companies.list.deleted": {
+    "value": "Request deleted."
+  },
+  "companies.list.notesTooLong": {
+    "value": "The notes are longer than fit here. Shorten them."
   },
   "companies.notice.title": {
     "value": "{{company}} asked for DougBot"

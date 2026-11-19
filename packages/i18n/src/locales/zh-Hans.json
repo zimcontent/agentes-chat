@@ -774,6 +774,255 @@
       "failed": "申请未能发送。请重试。",
       "privacy": "隐私政策"
     },
+    "landing": {
+      "docTitle": "DougBot · 你的得力助手，带着一支 AI 团队",
+      "home": "DougBot 首页",
+      "navLabel": "页面板块",
+      "nav": {
+        "difference": "区别",
+        "team": "团队",
+        "how": "如何运作",
+        "join": "候补名单",
+        "signIn": "登录"
+      },
+      "hero": {
+        "eyebrow": "候补名单已开放",
+        "title": "你的得力助手，带着一整支 AI 团队。",
+        "lead": "Doug 是你的 CEO。他打理运营，带领一支专家团队，从管理到营销机构。适合任何公司，也能同时管几家。",
+        "join": "加入候补名单",
+        "compare": "看看如何运作",
+        "note": "由我们的团队安装在只属于你的服务器上。"
+      },
+      "chat": {
+        "label": "对话示例：Ana 要一套活动方案，Doug 分配工作，Rosa 交付设计，Mark 请求批准发布。",
+        "channel": "发布",
+        "ask": "@Doug 周五的活动明天之前要准备好。",
+        "plan": "没问题。Rosa 做设计，Sony 剪视频，Mark 搭广告。",
+        "delivered": "三件作品已完成，符合品牌调性。",
+        "askApproval": "广告好了。可以发布吗？",
+        "approval": "发布 3 条广告，每天 400 元",
+        "approve": "批准",
+        "notNow": "暂不"
+      },
+      "manifesto": "你只需和 Doug 沟通。他分派工作、盯紧团队，只在要紧的事上找你。",
+      "compare": {
+        "eyebrow": "区别",
+        "title": "租来的机器人，还是自家的团队？",
+        "lead": "Grok Bot 等服务在自家云上出租目录里的机器人。DougBot 则为你的生意量身搭建。",
+        "them": "Grok Bot",
+        "themNote": "以及其他云端机器人",
+        "rows": {
+          "where": {
+            "label": "在哪里运行",
+            "them": "在他们的云上",
+            "us": "在只属于你的服务器上"
+          },
+          "talk": {
+            "label": "在哪里沟通",
+            "them": "Slack、Teams 和他们的应用",
+            "us": "应用、手机和 WhatsApp"
+          },
+          "setup": {
+            "label": "由谁搭建",
+            "them": "你自己，从目录里挑",
+            "us": "我们的团队，为你的生意定制"
+          },
+          "price": {
+            "label": "怎么付费",
+            "them": "按月订阅",
+            "us": "部署加支持"
+          }
+        }
+      },
+      "pillars": {
+        "ops": {
+          "title": "Doug 打理运营",
+          "text": "分派任务、催进度，同时照看好几家公司。"
+        },
+        "agency": {
+          "title": "内置营销机构",
+          "text": "设计、视频、广告和社交媒体，发出前都由你的团队审核。"
+        },
+        "whatsapp": {
+          "title": "在 WhatsApp 上接待",
+          "text": "用公司号码，按你的方式回复客户。"
+        },
+        "portal": {
+          "title": "客户通过链接审批",
+          "text": "无需注册账号。客户只看到团队批准过的内容。"
+        }
+      },
+      "why": {
+        "eyebrow": "为什么选 DougBot",
+        "title": "生意需要的一切，一支团队搞定。"
+      },
+      "scenes": {
+        "ops": {
+          "a": "晨光烘焙",
+          "b": "光影工作室",
+          "c": "康宁诊所",
+          "todo": "待办",
+          "doing": "进行中",
+          "done": "已完成",
+          "t1": "向 3 位客户收款",
+          "t2": "周五的帖子",
+          "t3": "年终活动",
+          "t4": "新网站",
+          "t5": "月度报告",
+          "t6": "回复评价",
+          "brief": "3 家公司，12 项任务"
+        },
+        "video": {
+          "file": "新品发布.mp4",
+          "review": "审阅",
+          "caption": "为长久而生",
+          "note1": "剪掉台词前的换气声",
+          "note2": "这里字幕再大一点",
+          "by": "Sony 剪辑",
+          "askChanges": "提出修改"
+        },
+        "whatsapp": {
+          "contact": "客户",
+          "online": "在线",
+          "ask": "你好！明天能送到吗？",
+          "answer": "可以，18 点前都能送。要我现在帮你预订吗？",
+          "via": "由智能体回复",
+          "agent": "Mark 用你的号码接待客户"
+        },
+        "portal": {
+          "url": "客户链接",
+          "title": "本周帖子",
+          "status": "等你确认",
+          "team": "团队已批准",
+          "adjust": "提出修改",
+          "by": "由 Rosa 制作"
+        }
+      },
+      "stage": {
+        "team": "团队",
+        "channels": {
+          "money": "财务",
+          "support": "客服"
+        },
+        "composer": "给团队留言…",
+        "done": "已完成",
+        "working": "进行中",
+        "waiting": "待批准"
+      },
+      "activity": {
+        "label": "团队正在做什么",
+        "items": {
+          "a": "Rosa 为光影工作室交付了 3 件作品",
+          "b": "Sony 正在剪辑晨光烘焙的视频",
+          "c": "Mark 想发布 3 条广告",
+          "d": "Kiara 向康宁诊所的客户发出了账单",
+          "e": "Junin 把店铺接入了 WhatsApp",
+          "f": "Chess 完成了竞品分析",
+          "g": "Doug 在 3 家公司分派了 12 项任务"
+        }
+      },
+      "team": {
+        "eyebrow": "Doug 的团队",
+        "title": "一位得力助手，六位专家。",
+        "lead": "你和 Doug 沟通，其余的由他带领。",
+        "chief": "带领团队",
+        "members": {
+          "doug": {
+            "role": "你的得力助手",
+            "text": "打理运营、带领团队，只在需要你拍板时找你。"
+          },
+          "rosa": {
+            "role": "设计",
+            "text": "按客户品牌制作帖子、轮播图和封面。"
+          },
+          "sony": {
+            "role": "视频",
+            "text": "剪辑 Reels 和广告视频。"
+          },
+          "mark": {
+            "role": "广告",
+            "text": "付费广告，有预算上限，还要经你批准。"
+          },
+          "chess": {
+            "role": "策略",
+            "text": "研究细分领域，撰写文案。"
+          },
+          "kiara": {
+            "role": "财务",
+            "text": "收款、账目和销售报告。"
+          },
+          "junin": {
+            "role": "网站与自动化",
+            "text": "网站、集成和自动化。"
+          }
+        },
+        "demo": {
+          "doug": {
+            "title": "运营晨报",
+            "one": "今天交付 3 项",
+            "two": "2 项等客户回复",
+            "three": "1 项卡住：缺少 logo"
+          },
+          "rosa": {
+            "label": "轮播图，5 张"
+          },
+          "mark": {
+            "cpa": "单笔销售成本",
+            "cpaValue": "128 元",
+            "roas": "回报",
+            "roasValue": "3.2 倍"
+          },
+          "chess": {
+            "hooks": "钩子",
+            "one": "代价最高的错误",
+            "two": "是时候了的 3 个信号",
+            "three": "30 秒看前后对比"
+          },
+          "kiara": {
+            "first": "发票 #1042",
+            "second": "发票 #1043",
+            "amount": "34,000 元",
+            "due": "明天到期",
+            "approve": "批准发送"
+          },
+          "junin": {
+            "deploy": "网站已发布",
+            "tests": "12 项测试通过"
+          }
+        }
+      },
+      "how": {
+        "eyebrow": "如何运作",
+        "title": "从提出需求到团队开工。",
+        "steps": {
+          "join": {
+            "title": "加入名单",
+            "text": "说说你的生意。"
+          },
+          "talk": {
+            "title": "我们聊聊",
+            "text": "我们会通过 WhatsApp 联系你。"
+          },
+          "install": {
+            "title": "你的团队上线",
+            "text": "安装在只属于你的服务器上。"
+          }
+        }
+      },
+      "join": {
+        "eyebrow": "候补名单",
+        "title": "加入候补名单。",
+        "lead": "我们一次开放一家公司，会主动联系你。",
+        "points": {
+          "one": "无需绑卡，没有任何承诺",
+          "two": "通过 WhatsApp 回复",
+          "three": "你的信息只用于联系你"
+        }
+      },
+      "foot": {
+        "line": "你的得力助手，带着一支 AI 团队。"
+      }
+    },
     "interests": {
       "design": "设计",
       "video": "视频",
