@@ -5,6 +5,7 @@ import {
   approveForClient,
   createPortalToolSource,
   labelIdsByName,
+  memberIdsByName,
   myPortalWork,
   PORTAL_BOARD_TOOL,
   PORTAL_CARD_TOOL,
@@ -20,6 +21,7 @@ import {
   ValidationError,
 } from "../src";
 import { toolKind } from "../src/tools/run-policy";
+import { addMember, setup } from "./fixtures";
 
 // The approval portal for agents (ADR 9001): tools listed only with a portal and a person's run, a board a model
 // reads as outside text, and a send that is code from the file to the portal.
@@ -422,5 +424,24 @@ describe("a member's work and a plan written by an agent", () => {
     const label = await portal.createLabel("Em edição", "olive");
     expect(await labelIdsByName(portal, ["em edição"])).toEqual([label.id]);
     await expect(labelIdsByName(portal, ["urgente"])).rejects.toThrow('no label "urgente"; the labels are: Em edição');
+  });
+
+  test("members are people or agents, by name or handle; an unknown or shared name stops with who there is", async () => {
+    const f = await setup();
+    try {
+      const ronny = await addMember(f.db, f.org.id, "member", "Ronny");
+      // Agent "Dev" (@dev) is the fixture's.
+      expect(await memberIdsByName(f.db, f.org.id, ["ronny", "Dev"])).toEqual([ronny.id, f.agent.id]);
+      expect(await memberIdsByName(f.db, f.org.id, ["@dev", "Ron"])).toEqual([f.agent.id, ronny.id]);
+      await expect(memberIdsByName(f.db, f.org.id, ["Sony"])).rejects.toThrow(
+        'no member is called "Sony"; the people are: ',
+      );
+      await addMember(f.db, f.org.id, "member", "Devi");
+      // An exact name wins over a start: "Dev" is still the agent, "De" is anyone's.
+      expect(await memberIdsByName(f.db, f.org.id, ["dev"])).toEqual([f.agent.id]);
+      await expect(memberIdsByName(f.db, f.org.id, ["De"])).rejects.toThrow("more than one member");
+    } finally {
+      await f.close();
+    }
   });
 });
