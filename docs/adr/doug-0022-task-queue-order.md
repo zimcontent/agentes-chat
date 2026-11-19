@@ -18,7 +18,7 @@ a task ahead.
 
 ### 1. A queue per assignee
 
-`issues.queue_position` (double precision, nullable; migration 0282) is a task's place in its assignee's queue, lowest
+`issues.queue_position` (double precision, nullable; made at boot by `EXTRA_COLUMNS`, which lines up the open tasks once) is a task's place in its assignee's queue, lowest
 first. A queue is one assignee's open tasks (`todo`, `in_progress`, `in_review`), person or agent.
 
 - A task that gets an assignee, when made (`createIssue`) or when the assignee changes (`updateIssue`), goes to the end

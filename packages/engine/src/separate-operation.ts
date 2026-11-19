@@ -12,14 +12,15 @@
  */
 import { and, type Database, eq, inArray, isNull, rowsOf, schema, sql } from "@agenteschat/db";
 import { recordAudit } from "./audit";
+import { CRAFT_KINDS } from "./context/items";
 import { ForbiddenError, NotFoundError, ValidationError } from "./errors";
 import { can, getMembership } from "./organizations";
 
 const { organizations, organizationSettings, organizationMembers, users, agents, contextItems, agentTwins } = schema;
 const { connectorConnections } = schema;
 
-/** The memory that crosses between a separate operation's copies: how the agent works, not what it saw. */
-export const CRAFT_KINDS: ReadonlySet<string> = new Set(["lesson", "rule", "preference"]);
+/** The memory that crosses between a separate operation's copies: how the agent works, not what it saw (`CRAFT_KINDS`). */
+export const CRAFT_SET: ReadonlySet<string> = new Set(CRAFT_KINDS);
 
 /** An entity the context knows (`entity_profile`, titled "Name (type)") that names a company's own: kept there. */
 const OWN_ENTITY =

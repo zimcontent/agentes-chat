@@ -1947,18 +1947,6 @@
       "when": 1794886984971,
       "tag": "0281_task_thread_conversations",
       "breakpoints": true
-    },
-    {
-      "idx": 280,
-      "version": "7",
-<<<<<<< HEAD
-      "when": 1794960483530,
-      "tag": "0282_live_activities",
-=======
-      "when": 1794965448153,
-      "tag": "0282_task_queue_order",
->>>>>>> origin/feat/fila-por-pessoa
-      "breakpoints": true
     }
   ]
 }

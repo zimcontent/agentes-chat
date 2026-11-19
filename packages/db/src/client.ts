@@ -733,6 +733,49 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "artifacts" ADD COLUMN IF NOT EXISTS "expires_at" timestamp with time zone`,
   `CREATE INDEX IF NOT EXISTS "artifacts_folder" ON "artifacts" ("org_id", "folder_id")`,
   `CREATE INDEX IF NOT EXISTS "artifacts_expires" ON "artifacts" ("expires_at") WHERE "expires_at" IS NOT NULL AND "deleted_at" IS NULL`,
+  // Live Activities on iPhones (docs/adr/doug-0021-lock-screen.md): the run a person waits on, on their lock screen.
+  `CREATE TABLE IF NOT EXISTS "live_activities" (
+    "id" uuid PRIMARY KEY NOT NULL,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE cascade,
+    "user_id" text NOT NULL REFERENCES "users"("id") ON DELETE cascade,
+    "run_id" uuid NOT NULL,
+    "agent_id" uuid NOT NULL,
+    "token" text NOT NULL,
+    "app_id" text,
+    "apns_sandbox" boolean DEFAULT false NOT NULL,
+    "locale" text NOT NULL,
+    "state" jsonb,
+    "sent_at" timestamp with time zone,
+    "ended_at" timestamp with time zone,
+    "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT "live_activities_token_unique" UNIQUE("token")
+  )`,
+  `CREATE INDEX IF NOT EXISTS "live_activities_run_id_index" ON "live_activities" USING btree ("run_id")`,
+  `CREATE INDEX IF NOT EXISTS "live_activities_open_idx" ON "live_activities" USING btree ("created_at") WHERE "live_activities"."ended_at" is null`,
+  // Each assignee's tasks in a queue, in the order they reached them (docs/adr/doug-0022-task-queue-order.md): lowest
+  // first, null with no assignee. Open tasks already assigned line up once, when the column comes, by when they were
+  // assigned (their last "assigned" event), or made when none.
+  `DO $$ BEGIN
+    IF NOT EXISTS (
+      SELECT 1 FROM information_schema.columns
+      WHERE table_schema = current_schema() AND table_name = 'issues' AND column_name = 'queue_position'
+    ) THEN
+      ALTER TABLE "issues" ADD COLUMN "queue_position" double precision;
+      UPDATE "issues" AS i SET "queue_position" = q.position
+      FROM (
+        SELECT t.id, row_number() OVER (
+          PARTITION BY t.org_id, t.assignee_type, t.assignee_id
+          ORDER BY coalesce(
+            (SELECT max(a.created_at) FROM "issue_activity" a WHERE a.issue_id = t.id AND a.event = 'assigned'),
+            t.created_at
+          ), t.number
+        )::double precision AS position
+        FROM "issues" t
+        WHERE t.assignee_id IS NOT NULL AND t.status IN ('todo', 'in_progress', 'in_review')
+      ) AS q
+      WHERE i.id = q.id;
+    END IF;
+  END $$`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

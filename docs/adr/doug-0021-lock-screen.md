@@ -61,7 +61,7 @@ drawn by the app and left in the app group it already shares with its share exte
 name, then the task's title or the first words of what was asked), a line and a progress bar. Its push token goes to the
 server (`PUT …/live-activities`).
 
-The server keeps one row per activity (`live_activities`, migration 0282). A worker tick every 5 seconds
+The server keeps one row per activity (`live_activities`, made at boot by `EXTRA_COLUMNS` in `packages/db/src/client.ts`, outside the numbered migrations). A worker tick every 5 seconds
 (`syncLiveActivities`) reads each open activity's run as `runs.ts` has it and sends only what changed:
 
 - `queued` (or held by its computer or plan): "você está esperando · na fila".

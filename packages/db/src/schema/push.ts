@@ -96,7 +96,8 @@ export const pushRelayInstances = pgTable("push_relay_instances", {
  * Live Activities on iPhones (docs/adr/doug-0021-lock-screen.md): an agent's run a person is waiting on, on their lock
  * screen and in the Dynamic Island. The app starts one when the person sends work to an agent and registers its push
  * token; the server updates it from the run (its status, its line) and ends it with the run, straight through APNs
- * (only with the server's own key). `state` is what the activity shows now, so only a change is sent.
+ * (only with the server's own key). `state` is what the activity shows now, so only a change is sent. Created by
+ * `EXTRA_COLUMNS`, outside the numbered migrations.
  */
 export const liveActivities = pgTable(
   "live_activities",

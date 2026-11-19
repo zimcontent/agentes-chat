@@ -19,7 +19,7 @@ import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from ".
 import { publishAgentsChanged } from "./events";
 import { can, getMembership, listMemberships } from "./organizations";
 import { enqueueIndex } from "./search";
-import { CRAFT_KINDS, type Fence, fenceFor, separateOrgs } from "./separate-operation";
+import { CRAFT_SET, type Fence, fenceFor, separateOrgs } from "./separate-operation";
 import { openOrg } from "./standing";
 import { grantScopes } from "./tools/scopes";
 
@@ -669,7 +669,7 @@ async function syncMemory(
   const mayCross = (r: ItemRow, to: Member | undefined) =>
     !fence.on ||
     (to !== undefined &&
-      CRAFT_KINDS.has(r.kind) &&
+      CRAFT_SET.has(r.kind) &&
       !fence.foreignTo(textOf(r), to.agent.orgId) &&
       (r.scopeType !== "person" || !r.scopeId || fence.memberOf(r.scopeId, to.agent.orgId)));
   let changed = 0;
@@ -686,7 +686,7 @@ async function syncMemory(
         const copied = r.orgId !== first.orgId && r.createdAt.getTime() >= since.getTime();
         if (copied && !mayCross(first, copyOf.get(r.agentId ?? ""))) takeBack.push(r);
       }
-      if (!CRAFT_KINDS.has(first.kind)) for (const r of list) if (!takeBack.includes(r)) untie.push(r);
+      if (!CRAFT_SET.has(first.kind)) for (const r of list) if (!takeBack.includes(r)) untie.push(r);
     }
     if (takeBack.length > 0) {
       await db.delete(contextItems).where(
@@ -715,7 +715,7 @@ async function syncMemory(
       .filter((r) => !gone.has(r.id))
       .map((r) => (loose.has(r.id) ? { ...r, twinKey: null } : r))
       // What a company keeps is neither tied nor copied; an archived memory is never tied again.
-      .filter((r) => CRAFT_KINDS.has(r.kind) && (r.twinKey !== null || r.status === "active"));
+      .filter((r) => CRAFT_SET.has(r.kind) && (r.twinKey !== null || r.status === "active"));
   }
 
   // Tie the untied ones that say what a row of another copy says.
