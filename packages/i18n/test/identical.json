@@ -4765,7 +4765,8 @@
       "chat.messagePlain",
       "drive.filter.type",
       "vault.sheet.note",
-      "homeTools.mission"
+      "homeTools.mission",
+      "aiPanel.sheet.effort"
     ],
     "de": [
       "onboarding.flow.brand.instagram",
@@ -4906,7 +4907,8 @@
       "connectors.accountTitle",
       "roles.icons.mail",
       "vault.sheet.password",
-      "homeTools.computer"
+      "homeTools.computer",
+      "aiPanel.sheet.account"
     ],
     "nl": [
       "onboarding.flow.brand.instagram",
@@ -4997,7 +4999,10 @@
       "vault.sheet.site",
       "vault.sheet.details",
       "agentLite.ai",
-      "homeTools.computer"
+      "homeTools.computer",
+      "aiPanel.sheet.account",
+      "aiPanel.sheet.model",
+      "aiPanel.sheet.context"
     ],
     "ja": [
       "onboarding.flow.brand.instagram",
@@ -5084,7 +5089,8 @@
       "roles.icons.mail",
       "vault.sheet.edit",
       "agentLite.talk",
-      "agentLite.ai"
+      "agentLite.ai",
+      "aiPanel.sheet.model"
     ],
     "tr": [
       "onboarding.flow.brand.instagram",
@@ -5104,7 +5110,8 @@
       "onb.logo",
       "vault.field.keyNamePlaceholder",
       "vault.field.websitePlaceholder",
-      "files.type.video"
+      "files.type.video",
+      "aiPanel.sheet.model"
     ],
     "pl": [
       "onboarding.flow.brand.instagram",
@@ -5140,7 +5147,8 @@
       "time.short.days",
       "me.status",
       "roles.reach.agents",
-      "agentLite.ai"
+      "agentLite.ai",
+      "aiPanel.sheet.model"
     ],
     "ru": [
       "onboarding.flow.brand.instagram",

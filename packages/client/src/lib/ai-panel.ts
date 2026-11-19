@@ -9,8 +9,10 @@ import {
   type PickerModel,
   type PickerTile,
 } from "./brain-picker";
+import { type EffortLevel, effortOf } from "./brain-advanced";
+import { isContextLimit } from "./context-limits";
 import { PLAN_ALIASES, type PlanAlias, planModelValue, planName, planOf } from "./plans";
-import { isAuto, type ModelChoice } from "./providers";
+import { apiProviderOf, isAuto, type ModelChoice } from "./providers";
 
 /*
  * The phone's Painel de IA (the accounts the person pays for and which agent thinks with what) and its sheet that
@@ -396,6 +398,83 @@ export function placesFor(
     return best ? [best] : [];
   });
   return picks.sort((a, b) => Number(samePick(b, chosen)) - Number(samePick(a, chosen)));
+}
+
+/** "Automático" where the agent thinks now: a pick of the same account or key, with no size of its own. */
+export interface AutoOption extends IntentPlace {
+  model: PickerModel;
+  /** The agent is on Automático there now. */
+  current: boolean;
+}
+
+/**
+ * "Automático" as the sheet's fourth choice: the model (and its effort) picked per task, on the account or key the
+ * agent thinks with now, so it never moves it. Null where that place lists no Automático.
+ */
+export function autoOption(
+  t: TFunction,
+  locale: string,
+  view: Pick<
+    AgentBrain,
+    "brain" | "model" | "effectiveModel" | "options" | "accounts" | "account" | "ownSignIn" | "ownUsage"
+  >,
+  ownerUserId: string | null,
+  api: [string, ModelChoice[]][],
+  apiModel: string | null,
+  models: readonly Model[],
+): AutoOption | null {
+  const tiles = modelPickerTiles(t, view, ownerUserId, api, apiModel, models);
+  // On a key Automático is any maker's model, so no key's tile is current: the first stands for them all.
+  const tile =
+    tiles.find((x) => x.current) ?? (view.brain === "model" ? tiles.find((x) => x.kind === "model") : undefined);
+  if (!tile) return null;
+  const account = tile.kind === "model" ? undefined : tile.accounts.find((a) => a.id === view.account);
+  if (tile.kind !== "model" && !account) return null;
+  const model = modelPickerModels(t, locale, view, tile, account, api, apiModel).find((m) => m.auto);
+  if (!model) return null;
+  return { tile, account, model, current: tile.kind === "model" ? isAuto(apiModel) : model.checked };
+}
+
+/** How the agent thinks now, as the sheet's "Agora" lists it, each fact one row. */
+export interface AgentNow {
+  /** On a plan: the account by its card's title, its login (its owner's eyes only) and whose it is; null on a key. */
+  account: { mark: string; title: string; login: string | null; owner: string | null; mine: boolean } | null;
+  /** On a plan with no account chosen: the computer's own sign-in. */
+  ownSignIn: boolean;
+  /** On a key: its maker (a `ProviderLogo` id). */
+  keyProvider: string | null;
+  /** The model is picked per task. */
+  auto: boolean;
+  /** `auto` with Automático (or chosen so); null: the model's own default (a key with none chosen). */
+  effort: EffortLevel | "auto" | null;
+  /** The context limit; null: the model's whole window. */
+  contextTokens: number | null;
+}
+
+export function agentNow(
+  view: Pick<AgentBrain, "brain" | "account" | "accounts" | "effectiveModel" | "effort" | "contextTokens">,
+  apiModel: string | null,
+  models: readonly Model[],
+): AgentNow {
+  const onKey = view.brain === "model";
+  const a = onKey ? undefined : view.accounts.find((x) => x.id === view.account);
+  const auto = isAuto(onKey ? apiModel : view.effectiveModel);
+  return {
+    account: a
+      ? {
+          mark: a.provider ?? a.kind,
+          title: accountCardTitle(a),
+          login: a.email,
+          owner: a.ownerName?.split(" ")[0] ?? null,
+          mine: a.mine,
+        }
+      : null,
+    ownSignIn: !onKey && !a,
+    keyProvider: onKey ? (apiProviderOf(apiModel, models) ?? null) : null,
+    auto,
+    effort: auto || isAuto(view.effort) ? "auto" : effortOf(view.brain, view.effort),
+    contextTokens: isContextLimit(view.contextTokens) ? view.contextTokens : null,
+  };
 }
 
 /** A rough dollar in reais for list prices (a fixed rate, read 2026-11-17): the line says "≈". */
