@@ -298,12 +298,18 @@ export async function createTestServer(
     browserLive: engine.browserLive,
     streams: createStreamSockets({ db, auth, config, broker: engine.streams }),
   });
-  return {
+  const server = {
     db,
     close: async () => {
       await engine.machineHub.stop();
       engine.streams.stop();
       await close();
+      // The test file keeps this server in a variable until the process ends (the app with all its routes, some
+      // 240 thousand objects, a few MB each), and a run holds a few thousand of them: once the test is over, what the
+      // variable keeps is empty.
+      setTimeout(() => {
+        for (const key of Object.keys(server)) delete (server as Record<string, unknown>)[key];
+      }, 0);
     },
     config,
     adapters,
@@ -321,6 +327,7 @@ export async function createTestServer(
     realtime,
     drain: () => drainOutbox(db, handlers),
   };
+  return server;
 }
 
 export type TestServer = Awaited<ReturnType<typeof createTestServer>>;
