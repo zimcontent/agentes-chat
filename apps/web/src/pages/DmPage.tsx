@@ -123,7 +123,12 @@ export function DmPage({ target, focusMessageId }: { target: DmTarget; focusMess
               {agent && (
                 <span className="channel__topic" data-right-hand={rightHand || undefined}>
                   {rightHand
-                    ? `${t("rightHand.label")} · ${t("rightHand.actsAsYou")}`
+                    ? // Doug: a phone keeps the right hand's line to what it is, as it keeps every agent's to its role.
+                      // With the rest the line took the whole row and the header's glyphs went under it, a second
+                      // row of glass; whose permissions it acts with is one tap away, on its page.
+                      compact
+                      ? t("rightHand.label")
+                      : `${t("rightHand.label")} · ${t("rightHand.actsAsYou")}`
                     : // Doug: with the side panel open beside the chat, its Responsável and Como pensa say the rest.
                       sideSays
                       ? role

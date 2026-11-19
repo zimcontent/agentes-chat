@@ -2303,7 +2303,7 @@ export const ptBR = {
       signInInstead: "Entre de novo e troque sem o código. Você volta para cá.",
       useCode: "Usar o código",
     },
-    openOnPhone: "Abrir no celular",
+    openOnPhone: "Parear celular",
     openOnPhoneHint: "Entre no app com um QR code",
     addPassword: "Adicionar uma senha",
     addPasswordHint: "Para entrar por outros navegadores e aparelhos",

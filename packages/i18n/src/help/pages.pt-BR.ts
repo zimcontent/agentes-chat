@@ -792,7 +792,7 @@ export const helpPtBR: Record<HelpSlug, HelpDocument> = {
             list: [
               "No Tailscale, instale o app do Tailscale no celular e entre na mesma tailnet.",
               "Instale o app do agentes.chat.",
-              "Escaneie o QR code que a configuração mostrou, ou o de **Configurações\u00a0›\u00a0Sua conta\u00a0›\u00a0Abrir no celular**, que também já faz o login.",
+              "Escaneie o QR code que a configuração mostrou, ou o de **Configurações\u00a0›\u00a0Sua conta\u00a0›\u00a0Parear celular**, que também já faz o login.",
             ],
           },
         ],

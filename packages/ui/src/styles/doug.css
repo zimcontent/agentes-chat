@@ -1666,6 +1666,12 @@ img.ac-logo__mark {
   padding: var(--dg-s3) var(--dg-s4) var(--dg-s3) var(--dg-s3);
   border-radius: 24px;
 }
+/* An empty place keeps to its words. The figure that stood over them is a pixel agent, and agents here are drawn as
+   bots in every avatar, so it read as another product's mark; the title, the line and the buttons say what the place
+   is for. */
+[data-theme] .ac-empty__agent {
+  display: none;
+}
 /* Pages start 24 from the sheet's edges, as the conversation's pieces do. */
 @media (min-width: 761px) {
   [data-theme] .shell__pages {
@@ -2520,6 +2526,19 @@ img.ac-logo__mark {
 [data-theme] .sidebar:not([data-rail="true"]) .sidebar__foot > .sidebar__dock {
   margin: 0;
   padding-inline: 20px;
+}
+/* A seventh icon in the row (the tool opened from More stays in sight beside it, or one more a person keeps there):
+   seven 32 buttons don't fit the 208 between the row's 20s, and Configurações ran past the glass. The buttons give up
+   width evenly, never under the icon's 24, and with More's tool in the row it goes to its own 12 on the sides. */
+[data-theme] .sidebar:not([data-rail="true"]) .sidebar__dock .sidebar__item {
+  flex: 0 1 32px;
+  min-width: 24px;
+}
+[data-theme]
+  .sidebar:not([data-rail="true"])
+  .sidebar__foot
+  > .sidebar__dock:has(> .sidebar__more-active > [data-status="active"]) {
+  padding-inline: 12px;
 }
 
 /* ── The live screen's edge (SkyStrip): green glass, not pixels. A hairline of the identity's green that fades at both
