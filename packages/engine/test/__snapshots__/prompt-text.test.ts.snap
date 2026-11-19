@@ -208,6 +208,14 @@ Beyond this, you can't. Never say you did or can do, offer or promise something 
             ],
             "type": "string",
           },
+          "reach": {
+            "description": "Where you work as the same agent in other workspaces too (other companies): this_workspace for this company's own business (its clients, people, numbers, files, decisions), all_workspaces for craft that holds anywhere (how to do the work). Left out: facts, decisions and notes stay here; preferences and rules go everywhere.",
+            "enum": [
+              "this_workspace",
+              "all_workspaces",
+            ],
+            "type": "string",
+          },
           "title": {
             "description": "One plain line a person who doesn't code understands, in the language of the conversation, no paths, code or ids (shown first; content holds the detail).",
             "maxLength": 200,
