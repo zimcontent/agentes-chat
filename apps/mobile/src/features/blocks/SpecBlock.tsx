@@ -32,6 +32,7 @@ import { scheduleOnRN } from "react-native-worklets";
 import { botDoAgente, corDoBot } from "@/brand/bots";
 import { Button, fieldText, haptics, Segmented, Text, ToggleSwitch, useReducedMotion, useToast } from "@/ui";
 import { router } from "@/ui/navigation";
+import { CARD_PAD } from "@/ui/rhythm";
 import { useTheme } from "@/ui/theme";
 
 import { ChartView } from "../chat/ChartCard";
@@ -1239,6 +1240,9 @@ function BlockChart({ part, accent }: { part: Extract<BlockViewPart, { kind: "ch
   );
 }
 
+/** A slide or a moment opened full screen: a card a little roomier than one in the chat. */
+const BIG_PAD = CARD_PAD + 4;
+
 const styles = StyleSheet.create({
   body: { gap: 14, paddingHorizontal: 14, paddingTop: 6, paddingBottom: 14 },
   cut: { height: INLINE_HEIGHT, overflow: "hidden" },
@@ -1339,7 +1343,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: "hidden",
   },
-  slideBig: { gap: 8, padding: 20, borderRadius: 20, borderBottomLeftRadius: 6 },
+  slideBig: { gap: 8, padding: BIG_PAD, borderRadius: 20, borderBottomLeftRadius: 6 },
   slideTitle: { marginTop: "auto" },
   dots: { flexDirection: "row", justifyContent: "center", gap: 5 },
   dotSmall: { width: 5, height: 5, borderRadius: 3 },
@@ -1377,7 +1381,13 @@ const styles = StyleSheet.create({
   beat: { gap: 2, paddingLeft: 14, paddingVertical: 8 },
   dot: { position: "absolute", left: -6, top: 13, width: 10, height: 10, borderRadius: 5 },
   time: { fontVariant: ["tabular-nums"] },
-  beatBig: { gap: 8, padding: 20, borderRadius: 16, borderBottomLeftRadius: 4, borderWidth: StyleSheet.hairlineWidth },
+  beatBig: {
+    gap: 8,
+    padding: BIG_PAD,
+    borderRadius: 16,
+    borderBottomLeftRadius: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
   screen: {
     alignSelf: "flex-start",
     marginTop: 4,

@@ -938,6 +938,7 @@
       "computer_ready_other": "Komputer ruang kerjamu sudah siap",
       "invitation_accepted_other": "{{names}} menerima undanganmu",
       "composio_limit_other": "Ruang kerja ini sudah memakai jatah panggilan Composio bulan ini",
+      "company_request_other": "{{names}} meminta DougBot untuk perusahaan",
       "change_request_other": "{{names}} meminta perubahan di tim",
       "usage_limit_warning": "Kamu sudah memakai {{percent}}% dari batasmu bulan ini",
       "usage_limit_reached_notify": "Kamu sudah mencapai batas pemakaianmu bulan ini",
@@ -959,9 +960,7 @@
       "plan_model_dropped_other": "{{model}} keluar dari {{plan}}. {{names}} memakai {{runs}} untuk sementara",
       "computer_disk_full_other": "Disk komputer hampir penuh",
       "computer_no_chrome_other": "Komputer memerlukan Google Chrome. Unduh di google.com/chrome",
-      "app_created_other": "Aplikasi AI membuat sesuatu untukmu",
-      "company_request_one": "{{names}} meminta DougBot untuk perusahaan",
-      "company_request_other": "{{names}} meminta DougBot untuk perusahaan"
+      "app_created_other": "Aplikasi AI membuat sesuatu untukmu"
     },
     "markRead": "Tandai sudah dibaca",
     "markUnread": "Tandai belum dibaca",
@@ -1017,6 +1016,8 @@
     "added": "{{name}} bergabung ke grup"
   },
   "me": {
+    "groupAlerts": "Peringatan dan persetujuan",
+    "groupLook": "Tampilan dan suara",
     "title": "Kamu",
     "role": {
       "owner": "pemilik",
@@ -1143,9 +1144,7 @@
       "suggested": "Disarankan",
       "all": "Semua",
       "none": "Tidak ada zona waktu dengan nama itu"
-    },
-    "groupAlerts": "Peringatan dan persetujuan",
-    "groupLook": "Tampilan dan suara"
+    }
   },
   "delete": {
     "intro": "Ini tidak bisa dibatalkan.",
@@ -1210,6 +1209,8 @@
     "new": "Tugas baru",
     "viewList": "Daftar",
     "viewBoard": "Papan",
+    "viewTeam": "Tim",
+    "viewMine": "Tugasku",
     "search": "Cari tugas",
     "noMatch": "Tidak ada tugas dengan nama itu.",
     "list": {
@@ -1241,6 +1242,31 @@
       "canceled": "Dibatalkan"
     },
     "until": "tenggat {{date}}",
+    "team": {
+      "today": "Hari ini",
+      "week": "Minggu ini",
+      "everyone": "Semua orang",
+      "people": "Orang",
+      "agents": "Agen",
+      "clear": "Tidak ada yang punya tugas terbuka",
+      "mineClear": "Semua sudah beres",
+      "clearToday": "Tidak ada yang sedang dikerjakan, terlambat, atau jatuh tempo hari ini.",
+      "clearWeek": "Tidak ada yang sedang dikerjakan, terlambat, atau jatuh tempo minggu ini.",
+      "working_other": "{{count}} bekerja",
+      "lateCount_other": "{{count}} terlambat",
+      "blockedCount_other": "{{count}} terhambat",
+      "doingCount_other": "Mengerjakan {{count}}",
+      "notStarted": "Tidak ada yang berjalan",
+      "free": "Senggang",
+      "queued_other": "{{count}} dalam antrean",
+      "expand": "Menampilkan seluruh antrean",
+      "collapse": "Hanya menampilkan yang berikutnya",
+      "now": "Sekarang",
+      "next": "Berikutnya",
+      "more_other": "+{{count}} dalam antrean",
+      "blocked": "Terhambat",
+      "lateOn": "Terlambat sejak {{date}}"
+    },
     "loadFailed": "Tidak bisa memuat tugas.",
     "createdBy": "dibuat oleh {{name}}",
     "fromMessage": "dari pesan",
@@ -1427,6 +1453,20 @@
     }
   },
   "taskManager": {
+    "shortTitle": "Aktivitas",
+    "stat": {
+      "working": "Bekerja",
+      "waiting": "Menunggumu",
+      "done": "Selesai hari ini"
+    },
+    "needsYou": "Butuh kamu",
+    "review": "Buka dan balas",
+    "inProgress": "Sedang dikerjakan",
+    "paused": "Dijeda",
+    "pausedLine": "Dijeda",
+    "comingBack": "Kembali nanti",
+    "more_other": "{{count}} tugas lagi",
+    "fewer": "Lihat lebih sedikit",
     "loadFailed": "Tidak bisa memuat pekerjaan.",
     "gone": "Pekerjaan ini sudah tidak ada.",
     "quiet": "Tidak ada yang berjalan",
@@ -1481,6 +1521,10 @@
     }
   },
   "activityNow": {
+    "needsYou": "Menunggu kamu",
+    "running": "Sedang bekerja",
+    "runningAll": "Lihat semua",
+    "steps": "{{done}} dari {{total}}",
     "kind": {
       "approval": "Setujui",
       "question": "Pertanyaan",
@@ -1503,11 +1547,16 @@
       "today": "hari ini pukul {{time}}",
       "tomorrow": "besok pukul {{time}}",
       "later": "{{day}} pukul {{time}}"
-    },
-    "needsYou": "Menunggu kamu",
-    "running": "Sedang bekerja",
-    "runningAll": "Lihat semua",
-    "steps": "{{done}} dari {{total}}"
+    }
+  },
+  "toSchedule": {
+    "title": "Siap dijadwalkan",
+    "row": "Postingan disetujui, ketuk untuk menjadwalkan",
+    "untitled": "Postingan tanpa judul",
+    "sheetTitle": "Jadwalkan postingan",
+    "confirm": "Jadwalkan",
+    "when": "Terbit {{when}}",
+    "past": "Pilih waktu yang belum lewat"
   },
   "agentLite": {
     "uses": "Bisa memakai",
@@ -3078,14 +3127,5 @@
   "brand": {
     "basedOn": "Berbasis DougBot oleh Codari Global, LLC · AGPL-3.0",
     "source": "Kode sumber DougBot"
-  },
-  "toSchedule": {
-    "title": "Siap dijadwalkan",
-    "row": "Postingan disetujui, ketuk untuk menjadwalkan",
-    "untitled": "Postingan tanpa judul",
-    "sheetTitle": "Jadwalkan postingan",
-    "confirm": "Jadwalkan",
-    "when": "Terbit {{when}}",
-    "past": "Pilih waktu yang belum lewat"
   }
 }

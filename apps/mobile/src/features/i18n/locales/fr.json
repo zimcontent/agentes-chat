@@ -1054,6 +1054,8 @@
       "composio_limit_one": "Cet espace de travail a utilisé ses appels Composio du mois",
       "composio_limit_many": "Cet espace de travail a utilisé ses appels Composio du mois",
       "composio_limit_other": "Cet espace de travail a utilisé ses appels Composio du mois",
+      "company_request_one": "{{names}} a demandé DougBot pour une entreprise",
+      "company_request_other": "{{names}} ont demandé DougBot pour une entreprise",
       "change_request_one": "{{names}} demande un changement dans l’équipe",
       "change_request_many": "{{names}} demandent un changement dans l’équipe",
       "change_request_other": "{{names}} demandent un changement dans l’équipe",
@@ -1107,9 +1109,7 @@
       "computer_no_chrome_other": "Des ordinateurs ont besoin de Google Chrome. Téléchargez-le sur google.com/chrome",
       "app_created_one": "Une app d'IA a créé des choses pour vous",
       "app_created_many": "Une app d'IA a créé des choses pour vous",
-      "app_created_other": "Une app d'IA a créé des choses pour vous",
-      "company_request_one": "{{names}} a demandé DougBot pour une entreprise",
-      "company_request_other": "{{names}} ont demandé DougBot pour une entreprise"
+      "app_created_other": "Une app d'IA a créé des choses pour vous"
     },
     "markRead": "Marquer comme lu",
     "markUnread": "Marquer comme non lu",
@@ -1165,6 +1165,8 @@
     "added": "{{name}} a rejoint le groupe"
   },
   "me": {
+    "groupAlerts": "Alertes et approbations",
+    "groupLook": "Apparence et son",
     "title": "Vous",
     "role": {
       "owner": "propriétaire",
@@ -1300,9 +1302,7 @@
       "suggested": "Suggérés",
       "all": "Tous",
       "none": "Aucun fuseau horaire à ce nom"
-    },
-    "groupAlerts": "Alertes et approbations",
-    "groupLook": "Apparence et son"
+    }
   },
   "delete": {
     "intro": "C'est irréversible.",
@@ -1367,6 +1367,8 @@
     "new": "Nouvelle tâche",
     "viewList": "Liste",
     "viewBoard": "Tableau",
+    "viewTeam": "Équipe",
+    "viewMine": "Les miennes",
     "search": "Rechercher des tâches",
     "noMatch": "Aucune tâche à ce nom.",
     "list": {
@@ -1398,6 +1400,43 @@
       "canceled": "Annulé"
     },
     "until": "échéance {{date}}",
+    "team": {
+      "today": "Aujourd'hui",
+      "week": "Semaine",
+      "everyone": "Tout le monde",
+      "people": "Personnes",
+      "agents": "Agents",
+      "clear": "Personne n'a de tâche ouverte",
+      "mineClear": "Vous êtes à jour",
+      "clearToday": "Rien en cours, en retard ou prévu aujourd'hui.",
+      "clearWeek": "Rien en cours, en retard ou prévu cette semaine.",
+      "working_one": "{{count}} au travail",
+      "working_many": "{{count}} au travail",
+      "working_other": "{{count}} au travail",
+      "lateCount_one": "{{count}} en retard",
+      "lateCount_many": "{{count}} en retard",
+      "lateCount_other": "{{count}} en retard",
+      "blockedCount_one": "{{count}} bloquée",
+      "blockedCount_many": "{{count}} bloquées",
+      "blockedCount_other": "{{count}} bloquées",
+      "doingCount_one": "Travaille sur {{count}}",
+      "doingCount_many": "Travaille sur {{count}}",
+      "doingCount_other": "Travaille sur {{count}}",
+      "notStarted": "Rien en cours",
+      "free": "Libre",
+      "queued_one": "{{count}} en file d'attente",
+      "queued_many": "{{count}} en file d'attente",
+      "queued_other": "{{count}} en file d'attente",
+      "expand": "Affiche toute la file",
+      "collapse": "Affiche seulement la suite",
+      "now": "Maintenant",
+      "next": "Ensuite",
+      "more_one": "+{{count}} en file d'attente",
+      "more_many": "+{{count}} en file d'attente",
+      "more_other": "+{{count}} en file d'attente",
+      "blocked": "Bloquée",
+      "lateOn": "En retard depuis {{date}}"
+    },
     "loadFailed": "Impossible de charger les tâches.",
     "createdBy": "créée par {{name}}",
     "fromMessage": "depuis un message",
@@ -1601,6 +1640,22 @@
     }
   },
   "taskManager": {
+    "shortTitle": "Activité",
+    "stat": {
+      "working": "Au travail",
+      "waiting": "Vous attendent",
+      "done": "Terminées aujourd'hui"
+    },
+    "needsYou": "Vous attend",
+    "review": "Ouvrir et répondre",
+    "inProgress": "En cours",
+    "paused": "En pause",
+    "pausedLine": "En pause",
+    "comingBack": "Reviennent plus tard",
+    "more_one": "{{count}} tâche de plus",
+    "more_many": "{{count}} tâches de plus",
+    "more_other": "{{count}} tâches de plus",
+    "fewer": "Voir moins",
     "loadFailed": "Impossible de charger le travail.",
     "gone": "Ce travail n'est plus là.",
     "quiet": "Rien en cours",
@@ -1658,6 +1713,10 @@
     }
   },
   "activityNow": {
+    "needsYou": "Vous attend",
+    "running": "En cours",
+    "runningAll": "Tout voir",
+    "steps": "{{done}} sur {{total}}",
     "kind": {
       "approval": "Approuver",
       "question": "Question",
@@ -1680,11 +1739,16 @@
       "today": "aujourd'hui à {{time}}",
       "tomorrow": "demain à {{time}}",
       "later": "{{day}} à {{time}}"
-    },
-    "needsYou": "Vous attend",
-    "running": "En cours",
-    "runningAll": "Tout voir",
-    "steps": "{{done}} sur {{total}}"
+    }
+  },
+  "toSchedule": {
+    "title": "Prêt à programmer",
+    "row": "Publication approuvée, touchez pour programmer",
+    "untitled": "Publication sans titre",
+    "sheetTitle": "Programmer la publication",
+    "confirm": "Programmer",
+    "when": "Publié {{when}}",
+    "past": "Choisissez une heure qui n’est pas encore passée"
   },
   "agentLite": {
     "uses": "Peut utiliser",
@@ -3326,14 +3390,5 @@
   "brand": {
     "basedOn": "Basé sur DougBot de Codari Global, LLC · AGPL-3.0",
     "source": "Code source de DougBot"
-  },
-  "toSchedule": {
-    "title": "Prêt à programmer",
-    "row": "Publication approuvée, touchez pour programmer",
-    "untitled": "Publication sans titre",
-    "sheetTitle": "Programmer la publication",
-    "confirm": "Programmer",
-    "when": "Publié {{when}}",
-    "past": "Choisissez une heure qui n’est pas encore passée"
   }
 }

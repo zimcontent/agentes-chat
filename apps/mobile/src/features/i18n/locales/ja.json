@@ -938,6 +938,7 @@
       "computer_ready_other": "ワークスペースのコンピューターの準備ができました",
       "invitation_accepted_other": "{{names}}が招待を承諾しました",
       "composio_limit_other": "このワークスペースは今月のComposio呼び出し回数を使い切りました",
+      "company_request_other": "{{names}}が会社のためにDougBotを依頼しました",
       "change_request_other": "{{names}}がチームの変更を求めています",
       "usage_limit_warning": "今月の上限の{{percent}}%を使いました",
       "usage_limit_reached_notify": "今月の利用上限に達しました",
@@ -959,9 +960,7 @@
       "plan_model_dropped_other": "{{model}}が{{plan}}から外れました。{{names}}は当面{{runs}}を使います",
       "computer_disk_full_other": "コンピューターのディスクがほぼいっぱいです",
       "computer_no_chrome_other": "コンピューターにGoogle Chromeが必要です。google.com/chromeからダウンロードしてください",
-      "app_created_other": "AIアプリがあなたのために作成しました",
-      "company_request_one": "{{names}}が会社のためにDougBotを依頼しました",
-      "company_request_other": "{{names}}が会社のためにDougBotを依頼しました"
+      "app_created_other": "AIアプリがあなたのために作成しました"
     },
     "markRead": "既読にする",
     "markUnread": "未読にする",
@@ -1017,6 +1016,8 @@
     "added": "{{name}}がグループに参加しました"
   },
   "me": {
+    "groupAlerts": "通知と承認",
+    "groupLook": "表示とサウンド",
     "title": "あなた",
     "role": {
       "owner": "オーナー",
@@ -1143,9 +1144,7 @@
       "suggested": "おすすめ",
       "all": "すべて",
       "none": "その名前のタイムゾーンはありません"
-    },
-    "groupAlerts": "通知と承認",
-    "groupLook": "表示とサウンド"
+    }
   },
   "delete": {
     "intro": "元に戻すことはできません。",
@@ -1210,6 +1209,8 @@
     "new": "新しいタスク",
     "viewList": "リスト",
     "viewBoard": "ボード",
+    "viewTeam": "チーム",
+    "viewMine": "自分",
     "search": "タスクを検索",
     "noMatch": "その名前のタスクはありません。",
     "list": {
@@ -1241,6 +1242,31 @@
       "canceled": "キャンセル済み"
     },
     "until": "期限 {{date}}",
+    "team": {
+      "today": "今日",
+      "week": "今週",
+      "everyone": "全員",
+      "people": "人",
+      "agents": "エージェント",
+      "clear": "未完了のタスクはありません",
+      "mineClear": "すべて対応済みです",
+      "clearToday": "進行中・期限切れ・今日が期限のものはありません。",
+      "clearWeek": "進行中・期限切れ・今週が期限のものはありません。",
+      "working_other": "作業中 {{count}}",
+      "lateCount_other": "期限切れ {{count}}",
+      "blockedCount_other": "ブロック中 {{count}}",
+      "doingCount_other": "{{count}}件を作業中",
+      "notStarted": "進行中のものはありません",
+      "free": "空き",
+      "queued_other": "待機中 {{count}}件",
+      "expand": "キュー全体を表示します",
+      "collapse": "次の作業だけを表示します",
+      "now": "現在",
+      "next": "次",
+      "more_other": "ほか{{count}}件が待機中",
+      "blocked": "ブロック中",
+      "lateOn": "{{date}}から期限切れ"
+    },
     "loadFailed": "タスクを読み込めませんでした。",
     "createdBy": "作成者: {{name}}",
     "fromMessage": "メッセージから",
@@ -1427,6 +1453,20 @@
     }
   },
   "taskManager": {
+    "shortTitle": "アクティビティ",
+    "stat": {
+      "working": "作業中",
+      "waiting": "あなたの対応待ち",
+      "done": "今日完了"
+    },
+    "needsYou": "あなたの対応待ち",
+    "review": "開いて返信",
+    "inProgress": "進行中",
+    "paused": "一時停止中",
+    "pausedLine": "一時停止中",
+    "comingBack": "後で再開",
+    "more_other": "ほか{{count}}件のタスク",
+    "fewer": "表示を減らす",
     "loadFailed": "作業を読み込めませんでした。",
     "gone": "この作業はもうありません。",
     "quiet": "進行中のものはありません",
@@ -1481,6 +1521,10 @@
     }
   },
   "activityNow": {
+    "needsYou": "あなたの対応待ち",
+    "running": "作業中",
+    "runningAll": "すべて表示",
+    "steps": "{{done}}/{{total}}",
     "kind": {
       "approval": "承認",
       "question": "質問",
@@ -1503,11 +1547,16 @@
       "today": "今日 {{time}}",
       "tomorrow": "明日 {{time}}",
       "later": "{{day}} {{time}}"
-    },
-    "needsYou": "あなたの対応待ち",
-    "running": "作業中",
-    "runningAll": "すべて表示",
-    "steps": "{{done}}/{{total}}"
+    }
+  },
+  "toSchedule": {
+    "title": "予約待ち",
+    "row": "承認済みの投稿、タップして予約",
+    "untitled": "無題の投稿",
+    "sheetTitle": "投稿を予約",
+    "confirm": "予約",
+    "when": "{{when}}に公開",
+    "past": "まだ過ぎていない時刻を選んでください"
   },
   "agentLite": {
     "uses": "使えるもの",
@@ -3078,14 +3127,5 @@
   "brand": {
     "basedOn": "Codari Global, LLC の DougBot をベースにしています · AGPL-3.0",
     "source": "DougBotのソースコード"
-  },
-  "toSchedule": {
-    "title": "予約待ち",
-    "row": "承認済みの投稿、タップして予約",
-    "untitled": "無題の投稿",
-    "sheetTitle": "投稿を予約",
-    "confirm": "予約",
-    "when": "{{when}}に公開",
-    "past": "まだ過ぎていない時刻を選んでください"
   }
 }

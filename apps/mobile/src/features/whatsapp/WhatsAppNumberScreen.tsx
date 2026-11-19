@@ -157,7 +157,9 @@ function NumberForm({ account }: { account: WhatsAppAccount }) {
     <PushedLargeTitle title={account.label} grouped keyboard>
       <View style={styles.in}>
         <View>
-          <GroupedHeader hint={{ name: s.agent, text: s.agentHint }}>{s.whoAnswers}</GroupedHeader>
+          <GroupedHeader hint={{ name: t("common.about", { label: s.agent }), text: s.agentHint }}>
+            {s.whoAnswers}
+          </GroupedHeader>
           <GroupedList>
             <GroupedRow
               label={s.agent}
@@ -168,7 +170,7 @@ function NumberForm({ account }: { account: WhatsAppAccount }) {
             {draft.agentId ? (
               <GroupedRow
                 label={s.agentOn}
-                hint={{ name: s.agentOn, text: s.agentOnHint }}
+                hint={{ name: t("common.about", { label: s.agentOn }), text: s.agentOnHint }}
                 toggle={draft.agentOn}
                 onPress={() => set({ agentOn: !draft.agentOn })}
               />
@@ -193,7 +195,7 @@ function NumberForm({ account }: { account: WhatsAppAccount }) {
             <GroupedList>
               <GroupedRow
                 label={w.style.wait}
-                hint={{ name: w.style.wait, text: w.style.waitHint }}
+                hint={{ name: t("common.about", { label: w.style.wait }), text: w.style.waitHint }}
                 value={w.style.seconds(draft.style.waitSeconds)}
                 menu
                 onPress={async () => {
@@ -207,7 +209,7 @@ function NumberForm({ account }: { account: WhatsAppAccount }) {
               />
               <GroupedRow
                 label={w.style.pace}
-                hint={{ name: w.style.pace, text: w.style.paceHint }}
+                hint={{ name: t("common.about", { label: w.style.pace }), text: w.style.paceHint }}
                 value={w.style.paces[draft.style.pace]}
                 menu
                 onPress={async () => {
@@ -221,7 +223,7 @@ function NumberForm({ account }: { account: WhatsAppAccount }) {
               />
               <GroupedRow
                 label={w.style.messages}
-                hint={{ name: w.style.messages, text: w.style.messagesHint }}
+                hint={{ name: t("common.about", { label: w.style.messages }), text: w.style.messagesHint }}
                 value={w.style.upTo(draft.style.messages)}
                 menu
                 onPress={async () => {
@@ -235,7 +237,7 @@ function NumberForm({ account }: { account: WhatsAppAccount }) {
               />
               <GroupedRow
                 label={w.style.quiet}
-                hint={{ name: w.style.quiet, text: w.style.quietHint }}
+                hint={{ name: t("common.about", { label: w.style.quiet }), text: w.style.quietHint }}
                 value={w.style.minutes(draft.style.quietMinutes)}
                 menu
                 onPress={async () => {
@@ -249,7 +251,7 @@ function NumberForm({ account }: { account: WhatsAppAccount }) {
               />
               <GroupedRow
                 label={w.style.voiceNotes}
-                hint={{ name: w.style.voiceNotes, text: w.style.voiceNotesHint }}
+                hint={{ name: t("common.about", { label: w.style.voiceNotes }), text: w.style.voiceNotesHint }}
                 toggle={draft.style.voiceNotes ?? true}
                 onPress={() => setStyle({ voiceNotes: !(draft.style.voiceNotes ?? true) })}
               />
@@ -258,7 +260,9 @@ function NumberForm({ account }: { account: WhatsAppAccount }) {
         ) : null}
 
         <View>
-          <GroupedHeader hint={{ name: s.instructions, text: s.instructionsHint }}>{s.instructions}</GroupedHeader>
+          <GroupedHeader hint={{ name: t("common.about", { label: s.instructions }), text: s.instructionsHint }}>
+            {s.instructions}
+          </GroupedHeader>
           <GroupedList>
             <TextInput
               value={draft.instructions}
@@ -309,6 +313,7 @@ function Direction({
 }) {
   const w = useWhatsAppWords();
   const s = w.settings;
+  const { t } = useTranslation();
   const orgId = useOrgId();
   const c = useColors();
   const words = useFieldText("body");
@@ -359,7 +364,9 @@ function Direction({
 
   return (
     <View>
-      <GroupedHeader hint={{ name: s.direction, text: s.directionHint }}>{s.direction}</GroupedHeader>
+      <GroupedHeader hint={{ name: t("common.about", { label: s.direction }), text: s.directionHint }}>
+        {s.direction}
+      </GroupedHeader>
       <GroupedList>
         <View style={styles.direction}>
           {take.recording ? (

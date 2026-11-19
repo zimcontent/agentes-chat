@@ -7,6 +7,7 @@ import {
   introCards,
   introLeadKey,
   offersTeamSetup,
+  RIGHT_HAND_DEFAULT,
   rightHandOf,
   teamAnswered,
   tellsNameStory,
@@ -285,8 +286,10 @@ test("its wave moves, then ends on its still frame, so stopping shows no jump", 
 });
 
 test("its profile tells where its name comes from only while it keeps it, and only for the right hand", () => {
-  expect(tellsNameStory(lodi)).toBe(true);
-  expect(tellsNameStory({ ...lodi, name: "Tuca" })).toBe(false);
-  expect(tellsNameStory(agent({ id: "a-other", name: "Lodi" }))).toBe(false);
+  // The right hand's default name is the fork's (Doug), read from the one place that keeps it.
+  const named = { ...lodi, name: RIGHT_HAND_DEFAULT.name };
+  expect(tellsNameStory(named)).toBe(true);
+  expect(tellsNameStory({ ...named, name: "Tuca" })).toBe(false);
+  expect(tellsNameStory(agent({ id: "a-other", name: RIGHT_HAND_DEFAULT.name }))).toBe(false);
   expect(tellsNameStory(undefined)).toBe(false);
 });

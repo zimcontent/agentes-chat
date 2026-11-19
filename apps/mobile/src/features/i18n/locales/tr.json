@@ -996,6 +996,8 @@
       "invitation_accepted_other": "{{names}} davetinizi kabul etti",
       "composio_limit_one": "Bu çalışma alanı bu ayki Composio çağrılarını kullandı",
       "composio_limit_other": "Bu çalışma alanı bu ayki Composio çağrılarını kullandı",
+      "company_request_one": "{{names}} bir şirket için DougBot istedi",
+      "company_request_other": "{{names}} bir şirket için DougBot istedi",
       "change_request_one": "{{names}} ekipte bir değişiklik istiyor",
       "change_request_other": "{{names}} ekipte bir değişiklik istiyor",
       "usage_limit_warning": "Bu ayki limitinin %{{percent}} kadarını kullandın",
@@ -1033,9 +1035,7 @@
       "computer_no_chrome_one": "Bir bilgisayarın Google Chrome'a ihtiyacı var. google.com/chrome adresinden indirin",
       "computer_no_chrome_other": "Bilgisayarların Google Chrome'a ihtiyacı var. google.com/chrome adresinden indirin",
       "app_created_one": "Bir yapay zeka uygulaması sizin için bir şeyler oluşturdu",
-      "app_created_other": "Bir yapay zeka uygulaması sizin için bir şeyler oluşturdu",
-      "company_request_one": "{{names}} bir şirket için DougBot istedi",
-      "company_request_other": "{{names}} bir şirket için DougBot istedi"
+      "app_created_other": "Bir yapay zeka uygulaması sizin için bir şeyler oluşturdu"
     },
     "markRead": "Okundu olarak işaretle",
     "markUnread": "Okunmadı olarak işaretle",
@@ -1091,6 +1091,8 @@
     "added": "{{name}} gruba katıldı"
   },
   "me": {
+    "groupAlerts": "Uyarılar ve onaylar",
+    "groupLook": "Görünüm ve ses",
     "title": "Siz",
     "role": {
       "owner": "sahip",
@@ -1223,9 +1225,7 @@
       "suggested": "Önerilenler",
       "all": "Tümü",
       "none": "Bu adla bir saat dilimi yok"
-    },
-    "groupAlerts": "Uyarılar ve onaylar",
-    "groupLook": "Görünüm ve ses"
+    }
   },
   "delete": {
     "intro": "Bunun geri dönüşü yok.",
@@ -1290,6 +1290,8 @@
     "new": "Yeni görev",
     "viewList": "Liste",
     "viewBoard": "Pano",
+    "viewTeam": "Ekip",
+    "viewMine": "Benimkiler",
     "search": "Görevlerde ara",
     "noMatch": "Bu adla bir görev yok.",
     "list": {
@@ -1321,6 +1323,37 @@
       "canceled": "İptal edildi"
     },
     "until": "son tarih {{date}}",
+    "team": {
+      "today": "Bugün",
+      "week": "Bu hafta",
+      "everyone": "Herkes",
+      "people": "Kişiler",
+      "agents": "Ajanlar",
+      "clear": "Kimsenin açık görevi yok",
+      "mineClear": "Her şey tamam",
+      "clearToday": "Devam eden, geciken ya da bugün teslim edilecek bir şey yok.",
+      "clearWeek": "Devam eden, geciken ya da bu hafta teslim edilecek bir şey yok.",
+      "working_one": "{{count}} çalışıyor",
+      "working_other": "{{count}} çalışıyor",
+      "lateCount_one": "{{count}} gecikmiş",
+      "lateCount_other": "{{count}} gecikmiş",
+      "blockedCount_one": "{{count}} engellenmiş",
+      "blockedCount_other": "{{count}} engellenmiş",
+      "doingCount_one": "{{count}} görev üzerinde",
+      "doingCount_other": "{{count}} görev üzerinde",
+      "notStarted": "Devam eden bir şey yok",
+      "free": "Boşta",
+      "queued_one": "Sırada {{count}}",
+      "queued_other": "Sırada {{count}}",
+      "expand": "Tüm sırayı gösterir",
+      "collapse": "Yalnızca sıradakini gösterir",
+      "now": "Şimdi",
+      "next": "Sırada",
+      "more_one": "+{{count}} sırada",
+      "more_other": "+{{count}} sırada",
+      "blocked": "Engellendi",
+      "lateOn": "{{date}} tarihinden beri gecikmiş"
+    },
     "loadFailed": "Görevler yüklenemedi.",
     "createdBy": "oluşturan: {{name}}",
     "fromMessage": "bir mesajdan",
@@ -1516,6 +1549,21 @@
     }
   },
   "taskManager": {
+    "shortTitle": "Etkinlik",
+    "stat": {
+      "working": "Çalışıyor",
+      "waiting": "Sizi bekliyor",
+      "done": "Bugün bitenler"
+    },
+    "needsYou": "Size ihtiyaç var",
+    "review": "Aç ve yanıtla",
+    "inProgress": "Devam ediyor",
+    "paused": "Duraklatıldı",
+    "pausedLine": "Duraklatıldı",
+    "comingBack": "Sonra devam edecek",
+    "more_one": "{{count}} görev daha",
+    "more_other": "{{count}} görev daha",
+    "fewer": "Daha az göster",
     "loadFailed": "İş yüklenemedi.",
     "gone": "Bu iş artık burada değil.",
     "quiet": "Devam eden bir şey yok",
@@ -1572,6 +1620,10 @@
     }
   },
   "activityNow": {
+    "needsYou": "Seni bekliyor",
+    "running": "Şu an çalışıyor",
+    "runningAll": "Tümünü gör",
+    "steps": "{{done}}/{{total}}",
     "kind": {
       "approval": "Onayla",
       "question": "Soru",
@@ -1594,11 +1646,16 @@
       "today": "bugün {{time}}",
       "tomorrow": "yarın {{time}}",
       "later": "{{day}} {{time}}"
-    },
-    "needsYou": "Seni bekliyor",
-    "running": "Şu an çalışıyor",
-    "runningAll": "Tümünü gör",
-    "steps": "{{done}}/{{total}}"
+    }
+  },
+  "toSchedule": {
+    "title": "Planlanmaya hazır",
+    "row": "Gönderi onaylandı, planlamak için dokun",
+    "untitled": "Başlıksız gönderi",
+    "sheetTitle": "Gönderiyi planla",
+    "confirm": "Planla",
+    "when": "{{when}} yayında",
+    "past": "Henüz geçmemiş bir saat seç"
   },
   "agentLite": {
     "uses": "Kullanabilir",
@@ -3209,14 +3266,5 @@
   "brand": {
     "basedOn": "Codari Global, LLC'nin DougBot projesine dayanır · AGPL-3.0",
     "source": "DougBot kaynak kodu"
-  },
-  "toSchedule": {
-    "title": "Planlanmaya hazır",
-    "row": "Gönderi onaylandı, planlamak için dokun",
-    "untitled": "Başlıksız gönderi",
-    "sheetTitle": "Gönderiyi planla",
-    "confirm": "Planla",
-    "when": "{{when}} yayında",
-    "past": "Henüz geçmemiş bir saat seç"
   }
 }
