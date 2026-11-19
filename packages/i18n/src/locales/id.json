@@ -12259,6 +12259,42 @@
     "tooLongFix": "Persingkat jawabannya."
   },
   "drive": {
+    "draft": "Draf",
+    "draftUntil": "Masuk ke sampah dengan sendirinya pada {{date}}, kecuali berubah atau ada yang menyimpannya.",
+    "keepDraft": "Simpan",
+    "kept": "{{title}} disimpan.",
+    "folders": {
+      "title": "Folder",
+      "path": "Jalur folder",
+      "new": "Folder baru",
+      "newTitle": "Folder baru",
+      "newInside": "Folder baru di dalam",
+      "create": "Buat",
+      "created": "Folder {{name}} dibuat.",
+      "name": "Nama",
+      "namePlaceholder": "Klien atau proyek",
+      "menu": "Folder {{name}}: selengkapnya",
+      "menuShort": "Selengkapnya",
+      "rename": "Ganti nama",
+      "renameTitle": "Ganti nama folder",
+      "renameConfirm": "Ganti nama",
+      "move": "Pindahkan",
+      "moveTo": "Pindahkan ke…",
+      "moveHere": "Pindahkan ke sini",
+      "here": "Ada di sini",
+      "moveFolderTitle": "Pindahkan {{name}}",
+      "moveFilesTitle_other": "Pindahkan {{count}} file",
+      "moved": "{{name}} dipindahkan ke {{folder}}.",
+      "filed_other": "{{count}} file dipindahkan ke {{folder}}.",
+      "files_other": "{{count}} file",
+      "remove": "Hapus folder",
+      "removeTitle": "Hapus {{name}}?",
+      "removeBody": "Tidak ada file yang dihapus. Isinya naik satu tingkat.",
+      "removeConfirm": "Hapus folder",
+      "removed": "Folder {{name}} dihapus.",
+      "emptyTitle": "Folder ini kosong",
+      "emptyText": "Tarik file ke sini, unggah, atau minta agen menyimpan hasil kerjanya di folder ini."
+    },
     "title": "Drive",
     "subtitle": "Semua yang dibuat atau diunggah orang dan agen.",
     "search": "Cari file",
@@ -14058,6 +14094,10 @@
       "request_folder_access": "Minta akses folder",
       "create_artifact": "Buat file di Drive",
       "update_artifact": "Ubah file di Drive",
+      "drive_folders": "Lihat folder Drive",
+      "file_artifacts": "Simpan di folder Drive",
+      "drive_folder": "Atur folder Drive",
+      "trash_artifacts": "Bersihkan file",
       "read_artifact": "Baca file di Drive",
       "list_artifacts": "Daftar file Drive",
       "share_artifact": "Bagikan file",
@@ -15169,6 +15209,14 @@
       "sharingEmpty": "Pilih siapa yang melihat.",
       "sharingTooMany": "Pilih paling banyak {{max}} orang dan {{max}} peran.",
       "notInDrive": "Ini hanya ada di percakapannya, jadi tidak bisa dibagikan."
+    },
+    "drive": {
+      "folderExists": "Sudah ada folder dengan nama itu di sini.",
+      "folderNotFound": "Folder ini sudah tidak ada.",
+      "folderCycle": "Folder tidak bisa berada di dalam dirinya sendiri.",
+      "folderTooDeep": "Folder paling dalam {{max}} tingkat.",
+      "foldersFull": "Ruang kerja ini sudah punya {{max}} folder.",
+      "folderName": "Beri nama folder."
     },
     "device": {
       "notLinkMaker": "Hanya orang yang membuat tautan ini yang bisa mengizinkan komputer ini bergabung.",
@@ -18050,6 +18098,22 @@
     "update_artifact": {
       "label": "Perbarui file",
       "description": "Menyimpan versi baru sebuah file."
+    },
+    "drive_folders": {
+      "label": "Lihat folder",
+      "description": "Melihat folder Drive."
+    },
+    "file_artifacts": {
+      "label": "Simpan di folder",
+      "description": "Menaruh file Drive di folder proyek."
+    },
+    "drive_folder": {
+      "label": "Atur folder",
+      "description": "Mengganti nama, memindahkan, atau menghapus folder Drive (tidak pernah file)."
+    },
+    "trash_artifacts": {
+      "label": "Bersihkan file sendiri",
+      "description": "Memindahkan file buatannya yang tidak dibutuhkan siapa pun ke sampah (30 hari untuk memulihkan)."
     },
     "list_issues": {
       "label": "Lihat tugas",

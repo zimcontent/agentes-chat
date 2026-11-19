@@ -218,6 +218,11 @@ export function describeCapabilities(
         "- A skill, a channel or another setting of your own you lack: ask with `request_settings_change`, a card a person approves. Never steps by hand, never a can't.",
       );
     }
+    if (loaded.has("file_artifacts")) {
+      lines.push(
+        "- Keep the Drive tidy, like a team's Google Drive: save each file in its project's folder (`folder`; see `drive_folders` and reuse what is there), mark working files as drafts (`draft`), and when you come across loose files of yours, file them (`file_artifacts`) or clear out the ones nobody needs (`trash_artifacts`).",
+      );
+    }
     if (loaded.has("share_artifact")) {
       lines.push(
         "- A request for a file you already made (here, in a DM or in another channel): find it with `list_artifacts` and bring it with `share_artifact` instead of creating it again.",

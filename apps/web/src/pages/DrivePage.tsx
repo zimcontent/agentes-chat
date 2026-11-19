@@ -1,5 +1,5 @@
 import type { Artifact, ArtifactFilters, ArtifactKind } from "@agenteschat/client";
-import { useArtifacts, useChannels } from "@agenteschat/client";
+import { useArtifacts, useChannels, useDriveFolders, useDriveOrganize } from "@agenteschat/client";
 import { ARTIFACT_KINDS, KIND_ICON } from "@agenteschat/client/lib/artifacts";
 import {
   DRIVE_GROUPS,
@@ -15,6 +15,8 @@ import {
   PRIVATE_SECTION,
   rangeOf,
 } from "@agenteschat/client/lib/drive";
+import { folderChain, folderPathOf, foldersIn } from "@agenteschat/client/lib/drive-folders";
+import { errorText } from "@agenteschat/client/lib/errors";
 import { joinNames } from "@agenteschat/client/lib/format";
 import { can } from "@agenteschat/client/lib/permissions";
 import {
@@ -37,13 +39,14 @@ import {
   Toolbar,
   useMatchMedia,
 } from "@agenteschat/ui";
-import { type MouseEvent, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { type DragEvent, type MouseEvent, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActorAvatar } from "@/components/AgentAvatar";
 import { useArtifactDownload, useDeleteArtifact } from "@/components/artifacts/ArtifactActions";
 import { artifactLink, useArtifactViewer, useAuthorName } from "@/components/artifacts/ArtifactViewer";
 import { useFileShare } from "@/components/artifacts/ShareDialog";
 import { UploadButton, useDriveUpload } from "@/components/artifacts/Upload";
+import { DRAG_TYPE, FolderPath, FolderTiles, useFolderActions } from "@/components/drive/DriveFolders";
 import { DriveCard, DriveRow, type ItemProps } from "@/components/drive/DriveItems";
 import { DriveTrash } from "@/components/drive/DriveTrash";
 import { DropOverlay, UploadProgress, useFileDrop } from "@/components/drive/DriveUploads";
@@ -69,8 +72,17 @@ const layerOpen = () => Boolean(document.querySelector('[role="menu"], [role="li
  * grid of real previews (or a list), with quick filters, grouping, a details
  * panel, multi-select with a floating bar, drop to upload and the trash.
  */
-export function DrivePage({ open }: { open?: { id: string; version?: number } }) {
-  const { t } = useTranslation();
+export function DrivePage({
+  open,
+  folderId = null,
+  onFolder,
+}: {
+  open?: { id: string; version?: number };
+  /** The folder open (docs/adr/doug-0036-drive-folders.md); null: the top of the Drive. */
+  folderId?: string | null;
+  onFolder?: (id: string | null) => void;
+}) {
+  const { t, i18n } = useTranslation();
   const { org } = useOrg();
   const look = useRightHandLook();
   const uploads = can(org, "upload_files");
@@ -82,6 +94,18 @@ export function DrivePage({ open }: { open?: { id: string; version?: number } })
   const share = useFileShare();
   const searchRef = useRef<HTMLInputElement>(null);
   const phone = useMatchMedia(COMPACT_QUERY);
+  const folderList = useDriveFolders(org.id);
+  const folders = folderList.data?.folders ?? [];
+  const organize = useDriveOrganize(org.id);
+  // A folder removed or not there any more (an old link): the top of the Drive.
+  const here = folderList.isSuccess && folderId && !folders.some((f) => f.id === folderId) ? null : folderId;
+  const openFolder = (id: string | null) => {
+    setSelected(new Set());
+    onFolder?.(id);
+  };
+  const folderActions = useFolderActions(folders, (removed) => {
+    if (folderChain(folders, here).some((f) => f.id === removed.id)) openFolder(removed.parentId);
+  });
 
   const [q, setQ] = useState("");
   const [trashOpen, setTrashOpen] = useState(false);
@@ -117,19 +141,28 @@ export function DrivePage({ open }: { open?: { id: string; version?: number } })
     if (picked.length > 0) f.authors = picked;
     if (who !== "all") f.who = who;
     if (sort !== "recent") f.sort = sort;
+    // Looking for something: this folder and every one under it (at the top, the whole Drive), Google Drive's way.
+    const looking = Boolean(search) || kinds.length > 0 || channelIds.length > 0 || picked.length > 0 || who !== "all";
+    f.folder = { id: here, deep: looking };
     return f;
-  }, [search, kinds, channelIds, authors, who, sort]);
+  }, [search, kinds, channelIds, authors, who, sort, here]);
   const list = useArtifacts(org.id, filters);
 
   const remover = useDeleteArtifact((ids) => {
     setSelected((s) => new Set([...s].filter((id) => !ids.includes(id))));
   });
-  const uploader = useDriveUpload((saved) =>
+  const uploader = useDriveUpload((saved) => {
+    // Uploaded inside a folder: it goes in that folder.
+    if (here)
+      organize.file.mutate(
+        { ids: [saved.id], folderId: here },
+        { onError: (e) => toast.show(errorText(t, e), "error") },
+      );
     toast.show(t("files.uploaded", { name: saved.title }), "info", {
       label: t("artifacts.openFile"),
       run: () => viewer.open(saved.id),
-    }),
-  );
+    });
+  });
   const upload = (files: File[]) => {
     setUploadsHidden(false);
     void uploader.upload(files);
@@ -141,7 +174,7 @@ export function DrivePage({ open }: { open?: { id: string; version?: number } })
     if (open?.id) viewer.open(open.id, open.version);
   }, [open?.id, open?.version, viewer]);
 
-  const channelLabel = (a: Artifact) =>
+  const conversationLabel = (a: Artifact) =>
     a.audience.kind === "channel"
       ? `#${a.audience.name}`
       : a.audience.kind === "dm"
@@ -162,6 +195,22 @@ export function DrivePage({ open }: { open?: { id: string; version?: number } })
     : rows.length;
 
   const filtered = Boolean(search) || kinds.length > 0 || channelIds.length > 0 || authors.length > 0 || who !== "all";
+  // Found across folders: where each one is filed says more than its conversation.
+  const channelLabel = (a: Artifact) =>
+    filtered && a.folderId && a.folderId !== here ? folderPathOf(folders, a.folderId) : conversationLabel(a);
+  const subfolders = filtered ? [] : foldersIn(folders, here, i18n.language);
+  const canFile = uploads;
+  const moveFiles = (ids: string[]) => folderActions.moveFiles(ids, here);
+  const dragStart = (a: Artifact, e: DragEvent) => {
+    const ids = selected.has(a.id) ? [...selected] : [a.id];
+    e.dataTransfer.setData(DRAG_TYPE, JSON.stringify(ids));
+    e.dataTransfer.effectAllowed = "move";
+  };
+  const keepDraft = (a: Artifact) =>
+    organize.keepDraft.mutate(a.id, {
+      onSuccess: () => toast.show(t("drive.kept", { title: a.title })),
+      onError: (e) => toast.show(errorText(t, e), "error"),
+    });
   const clearFilters = () => {
     setKinds([]);
     setChannelIds([]);
@@ -258,6 +307,8 @@ export function DrivePage({ open }: { open?: { id: string; version?: number } })
     onPick: pick,
     onToggle: toggle,
     onOpen: openViewer,
+    onKeep: keepDraft,
+    ...(canFile ? { onMove: (x: Artifact) => moveFiles([x.id]), onDragStart: dragStart } : {}),
   });
 
   const sectionTitle = (s: DriveSection) => {
@@ -354,7 +405,12 @@ export function DrivePage({ open }: { open?: { id: string; version?: number } })
                 >
                   {t("artifacts.trash")}
                 </Button>
-                {uploads && !(list.isSuccess && rows.length === 0 && !filtered) && (
+                {uploads && (
+                  <Button variant="ghost" icon="folderPlus" onClick={() => folderActions.newFolder(here)}>
+                    {t("drive.folders.new")}
+                  </Button>
+                )}
+                {uploads && !(list.isSuccess && rows.length === 0 && !filtered && !here && folders.length === 0) && (
                   <UploadButton
                     size="md"
                     label={t("files.upload")}
@@ -372,6 +428,7 @@ export function DrivePage({ open }: { open?: { id: string; version?: number } })
         {trashOpen && <DriveTrash />}
         {remover.dialog}
         {share.dialog}
+        {folderActions.dialog}
 
         {!trashOpen && (
           <>
@@ -552,6 +609,17 @@ export function DrivePage({ open }: { open?: { id: string; version?: number } })
               />
             </Toolbar>
 
+            {here !== null && (
+              <FolderPath
+                folders={folders}
+                folderId={here}
+                onOpen={openFolder}
+                actions={folderActions}
+                canChange={canFile}
+              />
+            )}
+            <FolderTiles folders={subfolders} onOpen={openFolder} actions={folderActions} canChange={canFile} />
+
             {filtered && list.isSuccess && rows.length > 0 && (
               <div className="drive-summary">
                 <span>{t("drive.count", { count: total })}</span>
@@ -571,7 +639,27 @@ export function DrivePage({ open }: { open?: { id: string; version?: number } })
 
             {list.isLoading && <LoadingList count={5} trailing />}
             {list.isError && !list.data && <ErrorState error={list.error} onRetry={() => void list.refetch()} />}
-            {list.isSuccess && rows.length === 0 && !filtered && (
+            {list.isSuccess && rows.length === 0 && !filtered && here !== null && subfolders.length === 0 && (
+              <EmptyState
+                size="panel"
+                title={t("drive.folders.emptyTitle")}
+                actions={
+                  uploads && (
+                    <UploadButton
+                      size="md"
+                      label={t("files.upload")}
+                      busy={uploader.busy}
+                      multiple
+                      onFiles={upload}
+                      variant="primary"
+                    />
+                  )
+                }
+              >
+                {t("drive.folders.emptyText")}
+              </EmptyState>
+            )}
+            {list.isSuccess && rows.length === 0 && !filtered && here === null && folders.length === 0 && (
               <EmptyState
                 size="page"
                 agent={look}
@@ -677,6 +765,11 @@ export function DrivePage({ open }: { open?: { id: string; version?: number } })
                 <Button size="sm" variant="ghost" icon="link" onClick={() => void copyLinks()}>
                   <span className="drive-selbar__label">{t("drive.copyLinks")}</span>
                 </Button>
+                {canFile && (
+                  <Button size="sm" variant="ghost" icon="folder" onClick={() => moveFiles(picked.map((a) => a.id))}>
+                    <span className="drive-selbar__label">{t("drive.folders.move")}</span>
+                  </Button>
+                )}
                 {deletable.length > 0 && (
                   <Button
                     size="sm"

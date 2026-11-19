@@ -61,6 +61,26 @@ export const extraIcons = {
   ],
   /** Sidebar: Drive. */
   drive: [["path", { d: "M3 6.5A2.5 2.5 0 0 1 5.5 4H8l2 2h4.5A2.5 2.5 0 0 1 17 8.5v5a2.5 2.5 0 0 1-2.5 2.5H3z" }]],
+  /** Drive: a folder (docs/adr/doug-0036-drive-folders.md), closed, its tab over a fold line. */
+  folder: [
+    [
+      "path",
+      {
+        d: "M3 6.5A2.5 2.5 0 0 1 5.5 4H8l2 2h4.5A2.5 2.5 0 0 1 17 8.5v5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 3 13.5z",
+      },
+    ],
+    ["path", { d: "M3 8.5h14" }],
+  ],
+  /** Drive: "Nova pasta". */
+  folderPlus: [
+    [
+      "path",
+      {
+        d: "M3 6.5A2.5 2.5 0 0 1 5.5 4H8l2 2h4.5A2.5 2.5 0 0 1 17 8.5v5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 3 13.5z",
+      },
+    ],
+    ["path", { d: "M10 9v4.5M7.75 11.25h4.5" }],
+  ],
   /** Sidebar: Membros. */
   members: [
     ["circle", { cx: "8", cy: "7", r: "2.8" }],

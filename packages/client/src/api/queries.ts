@@ -4715,6 +4715,41 @@ export function useSaveArtifact(orgId: string, id: string) {
   });
 }
 
+/** The Drive's folders and how many files the viewer sees in each (docs/adr/doug-0036-drive-folders.md). */
+export function useDriveFolders(orgId: string) {
+  const api = useApi();
+  return useQuery({ queryKey: keys.driveFolders(orgId), queryFn: () => api.artifacts.folders(orgId) });
+}
+
+/**
+ * Makes, renames, moves and removes folders, files files and keeps drafts; every one reads the Drive again. Errors
+ * are the caller's to say.
+ */
+export function useDriveOrganize(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  const settled = () => qc.invalidateQueries({ queryKey: keys.artifacts(orgId) });
+  const opts = { meta: { silent: true }, onSettled: settled };
+  return {
+    createFolder: useMutation({
+      mutationFn: (input: { name: string; parentId?: string | null }) => api.artifacts.createFolder(orgId, input),
+      ...opts,
+    }),
+    updateFolder: useMutation({
+      mutationFn: (input: { id: string; name?: string; parentId?: string | null }) =>
+        api.artifacts.updateFolder(orgId, input.id, { name: input.name, parentId: input.parentId }),
+      ...opts,
+    }),
+    removeFolder: useMutation({ mutationFn: (id: string) => api.artifacts.removeFolder(orgId, id), ...opts }),
+    file: useMutation({
+      mutationFn: (input: { ids: string[]; folderId: string | null }) =>
+        api.artifacts.file(orgId, input.ids, input.folderId),
+      ...opts,
+    }),
+    keepDraft: useMutation({ mutationFn: (id: string) => api.artifacts.keepDraft(orgId, id), ...opts }),
+  };
+}
+
 /** "Compartilhar" (ADR 0157): who sees a file on top of its conversation. The dialog says a failure itself. */
 export function useSetArtifactSharing(orgId: string) {
   const api = useApi();

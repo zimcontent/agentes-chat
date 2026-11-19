@@ -12782,6 +12782,45 @@
     "tooLongFix": "Maak het antwoord korter."
   },
   "drive": {
+    "draft": "Concept",
+    "draftUntil": "Gaat op {{date}} vanzelf naar de prullenbak, tenzij het wijzigt of iemand het bewaart.",
+    "keepDraft": "Bewaren",
+    "kept": "{{title}} wordt bewaard.",
+    "folders": {
+      "title": "Mappen",
+      "path": "Mappad",
+      "new": "Nieuwe map",
+      "newTitle": "Nieuwe map",
+      "newInside": "Nieuwe map erin",
+      "create": "Maken",
+      "created": "Map {{name}} gemaakt.",
+      "name": "Naam",
+      "namePlaceholder": "Klant of project",
+      "menu": "Map {{name}}: meer",
+      "menuShort": "Meer",
+      "rename": "Hernoemen",
+      "renameTitle": "Map hernoemen",
+      "renameConfirm": "Hernoemen",
+      "move": "Verplaatsen",
+      "moveTo": "Verplaatsen naar…",
+      "moveHere": "Hierheen verplaatsen",
+      "here": "Staat hier",
+      "moveFolderTitle": "{{name}} verplaatsen",
+      "moveFilesTitle_one": "{{count}} bestand verplaatsen",
+      "moveFilesTitle_other": "{{count}} bestanden verplaatsen",
+      "moved": "{{name}} is verplaatst naar {{folder}}.",
+      "filed_one": "{{count}} bestand is verplaatst naar {{folder}}.",
+      "filed_other": "{{count}} bestanden zijn verplaatst naar {{folder}}.",
+      "files_one": "{{count}} bestand",
+      "files_other": "{{count}} bestanden",
+      "remove": "Map verwijderen",
+      "removeTitle": "{{name}} verwijderen?",
+      "removeBody": "Er wordt geen bestand verwijderd. Wat erin zit, gaat een niveau omhoog.",
+      "removeConfirm": "Map verwijderen",
+      "removed": "Map {{name}} verwijderd.",
+      "emptyTitle": "Deze map is leeg",
+      "emptyText": "Sleep bestanden hierheen, upload ze of vraag een agent zijn werk in deze map te zetten."
+    },
     "title": "Drive",
     "subtitle": "Alles wat mensen en agents hebben gemaakt of geüpload.",
     "search": "Bestanden zoeken",
@@ -14596,6 +14635,10 @@
       "request_folder_access": "Een map vragen",
       "create_artifact": "Bestand in Drive maken",
       "update_artifact": "Bestand in Drive bijwerken",
+      "drive_folders": "De mappen van Drive bekijken",
+      "file_artifacts": "In een Drive-map zetten",
+      "drive_folder": "Een Drive-map ordenen",
+      "trash_artifacts": "Bestanden opruimen",
       "read_artifact": "Bestand in Drive lezen",
       "list_artifacts": "Drive-bestanden weergeven",
       "share_artifact": "Bestand delen",
@@ -15741,6 +15784,14 @@
       "sharingEmpty": "Kies wie het ziet.",
       "sharingTooMany": "Kies hoogstens {{max}} mensen en {{max}} rollen.",
       "notInDrive": "Dit bestaat alleen in zijn gesprek, dus het kan niet worden gedeeld."
+    },
+    "drive": {
+      "folderExists": "Er bestaat hier al een map met die naam.",
+      "folderNotFound": "Deze map bestaat niet meer.",
+      "folderCycle": "Een map kan niet in zichzelf zitten.",
+      "folderTooDeep": "Mappen gaan maximaal {{max}} niveaus diep.",
+      "foldersFull": "Deze werkruimte heeft al {{max}} mappen.",
+      "folderName": "Geef de map een naam."
     },
     "device": {
       "notLinkMaker": "Alleen wie de link heeft gemaakt, kan deze computer laten deelnemen.",
@@ -18671,6 +18722,22 @@
     "update_artifact": {
       "label": "Bestand bijwerken",
       "description": "Slaat een nieuwe versie van een bestand op."
+    },
+    "drive_folders": {
+      "label": "Mappen bekijken",
+      "description": "Bekijkt de mappen van Drive."
+    },
+    "file_artifacts": {
+      "label": "In mappen zetten",
+      "description": "Zet Drive-bestanden in projectmappen."
+    },
+    "drive_folder": {
+      "label": "Mappen ordenen",
+      "description": "Hernoemt, verplaatst of verwijdert Drive-mappen (nooit bestanden)."
+    },
+    "trash_artifacts": {
+      "label": "Eigen bestanden opruimen",
+      "description": "Zet bestanden die hij heeft gemaakt en die niemand nodig heeft in de prullenbak (30 dagen om ze terug te zetten)."
     },
     "list_issues": {
       "label": "Taken bekijken",

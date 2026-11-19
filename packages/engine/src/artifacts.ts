@@ -14,6 +14,7 @@ import {
   eq,
   gte,
   inArray,
+  isNotNull,
   isNull,
   or,
   rowsOf,
@@ -70,7 +71,7 @@ import {
   taskReaderSql,
 } from "./task-access";
 
-const { artifacts, artifactVersions, channels, channelMembers } = schema;
+const { artifacts, artifactVersions, channels, channelMembers, driveFolders } = schema;
 
 export type ArtifactKind = "document" | "table" | "diff" | "html" | "diagram" | "file" | "block" | "poll" | "choices";
 export const ARTIFACT_KINDS: readonly ArtifactKind[] = [
@@ -184,6 +185,10 @@ export interface ArtifactView {
   inDrive: boolean;
   /** Who sees it past its conversation (ADR 0157). */
   sharing: FileSharing;
+  /** Its Drive folder; null: the top of the Drive (docs/adr/doug-0036-drive-folders.md). */
+  folderId: string | null;
+  /** A draft goes to the trash on its own at this time unless a new version comes first; null: kept. */
+  expiresAt: string | null;
 }
 
 /**
@@ -931,6 +936,8 @@ function view(a: ArtifactRow, canEdit: boolean): ArtifactView {
     untrusted: a.untrusted,
     inDrive: a.inDrive,
     sharing: sharingOf(a),
+    folderId: a.folderId ?? null,
+    expiresAt: a.expiresAt ? a.expiresAt.toISOString() : null,
   };
 }
 
@@ -1213,6 +1220,8 @@ export async function insertVersion(
         updatedByType: author.type,
         updatedById: author.id,
         updatedAt: new Date(),
+        // A draft worked on again gets its whole time back (docs/adr/doug-0036-drive-folders.md).
+        expiresAt: sql`case when ${artifacts.expiresAt} is null then null else greatest(${artifacts.expiresAt}, now() + ${`${DRAFT_DAYS} days`}::interval) end`,
       })
       .where(and(eq(artifacts.id, artifactId), eq(artifacts.currentVersion, current.currentVersion)))
       .returning();
@@ -1845,6 +1854,13 @@ export interface ArtifactFilters {
   since?: Date;
   /** Agents: also the conversations this person shares with the agent (see `requesterSharedChannels`). */
   requesterUserId?: string | null;
+  /**
+   * In this Drive folder (null: the top of the Drive); `deep`: in it or any folder under it (with null: anywhere).
+   * Absent: anywhere (docs/adr/doug-0036-drive-folders.md).
+   */
+  folder?: { id: string | null; deep?: boolean };
+  /** Only drafts (`expiresAt` set). */
+  drafts?: boolean;
 }
 
 export type ArtifactSort = "recent" | "name" | "kind";
@@ -1908,11 +1924,27 @@ async function artifactScope(db: Database, actor: ArtifactActor, orgId: string, 
       ? sql`exists (select 1 from ${artifactVersions} where ${artifactVersions.artifactId} = ${artifacts.id} and ${artifactVersions.authorType} = ${filters.changedBy.type} and ${artifactVersions.authorId} = ${filters.changedBy.id})`
       : undefined,
     filters.who ? eq(artifacts.createdByType, filters.who === "agents" ? "agent" : "person") : undefined,
+    folderSql(orgId, filters.folder),
+    filters.drafts ? isNotNull(artifacts.expiresAt) : undefined,
     q
       ? sql`(${artifacts.title} ilike ${`%${q}%`} or ${artifacts.excerpt} ilike ${`%${q}%`} or exists (select 1 from ${channels} where ${channels.id} = ${artifacts.channelId} and ${channels.kind} = 'channel' and ${channels.name} ilike ${`%${q}%`}))`
       : undefined,
   );
   return { where, dm, visible };
+}
+
+/** `ArtifactFilters.folder` as SQL: one folder, or a folder and every folder under it (a recursive walk down). */
+function folderSql(orgId: string, folder: ArtifactFilters["folder"]): SQL | undefined {
+  if (!folder) return undefined;
+  if (folder.id === null) return folder.deep ? undefined : isNull(artifacts.folderId);
+  if (!UUID.test(folder.id)) return sql`false`;
+  if (!folder.deep) return eq(artifacts.folderId, folder.id);
+  return sql`${artifacts.folderId} in (
+    with recursive under(id) as (
+      select ${folder.id}::uuid
+      union
+      select f.id from ${driveFolders} f join under u on f.parent_id = u.id where f.org_id = ${orgId}
+    ) select id from under)`;
 }
 
 const kindsSql = (filters: ArtifactFilters) =>
@@ -2204,6 +2236,9 @@ export async function surfaceRoomFiles(db: Database) {
 
 /** Deleted files can be restored for this long; then the purge job removes their contents (all versions). */
 export const ARTIFACT_TRASH_DAYS = 30;
+
+/** A draft lasts this long after its last version, then goes to the trash (docs/adr/doug-0036-drive-folders.md). */
+export const DRAFT_DAYS = 7;
 
 type Ownable = Pick<ArtifactRow, "id" | "createdByType" | "createdById">;
 
@@ -2503,21 +2538,61 @@ export async function deleteArtifact(deps: ArtifactDeps, userId: string, orgId: 
       "artifact.delete_forbidden",
     );
   }
-  await deps.db.transaction(async (tx) => {
-    await tx.update(artifacts).set({ deletedAt: new Date() }).where(eq(artifacts.id, a.id));
-    await enqueueIndex(tx, { orgId, kind: "file", sourceId: a.id });
-    await recordAudit(tx, {
-      orgId,
-      actor: { type: "person", id: userId },
-      action: "artifact.deleted",
-      target: { type: "artifact", id: a.id },
-      details: { title: a.title },
-    });
+  await trashRows(deps, orgId, { type: "person", id: userId }, [a]);
+}
+
+/**
+ * Moves these live files to the trash, each with its `artifact.deleted` audit row (`why` in its details), and tells
+ * their conversations and the Drive. Who may is the caller's check: a person's (`deleteArtifact`), an agent's own files
+ * (`trashOwnFiles`) or a draft's end (`trashExpiredDrafts`). Returns the ids it moved (a file trashed meanwhile is not).
+ */
+export async function trashRows(
+  deps: ArtifactDeps,
+  orgId: string,
+  actor: { type: "person" | "agent" | "system"; id: string | null },
+  list: Pick<ArtifactRow, "id" | "title" | "channelId">[],
+  why?: string,
+  /** Moved only while this still holds (a draft's sweep: not renewed since it was read). */
+  onlyIf?: SQL,
+): Promise<string[]> {
+  if (list.length === 0) return [];
+  const moved = await deps.db.transaction(async (tx) => {
+    const rows = await tx
+      .update(artifacts)
+      .set({ deletedAt: new Date() })
+      .where(
+        and(
+          eq(artifacts.orgId, orgId),
+          inArray(
+            artifacts.id,
+            list.map((a) => a.id),
+          ),
+          isNull(artifacts.deletedAt),
+          onlyIf,
+        ),
+      )
+      .returning({ id: artifacts.id });
+    const ids = new Set(rows.map((r) => r.id));
+    for (const a of list) {
+      if (!ids.has(a.id)) continue;
+      await enqueueIndex(tx, { orgId, kind: "file", sourceId: a.id });
+      await recordAudit(tx, {
+        orgId,
+        actor,
+        action: "artifact.deleted",
+        target: { type: "artifact", id: a.id },
+        details: why ? { title: a.title, why } : { title: a.title },
+      });
+    }
+    return ids;
   });
-  if (a.channelId) {
-    await publishChannelEvent(deps.pubsub, { type: "artifact.deleted", channelId: a.channelId, artifactId: a.id });
+  for (const a of list) {
+    if (a.channelId && moved.has(a.id)) {
+      await publishChannelEvent(deps.pubsub, { type: "artifact.deleted", channelId: a.channelId, artifactId: a.id });
+    }
   }
-  await publishListChanged(deps.pubsub, orgId, "artifacts");
+  if (moved.size > 0) await publishListChanged(deps.pubsub, orgId, "artifacts");
+  return [...moved];
 }
 
 /** A deleted file as the trash shows it. */
@@ -2613,7 +2688,8 @@ export async function restoreArtifact(deps: ArtifactDeps, userId: string, orgId:
     // Conditional: a "delete for good" that committed since the read above wins.
     const updated = await tx
       .update(artifacts)
-      .set({ deletedAt: null })
+      // A draft taken back from the trash is kept: it would go again at the next sweep.
+      .set({ deletedAt: null, expiresAt: null })
       .where(and(eq(artifacts.id, a.id), inTrash()))
       .returning();
     if (updated.length === 0) throw new NotFoundError("Artifact not found", "artifact.not_found");
@@ -2904,3 +2980,178 @@ registerDocumentBuilder("file", async (db, orgId, id) => {
     createdAt: a.createdAt,
   };
 });
+
+// ── Folders and drafts (docs/adr/doug-0036-drive-folders.md) ─────────────────────────────────────────────────────────
+
+/** How many files the actor sees in each folder for `filters` ("" for the top of the Drive), one level, not deep. */
+export async function countByFolder(
+  db: Database,
+  actor: ArtifactActor,
+  orgId: string,
+  filters: ArtifactFilters = {},
+): Promise<Record<string, number>> {
+  const { where } = await artifactScope(db, actor, orgId, { ...filters, folder: undefined });
+  const rows = await db
+    .select({ folderId: artifacts.folderId, n: sql<number>`count(*)::int` })
+    .from(artifacts)
+    .where(and(where, kindsSql(filters)))
+    .groupBy(artifacts.folderId);
+  return Object.fromEntries(rows.map((r) => [r.folderId ?? "", r.n]));
+}
+
+/** At most this many files are filed, kept or trashed in one call. */
+export const FILE_BATCH_MAX = 200;
+
+/**
+ * Files these files in a folder (null: the top of the Drive). A person needs `upload_files` and to read each file; an
+ * agent, to reach where each lives (`writable`). Filing never changes who sees a file. Every file is checked before any
+ * moves: one out of reach refuses the whole call.
+ */
+export async function fileArtifacts(
+  deps: ArtifactDeps,
+  actor: ArtifactActor,
+  orgId: string,
+  ids: string[],
+  folderId: string | null,
+): Promise<ArtifactView[]> {
+  const unique = [...new Set(ids)];
+  if (unique.length === 0) return [];
+  if (unique.length > FILE_BATCH_MAX) throw new ValidationError(`At most ${FILE_BATCH_MAX} files at a time`);
+  if (actor.type === "person") {
+    const membership = await requireActiveMembership(deps.db, actor.userId, orgId);
+    if (!can(membership, "upload_files")) throw new ForbiddenError();
+  }
+  if (folderId !== null) {
+    const [folder] = UUID.test(folderId)
+      ? await deps.db
+          .select({ id: driveFolders.id })
+          .from(driveFolders)
+          .where(and(eq(driveFolders.id, folderId), eq(driveFolders.orgId, orgId)))
+      : [];
+    if (!folder) throw new NotFoundError("Folder not found", "drive.folder_not_found");
+  }
+  const rows: ArtifactRow[] = [];
+  for (const id of unique) rows.push(await writable(deps, actor, orgId, id));
+  const moved = await deps.db.transaction(async (tx) => {
+    const out = await tx
+      .update(artifacts)
+      .set({ folderId })
+      .where(
+        and(
+          eq(artifacts.orgId, orgId),
+          inArray(
+            artifacts.id,
+            rows.map((r) => r.id),
+          ),
+          isNull(artifacts.deletedAt),
+        ),
+      )
+      .returning();
+    for (const a of out) {
+      await recordAudit(tx, {
+        orgId,
+        actor: authorOf(actor),
+        action: "artifact.filed",
+        target: { type: "artifact", id: a.id },
+        details: { title: a.title, folderId },
+      });
+    }
+    return out;
+  });
+  await publishListChanged(deps.pubsub, orgId, "artifacts");
+  return moved.map((a) => view(a, actor.type === "person" && editableKind(a.kind)));
+}
+
+/**
+ * Makes a file a draft (it goes to the trash `DRAFT_DAYS` after its last version) or keeps it. An agent marks only its
+ * own files; anyone who reads a file may keep it, since keeping loses nothing.
+ */
+export async function setDraft(
+  deps: ArtifactDeps,
+  actor: ArtifactActor,
+  orgId: string,
+  artifactId: string,
+  draft: boolean,
+): Promise<ArtifactView> {
+  const a = await readable(deps, actor, orgId, artifactId);
+  if (draft && !(actor.type === "agent" && a.createdByType === "agent" && a.createdById === actor.agentId)) {
+    throw new ForbiddenError("Only the agent that made a file can mark it as a draft", "drive.draft_forbidden");
+  }
+  const [row] = await deps.db
+    .update(artifacts)
+    .set({ expiresAt: draft ? sql`now() + ${`${DRAFT_DAYS} days`}::interval` : null })
+    .where(and(eq(artifacts.id, a.id), isNull(artifacts.deletedAt)))
+    .returning();
+  if (!row) throw new NotFoundError("Artifact not found", "artifact.not_found");
+  if (!draft && a.expiresAt) {
+    await recordAudit(deps.db, {
+      orgId,
+      actor: authorOf(actor),
+      action: "artifact.kept",
+      target: { type: "artifact", id: a.id },
+      details: { title: a.title },
+    });
+  }
+  await publishListChanged(deps.pubsub, orgId, "artifacts");
+  return view(row, actor.type === "person" && editableKind(row.kind));
+}
+
+/**
+ * An agent clears out its own files: the ones it made go to the trash (30 days to restore), with its reason in the
+ * audit log. Anything else it names is left alone and said, never moved: a person's file, or another agent's, is theirs.
+ */
+export async function trashOwnFiles(
+  deps: ArtifactDeps,
+  actor: Extract<ArtifactActor, { type: "agent" }>,
+  orgId: string,
+  ids: string[],
+  why: string,
+): Promise<{ trashed: Pick<ArtifactRow, "id" | "title">[]; refused: { id: string; why: string }[] }> {
+  const unique = [...new Set(ids)];
+  if (unique.length > FILE_BATCH_MAX) throw new ValidationError(`At most ${FILE_BATCH_MAX} files at a time`);
+  const mine: ArtifactRow[] = [];
+  const refused: { id: string; why: string }[] = [];
+  for (const id of unique) {
+    try {
+      const a = await readable(deps, actor, orgId, id);
+      if (a.createdByType === "agent" && a.createdById === actor.agentId) mine.push(a);
+      else refused.push({ id, why: "you didn't make it: ask who did, or a person, to delete it" });
+    } catch {
+      refused.push({ id, why: "not found" });
+    }
+  }
+  const moved = new Set(
+    await trashRows(deps, orgId, { type: "agent", id: actor.agentId }, mine, why.trim().slice(0, 300) || undefined),
+  );
+  return { trashed: mine.filter((a) => moved.has(a.id)).map((a) => ({ id: a.id, title: a.title })), refused };
+}
+
+/** Drafts past their time go to the trash, a batch per call, each as its maker's own act in the audit log. */
+export async function trashExpiredDrafts(deps: ArtifactDeps, now = new Date(), batch = 500): Promise<number> {
+  const due = await deps.db
+    .select({
+      id: artifacts.id,
+      orgId: artifacts.orgId,
+      title: artifacts.title,
+      channelId: artifacts.channelId,
+    })
+    .from(artifacts)
+    .where(and(isNotNull(artifacts.expiresAt), sql`${artifacts.expiresAt} <= ${now}`, isNull(artifacts.deletedAt)))
+    .limit(batch);
+  const byOrg = new Map<string, typeof due>();
+  for (const a of due) byOrg.set(a.orgId, [...(byOrg.get(a.orgId) ?? []), a]);
+  let trashed = 0;
+  for (const [orgId, list] of byOrg) {
+    trashed += (
+      await trashRows(
+        deps,
+        orgId,
+        { type: "system", id: null },
+        list,
+        "draft_expired",
+        sql`${artifacts.expiresAt} <= ${now}`,
+      )
+    ).length;
+  }
+  return trashed;
+}

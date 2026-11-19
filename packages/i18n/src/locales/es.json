@@ -13118,6 +13118,48 @@
     "tooLongFix": "Acorta la respuesta."
   },
   "drive": {
+    "draft": "Borrador",
+    "draftUntil": "Irá a la papelera por sí solo el {{date}}, a menos que cambie o alguien lo conserve.",
+    "keepDraft": "Conservar",
+    "kept": "{{title}} se conserva.",
+    "folders": {
+      "title": "Carpetas",
+      "path": "Ruta de la carpeta",
+      "new": "Nueva carpeta",
+      "newTitle": "Nueva carpeta",
+      "newInside": "Nueva carpeta dentro",
+      "create": "Crear",
+      "created": "Carpeta {{name}} creada.",
+      "name": "Nombre",
+      "namePlaceholder": "Cliente o proyecto",
+      "menu": "Carpeta {{name}}: más",
+      "menuShort": "Más",
+      "rename": "Renombrar",
+      "renameTitle": "Renombrar carpeta",
+      "renameConfirm": "Renombrar",
+      "move": "Mover",
+      "moveTo": "Mover a…",
+      "moveHere": "Mover aquí",
+      "here": "Está aquí",
+      "moveFolderTitle": "Mover {{name}}",
+      "moveFilesTitle_one": "Mover {{count}} archivo",
+      "moveFilesTitle_many": "Mover {{count}} de archivos",
+      "moveFilesTitle_other": "Mover {{count}} archivos",
+      "moved": "{{name}} se movió a {{folder}}.",
+      "filed_one": "{{count}} archivo se movió a {{folder}}.",
+      "filed_many": "{{count}} de archivos se movieron a {{folder}}.",
+      "filed_other": "{{count}} archivos se movieron a {{folder}}.",
+      "files_one": "{{count}} archivo",
+      "files_many": "{{count}} de archivos",
+      "files_other": "{{count}} archivos",
+      "remove": "Quitar carpeta",
+      "removeTitle": "¿Quitar {{name}}?",
+      "removeBody": "No se borra ningún archivo. Lo que hay dentro sube un nivel.",
+      "removeConfirm": "Quitar carpeta",
+      "removed": "Carpeta {{name}} quitada.",
+      "emptyTitle": "Esta carpeta está vacía",
+      "emptyText": "Arrastra archivos aquí, súbelos o pide a un agente que guarde su trabajo en esta carpeta."
+    },
     "title": "Drive",
     "subtitle": "Todo lo que las personas y los agentes hicieron o subieron.",
     "search": "Buscar archivos",
@@ -14955,6 +14997,10 @@
       "request_folder_access": "Pedir una carpeta",
       "create_artifact": "Crear archivo en Drive",
       "update_artifact": "Actualizar archivo en Drive",
+      "drive_folders": "Ver las carpetas de Drive",
+      "file_artifacts": "Guardar en una carpeta de Drive",
+      "drive_folder": "Ordenar una carpeta de Drive",
+      "trash_artifacts": "Limpiar archivos",
       "read_artifact": "Leer archivo en Drive",
       "list_artifacts": "Listar archivos de Drive",
       "share_artifact": "Compartir archivo",
@@ -16132,6 +16178,14 @@
       "sharingEmpty": "Elige quién lo ve.",
       "sharingTooMany": "Elige como máximo {{max}} personas y {{max}} roles.",
       "notInDrive": "Esto vive solo en su conversación, así que no se puede compartir."
+    },
+    "drive": {
+      "folderExists": "Ya hay una carpeta con ese nombre aquí.",
+      "folderNotFound": "Esta carpeta ya no existe.",
+      "folderCycle": "Una carpeta no puede ir dentro de sí misma.",
+      "folderTooDeep": "Las carpetas pueden tener como máximo {{max}} niveles de profundidad.",
+      "foldersFull": "Este espacio de trabajo ya tiene {{max}} carpetas.",
+      "folderName": "Ponle un nombre a la carpeta."
     },
     "device": {
       "notLinkMaker": "Solo quien creó el enlace puede dejar entrar a esta computadora.",
@@ -19099,6 +19153,22 @@
     "update_artifact": {
       "label": "Actualizar archivo",
       "description": "Guarda una nueva versión de un archivo."
+    },
+    "drive_folders": {
+      "label": "Ver carpetas",
+      "description": "Ve las carpetas de Drive."
+    },
+    "file_artifacts": {
+      "label": "Guardar en carpetas",
+      "description": "Coloca archivos de Drive en carpetas de proyecto."
+    },
+    "drive_folder": {
+      "label": "Ordenar carpetas",
+      "description": "Renombra, mueve o quita carpetas de Drive (nunca archivos)."
+    },
+    "trash_artifacts": {
+      "label": "Limpiar sus archivos",
+      "description": "Manda a la papelera los archivos que creó y que nadie necesita (30 días para restaurarlos)."
     },
     "list_issues": {
       "label": "Ver tareas",

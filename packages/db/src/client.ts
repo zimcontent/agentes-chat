@@ -699,6 +699,25 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "phone_lines" ADD COLUMN IF NOT EXISTS "engines" jsonb NOT NULL DEFAULT '["gpt-live"]'::jsonb`,
   `ALTER TABLE "phone_calls" ADD COLUMN IF NOT EXISTS "engine" text NOT NULL DEFAULT 'gpt-live'`,
   `ALTER TABLE "phone_calls" ADD COLUMN IF NOT EXISTS "credits" integer`,
+  // The Drive's folders, a file's folder and a draft's end (docs/adr/doug-0036-drive-folders.md).
+  `CREATE TABLE IF NOT EXISTS "drive_folders" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "parent_id" uuid REFERENCES "drive_folders"("id") ON DELETE SET NULL,
+    "name" text NOT NULL,
+    "created_by_type" text NOT NULL,
+    "created_by_id" text NOT NULL,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now(),
+    "updated_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE INDEX IF NOT EXISTS "drive_folders_org" ON "drive_folders" ("org_id", "parent_id")`,
+  // One name per place, whatever its case: an agent filing into "clientes" finds "Clientes".
+  `CREATE UNIQUE INDEX IF NOT EXISTS "drive_folders_name" ON "drive_folders"
+     ("org_id", coalesce("parent_id", '00000000-0000-0000-0000-000000000000'::uuid), lower("name"))`,
+  `ALTER TABLE "artifacts" ADD COLUMN IF NOT EXISTS "folder_id" uuid REFERENCES "drive_folders"("id") ON DELETE SET NULL`,
+  `ALTER TABLE "artifacts" ADD COLUMN IF NOT EXISTS "expires_at" timestamp with time zone`,
+  `CREATE INDEX IF NOT EXISTS "artifacts_folder" ON "artifacts" ("org_id", "folder_id")`,
+  `CREATE INDEX IF NOT EXISTS "artifacts_expires" ON "artifacts" ("expires_at") WHERE "expires_at" IS NOT NULL AND "deleted_at" IS NULL`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

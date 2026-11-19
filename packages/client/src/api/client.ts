@@ -177,6 +177,8 @@ import type {
   DmRead,
   DmTarget,
   DougTeamTemplate,
+  DriveFolder,
+  DriveFolders,
   EmailChange,
   EndpointCheck,
   EndpointModel,
@@ -2214,6 +2216,18 @@ export interface ApiClient {
     restore(orgId: string, id: string): Promise<ArtifactDetail | undefined>;
     /** Out of the trash for good, now. */
     purge(orgId: string, id: string): Promise<void>;
+    /** The Drive's folders, with how many files the viewer sees in each (docs/adr/doug-0036-drive-folders.md). */
+    folders(orgId: string): Promise<DriveFolders>;
+    /** 409 `drive.folder_exists` for a name already there. */
+    createFolder(orgId: string, input: { name: string; parentId?: string | null }): Promise<DriveFolder>;
+    /** Renames it or moves it under another (null: the top). */
+    updateFolder(orgId: string, id: string, patch: { name?: string; parentId?: string | null }): Promise<DriveFolder>;
+    /** What was in it goes up to its parent: no file is deleted. */
+    removeFolder(orgId: string, id: string): Promise<{ files: number; folders: number }>;
+    /** Files files in a folder (null: the top of the Drive). */
+    file(orgId: string, ids: string[], folderId: string | null): Promise<Artifact[]>;
+    /** A draft is kept: it no longer goes to the trash on its own. */
+    keepDraft(orgId: string, id: string): Promise<Artifact>;
   };
   storage: {
     get(orgId: string): Promise<StorageConfig>;

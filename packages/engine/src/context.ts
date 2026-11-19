@@ -325,6 +325,7 @@ const QUIET_TOOLS = [
   "get_summary",
   "expand",
   "list_artifacts",
+  "drive_folders",
   "read_artifact",
   "list_issues",
   "list_events",

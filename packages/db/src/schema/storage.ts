@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
   foreignKey,
   index,
@@ -214,10 +215,44 @@ export const artifacts = pgTable(
     updatedByType: text().notNull(),
     updatedById: text().notNull(),
     deletedAt: timestamp({ withTimezone: true }),
+    /**
+     * The Drive folder it is filed in (docs/adr/doug-0036-drive-folders.md); null: the top of the Drive. Filing never
+     * changes who sees it. Created by `EXTRA_COLUMNS`.
+     */
+    folderId: uuid().references((): AnyPgColumn => driveFolders.id, { onDelete: "set null" }),
+    /**
+     * A draft: past this time with no new version it goes to the trash on its own (`trashExpiredDrafts`); null: kept.
+     * Created by `EXTRA_COLUMNS`.
+     */
+    expiresAt: timestamp({ withTimezone: true }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index().on(t.orgId, t.updatedAt), index().on(t.channelId)],
+);
+
+/**
+ * A folder of the Drive (docs/adr/doug-0036-drive-folders.md): a name under a parent (null: the top), made by a person
+ * or an agent. Every member and agent of the workspace sees the folders; the files in one keep their own audience.
+ * Created by `EXTRA_COLUMNS`, outside the numbered migrations.
+ */
+export const driveFolders = pgTable(
+  "drive_folders",
+  {
+    id: uuid()
+      .primaryKey()
+      .$defaultFn(() => Bun.randomUUIDv7()),
+    orgId: uuid()
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    parentId: uuid().references((): AnyPgColumn => driveFolders.id, { onDelete: "set null" }),
+    name: text().notNull(),
+    createdByType: text().$type<"agent" | "person">().notNull(),
+    createdById: text().notNull(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("drive_folders_org").on(t.orgId, t.parentId)],
 );
 
 /** One saved version of an artifact: where its bytes are, who made it and why. */

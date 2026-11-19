@@ -183,7 +183,10 @@ export function useArtifactEntries() {
       },
     ];
   };
-  const build = (artifact: Artifact, { onOpen, onVersions, onDelete, download }: ArtifactMenuOptions): MenuEntry[] => [
+  const build = (
+    artifact: Artifact,
+    { onOpen, onVersions, onDelete, download, onMove, onKeep }: ArtifactMenuOptions,
+  ): MenuEntry[] => [
     ...(onOpen
       ? ([
           { kind: "item", id: "open", label: t("artifacts.openFile"), icon: "external", run: () => onOpen() },
@@ -213,6 +216,14 @@ export function useArtifactEntries() {
       run: () => share.copyLink(artifact),
     },
     ...placeEntry(artifact),
+    ...(onMove
+      ? ([
+          { kind: "item", id: "move", label: t("drive.folders.moveTo"), icon: "folder", run: onMove },
+        ] satisfies MenuEntry[])
+      : []),
+    ...(onKeep && artifact.expiresAt
+      ? ([{ kind: "item", id: "keep", label: t("drive.keepDraft"), icon: "pin", run: onKeep }] satisfies MenuEntry[])
+      : []),
     ...(onVersions
       ? ([
           { kind: "item", id: "versions", label: t("artifacts.seeVersions"), icon: "waiting", run: onVersions },
@@ -235,6 +246,10 @@ export interface ArtifactMenuOptions {
   onDelete: () => void;
   /** "Baixar" the original (Drive's right click; the details and the viewer have their own button). */
   download?: boolean;
+  /** "Mover para…" a Drive folder (docs/adr/doug-0036-drive-folders.md). */
+  onMove?: () => void;
+  /** "Manter" a draft, shown only on one. */
+  onKeep?: () => void;
 }
 
 /** "…" on a file (viewer header, Drive rows, the details): its actions (`useArtifactEntries`). */

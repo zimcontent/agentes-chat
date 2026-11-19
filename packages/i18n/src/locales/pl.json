@@ -13673,6 +13673,51 @@
     "tooLongFix": "Skróć odpowiedź."
   },
   "drive": {
+    "draft": "Wersja robocza",
+    "draftUntil": "{{date}} trafi sama do kosza, chyba że się zmieni albo ktoś ją zachowa.",
+    "keepDraft": "Zachowaj",
+    "kept": "{{title}} zostaje zachowany.",
+    "folders": {
+      "title": "Foldery",
+      "path": "Ścieżka folderu",
+      "new": "Nowy folder",
+      "newTitle": "Nowy folder",
+      "newInside": "Nowy folder w środku",
+      "create": "Utwórz",
+      "created": "Folder {{name}} został utworzony.",
+      "name": "Nazwa",
+      "namePlaceholder": "Klient lub projekt",
+      "menu": "Folder {{name}}: więcej",
+      "menuShort": "Więcej",
+      "rename": "Zmień nazwę",
+      "renameTitle": "Zmień nazwę folderu",
+      "renameConfirm": "Zmień nazwę",
+      "move": "Przenieś",
+      "moveTo": "Przenieś do…",
+      "moveHere": "Przenieś tutaj",
+      "here": "Jest tutaj",
+      "moveFolderTitle": "Przenieś {{name}}",
+      "moveFilesTitle_one": "Przenieś {{count}} plik",
+      "moveFilesTitle_few": "Przenieś {{count}} pliki",
+      "moveFilesTitle_many": "Przenieś {{count}} plików",
+      "moveFilesTitle_other": "Przenieś {{count}} pliku",
+      "moved": "{{name}} został przeniesiony do {{folder}}.",
+      "filed_one": "{{count}} plik został przeniesiony do {{folder}}.",
+      "filed_few": "{{count}} pliki zostały przeniesione do {{folder}}.",
+      "filed_many": "{{count}} plików zostało przeniesionych do {{folder}}.",
+      "filed_other": "{{count}} pliku zostało przeniesionych do {{folder}}.",
+      "files_one": "{{count}} plik",
+      "files_few": "{{count}} pliki",
+      "files_many": "{{count}} plików",
+      "files_other": "{{count}} pliku",
+      "remove": "Usuń folder",
+      "removeTitle": "Usunąć {{name}}?",
+      "removeBody": "Żaden plik nie zostanie usunięty. Zawartość trafi o poziom wyżej.",
+      "removeConfirm": "Usuń folder",
+      "removed": "Folder {{name}} został usunięty.",
+      "emptyTitle": "Ten folder jest pusty",
+      "emptyText": "Przeciągnij pliki tutaj, prześlij je albo poproś agenta, żeby zapisał swoją pracę w tym folderze."
+    },
     "title": "Drive",
     "subtitle": "Wszystko, co stworzyli lub przesłali ludzie i agenci.",
     "search": "Szukaj plików",
@@ -15525,6 +15570,10 @@
       "request_folder_access": "Poproś o dostęp do folderu",
       "create_artifact": "Utwórz plik w Drive",
       "update_artifact": "Zaktualizuj plik w Drive",
+      "drive_folders": "Zobacz foldery Drive",
+      "file_artifacts": "Zapisz w folderze Drive",
+      "drive_folder": "Uporządkuj folder Drive",
+      "trash_artifacts": "Posprzątaj pliki",
       "read_artifact": "Przeczytaj plik w Drive",
       "list_artifacts": "Wyświetl pliki w Drive",
       "share_artifact": "Udostępnij plik",
@@ -16738,6 +16787,14 @@
       "sharingEmpty": "Wybierz, kto to widzi.",
       "sharingTooMany": "Wybierz najwyżej {{max}} osób i {{max}} ról.",
       "notInDrive": "To istnieje tylko w swojej rozmowie, więc nie da się tego udostępnić."
+    },
+    "drive": {
+      "folderExists": "Folder o tej nazwie już tu jest.",
+      "folderNotFound": "Ten folder już nie istnieje.",
+      "folderCycle": "Folder nie może znaleźć się sam w sobie.",
+      "folderTooDeep": "Foldery mogą sięgać najwyżej {{max}} poziomów w głąb.",
+      "foldersFull": "Ta przestrzeń robocza ma już {{max}} folderów.",
+      "folderName": "Nadaj folderowi nazwę."
     },
     "device": {
       "notLinkMaker": "Tylko osoba, która utworzyła link, może wpuścić ten komputer.",
@@ -19755,6 +19812,22 @@
     "update_artifact": {
       "label": "Zaktualizuj plik",
       "description": "Zapisuje nową wersję pliku."
+    },
+    "drive_folders": {
+      "label": "Zobacz foldery",
+      "description": "Widzi foldery Drive."
+    },
+    "file_artifacts": {
+      "label": "Zapisz w folderach",
+      "description": "Umieszcza pliki z Drive w folderach projektów."
+    },
+    "drive_folder": {
+      "label": "Uporządkuj foldery",
+      "description": "Zmienia nazwy folderów Drive, przenosi je albo usuwa (nigdy plików)."
+    },
+    "trash_artifacts": {
+      "label": "Posprzątaj własne pliki",
+      "description": "Przenosi do kosza pliki, które stworzył, a których nikt nie potrzebuje (30 dni na przywrócenie)."
     },
     "list_issues": {
       "label": "Zobacz zadania",
