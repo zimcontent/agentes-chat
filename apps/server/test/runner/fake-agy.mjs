@@ -379,6 +379,14 @@ if (args[0] === "-p") {
     out({ event: "result", result: { conversation_id: conversation, status: "ERROR", response: "", error: "quota" } });
     process.exit(3);
   }
+  // Google holding the account (1.5.10, 2026-11-18): the CLI says its card's title as the turn's answer.
+  if (prompt.includes("VERIFY")) {
+    out({
+      event: "result",
+      result: { conversation_id: conversation, status: "SUCCESS", response: "⚠ Verification Required" },
+    });
+    process.exit(0);
+  }
   // No terminal sandbox (1.5.9, seen on Ubuntu 24.04, 2026-11-14): the command is soft-denied and the turn ends
   // "successfully" with nothing said.
   // A nudge after a denial (`agyDeniedNudge`) goes on, unless the turn was "DENIED_AGAIN": refused once more.
