@@ -107,6 +107,9 @@ Besides model providers, the installation may use external services. Each is tur
 {{#if svc.media}}
 - **Image and video generation** through a media service paid in credits (Zim Mídia). It receives the request and the references sent, and keeps the providers' keys and the workspace's credit wallet.
 {{/if}}
+{{#if svc.houseVoice}}
+- **The house voice on calls** (Qwen Audio, through Empirio Labs), paid in the media service's credits. It receives the call's audio, the agent's instructions and what was said on the call while the call lasts. The key stays on the server.
+{{/if}}
 {{#if svc.speech}}
 - **Voice transcription** through a speech service configured by the installation (AssemblyAI, ElevenLabs, Soniox, Groq, OpenAI or DeepInfra, in the order the installation tries them). It receives the voice message's audio. Agents that speak on WhatsApp with ElevenLabs send it the text they are about to say. A speech server of the installation's own, on the same network, sends nothing out.
 {{/if}}
@@ -284,6 +287,7 @@ The table shows, for each service, whether it is on in this installation, accord
 | Media service (Zim Mídia) | Generating images and videos | The request and the references sent | {{on:svc.media}} |
 | Voice transcription | Turning audio into text | The voice message's audio | {{on:svc.speech}} |
 | Live voice | Speaking on a call | The call's audio | According to the workspace's key |
+| House voice (Empirio Labs) | Speaking on a call | The call's audio | {{on:svc.houseVoice}} |
 | Firebase and Apple (notifications) | Delivering the notice to the device | The notice's text and the device token | {{on:svc.pushDirect}} |
 | agentes.chat notification relay | Delivering the notice to the device | The notice's text and the device token | {{on:svc.pushRelay}} |
 | Browser notifications | Delivering the notice to the browser | The notice, encrypted | Always |

@@ -700,6 +700,7 @@ async function boot(
     ...adapters,
     machines: createMachineSockets(engine.machineHub),
     browserLive: engine.browserLive,
+    liveVoice: engine.liveVoice,
     streams: createStreamSockets({ db: database.db, auth, config, broker: engine.streams }),
   });
   const publicUrl = new URL(config.PUBLIC_URL);

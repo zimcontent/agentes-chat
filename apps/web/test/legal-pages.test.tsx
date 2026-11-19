@@ -46,6 +46,7 @@ const SERVICES = (on: Partial<LegalFacts["services"]>): LegalFacts["services"] =
   support: false,
   telemetry: false,
   driveBackup: false,
+  houseVoice: false,
   ...on,
 });
 

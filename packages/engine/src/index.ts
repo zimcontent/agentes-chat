@@ -192,6 +192,7 @@ export * from "./key-line";
 export * from "./legal";
 export * from "./limits";
 export * from "./live-voice";
+export * from "./live-voice-house";
 export * from "./live-voice-prompt";
 export * from "./machine-access";
 export * from "./machine-accounts";

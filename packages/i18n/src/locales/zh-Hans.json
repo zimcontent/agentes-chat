@@ -10788,7 +10788,7 @@
       "notesExample": "例如：每次都以谁在何时之前做什么来收尾。称呼客户的名字。",
       "agentNotes": "{{name}} 在通话中",
       "agentNotesExample": "例如：先给数字再给观点。预算不合适时提出反对。",
-      "title": "实时语音（GPT-Live）",
+      "title": "实时语音",
       "lead": "与智能体语音通话，并可在任何消息上使用“收听”，每个智能体都有自己的声音。",
       "on": "已开启",
       "off": "已关闭",
@@ -10812,7 +10812,19 @@
       "current": "当前",
       "previewOf": "试听{{voice}}",
       "use": "使用{{voice}}",
-      "refused": "此密钥没有这个声音：改由{{voice}}发声。"
+      "refused": "此密钥没有这个声音：改由{{voice}}发声。",
+      "engine": "通话语音",
+      "house": "内置语音（Qwen）",
+      "gptLive": "GPT-Live（你的密钥）",
+      "houseCredits": "用此工作区的点数支付：每分钟 {{perMinute}} 点。余额：{{balance}} 点，约 {{minutes}} 分钟。",
+      "houseNoWallet": "用点数支付，每分钟 {{perMinute}} 点。暂时无法读取余额。",
+      "gptLiveHint": "OpenAI 的语音，使用此工作区自己的密钥。每个智能体每分钟约 0.05 美元。",
+      "addCredits": "购买点数",
+      "monthly": "每月上限（点数）",
+      "monthlyNone": "不限",
+      "spent": "本月已用：{{spent}} / {{limit}} 点。",
+      "spentNoLimit": "本月已用：{{spent}} 点。只有余额用完时通话才会停止。",
+      "pickerLeadHouse": "以 {{name}} 的身份试听每个声音并选择。每次试听消耗一两个点数。"
     },
     "phoneLine": {
       "title": "电话",
@@ -10866,7 +10878,12 @@
       "noWords": "这条消息没有可讲述的文字。",
       "notHost": "只有主持通话的人才能开启智能体的声音。",
       "ended": "此通话已结束。",
-      "notIn": "你已不在此通话中。"
+      "notIn": "你已不在此通话中。",
+      "noCredits": "点数不足以通话一分钟。请在“媒体”页面购买点数。",
+      "monthLimit": "通话已达到本月的点数上限。负责配置工作区的人可以在“设置 › 语音”中调高。",
+      "updateApp": "这里的通话使用内置语音。请更新应用后再拨打。",
+      "noHouse": "此处无法使用内置语音。",
+      "badLimit": "上限须为整数点数。"
     }
   },
   "media": {

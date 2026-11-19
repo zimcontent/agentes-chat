@@ -11105,7 +11105,7 @@
       "notesExample": "Örn.: Her zaman kimin neyi ne zamana kadar yapacağıyla bitirin. Müşteriye adıyla hitap edin.",
       "agentNotes": "Aramalarda {{name}}",
       "agentNotesExample": "Örn.: Görüşten önce rakam getirir. Bütçe tutmadığında itiraz eder.",
-      "title": "Canlı ses (GPT-Live)",
+      "title": "Canlı ses",
       "lead": "Ajanlarınızla sesli aramalar ve her mesajda Dinle, her ajan kendi sesiyle.",
       "on": "Açık",
       "off": "Kapalı",
@@ -11129,7 +11129,19 @@
       "current": "Geçerli",
       "previewOf": "{{voice}} dinle",
       "use": "{{voice}} kullan",
-      "refused": "Bu anahtarda bu ses yok: yerine {{voice}} konuştu."
+      "refused": "Bu anahtarda bu ses yok: yerine {{voice}} konuştu.",
+      "engine": "Aramaların sesi",
+      "house": "Varsayılan ses (Qwen)",
+      "gptLive": "GPT-Live (kendi anahtarınız)",
+      "houseCredits": "Bu çalışma alanının kredileriyle ödenir: dakikada {{perMinute}} kredi. Bakiye: {{balance}} kredi, yaklaşık {{minutes}} dk.",
+      "houseNoWallet": "Kredilerle ödenir, dakikada {{perMinute}}. Bakiye şu anda okunamıyor.",
+      "gptLiveHint": "Bu çalışma alanının anahtarıyla OpenAI'ın sesi. Ajan başına dakikada yaklaşık 0,05 ABD doları.",
+      "addCredits": "Kredi satın al",
+      "monthly": "Kredi cinsinden aylık sınır",
+      "monthlyNone": "Sınır yok",
+      "spent": "Bu ay kullanılan: {{limit}} kredinin {{spent}} kadarı.",
+      "spentNoLimit": "Bu ay kullanılan: {{spent}} kredi. Aramalar yalnızca bakiye bitince durur.",
+      "pickerLeadHouse": "Her sesi {{name}} olarak dinleyin ve seçin. Her örnek bir iki kredi harcar."
     },
     "phoneLine": {
       "title": "Telefon aramaları",
@@ -11183,7 +11195,12 @@
       "noWords": "Bu mesajda anlatılacak söz yok.",
       "notHost": "Ajanların seslerini yalnızca aramayı yöneten kişi açar.",
       "ended": "Bu arama sona erdi.",
-      "notIn": "Artık bu aramada değilsiniz."
+      "notIn": "Artık bu aramada değilsiniz.",
+      "noCredits": "Bir dakikalık arama için yeterli kredi yok. Medya sayfasından kredi alın.",
+      "monthLimit": "Aramalar bu ayın kredi sınırına ulaştı. Çalışma alanını yapılandıran kişi bunu Ayarlar › Ses bölümünden artırabilir.",
+      "updateApp": "Buradaki aramalar varsayılan sesi kullanıyor. Aramak için uygulamayı güncelleyin.",
+      "noHouse": "Varsayılan ses burada kullanılamıyor.",
+      "badLimit": "Sınır tam sayı olarak kredi cinsindendir."
     }
   },
   "media": {

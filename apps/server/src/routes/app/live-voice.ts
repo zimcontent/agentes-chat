@@ -23,6 +23,8 @@ import {
   saveLiveVoiceKey,
   savePhoneLine,
   setLiveFloor,
+  setLiveVoiceEngine,
+  setLiveVoiceMonthlyCredits,
   setPhoneEngine,
   startLiveSession,
 } from "@agenteschat/engine";
@@ -44,6 +46,30 @@ const SessionParams = OrgParams.extend({ sessionId: z.uuid() });
 const View = z
   .object({
     state: z.enum(["off", "ok"]).openapi({ description: "`ok`: calls and Ouvir work in this workspace." }),
+    engine: z
+      .enum(["house", "gpt-live"])
+      .openapi({ description: "The voice calls use here now: the house voice (credits) or GPT-Live (the key)." }),
+    chosenEngine: z.enum(["house", "gpt-live"]).nullable().openapi({
+      description: "What the workspace picked; null: the default (the house voice where the server has it).",
+    }),
+    gptLiveKey: z.boolean().openapi({ description: "Whether the workspace has its own GPT-Live key." }),
+    house: z
+      .object({
+        perMinute: z.number().int().openapi({ description: "Credits a minute." }),
+        balance: z
+          .number()
+          .int()
+          .nullable()
+          .openapi({ description: "The wallet's credits; null when it didn't answer." }),
+        monthlyCredits: z
+          .number()
+          .int()
+          .nullable()
+          .openapi({ description: "The monthly limit in credits; null: none." }),
+        spentThisMonth: z.number().int().openapi({ description: "Credits the house voice took this month." }),
+      })
+      .nullable()
+      .openapi({ description: "The house voice, where this server has it (docs/adr/doug-0036-house-voice.md)." }),
     hint: z
       .string()
       .nullable()
@@ -103,13 +129,29 @@ const Room = z
   .openapi("LiveRoom");
 
 const Session = z
-  .object({
-    id: z.uuid(),
-    sdp: z.string().openapi({ description: "OpenAI's WebRTC answer, for the app's `setRemoteDescription`." }),
-    voice: z.string(),
-    maxSeconds: z.number().int(),
-    minSeconds: z.number().int(),
-  })
+  .discriminatedUnion("transport", [
+    z.object({
+      transport: z.literal("webrtc"),
+      id: z.uuid(),
+      sdp: z.string().openapi({ description: "OpenAI's WebRTC answer, for the app's `setRemoteDescription`." }),
+      voice: z.string(),
+      maxSeconds: z.number().int(),
+      minSeconds: z.number().int(),
+    }),
+    z.object({
+      transport: z.literal("relay"),
+      id: z.uuid(),
+      ticket: z.string().openapi({ description: "Opens the relay socket once, within a minute." }),
+      path: z.string().openapi({ description: "The relay socket's path on this server (`?ticket=`)." }),
+      sampleRate: z.number().int().openapi({ description: "The audio both ways: 16-bit mono PCM at this rate." }),
+      voice: z.string(),
+      maxSeconds: z.number().int(),
+      minSeconds: z.number().int(),
+    }),
+    z.object({ transport: z.literal("offer") }).openapi({
+      description: "The workspace's calls are on GPT-Live: start again with the app's WebRTC offer.",
+    }),
+  ])
   .openapi("LiveSession");
 
 const Sdp = z.string().min(10).max(40_000);
@@ -176,6 +218,54 @@ export function liveVoiceRoutes(deps: AppDeps) {
       responses: { 200: json(View), ...errors },
     }),
     async (c) => c.json(await removeLiveVoiceKey(live(), c.get("user").id, c.req.valid("param").orgId), 200),
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/live-voice/engine",
+      tags,
+      security,
+      summary: "Pick the voice of calls, Ouvir and samples here",
+      description:
+        "Needs `configure`. `house`: the house voice, paid by the minute in credits (422 `live_voice.no_house` where the server has none). `gpt-live`: the workspace's own GPT-Live key. Null: the default.",
+      request: {
+        params: OrgParams,
+        body: body(z.object({ engine: z.enum(["house", "gpt-live"]).nullable() })),
+      },
+      responses: { 200: json(View), ...errors },
+    }),
+    async (c) =>
+      c.json(
+        await setLiveVoiceEngine(live(), c.get("user").id, c.req.valid("param").orgId, c.req.valid("json").engine),
+        200,
+      ),
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/live-voice/monthly-limit",
+      tags,
+      security,
+      summary: "Set the most credits the house voice may spend here in a month",
+      description: "Needs `configure`. Null: no limit but the wallet.",
+      request: {
+        params: OrgParams,
+        body: body(z.object({ credits: z.number().int().min(0).max(10_000_000).nullable() })),
+      },
+      responses: { 200: json(View), ...errors },
+    }),
+    async (c) =>
+      c.json(
+        await setLiveVoiceMonthlyCredits(
+          live(),
+          c.get("user").id,
+          c.req.valid("param").orgId,
+          c.req.valid("json").credits,
+        ),
+        200,
+      ),
   );
 
   const phone = (): PhoneDeps => {
@@ -258,15 +348,19 @@ export function liveVoiceRoutes(deps: AppDeps) {
       path: "/organizations/{orgId}/live-voice/sessions",
       tags,
       security,
-      summary: "Open a GPT-Live session from the app's WebRTC offer",
+      summary: "Open a voice session: the house voice through this server, or GPT-Live from the app's WebRTC offer",
       description:
-        "`call`: an agent's voice in a voice room, opened by the room's host. `agent`: a call with one agent from its conversation (`channelId`), the agent working behind its voice. `listen`: a message told, in its agent's voice, as a colleague would tell it. `sample`: a voice saying hello. The agent's budget and the person's limit are checked first; the session is billed by the second when it ends.",
+        "The workspace's engine decides (docs/adr/doug-0036-house-voice.md). On the house voice, with `relay` in `transports`: a ticket for the relay socket, the session paid by the minute in credits (422 `live_voice.no_credits`, `live_voice.month_limit`). On GPT-Live without `sdp`: `{ transport: \"offer\" }`, and the app starts again with its offer. An app that only carries WebRTC, on a workspace on the house voice without a GPT-Live key: 422 `live_voice.update_app`. `call`: an agent's voice in a voice room, opened by the room's host. `agent`: a call with one agent from its conversation (`channelId`), the agent working behind its voice. `listen`: a message told, in its agent's voice, as a colleague would tell it. `sample`: a voice saying hello. The agent's budget and the person's limit are checked first; the session is billed by the second when it ends.",
       request: {
         params: OrgParams,
         body: body(
           z.object({
             kind: z.enum(["call", "agent", "listen", "sample"]),
-            sdp: Sdp,
+            sdp: Sdp.nullish(),
+            transports: z
+              .array(z.enum(["webrtc", "relay"]))
+              .max(2)
+              .nullish(),
             agentId: z.uuid().nullish(),
             roomId: z.uuid().nullish(),
             channelId: z.uuid().nullish(),

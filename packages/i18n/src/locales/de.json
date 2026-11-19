@@ -11161,7 +11161,7 @@
       "notesExample": "Z. B.: Schließt immer mit wer was bis wann macht. Nennt den Kunden beim Namen.",
       "agentNotes": "{{name}} in Anrufen",
       "agentNotesExample": "Z. B.: Bringt Zahlen vor Meinungen. Widerspricht, wenn das Budget nicht passt.",
-      "title": "Live-Stimme (GPT-Live)",
+      "title": "Live-Stimme",
       "lead": "Sprachanrufe mit deinen Agenten und Anhören bei jeder Nachricht, jeder Agent mit eigener Stimme.",
       "on": "An",
       "off": "Aus",
@@ -11185,7 +11185,19 @@
       "current": "Aktuell",
       "previewOf": "{{voice}} anhören",
       "use": "{{voice}} verwenden",
-      "refused": "Dieser Schlüssel hat diese Stimme nicht: Stattdessen sprach {{voice}}."
+      "refused": "Dieser Schlüssel hat diese Stimme nicht: Stattdessen sprach {{voice}}.",
+      "engine": "Stimme der Anrufe",
+      "house": "Hausstimme (Qwen)",
+      "gptLive": "GPT-Live (dein Schlüssel)",
+      "houseCredits": "Bezahlt mit den Credits dieses Workspace: {{perMinute}} Credits pro Minute. Guthaben: {{balance}} Credits, etwa {{minutes}} Min.",
+      "houseNoWallet": "Bezahlt mit Credits, {{perMinute}} pro Minute. Das Guthaben lässt sich gerade nicht lesen.",
+      "gptLiveHint": "Die Stimme von OpenAI, mit dem eigenen Schlüssel dieses Workspace. Etwa 0,05 US$ pro Minute und Agent.",
+      "addCredits": "Credits kaufen",
+      "monthly": "Monatslimit in Credits",
+      "monthlyNone": "Kein Limit",
+      "spent": "Diesen Monat verbraucht: {{spent}} von {{limit}} Credits.",
+      "spentNoLimit": "Diesen Monat verbraucht: {{spent}} Credits. Anrufe stoppen erst, wenn das Guthaben aufgebraucht ist.",
+      "pickerLeadHouse": "Hör dir jede Stimme als {{name}} an und wähle. Jede Hörprobe kostet ein oder zwei Credits."
     },
     "phoneLine": {
       "title": "Telefonanrufe",
@@ -11239,7 +11251,12 @@
       "noWords": "Diese Nachricht hat keine Worte zum Vorlesen.",
       "notHost": "Nur wer den Anruf leitet, öffnet die Stimmen der Agenten.",
       "ended": "Dieser Anruf ist beendet.",
-      "notIn": "Du bist nicht mehr in diesem Anruf."
+      "notIn": "Du bist nicht mehr in diesem Anruf.",
+      "noCredits": "Nicht genug Credits für eine Minute Anruf. Kauf Credits auf der Seite Medien.",
+      "monthLimit": "Die Anrufe haben das Credit-Limit dieses Monats erreicht. Wer den Workspace einrichtet, kann es unter Einstellungen › Stimme erhöhen.",
+      "updateApp": "Anrufe hier nutzen die Hausstimme. Aktualisiere die App, um anzurufen.",
+      "noHouse": "Die Hausstimme ist hier nicht verfügbar.",
+      "badLimit": "Ein Limit ist eine ganze Zahl von Credits."
     }
   },
   "media": {

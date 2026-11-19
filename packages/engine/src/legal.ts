@@ -30,6 +30,7 @@ export const LEGAL_SERVICES = [
   "support",
   "telemetry",
   "driveBackup",
+  "houseVoice",
 ] as const;
 export type LegalService = (typeof LEGAL_SERVICES)[number];
 
@@ -89,6 +90,7 @@ export interface LegalSettings {
   SMTP_URL?: string;
   ZIM_MEDIA_URL?: string;
   ZIM_MEDIA_SECRET?: string;
+  EMPIRIO_API_KEY?: string;
   ASSEMBLYAI_API_KEY?: string;
   ELEVENLABS_API_KEY?: string;
   SONIOX_API_KEY?: string;
@@ -178,6 +180,8 @@ export function legalFacts(config: LegalSettings): LegalFacts {
         config.BACKUP_GOOGLE_DRIVE_CLIENT_SECRET,
         config.BACKUP_GOOGLE_DRIVE_REFRESH_TOKEN,
       ),
+      // The house voice of calls (docs/adr/doug-0036-house-voice.md): its key and the wallet that pays it.
+      houseVoice: set(config.EMPIRIO_API_KEY, config.ZIM_MEDIA_URL, config.ZIM_MEDIA_SECRET),
     },
   };
 }

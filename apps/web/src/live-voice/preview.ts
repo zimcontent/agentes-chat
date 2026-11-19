@@ -1,5 +1,5 @@
 import type { ApiClient } from "@agenteschat/client";
-import { LiveLeg } from "./leg";
+import { openVoiceLeg, type VoiceLeg } from "./leg";
 
 /**
  * A voice's preview in the voice picker (ADR doug-0006): the agent says hello in that voice through a short GPT-Live
@@ -106,7 +106,7 @@ export class VoicePreview {
     const ctx = new AudioContext();
     const silence = ctx.createMediaStreamDestination();
     const track = silence.stream.getAudioTracks()[0];
-    let leg: LiveLeg | null = null;
+    let leg: VoiceLeg | null = null;
     let recorder: MediaRecorder | null = null;
     const chunks: Blob[] = [];
     let said = false;
@@ -132,12 +132,12 @@ export class VoicePreview {
     };
     try {
       if (!track) throw new Error("no audio track");
-      leg = await LiveLeg.open(
+      leg = await openVoiceLeg(
         track,
-        (sdp) =>
-          this.o.api.liveVoice.startSession(this.o.orgId, {
+        (extra) =>
+          this.o.api.liveVoice.startVoice(this.o.orgId, {
+            ...extra,
             kind: "sample",
-            sdp,
             agentId,
             voice,
             language: this.o.language,

@@ -10773,7 +10773,7 @@
       "notesExample": "Mis.: Selalu tutup dengan siapa melakukan apa dan kapan. Panggil klien dengan namanya.",
       "agentNotes": "{{name}} dalam panggilan",
       "agentNotesExample": "Mis.: Membawa angka sebelum opini. Membantah saat anggaran tidak cocok.",
-      "title": "Suara langsung (GPT-Live)",
+      "title": "Suara langsung",
       "lead": "Panggilan suara dengan agenmu dan Dengarkan di pesan mana pun, tiap agen dengan suaranya sendiri.",
       "on": "Aktif",
       "off": "Nonaktif",
@@ -10797,7 +10797,19 @@
       "current": "Saat ini",
       "previewOf": "Dengarkan {{voice}}",
       "use": "Gunakan {{voice}}",
-      "refused": "Kunci ini tidak punya suara ini: {{voice}} yang berbicara."
+      "refused": "Kunci ini tidak punya suara ini: {{voice}} yang berbicara.",
+      "engine": "Suara panggilan",
+      "house": "Suara bawaan (Qwen)",
+      "gptLive": "GPT-Live (kunci Anda)",
+      "houseCredits": "Dibayar dengan kredit workspace ini: {{perMinute}} kredit per menit. Saldo: {{balance}} kredit, sekitar {{minutes}} menit.",
+      "houseNoWallet": "Dibayar dengan kredit, {{perMinute}} per menit. Saldo tidak dapat dibaca sekarang.",
+      "gptLiveHint": "Suara OpenAI, dengan kunci workspace ini. Sekitar US$ 0,05 per menit per agen.",
+      "addCredits": "Beli kredit",
+      "monthly": "Batas bulanan dalam kredit",
+      "monthlyNone": "Tanpa batas",
+      "spent": "Terpakai bulan ini: {{spent}} dari {{limit}} kredit.",
+      "spentNoLimit": "Terpakai bulan ini: {{spent}} kredit. Panggilan hanya berhenti saat saldo habis.",
+      "pickerLeadHouse": "Dengarkan setiap suara sebagai {{name}} lalu pilih. Setiap contoh memakai satu atau dua kredit."
     },
     "phoneLine": {
       "title": "Panggilan telepon",
@@ -10851,7 +10863,12 @@
       "noWords": "Pesan ini tidak punya kata untuk diceritakan.",
       "notHost": "Hanya orang yang memandu panggilan yang bisa membuka suara agen.",
       "ended": "Panggilan ini sudah berakhir.",
-      "notIn": "Kamu sudah tidak ada di panggilan ini."
+      "notIn": "Kamu sudah tidak ada di panggilan ini.",
+      "noCredits": "Kredit tidak cukup untuk satu menit panggilan. Beli kredit di halaman Media.",
+      "monthLimit": "Panggilan sudah mencapai batas kredit bulan ini. Pengelola workspace dapat menaikkannya di Pengaturan › Suara.",
+      "updateApp": "Panggilan di sini memakai suara bawaan. Perbarui aplikasi untuk menelepon.",
+      "noHouse": "Suara bawaan tidak tersedia di sini.",
+      "badLimit": "Batas berupa bilangan bulat kredit."
     }
   },
   "media": {

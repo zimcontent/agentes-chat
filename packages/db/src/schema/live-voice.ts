@@ -50,6 +50,13 @@ export const liveVoiceSessions = pgTable(
     endReason: text(),
     seconds: integer().notNull().default(0),
     costNanoUsd: bigint({ mode: "number" }).notNull().default(0),
+    /**
+     * Where its audio goes (docs/adr/doug-0036-house-voice.md): `gpt-live` (OpenAI over WebRTC, the workspace's key) or
+     * `house` (the house voice, relayed by this server, paid in credits).
+     */
+    engine: text().$type<"gpt-live" | "house">().notNull().default("gpt-live"),
+    /** `house`: the credits it was charged, once it ended. */
+    credits: integer().notNull().default(0),
   },
   (t) => [index().on(t.orgId, t.startedAt), index().on(t.userId, t.startedAt)],
 );

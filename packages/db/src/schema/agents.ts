@@ -284,6 +284,11 @@ export const agents = pgTable(
     /** Its ElevenLabs voice on maestro calls (doug-0006 §11); null: one picked from its id among the account's. */
     callVoice: text(),
     /**
+     * Its house voice (docs/adr/doug-0036-house-voice.md): one of `HOUSE_VOICES`. Null: one that sounds like its GPT-Live
+     * voice (`houseVoiceFor`). Created by `EXTRA_COLUMNS`.
+     */
+    houseVoice: text(),
+    /**
      * The most context its model reads, in tokens (`200000`, `400000`, `1000000`; validated in code): the API
      * brain compacts past it, Claude Code and Codex compact there too. Null = the model's own window.
      */
@@ -399,6 +404,14 @@ export const organizationSettings = pgTable("organization_settings", {
   routerModel: text(),
   /** How the agents behave on voice calls here, on top of the base (docs/adr/doug-0006-live-voice.md §11). */
   liveCallNotes: text(),
+  /**
+   * The voice engine of calls, Ouvir and samples in the apps (docs/adr/doug-0036-house-voice.md): `house` (the house
+   * voice, paid in credits) or `gpt-live` (the workspace's own GPT-Live key). Null: the house voice where the server
+   * has it, else GPT-Live.
+   */
+  liveVoiceEngine: text().$type<"house" | "gpt-live">(),
+  /** The most credits the house voice may spend in a month here; null: no limit but the wallet. */
+  liveVoiceMonthlyCredits: integer(),
   /**
    * The voice of the Doug's phone calls here (docs/adr/doug-0035-phone-calls.md): `gpt-live` (GPT-Live 1, the
    * calling service's own key) or `qwen` (Qwen Audio 3.1 Flash, the house key, paid in the workspace's credits).

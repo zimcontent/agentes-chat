@@ -19,6 +19,7 @@ const NO_SERVICES = {
   support: false,
   telemetry: false,
   driveBackup: false,
+  houseVoice: false,
 };
 
 describe("GET /api/app/legal", () => {

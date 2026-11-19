@@ -175,6 +175,7 @@ import type {
   LegalFacts,
   LiveRoom,
   LiveSession,
+  LiveSessionStart,
   LiveSpeakerPick,
   LiveVoice,
   Machine,
@@ -1277,6 +1278,11 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
       saveKey: (orgId, apiKey) => request<LiveVoice>(`${org(orgId)}/live-voice`, { method: "PUT", json: { apiKey } }),
       removeKey: (orgId) => request<LiveVoice>(`${org(orgId)}/live-voice`, { method: "DELETE" }),
       startSession: (orgId, input) => request<LiveSession>(`${org(orgId)}/live-voice/sessions`, { json: input }),
+      startVoice: (orgId, input) => request<LiveSessionStart>(`${org(orgId)}/live-voice/sessions`, { json: input }),
+      setEngine: (orgId, engine) =>
+        request<LiveVoice>(`${org(orgId)}/live-voice/engine`, { method: "PUT", json: { engine } }),
+      setMonthlyLimit: (orgId, credits) =>
+        request<LiveVoice>(`${org(orgId)}/live-voice/monthly-limit`, { method: "PUT", json: { credits } }),
       endSession: (orgId, sessionId) =>
         request<void>(`${org(orgId)}/live-voice/sessions/${enc(sessionId)}/end`, { json: {} }),
       channelRoom: (orgId, channelId) =>

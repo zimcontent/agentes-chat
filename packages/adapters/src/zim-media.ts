@@ -157,7 +157,10 @@ export interface MediaTopup {
 }
 
 export interface ZimMedia {
-  /** `calls`: each house voice's price for phone calls, in credits per minute (docs/adr/doug-0035-phone-calls.md). */
+  /**
+   * `calls`: each house voice's price in credits per minute: `qwen` for phone calls (docs/adr/doug-0035-phone-calls.md),
+   * `qwen-live` for calls inside the apps (docs/adr/doug-0036-house-voice.md).
+   */
   catalog(): Promise<{
     models: MediaModel[];
     packs: MediaPack[];
@@ -181,12 +184,13 @@ export interface ZimMedia {
   topupStatus(orgId: string, id: string): Promise<{ topup: MediaTopup; balance: number }>;
   topups(orgId: string): Promise<MediaTopup[]>;
   /**
-   * A phone call on a house voice that ended, charged by the second from the same wallet (docs/adr/doug-0035-phone-calls.md).
-   * The same key charges once; the balance never goes below zero (`unpaid` is what was left).
+   * A call on a house voice that ended, charged by the second from the same wallet: a phone call (`qwen`,
+   * docs/adr/doug-0035-phone-calls.md) or one inside the apps (`qwen-live`, docs/adr/doug-0036-house-voice.md). The same
+   * key charges once; the balance never goes below zero (`unpaid` is what was left).
    */
   chargeCall(
     orgId: string,
-    input: { idempotencyKey: string; engine: "qwen"; seconds: number },
+    input: { idempotencyKey: string; engine: "qwen" | "qwen-live"; seconds: number },
   ): Promise<{ credits: number; unpaid: number; balance: number; repeated: boolean }>;
 }
 

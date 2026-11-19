@@ -522,6 +522,18 @@
   justify-content: flex-end;
 }
 
+/* The house voice's monthly limit: the number and its Save on one line, both 40 tall. */
+.lv-limit {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.lv-limit .ac-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 240px;
+}
+
 /* Someone calls this person into a call: a card at the bottom right (clear of the notices up top) until they answer. */
 .lv-ring {
   position: fixed;

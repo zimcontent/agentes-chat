@@ -541,6 +541,11 @@ export const Agent = z
       .optional()
       .openapi({ description: "Its voice on calls (ADR doug-0006): the one picked or its id's." }),
     voiceChosen: z.boolean().optional().openapi({ description: "A person picked its voice." }),
+    houseVoice: z.string().optional().openapi({
+      description:
+        "Its house voice (docs/adr/doug-0036-house-voice.md): the one picked, or one like its GPT-Live voice.",
+    }),
+    houseVoiceChosen: z.boolean().optional().openapi({ description: "A person picked its house voice." }),
     liveCallNotes: z
       .string()
       .nullable()

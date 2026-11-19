@@ -11227,7 +11227,7 @@
       "notesExample": "Bijv.: Sluit altijd af met wie wat doet en wanneer. Noem de klant bij naam.",
       "agentNotes": "{{name}} in gesprekken",
       "agentNotesExample": "Bijv.: Brengt cijfers vóór meningen. Spreekt tegen als het budget niet klopt.",
-      "title": "Live stem (GPT-Live)",
+      "title": "Live stem",
       "lead": "Spraakoproepen met je agents en Beluisteren bij elk bericht, elke agent met een eigen stem.",
       "on": "Aan",
       "off": "Uit",
@@ -11251,7 +11251,19 @@
       "current": "Huidig",
       "previewOf": "{{voice}} beluisteren",
       "use": "{{voice}} gebruiken",
-      "refused": "Deze sleutel heeft deze stem niet: {{voice}} sprak in plaats daarvan."
+      "refused": "Deze sleutel heeft deze stem niet: {{voice}} sprak in plaats daarvan.",
+      "engine": "Stem van de gesprekken",
+      "house": "Huisstem (Qwen)",
+      "gptLive": "GPT-Live (je eigen sleutel)",
+      "houseCredits": "Betaald met de credits van deze workspace: {{perMinute}} credits per minuut. Saldo: {{balance}} credits, ongeveer {{minutes}} min.",
+      "houseNoWallet": "Betaald met credits, {{perMinute}} per minuut. Het saldo is nu niet te lezen.",
+      "gptLiveHint": "De stem van OpenAI, met de eigen sleutel van deze workspace. Ongeveer US$ 0,05 per minuut per agent.",
+      "addCredits": "Credits kopen",
+      "monthly": "Maandlimiet in credits",
+      "monthlyNone": "Geen limiet",
+      "spent": "Deze maand gebruikt: {{spent}} van {{limit}} credits.",
+      "spentNoLimit": "Deze maand gebruikt: {{spent}} credits. Gesprekken stoppen pas als het saldo op is.",
+      "pickerLeadHouse": "Luister naar elke stem als {{name}} en kies. Elk fragment kost een of twee credits."
     },
     "phoneLine": {
       "title": "Telefoongesprekken",
@@ -11305,7 +11317,12 @@
       "noWords": "Dit bericht heeft geen woorden om voor te lezen.",
       "notHost": "Alleen wie de oproep leidt, opent de stemmen van de agents.",
       "ended": "Deze oproep is beëindigd.",
-      "notIn": "Je zit niet meer in deze oproep."
+      "notIn": "Je zit niet meer in deze oproep.",
+      "noCredits": "Niet genoeg credits voor een minuut bellen. Koop credits op de pagina Media.",
+      "monthLimit": "De gesprekken hebben de creditlimiet van deze maand bereikt. Wie de workspace instelt, kan die verhogen in Instellingen › Stem.",
+      "updateApp": "Gesprekken hier gebruiken de huisstem. Werk de app bij om te bellen.",
+      "noHouse": "De huisstem is hier niet beschikbaar.",
+      "badLimit": "Een limiet is een heel aantal credits."
     }
   },
   "media": {

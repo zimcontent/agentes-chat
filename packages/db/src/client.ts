@@ -253,6 +253,13 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "live_call_notes" text`,
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "live_call_notes" text`,
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "call_voice" text`,
+  // The house voice (docs/adr/doug-0036-house-voice.md): each agent's voice of it, the workspace's engine and monthly
+  // limit, and each session's engine and the credits it was charged.
+  `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "house_voice" text`,
+  `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "live_voice_engine" text`,
+  `ALTER TABLE "organization_settings" ADD COLUMN IF NOT EXISTS "live_voice_monthly_credits" integer`,
+  `ALTER TABLE "live_voice_sessions" ADD COLUMN IF NOT EXISTS "engine" text NOT NULL DEFAULT 'gpt-live'`,
+  `ALTER TABLE "live_voice_sessions" ADD COLUMN IF NOT EXISTS "credits" integer NOT NULL DEFAULT 0`,
   // Videos agents send for the team's review, their versions and the notes on them (docs/adr/doug-0007-video-review.md).
   `CREATE TABLE IF NOT EXISTS "video_reviews" (
     "id" uuid PRIMARY KEY,

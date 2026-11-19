@@ -1,11 +1,20 @@
-import type { KeyWrapper, PubSub } from "@agenteschat/adapters";
+import type { KeyWrapper, PubSub, ZimMedia } from "@agenteschat/adapters";
 import { and, asc, type Database, desc, eq, inArray, isNull, lt, or, schema, sql } from "@agenteschat/db";
 import {
+  CREDIT_NANO_USD,
+  DEFAULT_HOUSE_VOICE,
   DEFAULT_LIVE_VOICE,
+  HOUSE_VOICE_ENGINE,
+  HOUSE_VOICE_MODEL,
+  HOUSE_VOICE_SAMPLE_RATE,
+  HOUSE_VOICE_URL,
+  houseVoiceFor,
+  isHouseVoice,
   isLiveVoice,
   LIVE_VOICE_API,
   LIVE_VOICE_MIN_SECONDS,
   LIVE_VOICE_MODEL,
+  type LiveVoiceEngine,
   liveVoiceChoices,
   liveVoiceCost,
   liveVoiceFor,
@@ -18,6 +27,7 @@ import { openSecret, sealSecret } from "./crypto";
 import { ConflictError, ForbiddenError, NotFoundError, TooManyError, ValidationError } from "./errors";
 import { publishUserEvent } from "./events";
 import { assertLiveVoiceAllowed, recordLiveVoiceUsage } from "./gateway";
+import { type HouseSessionSetup, houseSession, type LiveDialectEvent } from "./live-voice-house";
 import {
   agentCallInstructions,
   type ChatLine,
@@ -29,6 +39,7 @@ import {
 import { readableBody } from "./message-preview";
 import { can, getMembership, requirePermission } from "./organizations";
 import { rightHandId } from "./right-hand";
+import { monthStartUtc } from "./usage";
 
 type LiveRoomLine = schema.LiveRoomLine;
 type LiveRoomPerson = schema.LiveRoomPerson;
@@ -61,6 +72,12 @@ export type OpenSideband = (
   apiKey: string,
   on: { message(data: string): void; close(): void },
 ) => SidebandSocket;
+/** A socket to the house voice's model: like the sideband, and it says when it opened. */
+export type OpenHouseSocket = (
+  url: string,
+  apiKey: string,
+  on: { open(): void; message(data: string): void; close(): void },
+) => SidebandSocket;
 
 export interface LiveVoiceDeps {
   db: Database;
@@ -70,6 +87,11 @@ export interface LiveVoiceDeps {
   fetch?: typeof fetch;
   /** Null: no sideband (tests); the clock settles each session. */
   openSideband?: OpenSideband | null;
+  /**
+   * The house voice (docs/adr/doug-0036-house-voice.md): the server's Empirio key, the wallet that pays it and how a
+   * socket to the model opens. Absent: calls use the workspace's GPT-Live key only.
+   */
+  house?: { apiKey: string; media: ZimMedia; open: OpenHouseSocket } | null;
   /** One structured call to the workspace's small model, through the Model Gateway (`kind: router`); absent: names alone decide turns. */
   pickWithSmallModel?: (orgId: string, system: string, prompt: string) => Promise<string | null>;
   /** Posts the room's notes as a person's message (`postPersonMessage`). */
@@ -108,8 +130,16 @@ const MAX_LINES = 3000;
 // ─── The key ─────────────────────────────────────────────────────────────────
 
 export interface LiveVoiceView {
-  /** `ok`: calls and "Ouvir" work. `off`: no key. */
+  /** `ok`: calls and "Ouvir" work. `off`: no voice (GPT-Live chosen, or no house voice here, and no key). */
   state: "off" | "ok";
+  /** The voice calls use here now (docs/adr/doug-0036-house-voice.md). */
+  engine: LiveVoiceEngine;
+  /** What the workspace picked; null: the default (the house voice where this server has it). */
+  chosenEngine: LiveVoiceEngine | null;
+  /** The workspace has its own GPT-Live key. */
+  gptLiveKey: boolean;
+  /** The house voice, where this server has it: its price, the wallet, and the month against its limit. */
+  house: HouseVoiceView | null;
   /** Its last 4 characters, for who configures the workspace. */
   hint: string | null;
   editable: boolean;
@@ -129,12 +159,141 @@ export async function liveVoiceView(deps: LiveVoiceDeps, userId: string, orgId: 
     .select({ notes: schema.organizationSettings.liveCallNotes })
     .from(schema.organizationSettings)
     .where(eq(schema.organizationSettings.orgId, orgId));
+  const engine = await liveVoiceEngineOf(deps, orgId);
   return {
-    state: row ? "ok" : "off",
+    state: engine === "house" || row ? "ok" : "off",
+    engine,
+    chosenEngine: (await chosenEngineOf(deps, orgId)) ?? null,
+    gptLiveKey: Boolean(row),
+    house: deps.house ? await houseView(deps, orgId) : null,
     hint: row && editable ? row.hint : null,
     editable,
     callNotes: settings?.notes ?? "",
   };
+}
+
+// ─── The house voice: engine, price, wallet (docs/adr/doug-0036-house-voice.md) ─────
+
+export interface HouseVoiceView {
+  /** Credits a minute, from the wallet's catalog. */
+  perMinute: number;
+  /** The wallet's credits now; null when the wallet didn't answer. */
+  balance: number | null;
+  /** The workspace's monthly limit in credits; null: none. */
+  monthlyCredits: number | null;
+  /** Credits the house voice took this month. */
+  spentThisMonth: number;
+}
+
+/** The price when the wallet's catalog doesn't say (Zim Mídia's own default for `qwen-live`). */
+const HOUSE_DEFAULT_PER_MINUTE = 20;
+let priceCache: { perMinute: number; at: number } | null = null;
+
+async function housePerMinute(deps: LiveVoiceDeps): Promise<number> {
+  if (priceCache && Date.now() - priceCache.at < 10 * 60_000) return priceCache.perMinute;
+  const catalog = await deps.house?.media.catalog().catch(() => null);
+  const listed = catalog?.calls?.[HOUSE_VOICE_ENGINE]?.creditsPerMinute;
+  const perMinute = typeof listed === "number" && listed > 0 ? listed : HOUSE_DEFAULT_PER_MINUTE;
+  if (catalog) priceCache = { perMinute, at: Date.now() };
+  return perMinute;
+}
+
+async function chosenEngineOf(deps: LiveVoiceDeps, orgId: string): Promise<LiveVoiceEngine | null> {
+  const [s] = await deps.db
+    .select({ engine: schema.organizationSettings.liveVoiceEngine })
+    .from(schema.organizationSettings)
+    .where(eq(schema.organizationSettings.orgId, orgId));
+  return s?.engine === "house" || s?.engine === "gpt-live" ? s.engine : null;
+}
+
+/** The voice calls use here: the one picked, the house voice by default where this server has it, else GPT-Live. */
+export async function liveVoiceEngineOf(deps: LiveVoiceDeps, orgId: string): Promise<LiveVoiceEngine> {
+  const chosen = await chosenEngineOf(deps, orgId);
+  if (chosen === "gpt-live" || !deps.house) return "gpt-live";
+  return "house";
+}
+
+async function houseSpentThisMonth(deps: LiveVoiceDeps, orgId: string) {
+  const [row] = await deps.db
+    .select({ credits: sql<number>`coalesce(sum(${liveVoiceSessions.credits}), 0)::int` })
+    .from(liveVoiceSessions)
+    .where(
+      and(
+        eq(liveVoiceSessions.orgId, orgId),
+        eq(liveVoiceSessions.engine, "house"),
+        sql`${liveVoiceSessions.startedAt} >= ${monthStartUtc(now(deps)).toISOString()}::timestamptz`,
+      ),
+    );
+  return Number(row?.credits ?? 0);
+}
+
+async function houseView(deps: LiveVoiceDeps, orgId: string): Promise<HouseVoiceView> {
+  const [perMinute, wallet, spentThisMonth, settings] = await Promise.all([
+    housePerMinute(deps),
+    deps.house?.media.balance(orgId).catch(() => null),
+    houseSpentThisMonth(deps, orgId),
+    deps.db
+      .select({ monthly: schema.organizationSettings.liveVoiceMonthlyCredits })
+      .from(schema.organizationSettings)
+      .where(eq(schema.organizationSettings.orgId, orgId)),
+  ]);
+  return {
+    perMinute,
+    balance: wallet?.balance ?? null,
+    monthlyCredits: settings[0]?.monthly ?? null,
+    spentThisMonth,
+  };
+}
+
+/** Picks the voice of calls here (`configure`): the house voice, GPT-Live, or null for the default. */
+export async function setLiveVoiceEngine(
+  deps: LiveVoiceDeps,
+  userId: string,
+  orgId: string,
+  engine: LiveVoiceEngine | null,
+) {
+  await requirePermission(deps.db, userId, orgId, "configure");
+  if (engine === "house" && !deps.house)
+    throw new ValidationError("This server has no house voice", "live_voice.no_house");
+  await deps.db
+    .insert(schema.organizationSettings)
+    .values({ orgId, liveVoiceEngine: engine })
+    .onConflictDoUpdate({ target: schema.organizationSettings.orgId, set: { liveVoiceEngine: engine } });
+  await recordAudit(deps.db, {
+    orgId,
+    actor: { type: "person", id: userId },
+    action: "live_voice.engine_changed",
+    target: { type: "live_voice", id: orgId },
+    details: { engine: engine ?? "default" },
+  });
+  return liveVoiceView(deps, userId, orgId);
+}
+
+/** The most credits the house voice may spend here in a month (`configure`); null: no limit but the wallet. */
+export async function setLiveVoiceMonthlyCredits(
+  deps: LiveVoiceDeps,
+  userId: string,
+  orgId: string,
+  credits: number | null,
+) {
+  await requirePermission(deps.db, userId, orgId, "configure");
+  if (credits !== null && (!Number.isInteger(credits) || credits < 0 || credits > 10_000_000))
+    throw new ValidationError("A monthly limit is a whole number of credits", "live_voice.bad_limit");
+  await deps.db
+    .insert(schema.organizationSettings)
+    .values({ orgId, liveVoiceMonthlyCredits: credits })
+    .onConflictDoUpdate({
+      target: schema.organizationSettings.orgId,
+      set: { liveVoiceMonthlyCredits: credits },
+    });
+  await recordAudit(deps.db, {
+    orgId,
+    actor: { type: "person", id: userId },
+    action: "live_voice.monthly_limit_changed",
+    target: { type: "live_voice", id: orgId },
+    details: { credits },
+  });
+  return liveVoiceView(deps, userId, orgId);
 }
 
 /** The workspace's notes on how its agents behave on calls (on top of the base rules); who configures sets them. */
@@ -251,6 +410,7 @@ async function settle(deps: LiveVoiceDeps, id: string, reason: string, reported?
   const max = LIVE_VOICE_MAX_SECONDS[row.kind] + 60;
   const counted = reported ?? watch?.seconds ?? null;
   const seconds = Math.min(max, counted ?? clockSeconds(row.startedAt, at));
+  if (row.engine === "house") return settleHouse(deps, row, seconds, reason, at);
   const billed = row.providerSessionId ? seconds : 0;
   const cost = row.providerSessionId ? liveVoiceCost(billed) : 0;
   const [ended] = await deps.db
@@ -262,6 +422,59 @@ async function settle(deps: LiveVoiceDeps, id: string, reason: string, reported?
   await recordLiveVoiceUsage(
     deps.db,
     { orgId: row.orgId, agentId: row.agentId, personId: row.userId, model: LIVE_VOICE_MODEL, costNanoUsd: cost },
+    at,
+  );
+}
+
+/**
+ * A house voice session ended: its seconds (the relay's count: a muted voice on a room costs nothing) charged once to
+ * the wallet, by the session's id, and what the wallet took kept on the row and in the usage file, at a credit's worth.
+ */
+async function settleHouse(
+  deps: LiveVoiceDeps,
+  row: typeof liveVoiceSessions.$inferSelect,
+  seconds: number,
+  reason: string,
+  at: Date,
+) {
+  const billed = row.providerSessionId ? seconds : 0;
+  const [ended] = await deps.db
+    .update(liveVoiceSessions)
+    .set({ endedAt: at, endReason: reason, seconds: billed })
+    .where(and(eq(liveVoiceSessions.id, row.id), isNull(liveVoiceSessions.endedAt)))
+    .returning({ id: liveVoiceSessions.id });
+  if (!ended || billed === 0 || !deps.house) return;
+  let credits: number | null = null;
+  for (let attempt = 0; attempt < 3 && credits === null; attempt++) {
+    if (attempt) await new Promise((done) => setTimeout(done, attempt * 2000));
+    try {
+      const charged = await deps.house.media.chargeCall(row.orgId, {
+        idempotencyKey: row.id,
+        engine: HOUSE_VOICE_ENGINE,
+        seconds: billed,
+      });
+      credits = charged.credits;
+    } catch (error) {
+      deps.log?.warn("live voice: the wallet didn't take a house voice session", {
+        sessionId: row.id,
+        attempt,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+  if (!credits) return;
+  const cost = credits * CREDIT_NANO_USD;
+  await deps.db.update(liveVoiceSessions).set({ credits, costNanoUsd: cost }).where(eq(liveVoiceSessions.id, row.id));
+  await recordLiveVoiceUsage(
+    deps.db,
+    {
+      orgId: row.orgId,
+      agentId: row.agentId,
+      personId: row.userId,
+      model: HOUSE_VOICE_MODEL,
+      costNanoUsd: cost,
+      provider: "empirio",
+    },
     at,
   );
 }
@@ -491,7 +704,13 @@ async function recentLines(
 
 export interface StartLiveSession {
   kind: "call" | "agent" | "listen" | "sample";
-  sdp: string;
+  /** The app's WebRTC offer, for GPT-Live. Without one, a workspace on GPT-Live answers `{ transport: "offer" }`. */
+  sdp?: string | null;
+  /**
+   * How the app can carry the audio: `webrtc` (GPT-Live) and `relay` (the house voice, through this server). Absent:
+   * `webrtc` alone, as apps before the house voice.
+   */
+  transports?: ("webrtc" | "relay")[] | null;
   agentId?: string | null;
   roomId?: string | null;
   /** `agent`: the conversation with the agent (its DM), where what is asked by voice goes. */
@@ -506,7 +725,19 @@ export async function startLiveSession(deps: LiveVoiceDeps, userId: string, orgI
   const membership = await getMembership(deps.db, userId, orgId);
   if (!membership) throw new ForbiddenError();
   void sweepLiveVoiceSessions(deps, orgId).catch(() => {});
-  const apiKey = await openKey(deps, orgId);
+  const engine = await liveVoiceEngineOf(deps, orgId);
+  const relay = Boolean(input.transports?.includes("relay"));
+  const house = engine === "house" && relay;
+  if (engine === "house" && !relay) {
+    // An app that only carries WebRTC (a phone build from before the house voice): GPT-Live if the workspace has a key.
+    const [key] = await deps.db
+      .select({ orgId: liveVoiceKeys.orgId })
+      .from(liveVoiceKeys)
+      .where(eq(liveVoiceKeys.orgId, orgId));
+    if (!key) throw new ValidationError("Update the app to call with the house voice", "live_voice.update_app");
+  }
+  if (!house && !input.sdp) return { transport: "offer" as const };
+  const apiKey = house ? "" : await openKey(deps, orgId);
   const [{ open } = { open: 0 }] = await deps.db
     .select({ open: sql<number>`count(*)::int` })
     .from(liveVoiceSessions)
@@ -620,6 +851,30 @@ export async function startLiveSession(deps: LiveVoiceDeps, userId: string, orgI
   }
 
   await assertLiveVoiceAllowed(deps.db, orgId, agent, userId);
+  if (house) {
+    const houseVoice =
+      input.kind === "sample" && isHouseVoice(input.voice)
+        ? input.voice
+        : agent
+          ? houseVoiceFor(agent.id, agent.houseVoice, agent.voice)
+          : DEFAULT_HOUSE_VOICE;
+    return startHouseSession(deps, userId, orgId, {
+      kind: input.kind,
+      agentId: agent?.id ?? null,
+      channelId,
+      messageId,
+      callId: input.kind === "call" ? (input.roomId ?? null) : null,
+      voice: houseVoice,
+      setup: {
+        instructions,
+        voice: houseVoice,
+        language: input.language ?? null,
+        delegate: input.kind === "agent" || input.kind === "call",
+        speakFirst: input.kind !== "call",
+      },
+      brain,
+    });
+  }
   const [row] = await deps.db
     .insert(liveVoiceSessions)
     .values({
@@ -637,7 +892,7 @@ export async function startLiveSession(deps: LiveVoiceDeps, userId: string, orgI
   if (!row) throw new Error("live voice session not stored");
   let made: Awaited<ReturnType<typeof createAtOpenAI>>;
   try {
-    made = await createAtOpenAI(deps, apiKey, userId, { instructions, voice, sdp: input.sdp });
+    made = await createAtOpenAI(deps, apiKey, userId, { instructions, voice, sdp: input.sdp ?? "" });
   } catch (error) {
     await settle(deps, row.id, "refused");
     throw error;
@@ -648,7 +903,14 @@ export async function startLiveSession(deps: LiveVoiceDeps, userId: string, orgI
     .where(eq(liveVoiceSessions.id, row.id));
   const maxSeconds = LIVE_VOICE_MAX_SECONDS[input.kind];
   watchSession(deps, row.id, made.sessionId, apiKey, maxSeconds, brain);
-  return { id: row.id, sdp: made.sdp, voice: made.voice, maxSeconds, minSeconds: LIVE_VOICE_MIN_SECONDS };
+  return {
+    transport: "webrtc" as const,
+    id: row.id,
+    sdp: made.sdp,
+    voice: made.voice,
+    maxSeconds,
+    minSeconds: LIVE_VOICE_MIN_SECONDS,
+  };
 }
 
 /** The app ended a session: OpenAI is asked to close it, and the server settles it once it says so (or soon after). */
@@ -1524,3 +1786,267 @@ export function speakable(text: string) {
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
+
+// ─── The house voice's relay (docs/adr/doug-0036-house-voice.md) ─────────────
+
+/** The path of the relay socket the app opens with its ticket. */
+export const HOUSE_RELAY_PATH = "/api/live-voice/relay";
+/** A ticket opens its socket within this long, once. */
+const RELAY_TICKET_MS = 60_000;
+
+interface PendingRelay {
+  sessionId: string;
+  orgId: string;
+  userId: string;
+  kind: StartLiveSession["kind"];
+  setup: HouseSessionSetup;
+  brain: AgentBrain | null;
+  maxSeconds: number;
+  expires: number;
+}
+/** Sessions started and waiting for the app's socket, by their ticket's hash (this process's: the socket comes here). */
+const pendingRelays = new Map<string, PendingRelay>();
+
+const ticketHash = (ticket: string) => new Bun.CryptoHasher("sha256").update(`live-relay|${ticket}`).digest("hex");
+
+async function startHouseSession(
+  deps: LiveVoiceDeps,
+  userId: string,
+  orgId: string,
+  input: {
+    kind: StartLiveSession["kind"];
+    agentId: string | null;
+    channelId: string | null;
+    messageId: string | null;
+    callId: string | null;
+    voice: string;
+    setup: HouseSessionSetup;
+    brain: AgentBrain | null;
+  },
+) {
+  const house = deps.house;
+  if (!house) throw new ValidationError("This server has no house voice", "live_voice.no_house");
+  const [perMinute, wallet, spent, [settings]] = await Promise.all([
+    housePerMinute(deps),
+    house.media.balance(orgId).catch(() => null),
+    houseSpentThisMonth(deps, orgId),
+    deps.db
+      .select({ monthly: schema.organizationSettings.liveVoiceMonthlyCredits })
+      .from(schema.organizationSettings)
+      .where(eq(schema.organizationSettings.orgId, orgId)),
+  ]);
+  if (!wallet) throw new TooManyError("The credit wallet didn't answer. Try again.", "live_voice.unavailable");
+  const monthLeft = settings?.monthly == null ? Number.POSITIVE_INFINITY : settings.monthly - spent;
+  if (monthLeft < perMinute)
+    throw new ValidationError("The house voice reached this month's limit here", "live_voice.month_limit");
+  if (wallet.balance < perMinute)
+    throw new ValidationError(
+      `Not enough credits: a minute costs ${perMinute} and the workspace has ${wallet.balance}`,
+      "live_voice.no_credits",
+    );
+  // It lasts what the wallet (and the month's limit) pays for, up to the kind's own limit.
+  const paid = Math.floor((Math.min(wallet.balance, monthLeft) / perMinute) * 60);
+  const maxSeconds = Math.min(LIVE_VOICE_MAX_SECONDS[input.kind], paid);
+  for (const [hash, p] of pendingRelays) if (p.expires < Date.now()) pendingRelays.delete(hash);
+  const [row] = await deps.db
+    .insert(liveVoiceSessions)
+    .values({
+      orgId,
+      userId,
+      kind: input.kind,
+      agentId: input.agentId,
+      channelId: input.channelId,
+      messageId: input.messageId,
+      callId: input.callId,
+      voice: input.voice,
+      engine: "house",
+      startedAt: now(deps),
+    })
+    .returning();
+  if (!row) throw new Error("live voice session not stored");
+  const ticket = Buffer.from(crypto.getRandomValues(new Uint8Array(24))).toString("base64url");
+  pendingRelays.set(ticketHash(ticket), {
+    sessionId: row.id,
+    orgId,
+    userId,
+    kind: input.kind,
+    setup: input.setup,
+    brain: input.brain,
+    maxSeconds,
+    expires: Date.now() + RELAY_TICKET_MS,
+  });
+  // Never opened: settled with nothing to pay.
+  unref(
+    setTimeout(() => {
+      const hash = ticketHash(ticket);
+      if (pendingRelays.get(hash)?.sessionId !== row.id) return;
+      pendingRelays.delete(hash);
+      void settle(deps, row.id, "never_opened").catch(() => {});
+    }, RELAY_TICKET_MS + 5000),
+  );
+  return {
+    transport: "relay" as const,
+    id: row.id,
+    ticket,
+    path: HOUSE_RELAY_PATH,
+    sampleRate: HOUSE_VOICE_SAMPLE_RATE,
+    voice: input.voice,
+    maxSeconds,
+    minSeconds: 0,
+  };
+}
+
+/** Whether a ticket waits for its socket (the upgrade's check; opening the relay spends it). */
+export function houseRelayWaiting(ticket: string) {
+  const p = pendingRelays.get(ticketHash(ticket));
+  return Boolean(p && p.expires >= Date.now());
+}
+
+/** The app's side of a relay: what the server sends it. */
+export interface RelayClient {
+  /** A GPT-Live dialect event, as JSON. */
+  text(data: string): void;
+  /** The voice's audio, PCM16 at 24 kHz. */
+  binary(pcm: Uint8Array): void;
+  close(): void;
+}
+
+/**
+ * The app opened its relay socket with a ticket: the model's socket opens with the server's key, and the session runs
+ * here until either side closes. What the app sends: JSON commands (GPT-Live's dialect) and its microphone as binary
+ * PCM16 frames. A call with one agent also runs its brain here (`agentCall`), as GPT-Live's does on its sideband.
+ * Null: no such ticket (unknown, used or expired).
+ */
+export function openHouseRelay(deps: LiveVoiceDeps, ticket: string, client: RelayClient) {
+  const hash = ticketHash(ticket);
+  const pending = pendingRelays.get(hash);
+  pendingRelays.delete(hash);
+  const house = deps.house;
+  if (!pending || pending.expires < Date.now() || !house) return null;
+  const { sessionId: id, setup, brain, maxSeconds, kind } = pending;
+
+  let upstream: SidebandSocket | null = null;
+  let ended = false;
+  // What is billed: every second it runs, except, on a room, the seconds its voice is muted (the model hears nothing).
+  let activeMs = 0;
+  let lastTick = Date.now();
+  const watch: Watch = { socket: null, seconds: 0, timers: [] };
+  watching.set(id, watch);
+
+  const call = brain ? agentCall(deps, id, brain, (event) => session.command(event as never)) : null;
+  const session = houseSession(setup, {
+    upstream: (event) => upstream?.send(JSON.stringify(event)),
+    event: (event: LiveDialectEvent) => {
+      if (!ended) client.text(JSON.stringify(event));
+      call?.event(event);
+      if (event.type === "session.closed") finish(event.reason ?? "closed");
+    },
+    audio: (pcm) => {
+      if (!ended) client.binary(pcm);
+    },
+  });
+  // Ending (the app, a limit, the model's socket): the app hears it once, then everything is settled.
+  watch.socket = {
+    send: (data) => {
+      try {
+        session.command(JSON.parse(data));
+      } catch {}
+    },
+    close: () => upstream?.close(),
+  };
+
+  const tick = () => {
+    const at = Date.now();
+    if (session.started() && !(kind === "call" && session.muted())) activeMs += at - lastTick;
+    lastTick = at;
+    watch.seconds = Math.round(activeMs / 1000);
+  };
+  const ticker = setInterval(tick, 1000);
+  watch.timers.push(unref(ticker as unknown as ReturnType<typeof setTimeout>));
+  watch.timers.push(unref(setTimeout(() => session.command({ type: "session.close" }), maxSeconds * 1000)));
+  if (call && brain) {
+    const startedAt = Date.now();
+    watch.onEnd = () => postCallSummary(deps, brain, id, call.lines(), startedAt);
+    const idle = setInterval(() => {
+      if (call.idleFor() > AGENT_CALL_IDLE_MS) session.command({ type: "session.close" });
+    }, 30_000);
+    watch.timers.push(unref(idle as unknown as ReturnType<typeof setTimeout>));
+  }
+
+  function finish(reason: string) {
+    if (ended) return;
+    tick();
+    ended = true;
+    const seconds = watch.seconds;
+    try {
+      upstream?.close();
+    } catch {}
+    try {
+      client.close();
+    } catch {}
+    void settle(deps, id, reason, seconds).catch(() => {});
+  }
+
+  try {
+    upstream = house.open(HOUSE_VOICE_URL, house.apiKey, {
+      open: () => session.open(),
+      message: (data) => {
+        // The model's id for the session, once: a session that opened is billed.
+        if (data.includes('"session.created"')) {
+          try {
+            const sid = (JSON.parse(data) as { session?: { id?: string } }).session?.id;
+            if (sid)
+              void deps.db
+                .update(liveVoiceSessions)
+                .set({ providerSessionId: sid })
+                .where(eq(liveVoiceSessions.id, id))
+                .catch(() => {});
+          } catch {}
+        }
+        session.fromModel(data);
+      },
+      close: () => {
+        upstream = null;
+        if (!ended) {
+          client.text(JSON.stringify({ type: "session.closed", reason: "connection_lost" }));
+          finish("connection_lost");
+        }
+      },
+    });
+  } catch {
+    finish("unavailable");
+    return null;
+  }
+
+  return {
+    /** From the app: a command, or its microphone. */
+    message(data: string | Uint8Array) {
+      if (ended) return;
+      if (typeof data === "string") {
+        try {
+          session.command(JSON.parse(data));
+        } catch {}
+      } else session.audioIn(data);
+    },
+    /** The app's socket closed. */
+    close() {
+      finish("ended");
+    },
+  };
+}
+
+/** A Bun WebSocket to the house voice's model, with the key in its headers (Bun's own option). */
+export const bunHouseSocket: OpenHouseSocket = (url, apiKey, on) => {
+  const ws = new WebSocket(url, { headers: { Authorization: `Bearer ${apiKey}` } } as unknown as string[]);
+  ws.onopen = () => on.open();
+  ws.onmessage = (e) =>
+    on.message(typeof e.data === "string" ? e.data : new TextDecoder().decode(e.data as ArrayBuffer));
+  ws.onclose = () => on.close();
+  ws.onerror = () => {};
+  return {
+    send: (data) => {
+      if (ws.readyState === WebSocket.OPEN) ws.send(data);
+    },
+    close: () => ws.close(),
+  };
+};

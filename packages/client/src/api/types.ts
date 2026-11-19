@@ -389,7 +389,8 @@ export type LegalService =
   | "billing"
   | "support"
   | "telemetry"
-  | "driveBackup";
+  | "driveBackup"
+  | "houseVoice";
 
 /** "Abrir no celular": a sign-in for the phone, single use, a few minutes long. */
 export interface PhoneSignIn {
@@ -1011,6 +1012,9 @@ export interface Agent {
   voice?: string;
   /** A person picked its voice (else it is the one its id gives). */
   voiceChosen?: boolean;
+  /** Its house voice (docs/adr/doug-0036-house-voice.md); absent from a server without it. */
+  houseVoice?: string;
+  houseVoiceChosen?: boolean;
   /** How it behaves on voice calls, on top of the base and the workspace's notes. */
   liveCallNotes?: string | null;
   /** Its autonomy brakes (ADR 0131); absent from an older server (the defaults). */
@@ -1219,6 +1223,8 @@ export interface AgentInput {
   mediaAskAbove?: number | null;
   /** Its voice (ADR doug-0006); null: the one its id gives. Its owner or an admin. */
   voice?: string | null;
+  /** Its house voice (docs/adr/doug-0036-house-voice.md); null: one like its GPT-Live voice. */
+  houseVoice?: string | null;
   /** How it behaves on voice calls (doug-0006 §11); null clears. Its owner or an admin. */
   liveCallNotes?: string | null;
   /** The Autonomia it starts with (the last setup's, ADR 0094): only an admin or its own owner sends it. */
@@ -9146,9 +9152,24 @@ export interface PhoneLine {
 
 export type PhoneEngine = "gpt-live" | "qwen";
 
+export type LiveVoiceEngine = "house" | "gpt-live";
+
 export interface LiveVoice {
   /** `ok`: calls with agents and "Ouvir" work. */
   state: "off" | "ok";
+  /** The voice calls use here now (docs/adr/doug-0036-house-voice.md); absent from an older server: GPT-Live. */
+  engine?: LiveVoiceEngine;
+  /** What the workspace picked; null: the default (the house voice where the server has it). */
+  chosenEngine?: LiveVoiceEngine | null;
+  /** The workspace has its own GPT-Live key. */
+  gptLiveKey?: boolean;
+  /** The house voice where the server has it: credits a minute, the wallet, and the month against its limit. */
+  house?: {
+    perMinute: number;
+    balance: number | null;
+    monthlyCredits: number | null;
+    spentThisMonth: number;
+  } | null;
   /** The key's last 4 characters, for who configures the workspace. */
   hint: string | null;
   editable: boolean;
@@ -9195,8 +9216,10 @@ export interface LiveRoom {
 
 export interface LiveSessionInput {
   kind: "call" | "agent" | "listen" | "sample";
-  /** The app's WebRTC offer. */
-  sdp: string;
+  /** The app's WebRTC offer, for GPT-Live; without it, a workspace on GPT-Live answers `{ transport: "offer" }`. */
+  sdp?: string | null;
+  /** How the app can carry the audio (docs/adr/doug-0036-house-voice.md); absent: WebRTC alone. */
+  transports?: ("webrtc" | "relay")[];
   agentId?: string | null;
   roomId?: string | null;
   /** `agent`: the conversation with the agent, where what is asked by voice goes. */
@@ -9206,7 +9229,9 @@ export interface LiveSessionInput {
   language?: string | null;
 }
 
+/** A GPT-Live session: OpenAI's WebRTC answer. */
 export interface LiveSession {
+  transport?: "webrtc";
   id: string;
   /** OpenAI's WebRTC answer. */
   sdp: string;
@@ -9214,3 +9239,18 @@ export interface LiveSession {
   maxSeconds: number;
   minSeconds: number;
 }
+
+/** A house voice session (docs/adr/doug-0036-house-voice.md): its relay socket's ticket, once, within a minute. */
+export interface HouseLiveSession {
+  transport: "relay";
+  id: string;
+  ticket: string;
+  path: string;
+  sampleRate: number;
+  voice: string;
+  maxSeconds: number;
+  minSeconds: number;
+}
+
+/** What a session's start answers: a session, or (GPT-Live, asked without an offer) a request for the offer. */
+export type LiveSessionStart = LiveSession | HouseLiveSession | { transport: "offer" };
