@@ -283,6 +283,7 @@ export function createMockArtifacts(
       changes: { [name]: { by: "me", name: "", at: new Date().toISOString(), drawn: options.length } },
       rev: 1,
     }),
+    pressBlock: async () => ({ messageId: mockId("msg"), changed: false }),
     poll: async (_orgId, id) => openPoll(id),
     vote: async (_orgId, id) => openPoll(id),
     choices: async (_orgId, id) => ({ id, answer: null }),

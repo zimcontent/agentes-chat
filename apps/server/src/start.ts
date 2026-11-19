@@ -113,7 +113,7 @@ import { FILE_UPLOAD_PATH, SERVER_BODY_BYTES } from "./http/body-limit";
 import { checkHumanCheckAtBoot, createHumanCheck } from "./http/human-check";
 import { createLogger, type Logger } from "./logger";
 import { OPERATOR_API_PREFIX, serveOperatorApi } from "./operator/app";
-import { apnsKeyGaps, directPushSenders, phonePushMode, relayServeSender } from "./push-senders";
+import { apnsKeyGaps, directPushSenders, liveActivitySender, phonePushMode, relayServeSender } from "./push-senders";
 import { createMachineSockets } from "./realtime/machines";
 import { createStreamSockets } from "./realtime/streams";
 import { createRealtime, type SocketData } from "./realtime/ws";
@@ -354,6 +354,8 @@ async function boot(
     // Phone app push (ADR 0035, ADR 0152, ADR 0178): only devices that registered get anything. Android straight
     // to Firebase and iPhones straight to Apple, or through the push relay (`PUSH_SENDER`).
     push: createPhonePushSender({ android: phoneSender("android"), ios: phoneSender("ios") }),
+    // Live Activities (docs/adr/doug-0021-lock-screen.md): straight to Apple only, never through the relay.
+    liveActivities: liveActivitySender(direct, pushModes.ios),
     // Browser push (ADR 0071): the installation's own VAPID pair, made on first use.
     webPush: webPushSender(config, database.db, keyWrappers, log),
     // Each Composio call counts for its workspace before it is made (ADR 0107 §7).
@@ -628,6 +630,7 @@ async function boot(
       net: { allowPrivate: allowsPrivateEndpoints(config) },
     }),
     errors,
+    liveActivities: adapters.liveActivities ?? null,
     log,
   });
   // A restart announced ahead (ADR doug-0005): no long job starts here, runs stop at their next step.

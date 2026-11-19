@@ -2,8 +2,11 @@ import {
   APNS_APP_ID_MAX,
   APNS_PUSH_TOKEN,
   apnsAppIdValid,
+  endLiveActivity,
   FCM_PUSH_TOKEN,
+  liveActivityStartFor,
   PUSH_STALE_MAX,
+  registerLiveActivity,
   registerPushDevice,
   stalePushNotifications,
   unregisterPushDevice,
@@ -12,7 +15,17 @@ import {
 import { createRoute, z } from "@hono/zod-openapi";
 import { deviceAccountsOf, sessionOf } from "../../auth";
 import { apiError, errorResponse } from "../../http/errors";
-import { type AppDeps, body, createAppRouter, errors, json, noContent, requireSession, security } from "./context";
+import {
+  type AppDeps,
+  body,
+  createAppRouter,
+  errors,
+  json,
+  noContent,
+  OrgParams,
+  requireSession,
+  security,
+} from "./context";
 
 const tags = ["Push"];
 
@@ -201,6 +214,107 @@ export function pushRoutes(deps: AppDeps) {
     }),
     async (c) => {
       await unregisterPushDevice(db, c.get("user").id, c.req.valid("param").token);
+      return c.body(null, 204);
+    },
+  );
+
+  // Live Activities (docs/adr/doug-0021-lock-screen.md): only when this server pushes straight to Apple.
+  app.use("/organizations/*", requireSession(deps.auth));
+
+  const LiveState = z.object({
+    title: z.string(),
+    line: z.string(),
+    progress: z.number(),
+    phase: z.enum(["queued", "work", "wait", "done", "stopped", "failed"]),
+  });
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/live-activities/start",
+      tags,
+      security,
+      summary: "What a Live Activity for a message you sent would follow",
+      description:
+        "The run your message started, its agent and what the activity shows first. `available` false: this server sends no Live Activity updates (no APNs key of its own, e.g. through the push relay), so the app starts none.",
+      request: { params: OrgParams, query: z.object({ messageId: z.uuid(), locale: Locale }) },
+      responses: {
+        200: json(
+          z.object({
+            available: z.boolean(),
+            start: z
+              .object({
+                runId: z.string(),
+                agentId: z.string(),
+                agentName: z.string(),
+                agentHandle: z.string(),
+                state: LiveState,
+              })
+              .nullable(),
+          }),
+        ),
+        ...errors,
+      },
+    }),
+    async (c) => {
+      if (!deps.adapters.liveActivities) return c.json({ available: false, start: null }, 200);
+      const { orgId } = c.req.valid("param");
+      const { messageId, locale } = c.req.valid("query");
+      const start = await liveActivityStartFor(db, c.get("user").id, orgId, messageId, locale);
+      return c.json({ available: true, start }, 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/live-activities",
+      tags,
+      security,
+      summary: "Register a Live Activity's push token for a run you started",
+      description:
+        "The server then updates the activity from the run and ends it with the run. 409 `live_activities_off` when this server sends none.",
+      request: {
+        params: OrgParams,
+        body: body(
+          z.object({
+            runId: z.uuid(),
+            token: IosToken,
+            appId: z.string().max(APNS_APP_ID_MAX).refine(apnsAppIdValid, "must be a bundle id").optional(),
+            sandbox: z.boolean().optional(),
+            locale: Locale,
+          }),
+        ),
+      },
+      responses: {
+        204: noContent[204],
+        ...errors,
+        409: errorResponse("No Live Activities here (`live_activities_off`)"),
+        429: errorResponse("Too many registrations"),
+      },
+    }),
+    async (c) => {
+      if (!deps.adapters.liveActivities) return apiError(c, 409, "live_activities_off", "This server sends none");
+      const user = c.get("user");
+      const limit = await deps.adapters.rateLimiter.consume(`live:${user.id}`, { limit: 60, windowMs: 3600_000 });
+      if (!limit.allowed) return apiError(c, 429, "rate_limited", "Too many. Try again later.");
+      await registerLiveActivity(db, user.id, c.req.valid("param").orgId, c.req.valid("json"));
+      return c.body(null, 204);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/push/live-activities/end",
+      tags,
+      security,
+      summary: "A Live Activity ended on the phone: nothing more is sent to it",
+      request: { body: body(z.object({ token: IosToken })) },
+      responses: { 204: noContent[204], ...errors },
+    }),
+    async (c) => {
+      await endLiveActivity(db, c.get("user").id, c.req.valid("json").token);
       return c.body(null, 204);
     },
   );

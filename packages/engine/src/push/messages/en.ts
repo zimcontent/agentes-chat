@@ -105,6 +105,18 @@ export interface PushStrings {
   teamWeekReadyPersonal: string;
   /** A reminder of what the person left unread in "Esperando você": how many things, over the oldest one's own line. */
   teamWatchStill: (count: number) => string;
+  /** The button beside a live block's own on a notification (docs/adr/doug-0021-lock-screen.md): opens the conversation. */
+  openAction: string;
+  /** A Live Activity's line (docs/adr/doug-0021-lock-screen.md): who waits, then how far the work is. */
+  liveYouWait: string;
+  liveWaitsOnYou: string;
+  liveQueued: string;
+  liveStarting: string;
+  liveWorking: string;
+  liveAlmost: string;
+  liveDone: string;
+  liveStopped: string;
+  liveFailed: string;
 }
 
 export const en: PushStrings = {
@@ -211,4 +223,14 @@ export const en: PushStrings = {
   joinSuggestionTitlePersonal: (by, name) => `${by} suggested inviting ${name}`,
   teamWeekReadyPersonal: "Your week is ready",
   teamWatchStill: (n) => (n === 1 ? "1 thing still waits on you" : `${n} things still wait on you`),
+  openAction: "Open",
+  liveYouWait: "you're waiting",
+  liveWaitsOnYou: "waiting on you",
+  liveQueued: "in line",
+  liveStarting: "starting",
+  liveWorking: "working on it",
+  liveAlmost: "almost there",
+  liveDone: "done",
+  liveStopped: "stopped",
+  liveFailed: "didn't finish",
 };

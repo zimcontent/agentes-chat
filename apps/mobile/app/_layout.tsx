@@ -17,6 +17,7 @@ import { LaunchSplash } from "@/features/launch/LaunchSplash";
 import { markLaunched } from "@/features/launch/launched";
 import { takeLink } from "@/features/links/pending";
 import { OnboardingFlow } from "@/features/onboarding/OnboardingFlow";
+import { startPushButtons } from "@/features/push/actions";
 import { ServerDownPanel, useServerDown } from "@/features/server/ServerDown";
 import { ScreenError } from "@/features/shared/ScreenError";
 import { catchGlobalErrors, setErrorScope, startErrorReports } from "@/lib/error-reports";
@@ -37,6 +38,8 @@ void SplashScreen.preventAutoHideAsync().catch(() => {});
 // Upright everywhere but the agent's screen (`useSideways`). iOS starts this way (the plugin); Android only from here.
 void ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP).catch(() => {});
 keepLastCrash();
+// A notification's button pressed with the app closed starts it in the background: the press is sent before any screen.
+startPushButtons();
 catchGlobalErrors();
 
 /**

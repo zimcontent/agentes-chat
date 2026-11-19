@@ -137,6 +137,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { frameClock } from "@/agent/clock";
 import { StickerStageContext } from "@/agent/StickerCanvas";
 import { createStickerStage } from "@/agent/sticker-stage";
+import { startLiveActivity, startsLiveActivity } from "@/features/live-activity";
 import { GroupPhoto } from "@/features/shared/GroupPhoto";
 import { holdOpenConversation } from "@/lib/push";
 import { rightHandSeen } from "@/lib/storage";
@@ -1017,6 +1018,30 @@ function Chat({
       // A channel with agents: the router (or a mention) decides who answers, and `message.routed` always follows.
       // A GIF or a sticker alone routes to nobody, so it gets no clock to keep.
       if (channel && channelAgents.length > 0 && !isMediaAlone(message)) live.picking(message.id);
+      // Work sent to an agent goes on the lock screen while it runs (docs/adr/doug-0021-lock-screen.md).
+      const toAgent = Boolean(dmAgentId) || message.mentionedAgentIds.length > 0;
+      if (startsLiveActivity({ os: Platform.OS, toAgent, steered, mediaAlone: isMediaAlone(message) })) {
+        void startLiveActivity({
+          api,
+          orgId,
+          messageId: message.id,
+          locale: i18n.language,
+          agentOf: (id) => {
+            const agent = dir.agentById.get(id);
+            if (!agent) return null;
+            const look = agentLook(agent);
+            return {
+              name: agent.name,
+              handle: agent.handle,
+              role: agent.role,
+              id: agent.id,
+              look: look.shape
+                ? { shape: look.shape, color: look.color, eyes: look.eyes, accessory: look.accessory }
+                : null,
+            };
+          },
+        });
+      }
     },
     // Why, in words: the failed row under it says the same and keeps the text.
     onFailed: (error, { waits }) => {

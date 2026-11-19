@@ -1856,6 +1856,10 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         log("push.stale", ids);
         return ids.filter((id) => state.stalePushIds?.includes(id));
       },
+      // Live Activities are the iPhone's: the web never starts one.
+      liveActivityStart: async () => ({ available: false, start: null }),
+      registerLiveActivity: async () => {},
+      endLiveActivity: async () => {},
     },
     roles: {
       list: async (orgId) => {

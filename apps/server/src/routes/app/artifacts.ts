@@ -32,6 +32,7 @@ import {
   listDeletedArtifacts,
   listFolders,
   MAX_MESSAGE_LENGTH,
+  pressBlockButton,
   purgeArtifactNow,
   replyToBlock,
   requireVideoReview,
@@ -789,6 +790,53 @@ export function artifactRoutes(deps: AppDeps) {
       );
       deps.wakeWorkers?.();
       return c.json({ id: message.id }, 201);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "post",
+      path: "/organizations/{orgId}/blocks/{artifactId}/press",
+      tags,
+      security,
+      summary: "Press a live block's button away from the block (a notification's button)",
+      description:
+        "Runs the button as it shows now, as the person, through the same calls a tap in the block makes: its values, its draw, its message to the agent (docs/adr/doug-0021-lock-screen.md). `clientId` keeps a press that arrives twice from sending twice.",
+      request: {
+        params: ArtifactParams,
+        body: body(
+          z.object({
+            version: z.number().int().min(1),
+            key: z.string().min(1).max(64),
+            clientId: z.string().max(64).nullable().optional(),
+          }),
+        ),
+      },
+      responses: {
+        200: json(z.object({ messageId: z.string().nullable(), changed: z.boolean() })),
+        ...errors,
+        429: errorResponse("Too many presses (`rate_limited`)"),
+      },
+    }),
+    async (c) => {
+      const { orgId, artifactId } = c.req.valid("param");
+      const user = c.get("user");
+      const limit = await deps.adapters.rateLimiter.consume(`post:${user.id}`, { limit: 30, windowMs: 10_000 });
+      if (!limit.allowed) return apiError(c, 429, "rate_limited", "Slow down");
+      const press = await pressBlockButton(
+        {
+          ...artifacts(),
+          pubsub: deps.adapters.pubsub,
+          judge: deps.extras?.context?.judge,
+          talker: deps.extras?.talker,
+        },
+        user.id,
+        orgId,
+        artifactId,
+        c.req.valid("json"),
+      );
+      if (press.messageId) deps.wakeWorkers?.();
+      return c.json(press, 200);
     },
   );
 

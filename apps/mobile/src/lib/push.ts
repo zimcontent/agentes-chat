@@ -114,6 +114,11 @@ function provisioningProfile(): Promise<ProfileFacts | null> {
   return profile;
 }
 
+/** This build's app id and Apple environment (ADR 0178), as its pushes and its Live Activities register them. */
+export async function appPushTarget() {
+  return pushTarget(Platform.OS, await provisioningProfile(), Constants.expoConfig);
+}
+
 let tokenUploadOff = false;
 
 /**

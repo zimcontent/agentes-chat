@@ -1281,7 +1281,14 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
     // A notification for a person's phones and browsers (ADR 0035, 0071): skipped if read, done or snoozed meanwhile.
     "push.send": async (job) => {
       await deliverPush(
-        { db: deps.db, push: deps.push, webPush: deps.webPush, presence: deps.presence, server: deps.pushServer },
+        {
+          db: deps.db,
+          push: deps.push,
+          webPush: deps.webPush,
+          presence: deps.presence,
+          server: deps.pushServer,
+          artifacts: deps.artifacts ?? null,
+        },
         String(job.payload.notificationId),
         { held: job.payload.held === true },
       );

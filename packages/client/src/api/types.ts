@@ -9281,3 +9281,25 @@ export interface HouseLiveSession {
 
 /** What a session's start answers: a session, or (GPT-Live, asked without an offer) a request for the offer. */
 export type LiveSessionStart = LiveSession | HouseLiveSession | { transport: "offer" };
+/** What a Live Activity shows (docs/adr/doug-0021-lock-screen.md), as the server sends it and the widget draws it. */
+export interface LiveActivityState {
+  title: string;
+  line: string;
+  progress: number;
+  phase: "queued" | "work" | "wait" | "done" | "stopped" | "failed";
+}
+
+/** The run a message I sent started, for a Live Activity; `available` false: this server sends none. */
+export interface LiveActivityStart {
+  available: boolean;
+  start: { runId: string; agentId: string; agentName: string; agentHandle: string; state: LiveActivityState } | null;
+}
+
+/** A Live Activity's push token for a run (an iPhone's app and Apple's environment, as its pushes). */
+export interface LiveActivityInput {
+  runId: string;
+  token: string;
+  appId?: string;
+  sandbox?: boolean;
+  locale: string;
+}

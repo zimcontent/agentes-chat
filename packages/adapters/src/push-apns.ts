@@ -66,8 +66,79 @@ export function apnsRequest(m: PushMessage, topic: string, now = Date.now()) {
         alert: { title: m.title, body: m.body },
         sound: "default",
         ...(m.category ? { category: m.category } : {}),
+        // Buttons whose words come with the push: the app's notification service extension registers them first.
+        ...(m.actions?.length ? { "mutable-content": 1 } : {}),
       },
       body: m.data,
+      ...(m.actions?.length ? { actions: m.actions } : {}),
+    },
+  };
+}
+
+/**
+ * A Live Activity's update or end (docs/adr/doug-0021-lock-screen.md): sent to the activity's own push token,
+ * on the app's `.push-type.liveactivity` topic. `state` is the activity's content state as the widget decodes it.
+ */
+export interface LiveActivityMessage {
+  /** The activity's push token (hex), from ActivityKit's `pushTokenUpdates`. */
+  to: string;
+  event: "update" | "end";
+  state: Record<string, unknown>;
+  /** The app's bundle id and whether it is a development build (its tokens are the APNs sandbox's). */
+  apns?: { topic?: string; sandbox?: boolean };
+  /** An end: when the system takes it off the lock screen (now: at once). */
+  dismissAt?: Date;
+  /** When the system shows it as out of date, if no update came by then. */
+  staleAt?: Date;
+  /** An update that matters now (a wait for the person, the end): Apple budgets these, so most go at 5. */
+  urgent?: boolean;
+}
+
+/** Sends Live Activity pushes: only straight to Apple, never through the push relay. */
+export interface LiveActivitySender {
+  readonly id: string;
+  /** One result per message, in order; never throws. `unregistered`: the activity is gone. */
+  send(messages: LiveActivityMessage[]): Promise<PushResult[]>;
+}
+
+/** Test sender: records every Live Activity push; tokens in `gone` answer as ended activities. */
+export function createFakeLiveActivitySender(options: { gone?: Iterable<string> } = {}) {
+  const sent: LiveActivityMessage[] = [];
+  const gone = new Set(options.gone ?? []);
+  const sender: LiveActivitySender & { sent: LiveActivityMessage[]; gone: Set<string> } = {
+    id: "fake",
+    sent,
+    gone,
+    async send(messages) {
+      return messages.map((m): PushResult => {
+        if (gone.has(m.to)) return { token: m.to, ok: false, unregistered: true, error: "Unregistered" };
+        sent.push(m);
+        return { token: m.to, ok: true, unregistered: false };
+      });
+    },
+  };
+  return sender;
+}
+
+/** The request of one Live Activity push: `apns-push-type: liveactivity` on `<bundle>.push-type.liveactivity`. */
+export function apnsLiveActivityRequest(m: LiveActivityMessage, appId: string, now = Date.now()) {
+  const seconds = (d: Date) => Math.floor(d.getTime() / 1000);
+  return {
+    headers: {
+      "apns-topic": `${appId}.push-type.liveactivity`,
+      "apns-push-type": "liveactivity",
+      "apns-priority": m.urgent || m.event === "end" ? "10" : "5",
+      "apns-expiration": String(Math.floor(now / 1000) + 3600),
+      "content-type": "application/json",
+    } as Record<string, string>,
+    body: {
+      aps: {
+        timestamp: Math.floor(now / 1000),
+        event: m.event,
+        "content-state": m.state,
+        ...(m.staleAt ? { "stale-date": seconds(m.staleAt) } : {}),
+        ...(m.event === "end" ? { "dismissal-date": seconds(m.dismissAt ?? new Date(now)) } : {}),
+      },
     },
   };
 }
@@ -230,7 +301,7 @@ export function createApnsPushSender(options: {
   http2?: Http2Client;
   timeoutMs?: number;
   now?: () => number;
-}): PushSender & { close(): void } {
+}): PushSender & { liveActivities: LiveActivitySender; close(): void } {
   const { key, appIds } = options;
   const http2 = options.http2 ?? createNodeHttp2Client();
   const timeoutMs = options.timeoutMs ?? 10_000;
@@ -265,12 +336,13 @@ export function createApnsPushSender(options: {
     return making;
   }
 
-  function post(message: PushMessage, topic: string, sandbox: boolean, token: string) {
-    const { headers, body } = apnsRequest(message, topic, now());
+  type Request = { headers: Record<string, string>; body: unknown };
+
+  function post(to: string, request: Request, sandbox: boolean, token: string) {
     return http2.request(sandbox ? APNS_SANDBOX_ORIGIN : APNS_ORIGIN, {
-      path: `/3/device/${message.to}`,
-      headers: { authorization: `bearer ${token}`, ...headers },
-      body: JSON.stringify(body),
+      path: `/3/device/${to}`,
+      headers: { authorization: `bearer ${token}`, ...request.headers },
+      body: JSON.stringify(request.body),
       timeoutMs,
     });
   }
@@ -278,15 +350,15 @@ export function createApnsPushSender(options: {
   const refusedToken = (answer: { status: number; body: string }) =>
     answer.status === 403 && PROVIDER_TOKEN_REASONS.has(reasonOf(answer.body));
 
-  async function sendOne(message: PushMessage): Promise<PushResult> {
-    const to = message.to;
+  /** One request to Apple with the shared provider token, made again once when Apple refuses it. */
+  async function deliver(to: string, topicOf: string | undefined, sandbox: boolean, make: (topic: string) => Request) {
     if (!APNS_PUSH_TOKEN.test(to))
       return { token: to, ok: false, unregistered: true, error: "not an APNs device token" };
-    const topic = message.apns?.topic ?? appIds[0];
+    const topic = topicOf ?? appIds[0];
     if (!topic || !appIds.includes(topic)) {
       return failed(to, false, `the app ${topic ?? "(none)"} is not one this server pushes to (APNS_APP_IDS)`);
     }
-    const sandbox = message.apns?.sandbox === true;
+    const request = make(topic);
     let token: string;
     try {
       token = await providerToken();
@@ -294,7 +366,7 @@ export function createApnsPushSender(options: {
       return failed(to, false, `the APNs key can't sign: ${String(error)}`);
     }
     try {
-      let answer = await post(message, topic, sandbox, token);
+      let answer = await post(to, request, sandbox, token);
       if (refusedToken(answer)) {
         const refusal = `APNs refused our provider token (${reasonOf(answer.body)}): check APNS_KEY, APNS_KEY_ID and APNS_TEAM_ID`;
         // One new token, at most every 20 minutes; refused again, the key or its ids are wrong.
@@ -304,12 +376,12 @@ export function createApnsPushSender(options: {
           forcedAt = now();
         }
         token = await providerToken();
-        answer = await post(message, topic, sandbox, token);
+        answer = await post(to, request, sandbox, token);
         if (refusedToken(answer)) return failed(to, false, refusal);
       }
       if (answer.status === 400 && reasonOf(answer.body) === "BadDeviceToken") {
         // A token of the other environment answers this way: tried there once before it counts as gone.
-        const other = await post(message, topic, !sandbox, token).catch(() => null);
+        const other = await post(to, request, !sandbox, token).catch(() => null);
         if (other?.status === 200) return { token: to, ok: true, unregistered: false };
       }
       return apnsResultOf(to, answer.status, answer.body);
@@ -318,9 +390,20 @@ export function createApnsPushSender(options: {
     }
   }
 
+  const sendOne = (message: PushMessage): Promise<PushResult> =>
+    deliver(message.to, message.apns?.topic, message.apns?.sandbox === true, (topic) =>
+      apnsRequest(message, topic, now()),
+    );
+
+  const sendLive = (message: LiveActivityMessage): Promise<PushResult> =>
+    deliver(message.to, message.apns?.topic, message.apns?.sandbox === true, (topic) =>
+      apnsLiveActivityRequest(message, topic, now()),
+    );
+
   return {
     id: "apns",
     send: (messages) => mapLimit(messages, APNS_CONCURRENCY, sendOne),
+    liveActivities: { id: "apns", send: (messages) => mapLimit(messages, APNS_CONCURRENCY, sendLive) },
     close: () => http2.close(),
   };
 }

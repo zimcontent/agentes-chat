@@ -1,4 +1,4 @@
-import type { ApprovalPortal, ErrorReporter, PubSub } from "@agenteschat/adapters";
+import type { ApprovalPortal, ErrorReporter, LiveActivitySender, PubSub } from "@agenteschat/adapters";
 import { type Database, ensureMessagePartitions, schema } from "@agenteschat/db";
 import {
   type ArtifactDeps,
@@ -52,6 +52,7 @@ import {
   purgeApps,
   purgeDeletedArtifacts,
   purgeDeletedWikiPages,
+  purgeLiveActivities,
   queueApprovalDigests,
   reapRoutineRuns,
   recheckStuckPlans,
@@ -68,6 +69,7 @@ import {
   sweepWidgetDrafts,
   syncAllTwins,
   trashExpiredDrafts,
+  syncLiveActivities,
   type VoiceDeps,
   wakeSnoozedNotifications,
 } from "@agenteschat/engine";
@@ -167,6 +169,8 @@ export interface WorkerDeps {
    * copies still sync, and what would need bringing is listed as missing.
    */
   carry?: CarryDeps;
+  /** Live Activities straight to Apple (docs/adr/doug-0021-lock-screen.md); absent: none to keep up. */
+  liveActivities?: LiveActivitySender | null;
   log: Logger;
   workerId?: string;
 }
@@ -243,6 +247,9 @@ export const WORKER_INTERVALS_MS = {
   agentTwins: 60_000,
   /** Company requests the team never made a client, past their retention (LGPD, `COMPANY_REQUESTS_RETENTION_DAYS`). */
   companyRequests: 24 * 3600_000,
+  /** Live Activities follow their runs (docs/adr/doug-0021-lock-screen.md): a change is on the lock screen by then. */
+  liveActivities: 5_000,
+  liveActivityPurge: 3600_000,
 };
 
 /**
@@ -470,6 +477,14 @@ export function startWorkers(deps: WorkerDeps) {
       const swept = await sweepFeedbackFiles(feedbackFiles);
       if (swept > 0) log.info("feedback files past their time swept", { files: swept });
     });
+  }
+
+  const liveSender = deps.liveActivities;
+  if (liveSender) {
+    every("liveActivities", WORKER_INTERVALS_MS.liveActivities, async () => {
+      await syncLiveActivities({ db, sender: liveSender });
+    });
+    every("liveActivityPurge", WORKER_INTERVALS_MS.liveActivityPurge, () => purgeLiveActivities(db));
   }
 
   every("wikiPurge", WORKER_INTERVALS_MS.wikiPurge, async () => {
