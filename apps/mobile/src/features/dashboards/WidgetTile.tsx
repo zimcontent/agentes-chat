@@ -646,7 +646,8 @@ const manrope = (size: number, track = -0.03): TextStyle => ({
 
 const styles = StyleSheet.create({
   // The rounded box and its shadow; what is in it (and the gradient behind it) fills `inside`, padded.
-  tile: { borderRadius: 24, overflow: "hidden", boxShadow: "0 12px 30px -14px rgba(0,0,0,0.8)", minWidth: 0 },
+  // No box shadow: tiles repeat on a scrolling board, and each shadow is a masked layer the GPU redraws (`surfaces.ts`).
+  tile: { borderRadius: 24, overflow: "hidden", minWidth: 0 },
   inside: { flex: 1, minWidth: 0, paddingHorizontal: PAD_X, paddingTop: 14, paddingBottom: 11 },
   rim: {
     ...StyleSheet.absoluteFill,
