@@ -2707,6 +2707,11 @@ export interface Memory {
   /** Another memory says otherwise, until a person decides. */
   disputed?: boolean;
   /** Where it was learned. */
+  /**
+   * Among the agent's copies in other workspaces (ADR doug-0013): `all` goes to every copy, `here` stays in this
+   * workspace; null (or absent) never leaves it.
+   */
+  reach?: "all" | "here" | null;
   channelId?: string | null;
   /** A `rule` the viewer may remove: its giver, the agent's owner or an admin. */
   removable?: boolean;

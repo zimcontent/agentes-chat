@@ -8,6 +8,7 @@ import {
   carryOver,
   createApiKeyConnection,
   createOrganization,
+  editContextItem,
   enabledSkills,
   grantScopes,
   insertContextItem,
@@ -192,7 +193,7 @@ describe("one agent in several workspaces (ADR doug-0013)", () => {
     expect(theirs?.body).toBe("One card per piece, with its funnel stage.");
   });
 
-  test("a connection one copy uses comes to the other copy's workspace", async () => {
+  test("a connection one copy uses never goes to the other workspace on its own: the scope maps to that workspace's own", async () => {
     f = await setup();
     const { organization: second } = await createOrganization(f.db, f.owner.id, { name: "Second" });
     const out = await carryOver(carryOf(f), f.owner.id, second.id, { agentIds: [f.agent.id] });
@@ -202,59 +203,130 @@ describe("one agent in several workspaces (ADR doug-0013)", () => {
       connector: "github",
       apiKey: "ghp_secret_123456",
     });
-    await grantScopes(f.db, f.org.id, f.agent.id, [{ connectionId: github.id, scope: "github:pr.read" }]);
-    await syncAll(f, f.agent.id);
-    const theirs = await listAgentScopes(f.db, second.id, copyId);
-    const brought = theirs.find((s) => s.scope === "github:pr.read");
-    expect(brought?.connectionId).toBeTruthy();
-    expect(brought?.connectionId).not.toBe(github.id);
-  });
-
-  test("three workspaces: a server by address is brought once to each, never again round the ring", async () => {
-    f = await setup();
-    const { organization: second } = await createOrganization(f.db, f.owner.id, { name: "Second" });
-    const { organization: third } = await createOrganization(f.db, f.owner.id, { name: "Third" });
-    const [helper] = await f.db
-      .insert(agents)
-      .values({ orgId: f.org.id, name: "Helper", handle: "helper", model: f.agent.model, ownerUserId: f.owner.id })
-      .returning();
-    if (!helper) throw new Error("no agent");
-    const toSecond = await carryOver(carryOf(f), f.owner.id, second.id, { agentIds: [f.agent.id, helper.id] });
-    await carryOver(carryOf(f), f.owner.id, third.id, { agentIds: [f.agent.id, helper.id] });
-    await syncAll(f, f.agent.id);
-    await syncAll(f, helper.id);
-    const id = crypto.randomUUID();
-    const sounds = "https://mcp.sounds.test/mcp";
-    await f.db.insert(schema.connectorConnections).values({
-      id,
-      orgId: f.org.id,
-      connector: `custom:${id}`,
-      label: "Sound library",
-      toolPrefix: "sound_library",
-      serverUrl: sounds,
-      authType: "api_key",
-      reviewedAt: new Date(),
-      createdByUserId: f.owner.id,
-    });
-    const liveSounds = () =>
+    const liveIn = (orgId: string) =>
       f.db
         .select()
         .from(schema.connectorConnections)
-        .where(and(eq(schema.connectorConnections.serverUrl, sounds)));
-    // One copy uses it: it is brought to the other two workspaces, each a copy of the first.
-    await grantScopes(f.db, f.org.id, f.agent.id, [{ connectionId: id, scope: "connector:*" }]);
+        .where(eq(schema.connectorConnections.orgId, orgId))
+        .then((rows) => rows.filter((r) => r.revokedAt === null));
+    await grantScopes(f.db, f.org.id, f.agent.id, [{ connectionId: github.id, scope: "github:pr.read" }]);
     await syncAll(f, f.agent.id);
-    expect((await liveSounds()).length).toBe(3);
-    // Another agent uses the second workspace's copy: the third already has its sibling, nothing new is brought.
-    const helperThere = toSecond.agents.find((a) => a.sourceId === helper.id)?.id as string;
-    const inSecond = (await liveSounds()).find((c) => c.orgId === second.id);
-    if (!inSecond) throw new Error("not brought");
-    await grantScopes(f.db, second.id, helperThere, [{ connectionId: inSecond.id, scope: "connector:*" }]);
-    for (let i = 0; i < 4; i++) {
-      await syncAll(f, helper.id);
-      await syncAll(f, f.agent.id);
-    }
-    expect((await liveSounds()).map((c) => c.orgId).sort()).toEqual([f.org.id, second.id, third.id].sort());
+    // The first workspace's GitHub stays there: the copy lacks it, and its page says so.
+    expect(await liveIn(second.id)).toEqual([]);
+    expect((await listAgentScopes(f.db, second.id, copyId)).some((s) => s.scope === "github:pr.read")).toBe(false);
+    const view = await agentTwinView(f.db, f.owner.id, second.id, copyId);
+    expect(view.missing.map((m) => m.kind)).toEqual(["connection"]);
+
+    // The second workspace has its own GitHub: a scope given in one copy names it in the other.
+    const theirs = await createApiKeyConnection(connectorsOf(f), f.owner.id, second.id, {
+      connector: "github",
+      apiKey: "ghp_other_654321",
+    });
+    await grantScopes(f.db, f.org.id, f.agent.id, [{ connectionId: github.id, scope: "github:issues.read" }]);
+    await syncAll(f, f.agent.id);
+    const given = (await listAgentScopes(f.db, second.id, copyId)).find((s) => s.scope === "github:issues.read");
+    expect(given?.connectionId).toBe(theirs.id);
+    expect((await liveIn(second.id)).length).toBe(1);
+  });
+
+  test("the craft goes to every copy, the business stays in its workspace (addendum 2026-11-19)", async () => {
+    f = await setup();
+    const { organization: second } = await createOrganization(f.db, f.owner.id, { name: "Second" });
+    const out = await carryOver(carryOf(f), f.owner.id, second.id, { agentIds: [f.agent.id] });
+    const copyId = out.agents[0]?.id as string;
+    await syncAll(f, f.agent.id);
+    const learn = (kind: "fact" | "lesson" | "decision" | "preference", content: string, more = {}) =>
+      insertContextItem(f.db, {
+        orgId: f.org.id,
+        kind,
+        scopeType: "agent",
+        scopeId: f.agent.id,
+        agentId: f.agent.id,
+        content,
+        sourceIds: [crypto.randomUUID()],
+        createdByKind: "person",
+        createdById: f.owner.id,
+        ...more,
+      });
+    await learn("lesson", "Cut on a silence, never mid-word.");
+    await learn("preference", "Gabriel wants drafts before noon.");
+    const client = await learn("fact", "Lexeer's launch is on the 3rd.");
+    await learn("decision", "We dropped the green palette.");
+    await learn("fact", "Rough cuts go in the shared review folder.", { reach: "all" });
+    await learn("lesson", "This client signs off on Fridays only.", { reach: "here" });
+    await syncAll(f, f.agent.id);
+    expect(await memoriesOf(f, copyId)).toEqual([
+      ["Cut on a silence, never mid-word.", "active"],
+      ["Gabriel wants drafts before noon.", "active"],
+      ["Rough cuts go in the shared review folder.", "active"],
+    ]);
+
+    // A copy made before the rule (as the sync used to): archived, the first workspace keeps its own.
+    const [old] = await f.db
+      .insert(contextItems)
+      .values({
+        orgId: second.id,
+        kind: "fact",
+        scopeType: "agent",
+        scopeId: copyId,
+        agentId: copyId,
+        content: client.content,
+        subjectKey: client.subjectKey,
+        twinKey: client.id,
+      })
+      .returning();
+    await f.db.update(contextItems).set({ twinKey: client.id }).where(eq(contextItems.id, client.id));
+    await f.db.update(agents).set({ updatedAt: new Date() }).where(eq(agents.id, copyId));
+    await syncAll(f, f.agent.id);
+    const [after] = await f.db
+      .select()
+      .from(contextItems)
+      .where(eq(contextItems.id, old?.id as string));
+    expect(after?.status).toBe("archived");
+    const [kept] = await f.db.select().from(contextItems).where(eq(contextItems.id, client.id));
+    expect(kept?.status).toBe("active");
+
+    // A person keeps a lesson here: its copy in the other workspace is archived; taken to all again, it comes back.
+    const [lesson] = await f.db
+      .select()
+      .from(contextItems)
+      .where(and(eq(contextItems.agentId, f.agent.id), eq(contextItems.content, "Cut on a silence, never mid-word.")));
+    if (!lesson) throw new Error("no lesson");
+    await editContextItem(f.db, f.owner.id, f.org.id, lesson.id, { reach: "here" });
+    await syncAll(f, f.agent.id);
+    expect(await memoriesOf(f, copyId)).toContainEqual(["Cut on a silence, never mid-word.", "archived"]);
+    await editContextItem(f.db, f.owner.id, f.org.id, lesson.id, { reach: "all" });
+    await syncAll(f, f.agent.id);
+    expect(await memoriesOf(f, copyId)).toContainEqual(["Cut on a silence, never mid-word.", "active"]);
+    expect(await memoriesOf(f, f.agent.id)).toContainEqual(["Cut on a silence, never mid-word.", "active"]);
+
+    // Kept here from the other workspace, where it was learned too (tied by saying the same): each workspace keeps
+    // its own, and neither travels back.
+    await insertContextItem(f.db, {
+      orgId: second.id,
+      kind: "lesson",
+      scopeType: "agent",
+      scopeId: copyId,
+      agentId: copyId,
+      content: "Export captions as SRT.",
+      sourceIds: [crypto.randomUUID()],
+    });
+    await learn("lesson", "Export captions as SRT.");
+    await syncAll(f, f.agent.id);
+    const [theirs] = await f.db
+      .select()
+      .from(contextItems)
+      .where(and(eq(contextItems.agentId, copyId), eq(contextItems.content, "Export captions as SRT.")));
+    if (!theirs) throw new Error("no lesson there");
+    await editContextItem(f.db, f.owner.id, second.id, theirs.id, { reach: "here" });
+    await syncAll(f, f.agent.id);
+    // Something else learned later: the next sync looks at every memory again.
+    await learn("lesson", "Name files by date first.");
+    await syncAll(f, f.agent.id);
+    const srt = async (agentId: string) =>
+      (await memoriesOf(f, agentId)).filter(([content]) => content === "Export captions as SRT.");
+    expect(await srt(copyId)).toEqual([["Export captions as SRT.", "active"]]);
+    expect(await srt(f.agent.id)).toEqual([["Export captions as SRT.", "active"]]);
   });
 
   test("the owner's agents of the same handle in their workspaces are joined on their own; taken out, they stay apart", async () => {
@@ -293,7 +365,7 @@ describe("one agent in several workspaces (ADR doug-0013)", () => {
     expect((await agentOf(f, f.agent.id)).instructions).toBe(
       "- Answer in Portuguese.\n- Deliver in the conversation of the request.",
     );
-    // Known in both before: tied, not copied twice.
+    // Known in both before, one workspace's business in each: neither copied to the other.
     expect(await memoriesOf(f, f.agent.id)).toEqual([["The client's brand color is lime.", "active"]]);
     expect(await memoriesOf(f, other.id)).toEqual([["The client's brand color is lime.", "active"]]);
 

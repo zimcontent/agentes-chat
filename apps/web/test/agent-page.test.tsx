@@ -765,6 +765,39 @@ describe("agent page: inline editing and the save bar", () => {
 });
 
 describe("agent page: memory and proposals", () => {
+  test("where it has copies in other workspaces, a memory says how far it goes and a person keeps it here", async () => {
+    const state = seedState();
+    const mem = state.memories.find((m) => m.id === "mem-3");
+    if (!mem) throw new Error("no mem-3");
+    mem.reach = "all";
+    const open = async () => {
+      await renderApp(`/org/${ORG_ID}/agents/${ADA_ID}/memory`, { api: createFakeApi(state) });
+      await settle(8);
+    };
+    const row = () => document.querySelector('[data-item-id="mem-3"]') as HTMLElement;
+    await open();
+    expect(row().textContent).not.toContain("Em todos os workspaces");
+    expect(within(row()).queryByRole("button", { name: "Manter só aqui" })).toBeNull();
+    cleanup();
+    state.agentTwins = {
+      [ADA_ID]: {
+        copies: [{ agentId: "ada-2", orgId: "org-2", orgName: "Unbuilt", name: "Ada", handle: "ada" }],
+        hidden: 0,
+        candidates: [],
+        off: false,
+        syncedAt: null,
+        missing: [],
+      },
+    };
+    await open();
+    expect(row().textContent).toContain("Em todos os workspaces");
+    await click(within(row()).getByRole("button", { name: "Manter só aqui" }));
+    await settle(4);
+    expect(state.calls.find((c) => c.method === "memory.patch")?.args).toEqual([ORG_ID, "mem-3", { reach: "here" }]);
+    expect(row().textContent).toContain("Só neste workspace");
+    expect(within(row()).getByRole("button", { name: "Levar para todos" })).toBeTruthy();
+  });
+
   test("Aceitar mudança uses the proposals API", async () => {
     const { state } = await go("?tab=memory");
     const card = screen().getByRole("article", { name: "Atualizar as instruções da Ada" });

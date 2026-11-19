@@ -72,3 +72,35 @@ The owner's words: "I trained it for the workspace and it already counts for all
   removed again (then everyone loses it).
 - Two copies editing the same line at once keep both wordings rather than lose one.
 - The phone app has no screen for this yet: its agents are synced like any other.
+
+## Addendum 2026-11-19: the craft travels, the business stays
+
+The same agent works for different companies: the owner's own and one they run with a partner. With every memory of
+scope `agent` or `person` copied to every copy, one company's clients, numbers and decisions were read in the other's
+workspace, and a connection one copy used (Drive, Asana) was brought to the other workspace on its own, with the
+first company's files behind it. The owner's rule: the agents work "as employees of two companies". What they know
+about the work goes with them. What belongs to one company stays in it.
+
+1. **Each memory has a reach.** The new `context_items.reach` column holds `all` (every copy), `here` (this
+   workspace) or null. Null means the memory's kind decides (`memoryReach`, `CRAFT_KINDS`): lessons, preferences and
+   the rules a person gave are the craft and go to every copy; facts, decisions, profiles and notes are the
+   workspace's business and stay there. A new version keeps the reach of the version it replaces (`supersede`).
+2. **Who sets it.** An agent sets it with `remember`'s `reach` (`this_workspace`, `all_workspaces`), and a person
+   sets it on the agent's Memória page ("Manter só aqui", "Levar para todos", `PATCH …/memories/{id}` with `reach`,
+   shown only where the agent has copies). The learning job's own items are kept to the conversation they came from
+   (their `channel_ids`), so they never travel and need no reach.
+3. **How the sync applies it.** Only memories that go to every copy are tied by what they say. In a family that
+   stays here, the copy a person kept here is the one that stays, and otherwise the copy that learned it (the row
+   whose id is the `twin_key`). Copies the sync made elsewhere (rows with no sources) are archived and keep their
+   `updated_at`, so a person can bring one back. A row that was learned in its own workspace and only tied by saying
+   the same thing is untied and stays. Taken back to every copy, the archived copies come back, as any archive does.
+   The fingerprint carries a version (`v2`), so every group syncs once under the new rule.
+4. **Connections no longer travel by sync.** A connection's scope given in one copy names, in another workspace, that
+   workspace's own connection of the same service or account (`connectionIn` with no actor). A workspace without one
+   gets none, and the agent's page lists it as missing. Bringing a connection is a person's act: "Trazer de outro
+   workspace", or bringing the agent itself (ADR 9002). Connections the sync brought before stay until a person
+   removes them.
+
+Consequences: once this ships, the first sync archives every fact, decision, profile and note a copy holds only
+because the sync copied it there. They are in Arquivadas on the agent's page. A lesson that names a client still
+travels unless the agent or a person marks it `here`.

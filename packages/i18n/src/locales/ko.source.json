@@ -15682,6 +15682,24 @@
   "agentPage.memory.saved": {
     "value": "Saved. It counts as verified now."
   },
+  "agentPage.memory.reachAll": {
+    "value": "In all workspaces"
+  },
+  "agentPage.memory.reachHere": {
+    "value": "Only in this workspace"
+  },
+  "agentPage.memory.keepHere": {
+    "value": "Keep only here"
+  },
+  "agentPage.memory.sendAll": {
+    "value": "Take to all"
+  },
+  "agentPage.memory.keptHere": {
+    "value": "It stays in this workspace. Copies the other workspaces got are archived within a minute."
+  },
+  "agentPage.memory.sentAll": {
+    "value": "It goes to the agent in your other workspaces within a minute."
+  },
   "agentPage.memory.rules": {
     "value": "Rules people gave"
   },

@@ -1551,6 +1551,8 @@ export interface ApiClient {
     edit(orgId: string, memoryId: string, text: string): Promise<Memory>;
     setPinned(orgId: string, memoryId: string, pinned: boolean): Promise<Memory>;
     setArchived(orgId: string, memoryId: string, archived: boolean): Promise<Memory>;
+    /** Kept in this workspace or sent to the agent's copies in the others (ADR doug-0013). */
+    setReach(orgId: string, memoryId: string, reach: "all" | "here"): Promise<Memory>;
     /** Confirmar (ADR 0167): trusted and verified, by who may edit it or the person who said it. */
     confirm(orgId: string, memoryId: string): Promise<Memory>;
     /** Undoes a change the agent made from the chat (`update.undo.path`). */

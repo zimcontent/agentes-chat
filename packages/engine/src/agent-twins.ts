@@ -14,7 +14,7 @@ import { joinInstructions, mergeInstructions } from "./agent-twins-merge";
 import { recordAudit } from "./audit";
 import { invalidateOrg } from "./cache";
 import { type CarryDeps, carrySkill, connectionIn } from "./carry";
-import { insertContextItem, isAccess, normalizeSubject } from "./context/items";
+import { insertContextItem, isAccess, memoryReach, normalizeSubject } from "./context/items";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "./errors";
 import { publishAgentsChanged } from "./events";
 import { can, getMembership, listMemberships } from "./organizations";
@@ -43,9 +43,10 @@ export const TWIN_PROFILE = [
 type ProfileField = (typeof TWIN_PROFILE)[number];
 
 /**
- * The memory that travels: what the agent knows and was taught, about its work or a person. Summaries of one
+ * The memory that may travel: what the agent knows and was taught, about its work or a person. Summaries of one
  * workspace's conversations, open questions and who holds what there stay, and so does anything read from a channel
- * (`channel_ids`): only that workspace's members may read it, and the channel isn't in the others.
+ * (`channel_ids`): only that workspace's members may read it, and the channel isn't in the others. Of these, only the
+ * craft goes (`memoryReach`, addendum 2026-11-19): a workspace's facts, decisions and people stay in it.
  */
 export const TWIN_MEMORY_KINDS = [
   "fact",
@@ -56,6 +57,17 @@ export const TWIN_MEMORY_KINDS = [
   "rule",
   "entity_profile",
 ] as const;
+
+/**
+ * How far a memory goes among the agent's copies, for the agent's page: `all` or `here`, or null for one that never
+ * leaves its workspace whatever it says (read from a channel, a summary, the team's, who holds what).
+ */
+export function twinReachOf(item: ItemRow): "all" | "here" | null {
+  const kinds: readonly string[] = TWIN_MEMORY_KINDS;
+  if (!item.agentId || !kinds.includes(item.kind) || item.channelIds.length > 0) return null;
+  if (item.scopeType !== "agent" && item.scopeType !== "person") return null;
+  return isAccess(item) ? null : memoryReach(item);
+}
 
 /** How many memories one sync copies at most: the rest come with the next one. */
 const COPIES_PER_SYNC = 2000;
@@ -402,6 +414,9 @@ async function fingerprintOf(db: Database, ids: string[]): Promise<string> {
   const rows = rowsOf<{ f: string }>(
     await db.execute(sql`
     select md5(coalesce(string_agg(x, ',' order by x), '')) as f from (
+      -- The rules' version: a group syncs once again when what travels changes (addendum 2026-11-19).
+      select 'v2' as x
+      union all
       select a.id::text || md5(a.name || '|' || a.role || '|' || a.instructions || '|' || coalesce(a.appearance::text, '')
         || '|' || coalesce(a.voice, '') || '|' || coalesce(a.live_call_notes, '') || '|' || a.media_replies::text) as x
         from agents a where a.id in (${list})
@@ -553,6 +568,7 @@ async function copyMemory(db: Database, item: ItemRow, to: AgentRow, twinKey: st
     createdByKind: item.createdByKind as "job" | "agent" | "person",
     createdById: item.createdById,
     disputed: item.disputed,
+    reach: item.reach,
   });
   await db
     .update(contextItems)
@@ -583,7 +599,9 @@ async function syncMemory(db: Database, members: Member[]): Promise<{ changed: n
   // Tie the untied ones that say what a row of another copy says.
   const sayKey = (r: ItemRow) => `${r.kind}|${r.scopeType}|${normalizeSubject(r.content)}`;
   const bySaying = new Map<string, ItemRow[]>();
-  for (const r of rows) bySaying.set(sayKey(r), [...(bySaying.get(sayKey(r)) ?? []), r]);
+  for (const r of rows) {
+    if (memoryReach(r) === "all") bySaying.set(sayKey(r), [...(bySaying.get(sayKey(r)) ?? []), r]);
+  }
   for (const list of bySaying.values()) {
     if (new Set(list.map((r) => r.agentId)).size < 2) continue;
     const key = list.find((r) => r.twinKey)?.twinKey ?? list[0]?.id;
@@ -611,12 +629,17 @@ async function syncMemory(db: Database, members: Member[]): Promise<{ changed: n
   let more = false;
   for (const [key, list] of families) {
     const newest = [...list].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())[0] as ItemRow;
-    // Archived or brought back, pinned or not: as the copy that changed last.
+    if (memoryReach(newest) === "here") {
+      changed += await keepHere(db, key, list, newest);
+      continue;
+    }
+    // Archived or brought back, pinned or not, kept here or for all: as the copy that changed last.
     for (const r of list) {
-      if (r.status === newest.status && r.pinned === newest.pinned) continue;
+      const reach = memoryReach(r) === "all" ? r.reach : newest.reach;
+      if (r.status === newest.status && r.pinned === newest.pinned && reach === r.reach) continue;
       await db
         .update(contextItems)
-        .set({ status: newest.status, pinned: newest.pinned })
+        .set({ status: newest.status, pinned: newest.pinned, reach })
         .where(eq(contextItems.id, r.id));
       await enqueueIndex(db, { orgId: r.orgId, kind: "context_item", sourceId: r.id });
       changed++;
@@ -653,6 +676,34 @@ async function syncMemory(db: Database, members: Member[]): Promise<{ changed: n
     }
   }
   return { changed, more };
+}
+
+/**
+ * A memory that is one workspace's business (addendum 2026-11-19): it stays with the copy that holds it, the one a
+ * person just kept here or, by its kind, the one that learned it, and the copies the sync made elsewhere are archived
+ * (a person can bring one back on the agent's page). A row that was learned in its own workspace (it has sources) and
+ * was only tied by saying the same is untied and stays, kept in that workspace too, so it doesn't travel back on its
+ * own. Neither keeps a new `updated_at`, so the copy that holds it stays the newest.
+ */
+async function keepHere(db: Database, key: string, list: ItemRow[], newest: ItemRow): Promise<number> {
+  const active = list.filter((r) => r.status === "active");
+  const keeper =
+    newest.reach === "here" && newest.status === "active"
+      ? newest
+      : (active.find((r) => r.id === key) ??
+        [...active].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())[0]);
+  let changed = 0;
+  for (const r of active) {
+    if (r.id === keeper?.id) continue;
+    const own = r.sourceIds.length > 0;
+    await db
+      .update(contextItems)
+      .set(own ? { twinKey: null, reach: "here" } : { status: "archived" })
+      .where(eq(contextItems.id, r.id));
+    await enqueueIndex(db, { orgId: r.orgId, kind: "context_item", sourceId: r.id });
+    changed++;
+  }
+  return changed;
 }
 
 /** Each copy's set, the base's set for it, and what every copy added and removed since. */
@@ -805,8 +856,8 @@ const isRefusal = (error: unknown) =>
 /**
  * The same access in every copy: a tool or a connection's scope given or taken in one copy is in all (on a join,
  * every copy's). A connection's scope names that connection in its workspace: in another it names the same
- * connection there, brought by the person who joined them when that workspace has none. Mailboxes and databases keep
- * their own per-agent rules (ADR 9002 §6).
+ * account's connection there; a workspace without one gets none (addendum 2026-11-19) and the agent's page lists it.
+ * Mailboxes and databases keep their own per-agent rules (ADR 9002 §6).
  */
 async function syncScopes(
   deps: TwinDeps,
@@ -840,7 +891,9 @@ async function syncScopes(
     const k = `${connectionId}|${orgId}`;
     if (!mapped.has(k)) {
       const c = connections.get(connectionId);
-      mapped.set(k, c && deps.carry ? await connectionIn(deps.carry, actor, orgId, c) : null);
+      // Only the same account's connection already there: a workspace's connections never go to another on their own
+      // (addendum 2026-11-19); a person brings one with "Trazer de outro workspace".
+      mapped.set(k, c && deps.carry ? await connectionIn(deps.carry, null, orgId, c) : null);
     }
     return mapped.get(k) ?? null;
   };

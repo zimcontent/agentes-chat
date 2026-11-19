@@ -460,6 +460,8 @@ export const EXTRA_COLUMNS = [
   `ALTER TABLE "agents" ADD COLUMN IF NOT EXISTS "twin_off" boolean DEFAULT false NOT NULL`,
   `CREATE INDEX IF NOT EXISTS "agents_twin_id_index" ON "agents" ("twin_id")`,
   `ALTER TABLE "context_items" ADD COLUMN IF NOT EXISTS "twin_key" uuid`,
+  // How far a memory goes among an agent's copies (ADR doug-0013 addendum 2026-11-19): `all`, `here`, null by its kind.
+  `ALTER TABLE "context_items" ADD COLUMN IF NOT EXISTS "reach" text`,
   // Where agents working for a person use the browser: the server's computers or their own (ADR doug-0021).
   `ALTER TABLE "organization_members" ADD COLUMN IF NOT EXISTS "browser_computer_id" uuid`,
   `CREATE INDEX IF NOT EXISTS "context_items_twin_key_index" ON "context_items" ("twin_key")`,
