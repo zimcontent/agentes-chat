@@ -23,7 +23,13 @@
     "itsChannels": "Groepen",
     "seeAll": "Alles bekijken"
   },
+  "sectorPills": {
+    "label": "Snelkoppelingen",
+    "failed": "De kaart kwam niet door. Probeer het opnieuw."
+  },
   "blocks": {
+    "done": "Klaar",
+    "actFailed": "Dat lukte niet. Probeer het opnieuw.",
     "send": "Versturen",
     "more": "Meer",
     "thousand": "k",

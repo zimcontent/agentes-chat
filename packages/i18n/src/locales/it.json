@@ -13162,6 +13162,17 @@
     "htmlError": "La pagina ha avuto un errore: {{message}}",
     "markdownSource": "Testo Markdown"
   },
+  "sectorPills": {
+    "label": "Scorciatoie",
+    "failed": "La scheda non è arrivata. Riprova.",
+    "whatsapp": "WhatsApp",
+    "calendar": "Agenda",
+    "approvals": "Approvazioni",
+    "proposals": "Proposte",
+    "tasks": "Attività",
+    "review": "Revisione",
+    "portal": "Portale"
+  },
   "blocks": {
     "send": "Invia",
     "more": "Altro",
@@ -13191,7 +13202,9 @@
     "pollAnswered_one": "{{count}} su {{total}} ha risposto",
     "pollAnswered_many": "{{count}} su {{total}} hanno risposto",
     "pollAnswered_other": "{{count}} su {{total}} hanno risposto",
-    "voteFailed": "Il tuo voto non è stato registrato."
+    "voteFailed": "Il tuo voto non è stato registrato.",
+    "done": "Fatto",
+    "actFailed": "Non è andata. Riprova."
   },
   "choices": {
     "step": "{{step}} di {{total}}",

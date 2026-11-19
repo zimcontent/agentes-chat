@@ -26,7 +26,15 @@ export const featureKeysEn = {
     itsChannels: "Groups",
     seeAll: "See all",
   },
+  /** The right hand's sector buttons above the composer (docs/adr/doug-0020-doug-sector-cards.md). */
+  sectorPills: {
+    label: "Shortcuts",
+    failed: "That card didn't come. Try again.",
+  },
   blocks: {
+    /** A card's button that ran on the server (docs/adr/doug-0020-doug-sector-cards.md). */
+    done: "Done",
+    actFailed: "That didn't go through. Try again.",
     send: "Send",
     more: "More",
     thousand: "k",

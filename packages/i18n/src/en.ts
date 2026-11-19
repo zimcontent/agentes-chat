@@ -13103,6 +13103,18 @@ export const en = {
     htmlError: "The page hit an error: {{message}}",
     markdownSource: "Markdown text",
   },
+  /** The right hand's pills above the composer: each sector's card on a press (docs/adr/doug-0020-doug-sector-cards.md). */
+  sectorPills: {
+    label: "Shortcuts",
+    failed: "That card didn't come. Try again.",
+    whatsapp: "WhatsApp",
+    calendar: "Calendar",
+    approvals: "Approvals",
+    proposals: "Proposals",
+    tasks: "Tasks",
+    review: "Review",
+    portal: "Portal",
+  },
   blocks: {
     send: "Send",
     more: "More",
@@ -13133,6 +13145,9 @@ export const en = {
     pollAnswered_one: "{{count}} of {{total}} answered",
     pollAnswered_other: "{{count}} of {{total}} answered",
     voteFailed: "Your vote didn't go through.",
+    /** A card's button that ran on the server (docs/adr/doug-0020-doug-sector-cards.md). */
+    done: "Done",
+    actFailed: "That didn't go through. Try again.",
   },
   choices: {
     step: "{{step}} of {{total}}",

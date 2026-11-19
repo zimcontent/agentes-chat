@@ -12164,6 +12164,17 @@
     "htmlError": "ページでエラーが発生しました: {{message}}",
     "markdownSource": "Markdownテキスト"
   },
+  "sectorPills": {
+    "label": "ショートカット",
+    "failed": "カードを表示できませんでした。もう一度お試しください。",
+    "whatsapp": "WhatsApp",
+    "calendar": "予定",
+    "approvals": "承認",
+    "proposals": "提案",
+    "tasks": "タスク",
+    "review": "レビュー",
+    "portal": "ポータル"
+  },
   "blocks": {
     "send": "送信",
     "more": "その他",
@@ -12191,7 +12202,9 @@
     "pollClosed": "投票は締め切られました",
     "pollMultiple": "複数選択できます。",
     "pollAnswered_other": "{{total}}人中{{count}}人が回答",
-    "voteFailed": "投票できませんでした。"
+    "voteFailed": "投票できませんでした。",
+    "done": "完了",
+    "actFailed": "うまくいきませんでした。もう一度お試しください。"
   },
   "choices": {
     "step": "{{step}} / {{total}}",

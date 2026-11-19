@@ -24,7 +24,13 @@
     "itsChannels": "Groupes",
     "seeAll": "Tout voir"
   },
+  "sectorPills": {
+    "label": "Raccourcis",
+    "failed": "La carte n'est pas arrivée. Réessayez."
+  },
   "blocks": {
+    "done": "Fait",
+    "actFailed": "Ça n'a pas marché. Réessayez.",
     "send": "Envoyer",
     "more": "Plus",
     "thousand": "k",

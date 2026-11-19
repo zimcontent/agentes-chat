@@ -24,7 +24,13 @@
     "itsChannels": "Gruppi",
     "seeAll": "Vedi tutti"
   },
+  "sectorPills": {
+    "label": "Scorciatoie",
+    "failed": "La scheda non è arrivata. Riprova."
+  },
   "blocks": {
+    "done": "Fatto",
+    "actFailed": "Non è andata. Riprova.",
     "send": "Invia",
     "more": "Altro",
     "thousand": "k",

@@ -12672,6 +12672,17 @@
     "htmlError": "Auf der Seite ist ein Fehler aufgetreten: {{message}}",
     "markdownSource": "Markdown-Text"
   },
+  "sectorPills": {
+    "label": "Kurzbefehle",
+    "failed": "Die Karte kam nicht an. Versuch es noch einmal.",
+    "whatsapp": "WhatsApp",
+    "calendar": "Kalender",
+    "approvals": "Freigaben",
+    "proposals": "Vorschläge",
+    "tasks": "Aufgaben",
+    "review": "Prüfung",
+    "portal": "Portal"
+  },
   "blocks": {
     "send": "Senden",
     "more": "Mehr",
@@ -12700,7 +12711,9 @@
     "pollMultiple": "Du kannst mehr als eine Option wählen.",
     "pollAnswered_one": "{{count}} von {{total}} hat geantwortet",
     "pollAnswered_other": "{{count}} von {{total}} haben geantwortet",
-    "voteFailed": "Deine Stimme wurde nicht gezählt."
+    "voteFailed": "Deine Stimme wurde nicht gezählt.",
+    "done": "Erledigt",
+    "actFailed": "Das hat nicht geklappt. Versuch es noch einmal."
   },
   "choices": {
     "step": "{{step}} von {{total}}",

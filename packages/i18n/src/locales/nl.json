@@ -12740,6 +12740,17 @@
     "htmlError": "De pagina liep tegen een fout aan: {{message}}",
     "markdownSource": "Markdown-tekst"
   },
+  "sectorPills": {
+    "label": "Snelkoppelingen",
+    "failed": "De kaart kwam niet door. Probeer het opnieuw.",
+    "whatsapp": "WhatsApp",
+    "calendar": "Agenda",
+    "approvals": "Goedkeuringen",
+    "proposals": "Voorstellen",
+    "tasks": "Taken",
+    "review": "Beoordeling",
+    "portal": "Portaal"
+  },
   "blocks": {
     "send": "Versturen",
     "more": "Meer",
@@ -12768,7 +12779,9 @@
     "pollMultiple": "Je kunt meer dan één kiezen.",
     "pollAnswered_one": "{{count}} van {{total}} heeft geantwoord",
     "pollAnswered_other": "{{count}} van {{total}} hebben geantwoord",
-    "voteFailed": "Je stem is niet doorgekomen."
+    "voteFailed": "Je stem is niet doorgekomen.",
+    "done": "Klaar",
+    "actFailed": "Dat lukte niet. Probeer het opnieuw."
   },
   "choices": {
     "step": "{{step}} van {{total}}",

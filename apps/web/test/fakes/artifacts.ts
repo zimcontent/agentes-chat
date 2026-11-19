@@ -274,6 +274,7 @@ export function createMockArtifacts(
       return view(orgId, s);
     },
     reply: async () => ({ id: mockId("msg") }),
+    blockAct: async (_orgId, _id, act) => ({ act, done: true as const, messageId: null }),
     blockState: async (_orgId, id, version) => ({ id, version, state: {}, changes: {}, rev: 0 }),
     setBlockState: async (_orgId, id, version, values) => ({ id, version, state: values, changes: {}, rev: 1 }),
     drawBlock: async (_orgId, id, version, name, options) => ({

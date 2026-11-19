@@ -30979,6 +30979,33 @@
   "artifacts.markdownSource": {
     "value": "Markdown text"
   },
+  "sectorPills.label": {
+    "value": "Shortcuts"
+  },
+  "sectorPills.failed": {
+    "value": "That card didn't come. Try again."
+  },
+  "sectorPills.whatsapp": {
+    "value": "WhatsApp"
+  },
+  "sectorPills.calendar": {
+    "value": "Calendar"
+  },
+  "sectorPills.approvals": {
+    "value": "Approvals"
+  },
+  "sectorPills.proposals": {
+    "value": "Proposals"
+  },
+  "sectorPills.tasks": {
+    "value": "Tasks"
+  },
+  "sectorPills.review": {
+    "value": "Review"
+  },
+  "sectorPills.portal": {
+    "value": "Portal"
+  },
   "blocks.send": {
     "value": "Send"
   },
@@ -31062,6 +31089,12 @@
   },
   "blocks.voteFailed": {
     "value": "Your vote didn't go through."
+  },
+  "blocks.done": {
+    "value": "Done"
+  },
+  "blocks.actFailed": {
+    "value": "That didn't go through. Try again."
   },
   "choices.step": {
     "value": "{{step}} of {{total}}"

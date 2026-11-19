@@ -82,6 +82,7 @@ import {
   createReleaseAsksToolSource,
   createSandboxToolSource,
   createScheduleToolSource,
+  createSectorCardToolSource,
   createSessionScreening,
   createSetStatusToolSource,
   createSetupToolSource,
@@ -514,6 +515,13 @@ export function buildEngine(o: EngineOptions) {
       createFollowUpToolSource({ pubsub: adapters.pubsub }),
       // The right hand sees what the team is doing, with no model call (ADR 0137 §13).
       createTeamStatusToolSource(),
+      // Its sector cards when asked (docs/adr/doug-0020-doug-sector-cards.md): read in code, live buttons.
+      createSectorCardToolSource({
+        ...artifacts,
+        pubsub: adapters.pubsub,
+        connectors: connectorDeps,
+        portal: adapters.approvalPortal ?? null,
+      }),
       // Background runs (routines) speak only through it, with a GIF where the agent may send one (ADR 0091).
       createHandOffToolSource({
         pubsub: adapters.pubsub,

@@ -12232,6 +12232,17 @@
     "htmlError": "页面出错：{{message}}",
     "markdownSource": "Markdown 文本"
   },
+  "sectorPills": {
+    "label": "快捷入口",
+    "failed": "卡片没有显示出来，请重试。",
+    "whatsapp": "WhatsApp",
+    "calendar": "日程",
+    "approvals": "审批",
+    "proposals": "提议",
+    "tasks": "任务",
+    "review": "审阅",
+    "portal": "门户"
+  },
   "blocks": {
     "send": "发送",
     "more": "更多",
@@ -12259,7 +12270,9 @@
     "pollClosed": "投票已结束",
     "pollMultiple": "可以多选。",
     "pollAnswered_other": "{{count}} / {{total}} 人已回答",
-    "voteFailed": "你的投票没有成功提交。"
+    "voteFailed": "你的投票没有成功提交。",
+    "done": "已完成",
+    "actFailed": "没有成功，请重试。"
   },
   "choices": {
     "step": "{{step}} / {{total}}",

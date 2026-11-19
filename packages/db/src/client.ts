@@ -456,6 +456,21 @@ export const EXTRA_COLUMNS = [
   `CREATE INDEX IF NOT EXISTS "company_requests_status" ON "company_requests" ("status", "created_at", "id")`,
   `CREATE INDEX IF NOT EXISTS "company_requests_created" ON "company_requests" ("created_at", "id")`,
   `CREATE INDEX IF NOT EXISTS "company_requests_retention" ON "company_requests" ("status", "updated_at")`,
+  // What the buttons of the server's cards do (docs/adr/doug-0020-doug-sector-cards.md, `schema/sector-cards.ts`).
+  `CREATE TABLE IF NOT EXISTS "block_actions" (
+    "id" uuid PRIMARY KEY,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE CASCADE,
+    "artifact_id" uuid NOT NULL REFERENCES "artifacts"("id") ON DELETE CASCADE,
+    "act" text NOT NULL,
+    "kind" text NOT NULL,
+    "payload" jsonb NOT NULL DEFAULT '{}'::jsonb,
+    "for_user_id" text REFERENCES "users"("id") ON DELETE CASCADE,
+    "done_at" timestamp with time zone,
+    "done_by_user_id" text REFERENCES "users"("id") ON DELETE SET NULL,
+    "created_at" timestamp with time zone NOT NULL DEFAULT now()
+  )`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS "block_actions_act" ON "block_actions" ("artifact_id", "act")`,
+  `CREATE INDEX IF NOT EXISTS "block_actions_org" ON "block_actions" ("org_id", "created_at")`,
   // One agent in several workspaces, trained as one (ADR doug-0013).
   `CREATE TABLE IF NOT EXISTS "agent_twins" (
     "id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,

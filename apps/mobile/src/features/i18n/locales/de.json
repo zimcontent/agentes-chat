@@ -23,7 +23,13 @@
     "itsChannels": "Gruppen",
     "seeAll": "Alle ansehen"
   },
+  "sectorPills": {
+    "label": "Kurzbefehle",
+    "failed": "Die Karte kam nicht an. Versuch es noch einmal."
+  },
   "blocks": {
+    "done": "Erledigt",
+    "actFailed": "Das hat nicht geklappt. Versuch es noch einmal.",
     "send": "Senden",
     "more": "Mehr",
     "thousand": "Tsd.",

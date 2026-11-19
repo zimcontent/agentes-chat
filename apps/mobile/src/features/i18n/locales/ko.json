@@ -22,7 +22,13 @@
     "itsChannels": "그룹",
     "seeAll": "모두 보기"
   },
+  "sectorPills": {
+    "label": "바로가기",
+    "failed": "카드를 불러오지 못했어요. 다시 시도해 주세요."
+  },
   "blocks": {
+    "done": "완료",
+    "actFailed": "처리하지 못했어요. 다시 시도해 주세요.",
     "send": "보내기",
     "more": "더 보기",
     "thousand": "천",

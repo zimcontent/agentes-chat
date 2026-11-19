@@ -25,7 +25,13 @@
     "itsChannels": "Grupy",
     "seeAll": "Zobacz wszystkie"
   },
+  "sectorPills": {
+    "label": "Skróty",
+    "failed": "Karta nie dotarła. Spróbuj ponownie."
+  },
   "blocks": {
+    "done": "Gotowe",
+    "actFailed": "Nie udało się. Spróbuj ponownie.",
     "send": "Wyślij",
     "more": "Więcej",
     "thousand": "tys.",

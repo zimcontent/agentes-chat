@@ -365,9 +365,10 @@ async function lastRecord(db: Database, routineId: string): Promise<string> {
   return last?.summary ?? "";
 }
 
+/** `since`: where the slot's window started (what "arrived" means for the right hand's cards). */
 export type RondaGate =
-  | { skip: typeof RONDA_NOTHING | typeof RONDA_QUIET }
-  | { event: Record<string, unknown>; opening: boolean };
+  | { skip: typeof RONDA_NOTHING | typeof RONDA_QUIET; since: Date }
+  | { event: Record<string, unknown>; opening: boolean; since: Date };
 
 /** The calendar day of `at` in `zone` (`2026-11-17`). */
 const dayIn = (at: Date, zone: string) => {
@@ -451,7 +452,7 @@ export async function rondaGate(
   // Kept on the slot either way: the run reads it, and the next ronda's window starts at `until`.
   const event = { ...rondaEvent(changes, since, now), ...(opening ? { opening: true } : {}) };
   await deps.db.update(routineRuns).set({ event }).where(eq(routineRuns.id, input.run.id));
-  return quiet ? { skip: quiet } : { event, opening };
+  return quiet ? { skip: quiet, since } : { event, opening, since };
 }
 
 /** Whether `agentId` is the workspace's right hand. */

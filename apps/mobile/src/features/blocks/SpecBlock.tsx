@@ -1,8 +1,10 @@
-import { type BlockChange, useBlockReply, useBlockValues } from "@agenteschat/client";
+import { type BlockChange, useBlockAct, useBlockReply, useBlockValues } from "@agenteschat/client";
+import { blockOpenPhone } from "@agenteschat/client/lib/block-open";
 import type { ChartSpec } from "@agenteschat/client/lib/chart";
 import { clockHour } from "@agenteschat/client/lib/format";
 import type { AgentColorName } from "@agenteschat/ui/agent/engine";
 import {
+  type BlockOpen,
   type BlockViewPart,
   type BlockWords,
   compileBlock,
@@ -16,7 +18,7 @@ import { randomUUID } from "expo-crypto";
 import { LinearGradient } from "expo-linear-gradient";
 import { createContext, type ReactNode, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { type LayoutChangeEvent, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { type LayoutChangeEvent, Linking, Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { GestureDetector, useExclusiveGestures, usePanGesture, useTapGesture } from "react-native-gesture-handler";
 import Animated, {
   Easing,
@@ -29,6 +31,7 @@ import Animated, {
 import { scheduleOnRN } from "react-native-worklets";
 import { botDoAgente, corDoBot } from "@/brand/bots";
 import { Button, fieldText, haptics, Segmented, Text, ToggleSwitch, useReducedMotion, useToast } from "@/ui";
+import { router } from "@/ui/navigation";
 import { useTheme } from "@/ui/theme";
 
 import { ChartView } from "../chat/ChartCard";
@@ -40,6 +43,7 @@ import { agentLook } from "../shared/logic";
 import { tapHaptic } from "../shared/parts";
 import { INLINE_HEIGHT } from "./logic";
 import { PieceViewer } from "./PieceViewer";
+import { AgendaPart, SourcePart } from "./SectorParts";
 
 /**
  * What the copy parts need from the block: the agent's bot color (its marks), a button's message to the agent
@@ -53,6 +57,10 @@ const Copy = createContext<{
   busy: boolean;
   agentName: string;
   note: (text: string) => Promise<boolean>;
+  /** A button's server action (`act`) and a place it opens (docs/adr/doug-0020-doug-sector-cards.md). */
+  act: (name: string) => void;
+  acting: boolean;
+  open: (to: BlockOpen) => void;
 }>({
   accent: "#9be22d",
   say: () => {},
@@ -60,6 +68,9 @@ const Copy = createContext<{
   busy: false,
   agentName: "",
   note: async () => false,
+  act: () => {},
+  acting: false,
+  open: () => {},
 });
 
 /** A "#rrggbb" with an opacity, as "#rrggbbaa". */
@@ -130,6 +141,7 @@ export function SpecBlock({
   }, [raw]);
   const values = useBlockValues(orgId, id, version);
   const reply = useBlockReply(orgId, id);
+  const acting = useBlockAct(orgId, id);
   const thousand = t("mobile.blocks.thousand");
   const words = useMemo<BlockWords>(() => ({ locale: i18n.language, thousand }), [i18n.language, thousand]);
   const view = useMemo(
@@ -218,6 +230,23 @@ export function SpecBlock({
         },
       );
     });
+  const act = (name: string) => {
+    if (acting.isPending) return;
+    tapHaptic();
+    acting.mutate(name, {
+      onSuccess: () => haptics.success(),
+      onError: () => toast({ title: t("mobile.blocks.actFailed"), icon: "x" }),
+    });
+  };
+  const openPlace = (to: BlockOpen) => {
+    tapHaptic();
+    const target = blockOpenPhone(to);
+    if (target?.kind === "outside") void Linking.openURL(target.href);
+    else if (target?.kind === "app") {
+      const query = target.search ? `?${new URLSearchParams(target.search).toString()}` : "";
+      router.push(`${target.path}${query}` as never);
+    }
+  };
   const time = sent
     ? new Intl.DateTimeFormat(i18n.language, { hour: clockHour(i18n.language), minute: "2-digit" }).format(
         new Date(sent.at),
@@ -238,7 +267,17 @@ export function SpecBlock({
           }}
         >
           <Copy.Provider
-            value={{ accent: botColor, say, said, busy: reply.isPending, agentName: agent?.name ?? "", note }}
+            value={{
+              accent: botColor,
+              say,
+              said,
+              busy: reply.isPending,
+              agentName: agent?.name ?? "",
+              note,
+              act,
+              acting: acting.isPending,
+              open: openPlace,
+            }}
           >
             <Parts parts={view.parts} values={values} accent={accent} />
           </Copy.Provider>
@@ -470,6 +509,36 @@ function Part({ part: p, values, accent }: { part: BlockViewPart; values: Values
       );
     }
     case "actions":
+      // A card's buttons with a main one of its own (`primary`): side by side as they fit, the main one first; alone,
+      // it takes the card's width (docs/adr/doug-0020-doug-sector-cards.md).
+      if (p.chosen) {
+        const only = p.buttons.length === 1;
+        return (
+          <View style={styles.actions}>
+            {p.buttons.map((b) => {
+              const done = b.done || copy.said.has(b.key);
+              return (
+                <Button
+                  key={b.key}
+                  variant={b.lead && !done ? "primary" : "secondary"}
+                  size="sm"
+                  wide={only}
+                  label={b.done ? t("mobile.blocks.done") : done ? t("blocks.said") : b.label}
+                  icon={done ? "check" : undefined}
+                  disabled={done || (b.say !== null && copy.busy) || (b.act !== null && copy.acting)}
+                  onPress={() => {
+                    if (b.set) values.set(b.set);
+                    if (b.draw) void values.draw(b.draw.name, b.draw.options);
+                    if (b.say) copy.say(b.key, b.say);
+                    if (b.act) copy.act(b.act);
+                    if (b.open) copy.open(b.open);
+                  }}
+                />
+              );
+            })}
+          </View>
+        );
+      }
       // Buttons that speak for the person ("Pedir ajuste", "Aprovar"): the last is the main answer, full width.
       if (p.buttons.some((b) => b.say !== null)) {
         const rest = p.buttons.slice(0, -1);
@@ -522,9 +591,11 @@ function Part({ part: p, values, accent }: { part: BlockViewPart; values: Values
               size="sm"
               label={b.label}
               onPress={() => {
-                tapHaptic();
                 if (b.set) values.set(b.set);
                 if (b.draw) void values.draw(b.draw.name, b.draw.options);
+                if (b.act) copy.act(b.act);
+                if (b.open) copy.open(b.open);
+                else if (!b.act) tapHaptic();
               }}
             />
           ))}
@@ -580,6 +651,10 @@ function Part({ part: p, values, accent }: { part: BlockViewPart; values: Values
       );
     case "copy":
       return <CopyText label={p.label} text={p.text} />;
+    case "source":
+      return <SourcePart service={p.service} title={p.title} count={p.count} />;
+    case "agenda":
+      return <AgendaPart part={p} onOpen={copy.open} />;
     case "timeline":
       return <Timeline part={p} />;
   }

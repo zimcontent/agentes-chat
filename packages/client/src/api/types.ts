@@ -5517,6 +5517,16 @@ export interface Ronda {
   recent: { at: string; status: string; code: string | null; summary: string }[];
 }
 
+/** The right hand's sectors (docs/adr/doug-0020-doug-sector-cards.md), each a card and a pill. */
+export type SectorName = "whatsapp" | "calendar" | "approvals" | "proposals" | "tasks" | "review" | "portal";
+
+/** A pill above the composer in a person's conversation with the right hand (`GET …/agents/{agentId}/sector-pills`). */
+export interface SectorPill {
+  sector: SectorName;
+  /** What waits there; 0: a pill with no number (the agenda). */
+  count: number;
+}
+
 /** What an agent picks up when its plan or budget is back, in order (`GET …/agents/{agentId}/usage-queue`). */
 export interface UsageQueue {
   agentId: string;
