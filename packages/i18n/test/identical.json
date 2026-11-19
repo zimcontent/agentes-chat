@@ -1,6 +1,8 @@
 {
   "app": {
     "pt-BR": [
+      "liveVoice.phoneLine.gptLive",
+      "liveVoice.phoneLine.qwen",
       "settings.support.whatsapp",
       "onboarding.flow.brand.instagram",
       "onboarding.flow.brand.manualLinkPlaceholder",
@@ -348,6 +350,8 @@
       "portalClients.email"
     ],
     "es": [
+      "liveVoice.phoneLine.gptLive",
+      "liveVoice.phoneLine.qwen",
       "settings.support.whatsapp",
       "onboarding.flow.brand.instagram",
       "onboarding.flow.brand.manualLinkPlaceholder",
@@ -652,6 +656,8 @@
       "companies.list.clientCodePlaceholder"
     ],
     "fr": [
+      "liveVoice.phoneLine.gptLive",
+      "liveVoice.phoneLine.qwen",
       "settings.section.support",
       "settings.support.whatsapp",
       "onboarding.flow.brand.instagram",
@@ -1145,6 +1151,8 @@
       "portalClients.email"
     ],
     "de": [
+      "liveVoice.phoneLine.gptLive",
+      "liveVoice.phoneLine.qwen",
       "settings.section.support",
       "settings.support.whatsapp",
       "onboarding.flow.brand.instagram",
@@ -1665,6 +1673,8 @@
       "portalClients.name"
     ],
     "it": [
+      "liveVoice.phoneLine.gptLive",
+      "liveVoice.phoneLine.qwen",
       "settings.section.support",
       "settings.support.email",
       "settings.support.whatsapp",
@@ -2098,6 +2108,8 @@
       "portalClients.email"
     ],
     "nl": [
+      "liveVoice.phoneLine.gptLive",
+      "liveVoice.phoneLine.qwen",
       "settings.section.support",
       "settings.support.whatsapp",
       "onboarding.flow.brand.instagram",
@@ -2765,6 +2777,8 @@
       "portalClients.email"
     ],
     "ja": [
+      "liveVoice.phoneLine.gptLive",
+      "liveVoice.phoneLine.qwen",
       "settings.support.whatsapp",
       "onboarding.flow.brand.instagram",
       "onboarding.flow.brand.manualLinkPlaceholder",
@@ -2986,6 +3000,8 @@
       "companies.list.clientCodePlaceholder"
     ],
     "ko": [
+      "liveVoice.phoneLine.gptLive",
+      "liveVoice.phoneLine.qwen",
       "settings.support.whatsapp",
       "onboarding.flow.brand.instagram",
       "onboarding.flow.brand.manualLinkPlaceholder",
@@ -3201,6 +3217,8 @@
       "companies.list.clientCodePlaceholder"
     ],
     "zh-Hans": [
+      "liveVoice.phoneLine.gptLive",
+      "liveVoice.phoneLine.qwen",
       "settings.support.whatsapp",
       "onboarding.flow.brand.instagram",
       "onboarding.flow.brand.manualLinkPlaceholder",
@@ -3407,6 +3425,8 @@
       "companies.list.clientCodePlaceholder"
     ],
     "id": [
+      "liveVoice.phoneLine.gptLive",
+      "liveVoice.phoneLine.qwen",
       "settings.support.email",
       "settings.support.whatsapp",
       "onboarding.flow.brand.instagram",
@@ -3771,6 +3791,8 @@
       "companies.list.clientCodePlaceholder"
     ],
     "tr": [
+      "liveVoice.phoneLine.gptLive",
+      "liveVoice.phoneLine.qwen",
       "settings.support.whatsapp",
       "onboarding.flow.brand.instagram",
       "onboarding.flow.brand.manualLinkPlaceholder",
@@ -4008,6 +4030,8 @@
       "companies.list.clientCodePlaceholder"
     ],
     "pl": [
+      "liveVoice.phoneLine.gptLive",
+      "liveVoice.phoneLine.qwen",
       "settings.support.whatsapp",
       "onboarding.flow.brand.instagram",
       "onboarding.flow.brand.manualLinkPlaceholder",
@@ -4358,6 +4382,8 @@
       "portalClients.email"
     ],
     "ru": [
+      "liveVoice.phoneLine.gptLive",
+      "liveVoice.phoneLine.qwen",
       "settings.support.whatsapp",
       "onboarding.flow.brand.instagram",
       "onboarding.flow.brand.manualLinkPlaceholder",

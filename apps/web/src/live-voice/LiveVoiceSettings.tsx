@@ -37,6 +37,7 @@ import { OpenPage, Step, StepTitle } from "@/components/ai/AddAccountFlow";
 import { PrefRow } from "@/components/NoticePrefs";
 import { useOrg } from "@/components/org-context";
 import { useLiveVoiceActions } from "./LiveVoice";
+import { PhoneLineCard } from "./PhoneLineCard";
 import { type VoicePreview, voiceRefused } from "./preview";
 
 /*
@@ -193,6 +194,7 @@ export function LiveVoiceCard() {
         </Dialog>
       </Card>
       {on && <CallNotesCard notes={view.callNotes} editable={view.editable} />}
+      <PhoneLineCard />
       {on && team.length > 0 && (
         <Card aria-labelledby={`${id}-voices`}>
           <CardHeader id={`${id}-voices`} icon="sound" title={t("liveVoice.settings.voicesTitle")} />

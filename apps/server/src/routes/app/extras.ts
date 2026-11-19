@@ -10,6 +10,7 @@ import type {
   LiveVoiceDeps,
   McpConnect,
   ModelGateway,
+  PhoneDeps,
   ResolveHost,
   RouterDeps,
   SandboxDeps,
@@ -74,6 +75,8 @@ export interface AppExtras {
   voice?: VoiceDeps;
   /** Live voice with GPT-Live (ADR doug-0006): keys, sessions and voice rooms; absent: those routes answer 404. */
   liveVoice?: LiveVoiceDeps;
+  /** Phone calls through owners' lines (docs/adr/doug-0035-phone-calls.md). */
+  phone?: PhoneDeps;
   /** Videos sent for the team's review (docs/adr/doug-0007-video-review.md); absent: those routes answer 404. */
   videoReviews?: VideoReviewDeps;
   /**

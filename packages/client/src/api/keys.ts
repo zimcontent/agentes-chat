@@ -33,6 +33,7 @@ export const keys = {
   agents: (orgId: string) => ["org", orgId, "agents"] as const,
   /** Live voice with GPT-Live (ADR doug-0006): whether it works here. */
   liveVoice: (orgId: string) => ["org", orgId, "live-voice"] as const,
+  phoneLine: (orgId: string) => ["org", orgId, "phone-line"] as const,
   /** A conversation's live voice room (its Join banner). */
   liveRoom: (orgId: string, channelId: string) => ["org", orgId, "live-room", channelId] as const,
   /** Set whole by every change; read again on the `agent.groups` org event. */

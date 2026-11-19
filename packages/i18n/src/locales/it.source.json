@@ -27231,6 +27231,78 @@
   "liveVoice.settings.refused": {
     "value": "This key doesn't have this voice: {{voice}} spoke instead."
   },
+  "liveVoice.phoneLine.title": {
+    "value": "Phone calls"
+  },
+  "liveVoice.phoneLine.lead": {
+    "value": "Your Doug calls people's phones when an owner or an administrator asks, after someone approves each call."
+  },
+  "liveVoice.phoneLine.on": {
+    "value": "On"
+  },
+  "liveVoice.phoneLine.off": {
+    "value": "Off"
+  },
+  "liveVoice.phoneLine.without": {
+    "value": "Connect your calling service so the Doug of every workspace you own can call phones."
+  },
+  "liveVoice.phoneLine.ownerOnly": {
+    "value": "An owner of this workspace connects the phone line."
+  },
+  "liveVoice.phoneLine.fromHere": {
+    "value": "Calls from here go out from {{number}}."
+  },
+  "liveVoice.phoneLine.setUp": {
+    "value": "Connect the line"
+  },
+  "liveVoice.phoneLine.mine": {
+    "value": "Your line"
+  },
+  "liveVoice.phoneLine.mineHint": {
+    "value": "From {{number}} · token ending in {{hint}}"
+  },
+  "liveVoice.phoneLine.url": {
+    "value": "The service's address"
+  },
+  "liveVoice.phoneLine.token": {
+    "value": "The service's token"
+  },
+  "liveVoice.phoneLine.sealed": {
+    "value": "It's checked with the service and kept sealed. Nobody sees it again."
+  },
+  "liveVoice.phoneLine.save": {
+    "value": "Connect"
+  },
+  "liveVoice.phoneLine.footer": {
+    "value": "The line is yours, not this workspace's: it serves every workspace you own. Each call is billed by your service."
+  },
+  "liveVoice.phoneLine.removeTitle": {
+    "value": "Disconnect your phone line?"
+  },
+  "liveVoice.phoneLine.removeText": {
+    "value": "The Doug of the workspaces you own stops calling through it."
+  },
+  "liveVoice.phoneLine.voice": {
+    "value": "The calls' voice"
+  },
+  "liveVoice.phoneLine.gptLive": {
+    "value": "GPT-Live 1"
+  },
+  "liveVoice.phoneLine.qwen": {
+    "value": "Qwen Audio 3.1 Flash"
+  },
+  "liveVoice.phoneLine.gptLiveHint": {
+    "value": "OpenAI's voice, on the calling service's own key."
+  },
+  "liveVoice.phoneLine.qwenCredits": {
+    "value": "Paid from this workspace's credits: {{perMinute}} credits a minute, by the second. Balance: {{balance}} credits, about {{minutes}} min."
+  },
+  "liveVoice.phoneLine.qwenNoWallet": {
+    "value": "Paid in credits, which this server can't read now."
+  },
+  "liveVoice.phoneLine.addCredits": {
+    "value": "Add credits"
+  },
   "liveVoice.voices.feminine": {
     "value": "Feminine"
   },

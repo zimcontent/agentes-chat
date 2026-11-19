@@ -303,6 +303,8 @@ import type {
   PersonUsage,
   PhoneDevice,
   PhoneDeviceInput,
+  PhoneEngine,
+  PhoneLine,
   PhoneSignIn,
   PlanServes,
   Poll,
@@ -545,6 +547,11 @@ export interface ApiClient {
     ): Promise<LiveRoom>;
     /** The workspace's notes on how its agents behave on calls (§11). */
     saveCallNotes(orgId: string, notes: string): Promise<LiveVoice>;
+    /** The person's own phone line for their Doug, and whether the Doug here may call (docs/adr/doug-0035-phone-calls.md). */
+    phoneLine(orgId: string): Promise<PhoneLine>;
+    savePhoneLine(orgId: string, input: { url: string; token: string }): Promise<PhoneLine>;
+    removePhoneLine(orgId: string): Promise<PhoneLine>;
+    setPhoneEngine(orgId: string, engine: PhoneEngine): Promise<PhoneLine>;
     /** Calls people into the call (added to the conversation when needed, mentioned there, rung). */
     invite(
       orgId: string,

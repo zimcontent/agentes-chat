@@ -120,7 +120,7 @@ const Topup = z.object({
 });
 const LedgerRow = z.object({
   id: z.number(),
-  kind: z.enum(["topup", "reserve", "release", "adjust"]),
+  kind: z.enum(["topup", "reserve", "release", "adjust", "call"]),
   credits: z.number(),
   balanceAfter: z.number(),
   generationId: z.string().nullable(),

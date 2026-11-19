@@ -679,6 +679,7 @@ async function boot(
         speech: engine.speech,
         voice: engine.voice,
         liveVoice: engine.liveVoice,
+        phone: engine.phone,
         videoReviews: engine.videoReviews,
         whatsappAgent: engine.whatsappAgent,
         gitProxy: engine.gitProxy,

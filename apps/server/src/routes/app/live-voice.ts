@@ -12,13 +12,18 @@ import {
   leaveLiveRoom,
   liveVoiceView,
   NotFoundError,
+  type PhoneDeps,
+  phoneLineView,
   pickLiveSpeaker,
   pingLiveRoom,
   relayLiveSignal,
   removeLiveVoiceKey,
+  removePhoneLine,
   saveLiveCallNotes,
   saveLiveVoiceKey,
+  savePhoneLine,
   setLiveFloor,
+  setPhoneEngine,
   startLiveSession,
 } from "@agenteschat/engine";
 import { createRoute, z } from "@hono/zod-openapi";
@@ -47,6 +52,27 @@ const View = z
     callNotes: z.string().openapi({ description: "How the agents behave on calls here, on top of the base rules." }),
   })
   .openapi("LiveVoice");
+
+const PhoneLine = z
+  .object({
+    state: z
+      .enum(["off", "ok"])
+      .openapi({ description: "`ok`: the Doug here may call, through one of its owners' lines." }),
+    fromNumber: z.string().openapi({ description: "The number calls go out from here." }),
+    mine: z
+      .object({ url: z.string(), fromNumber: z.string(), hint: z.string() })
+      .nullable()
+      .openapi({ description: "The person's own line, only to them: its token's last 4 characters, never the token." }),
+    editable: z.boolean().openapi({ description: "Only an owner connects a line, and only their own." }),
+    engine: z.enum(["gpt-live", "qwen"]).openapi({ description: "The voice calls here go out with." }),
+    engines: z.array(z.enum(["gpt-live", "qwen"])).openapi({ description: "The voices the line can use." }),
+    canChoose: z.boolean().openapi({ description: "Whether this person may change the voice (`configure`)." }),
+    credits: z
+      .object({ perMinute: z.number(), balance: z.number() })
+      .nullable()
+      .openapi({ description: "The house voice's price per minute and the workspace's credits (Mídia)." }),
+  })
+  .openapi("PhoneLine");
 
 const Line = z.object({
   at: z.string(),
@@ -150,6 +176,80 @@ export function liveVoiceRoutes(deps: AppDeps) {
       responses: { 200: json(View), ...errors },
     }),
     async (c) => c.json(await removeLiveVoiceKey(live(), c.get("user").id, c.req.valid("param").orgId), 200),
+  );
+
+  const phone = (): PhoneDeps => {
+    const d = deps.extras?.phone;
+    if (!d) throw new NotFoundError();
+    return d;
+  };
+
+  app.openapi(
+    createRoute({
+      method: "get",
+      path: "/organizations/{orgId}/phone-line",
+      tags,
+      security,
+      summary: "Whether the Doug here may call phones, and the person's own line",
+      request: { params: OrgParams },
+      responses: { 200: json(PhoneLine), ...errors },
+    }),
+    async (c) => c.json(await phoneLineView(phone(), c.get("user").id, c.req.valid("param").orgId), 200),
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/phone-line",
+      tags,
+      security,
+      summary: "Connect or replace the person's own phone line, for every workspace they own",
+      description:
+        "Only an owner of this workspace (403 `phone.not_owner`). The calling service's address (https) and token, checked with the service first (422 `phone.url_invalid`, `phone.token_invalid`, `phone.unreachable`); the token is sealed like provider keys and never returned (docs/adr/doug-0035-phone-calls.md).",
+      request: {
+        params: OrgParams,
+        body: body(z.object({ url: z.string().trim().min(8).max(500), token: z.string().trim().min(16).max(300) })),
+      },
+      responses: { 200: json(PhoneLine), ...errors, ...tooMany },
+    }),
+    async (c) => {
+      const user = c.get("user");
+      if (!(await allowed(`phone-line:${user.id}`, KEY_WRITES)))
+        return apiError(c, 429, "rate_limited", "Too many tries. Wait a minute.");
+      return c.json(await savePhoneLine(phone(), user.id, c.req.valid("param").orgId, c.req.valid("json")), 200);
+    },
+  );
+
+  app.openapi(
+    createRoute({
+      method: "put",
+      path: "/organizations/{orgId}/phone-line/engine",
+      tags,
+      security,
+      summary: "Pick the voice of the Doug's phone calls here",
+      description:
+        "Needs `configure`. `gpt-live`: GPT-Live 1 on the calling service's key. `qwen`: Qwen Audio 3.1 Flash on the house key, paid by the second from the workspace's credits (422 `phone.no_credits` without a wallet on this server).",
+      request: { params: OrgParams, body: body(z.object({ engine: z.enum(["gpt-live", "qwen"]) })) },
+      responses: { 200: json(PhoneLine), ...errors },
+    }),
+    async (c) =>
+      c.json(
+        await setPhoneEngine(phone(), c.get("user").id, c.req.valid("param").orgId, c.req.valid("json").engine),
+        200,
+      ),
+  );
+
+  app.openapi(
+    createRoute({
+      method: "delete",
+      path: "/organizations/{orgId}/phone-line",
+      tags,
+      security,
+      summary: "Remove the person's own phone line: the Doug of the workspaces they own stops calling through it",
+      request: { params: OrgParams },
+      responses: { 200: json(PhoneLine), ...errors },
+    }),
+    async (c) => c.json(await removePhoneLine(phone(), c.get("user").id, c.req.valid("param").orgId), 200),
   );
 
   app.openapi(

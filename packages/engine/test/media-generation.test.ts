@@ -202,6 +202,9 @@ function fakeZim(balance = 10_000) {
       throw new Error("not in these tests");
     },
     topups: async () => [],
+    chargeCall: async () => {
+      throw new Error("not in these tests");
+    },
   };
   const finish = (id: string, status: "succeeded" | "failed" = "succeeded") => {
     const g = generations.get(id)!;

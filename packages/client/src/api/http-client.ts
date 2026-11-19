@@ -227,6 +227,7 @@ import type {
   PersonLimits,
   PersonUsage,
   PhoneDevice,
+  PhoneLine,
   PhoneSignIn,
   PlanServes,
   Poll,
@@ -1285,6 +1286,11 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
         }),
       saveCallNotes: (orgId, notes) =>
         request<LiveVoice>(`${org(orgId)}/live-voice/notes`, { method: "PUT", json: { notes } }),
+      phoneLine: (orgId) => request<PhoneLine>(`${org(orgId)}/phone-line`),
+      savePhoneLine: (orgId, input) => request<PhoneLine>(`${org(orgId)}/phone-line`, { method: "PUT", json: input }),
+      removePhoneLine: (orgId) => request<PhoneLine>(`${org(orgId)}/phone-line`, { method: "DELETE" }),
+      setPhoneEngine: (orgId, engine) =>
+        request<PhoneLine>(`${org(orgId)}/phone-line/engine`, { method: "PUT", json: { engine } }),
       invite: (orgId, roomId, userIds, language) =>
         request<{ invited: string[]; refused: string[] }>(`${org(orgId)}/live-rooms/${enc(roomId)}/invite`, {
           json: { userIds, language },

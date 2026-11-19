@@ -137,7 +137,7 @@ export interface MediaGeneration {
 
 export interface MediaLedgerRow {
   id: number;
-  kind: "topup" | "reserve" | "release" | "adjust";
+  kind: "topup" | "reserve" | "release" | "adjust" | "call";
   credits: number;
   balance_after: number;
   generation_id: string | null;
@@ -157,7 +157,12 @@ export interface MediaTopup {
 }
 
 export interface ZimMedia {
-  catalog(): Promise<{ models: MediaModel[]; packs: MediaPack[] }>;
+  /** `calls`: each house voice's price for phone calls, in credits per minute (docs/adr/doug-0035-phone-calls.md). */
+  catalog(): Promise<{
+    models: MediaModel[];
+    packs: MediaPack[];
+    calls?: Record<string, { creditsPerMinute: number }>;
+  }>;
   quote(request: MediaRequest): Promise<MediaQuote>;
   balance(orgId: string, withLedger?: boolean): Promise<{ balance: number; ledger?: MediaLedgerRow[] }>;
   uploadRef(orgId: string, bytes: Uint8Array, contentType: string): Promise<MediaRef>;
@@ -175,6 +180,14 @@ export interface ZimMedia {
   ): Promise<{ topup: MediaTopup; checkoutUrl: string }>;
   topupStatus(orgId: string, id: string): Promise<{ topup: MediaTopup; balance: number }>;
   topups(orgId: string): Promise<MediaTopup[]>;
+  /**
+   * A phone call on a house voice that ended, charged by the second from the same wallet (docs/adr/doug-0035-phone-calls.md).
+   * The same key charges once; the balance never goes below zero (`unpaid` is what was left).
+   */
+  chargeCall(
+    orgId: string,
+    input: { idempotencyKey: string; engine: "qwen"; seconds: number },
+  ): Promise<{ credits: number; unpaid: number; balance: number; repeated: boolean }>;
 }
 
 /** What the service said no with: `status` is its HTTP status (402 is "not enough credits", with `needed`/`balance`). */
@@ -311,5 +324,6 @@ export function createZimMedia(options: { url: string; secret: string; fetch?: t
     topup: (orgId, input) => json("POST", `${org(orgId)}/topups`, input),
     topupStatus: (orgId, id) => json("GET", `${org(orgId)}/topups/${encodeURIComponent(id)}`),
     topups: async (orgId) => (await json<{ topups: MediaTopup[] }>("GET", `${org(orgId)}/topups`)).topups,
+    chargeCall: (orgId, input) => json("POST", `${org(orgId)}/calls`, input),
   };
 }

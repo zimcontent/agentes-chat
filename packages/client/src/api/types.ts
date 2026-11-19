@@ -9104,6 +9104,27 @@ export interface PortalPipeline {
 }
 
 /** Live voice with GPT-Live in this workspace (ADR doug-0006). */
+/** A person's phone line for their Doug (docs/adr/doug-0035-phone-calls.md): one per owner, for every workspace they own. */
+export interface PhoneLine {
+  /** `ok`: the Doug here may call, through one of the workspace's owners' lines. */
+  state: "off" | "ok";
+  /** The number calls go out from here. */
+  fromNumber: string;
+  /** The person's own line, only to them: its token's last 4 characters, never the token. */
+  mine: { url: string; fromNumber: string; hint: string } | null;
+  /** Only an owner connects a line, and only their own. */
+  editable: boolean;
+  /** The voice calls here go out with: GPT-Live 1, or the house Qwen paid in credits. */
+  engine: PhoneEngine;
+  engines: PhoneEngine[];
+  /** Whether this person may change the voice. */
+  canChoose: boolean;
+  /** The house voice's price per minute and the workspace's credits (Mídia). */
+  credits: { perMinute: number; balance: number } | null;
+}
+
+export type PhoneEngine = "gpt-live" | "qwen";
+
 export interface LiveVoice {
   /** `ok`: calls with agents and "Ouvir" work. */
   state: "off" | "ok";
