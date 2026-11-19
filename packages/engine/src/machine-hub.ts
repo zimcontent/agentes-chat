@@ -1490,8 +1490,9 @@ export function createMachineHub(deps: MachineHubDeps) {
       };
       conn.helloTimer = setTimeout(() => {
         // Not a refusal: a runner that just woke up (the Mac slept) may be slow to say hello, and the token is
-        // fine. A `refused` frame would make it stop for good; a plain close makes it dial again.
-        if (conn.machineId) return;
+        // fine. A `refused` frame would make it stop for good; a plain close makes it dial again. A hello still
+        // being checked waits on this server, not the runner: closing it would only queue the same hello again.
+        if (conn.machineId || conn.authing) return;
         try {
           conn.socket.close(MACHINE_CLOSE.timeout, "no hello");
         } catch {}

@@ -208,6 +208,7 @@ describe("a runner that dies mid-request (brain turns never stay working)", () =
     await dead.hello((await pair(f.owner.id, "Gone box")).token);
     // Busy for over two heartbeats (under the four after which silence closes anyway): the next ping tick fires
     // late, long after the last pong it could read.
+    void alive.frame({ type: "pong", at: Date.now() });
     Bun.sleepSync(220);
     await Bun.sleep(400);
     expect(alive.closed()).toBeNull();
@@ -911,6 +912,11 @@ describe("hub", () => {
     await Bun.sleep(60);
     expect(slow.sent).toEqual([]);
     expect(slow.closed()).toMatchObject({ code: 4408 });
+    // A hello the server is still checking (a busy database) is not a runner that said nothing.
+    const checking = fakeRunner(hub);
+    checking.conn.authing = true;
+    await Bun.sleep(60);
+    expect(checking.closed()).toBeNull();
   });
 
   test("hello → welcome and online; bad token and outdated runners are refused", async () => {
