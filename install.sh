@@ -1,5 +1,5 @@
 #!/bin/sh
-# DougBot installer: a self-hosted DougBot on this computer, in one command.
+# agentes.chat installer: a self-hosted agentes.chat on this computer, in one command.
 #
 #   curl -fsSL https://agentes.chat/install | sh
 #   curl -fsSL https://agentes.chat/install | sh -s -- --plan      prints what it would do, does nothing
@@ -11,7 +11,7 @@
 #
 # To read it before it runs: curl -fsSLo install.sh https://agentes.chat/install, then sh install.sh.
 #
-# It gets this computer ready, then hands over to the setup (@dougbot/setup), which asks its few
+# It gets this computer ready, then hands over to the setup (@agenteschat/setup), which asks its few
 # questions, writes .env and starts everything. On Linux it makes sure of Docker and its Compose
 # plugin, and starts the engine when it's stopped. On a Mac it starts the Docker it finds (Docker
 # Desktop, OrbStack or Colima), or installs Colima with Homebrew; each after asking (--yes doesn't
@@ -191,7 +191,7 @@ main() {
   fi
   case $DIR in /*) ;; *) DIR=$PWD/$DIR ;; esac
 
-  SETUP="@dougbot/setup@$SETUP_VERSION"
+  SETUP="@agenteschat/setup@$SETUP_VERSION"
   if [ -n "${AGENTES_INSTALL_SETUP:-}" ]; then
     case $AGENTES_INSTALL_SETUP in /*) ;; *) AGENTES_INSTALL_SETUP=$PWD/$AGENTES_INSTALL_SETUP ;; esac
     [ -f "$AGENTES_INSTALL_SETUP" ] ||
@@ -618,7 +618,7 @@ get_bun() {
 }
 
 # --- term.sh: packages/setup/src/term-sh.ts, kept equal by a test ---
-# The DougBot look for the POSIX installers, as packages/setup/src/term.ts draws it: plain where a
+# The agentes.chat look for the POSIX installers, as packages/setup/src/term.ts draws it: plain where a
 # terminal can't take it (no color with NO_COLOR or TERM=dumb, ASCII marks and no logo on the Linux console), and
 # no line, logo or animation when the output isn't a terminal (cloud-init, CI, the setup reading it). Only
 # function definitions, so a download cut short runs nothing.
