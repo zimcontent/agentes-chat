@@ -173,6 +173,7 @@ import type {
   Person,
   PersonalTokenInput,
   PersonLimits,
+  PhoneLine,
   PortalBoard,
   PortalCard,
   PortalCardInput,
@@ -558,6 +559,30 @@ export const useRemoveLiveVoiceKey = (orgId: string) =>
 /** The workspace's notes on how its agents behave on calls (docs/adr/doug-0006-live-voice.md §11). */
 export const useSaveCallNotes = (orgId: string) =>
   useLiveVoiceChange(orgId, (api, notes: string) => api.liveVoice.saveCallNotes(orgId, notes));
+
+/** The person's own phone line for their Doug, and whether the Doug here may call (docs/adr/doug-0035-phone-calls.md). */
+export const usePhoneLine = (orgId: string) => {
+  const api = useApi();
+  return useQuery({
+    queryKey: keys.phoneLine(orgId),
+    queryFn: () => api.liveVoice.phoneLine(orgId),
+    staleTime: 60_000,
+  });
+};
+function usePhoneLineChange<T>(orgId: string, change: (api: ApiClient, input: T) => Promise<PhoneLine>) {
+  const api = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: T) => change(api, input),
+    onSuccess: (view) => qc.setQueryData(keys.phoneLine(orgId), view),
+    // A refused address or token is said under its field.
+    meta: { silent: true },
+  });
+}
+export const useSavePhoneLine = (orgId: string) =>
+  usePhoneLineChange(orgId, (api, input: { url: string; token: string }) => api.liveVoice.savePhoneLine(orgId, input));
+export const useRemovePhoneLine = (orgId: string) =>
+  usePhoneLineChange<void>(orgId, (api) => api.liveVoice.removePhoneLine(orgId));
 
 /** A conversation's live voice room, for its Join banner: kept fresh by `live.room` events and a slow poll. */
 export const useChannelLiveRoom = (orgId: string, channelId: string, enabled = true) => {

@@ -11168,6 +11168,25 @@
       "use": "{{voice}} verwenden",
       "refused": "Dieser Schlüssel hat diese Stimme nicht: Stattdessen sprach {{voice}}."
     },
+    "phoneLine": {
+      "title": "Telefonanrufe",
+      "lead": "Dein Doug ruft Telefone an, wenn ein Inhaber oder ein Administrator darum bittet, nachdem jemand jeden Anruf genehmigt hat.",
+      "on": "An",
+      "off": "Aus",
+      "without": "Verbinde deinen Anrufdienst, damit der Doug jedes Workspaces, der dir gehört, Telefone anrufen kann.",
+      "ownerOnly": "Ein Inhaber dieses Workspaces verbindet die Telefonleitung.",
+      "fromHere": "Anrufe von hier gehen von {{number}} aus.",
+      "setUp": "Leitung verbinden",
+      "mine": "Deine Leitung",
+      "mineHint": "Von {{number}} · Token endet auf {{hint}}",
+      "url": "Adresse des Dienstes",
+      "token": "Token des Dienstes",
+      "sealed": "Er wird mit dem Dienst geprüft und versiegelt aufbewahrt. Niemand sieht ihn wieder.",
+      "save": "Verbinden",
+      "footer": "Die Leitung gehört dir, nicht diesem Workspace: Sie gilt für jeden Workspace, der dir gehört. Jeder Anruf wird von deinem Dienst abgerechnet.",
+      "removeTitle": "Deine Telefonleitung trennen?",
+      "removeText": "Der Doug der Workspaces, die dir gehören, ruft nicht mehr über sie an."
+    },
     "voices": {
       "feminine": "Weiblich",
       "masculine": "Männlich",

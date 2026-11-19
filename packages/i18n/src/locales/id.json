@@ -10780,6 +10780,25 @@
       "use": "Gunakan {{voice}}",
       "refused": "Kunci ini tidak punya suara ini: {{voice}} yang berbicara."
     },
+    "phoneLine": {
+      "title": "Panggilan telepon",
+      "lead": "Doug kamu menelepon orang saat pemilik atau administrator memintanya, setelah seseorang menyetujui setiap panggilan.",
+      "on": "Aktif",
+      "off": "Nonaktif",
+      "without": "Hubungkan layanan panggilanmu agar Doug di setiap workspace milikmu bisa menelepon.",
+      "ownerOnly": "Pemilik workspace ini yang menghubungkan saluran telepon.",
+      "fromHere": "Panggilan dari sini keluar dari {{number}}.",
+      "setUp": "Hubungkan saluran",
+      "mine": "Saluranmu",
+      "mineHint": "Dari {{number}} · token berakhiran {{hint}}",
+      "url": "Alamat layanan",
+      "token": "Token layanan",
+      "sealed": "Diperiksa dengan layanan dan disimpan tersegel. Tidak ada yang melihatnya lagi.",
+      "save": "Hubungkan",
+      "footer": "Saluran ini milikmu, bukan milik workspace ini: berlaku untuk setiap workspace milikmu. Setiap panggilan ditagih oleh layananmu.",
+      "removeTitle": "Putuskan saluran teleponmu?",
+      "removeText": "Doug di workspace milikmu berhenti menelepon lewat saluran ini."
+    },
     "voices": {
       "feminine": "Feminin",
       "masculine": "Maskulin",

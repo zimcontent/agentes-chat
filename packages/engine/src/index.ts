@@ -276,6 +276,7 @@ export * from "./permissions";
 export * from "./person-reviews";
 export * from "./person-usage";
 export * from "./person-usage-report";
+export * from "./phone-calls";
 export { forgetPictures, type PictureSize } from "./picture";
 export * from "./pins";
 export * from "./plan-models";

@@ -8,9 +8,11 @@ import {
   ForbiddenSignatureError,
   HOOK_LIMIT_PER_IP,
   handleComposioWebhook,
+  handlePhoneCallReport,
   handleWebhook,
   handleWhatsAppEvent,
   NotFoundError,
+  type PhoneCallReport,
   PORTAL_NOTICE_KEY_MAX,
   PORTAL_NOTICE_PHONE,
   PORTAL_NOTICE_TEXT_MAX,
@@ -44,6 +46,10 @@ import {
   whatsappDeps,
 } from "./app/context";
 import { WHATSAPP_NEW_CHATS_PER_NUMBER } from "./app/whatsapp";
+
+/** A call's transcript: up to 400 lines of 2,000 characters, with room for the JSON around them. */
+const PHONE_REPORT_MAX = 1024 * 1024;
+
 import { githubAccess } from "./github-app";
 import { readWebhookBytes, readWebhookText } from "./webhook-body";
 
@@ -153,6 +159,24 @@ export function registerWebhookReceiver(api: OpenAPIHono, deps: AppDeps) {
       if (error instanceof SyntaxError) return c.json({ error: "invalid body" }, 400);
       throw error;
     }
+  });
+  // A phone call's end, reported by the calling service to the one-use address the call went out with
+  // (docs/adr/doug-0035-phone-calls.md): what was said goes back to the agent, in the conversation that asked for it.
+  api.post("/webhooks/phone-call/:callId/:secret", async (c) => {
+    const phone = deps.extras?.phone;
+    const callId = c.req.param("callId");
+    if (!phone || !/^[0-9a-f-]{36}$/i.test(callId)) return c.json({ error: "not found" }, 404);
+    const raw = await readWebhookText(c.req.raw, PHONE_REPORT_MAX);
+    if (raw === null) return c.json({ error: "too large" }, 413);
+    let report: unknown;
+    try {
+      report = JSON.parse(raw);
+    } catch {
+      return c.json({ error: "invalid body" }, 400);
+    }
+    if (!report || typeof report !== "object") return c.json({ error: "invalid body" }, 400);
+    const ok = await handlePhoneCallReport(phone, callId, c.req.param("secret"), report as PhoneCallReport);
+    return ok ? c.json({ ok: true }, 200) : c.json({ error: "not found" }, 404);
   });
   // The approval portal's notices on WhatsApp (docs/adr/doug-0001-whatsapp-numbers.md, addendum 2026-11-16): the
   // portal runs on another server and asks this one to send a short text from a connected number, to one of the few

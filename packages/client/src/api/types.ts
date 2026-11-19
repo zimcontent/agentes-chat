@@ -9104,6 +9104,18 @@ export interface PortalPipeline {
 }
 
 /** Live voice with GPT-Live in this workspace (ADR doug-0006). */
+/** A person's phone line for their Doug (docs/adr/doug-0035-phone-calls.md): one per owner, for every workspace they own. */
+export interface PhoneLine {
+  /** `ok`: the Doug here may call, through one of the workspace's owners' lines. */
+  state: "off" | "ok";
+  /** The number calls go out from here. */
+  fromNumber: string;
+  /** The person's own line, only to them: its token's last 4 characters, never the token. */
+  mine: { url: string; fromNumber: string; hint: string } | null;
+  /** Only an owner connects a line, and only their own. */
+  editable: boolean;
+}
+
 export interface LiveVoice {
   /** `ok`: calls with agents and "Ouvir" work. */
   state: "off" | "ok";

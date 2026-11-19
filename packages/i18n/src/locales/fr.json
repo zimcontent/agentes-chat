@@ -11600,6 +11600,25 @@
       "use": "Utiliser {{voice}}",
       "refused": "Cette clé n'a pas cette voix : {{voice}} a parlé à la place."
     },
+    "phoneLine": {
+      "title": "Appels téléphoniques",
+      "lead": "Ton Doug appelle le téléphone des gens quand un propriétaire ou un administrateur le demande, après que quelqu'un a approuvé chaque appel.",
+      "on": "Activé",
+      "off": "Désactivé",
+      "without": "Connecte ton service d'appels pour que le Doug de chaque workspace qui t'appartient puisse appeler des téléphones.",
+      "ownerOnly": "Un propriétaire de ce workspace connecte la ligne téléphonique.",
+      "fromHere": "Les appels d'ici partent du {{number}}.",
+      "setUp": "Connecter la ligne",
+      "mine": "Ta ligne",
+      "mineHint": "Depuis le {{number}} · jeton finissant par {{hint}}",
+      "url": "Adresse du service",
+      "token": "Jeton du service",
+      "sealed": "Il est vérifié auprès du service et gardé scellé. Personne ne le revoit.",
+      "save": "Connecter",
+      "footer": "La ligne est à toi, pas à ce workspace : elle sert à chaque workspace qui t'appartient. Chaque appel est facturé par ton service.",
+      "removeTitle": "Déconnecter ta ligne téléphonique ?",
+      "removeText": "Le Doug des workspaces qui t'appartiennent n'appelle plus par elle."
+    },
     "voices": {
       "feminine": "Voix féminine",
       "masculine": "Voix masculine",

@@ -648,6 +648,39 @@ export const EXTRA_COLUMNS = [
     "created_at" timestamp with time zone NOT NULL DEFAULT now()
   )`,
   `CREATE INDEX IF NOT EXISTS "portal_uploads_org" ON "portal_uploads" ("org_id", "created_at")`,
+  // Phone calls (docs/adr/doug-0035-phone-calls.md): each owner's line to their calling service, and each call an agent
+  // made, so what was said comes back to the conversation that asked for it.
+  `CREATE TABLE IF NOT EXISTS "phone_lines" (
+    "user_id" text PRIMARY KEY NOT NULL REFERENCES "users"("id") ON DELETE cascade,
+    "url" text NOT NULL,
+    "from_number" text NOT NULL DEFAULT '',
+    "ciphertext" text NOT NULL,
+    "wrapped_data_key" text NOT NULL,
+    "kek_id" text NOT NULL,
+    "token_hint" text NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT now() NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS "phone_calls" (
+    "id" uuid PRIMARY KEY NOT NULL,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE cascade,
+    "agent_id" uuid NOT NULL REFERENCES "agents"("id") ON DELETE cascade,
+    "run_id" uuid,
+    "channel_id" uuid NOT NULL,
+    "thread_id" uuid,
+    "trigger_message_id" uuid,
+    "requested_by" text REFERENCES "users"("id") ON DELETE set null,
+    "line_user_id" text,
+    "to" text NOT NULL,
+    "brief" text NOT NULL,
+    "status" text NOT NULL DEFAULT 'calling',
+    "hook_hash" text NOT NULL,
+    "provider_call_id" text,
+    "seconds" integer,
+    "lines" jsonb NOT NULL DEFAULT '[]'::jsonb,
+    "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+    "ended_at" timestamp with time zone
+  )`,
+  `CREATE INDEX IF NOT EXISTS "phone_calls_org_id_created_at_index" ON "phone_calls" ("org_id", "created_at")`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

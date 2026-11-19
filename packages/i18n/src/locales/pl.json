@@ -11989,6 +11989,25 @@
       "use": "Użyj: {{voice}}",
       "refused": "Ten klucz nie ma tego głosu: zamiast niego mówił {{voice}}."
     },
+    "phoneLine": {
+      "title": "Połączenia telefoniczne",
+      "lead": "Twój Doug dzwoni do ludzi, gdy prosi o to właściciel lub administrator, po zatwierdzeniu każdego połączenia.",
+      "on": "Włączone",
+      "off": "Wyłączone",
+      "without": "Połącz swoją usługę połączeń, aby Doug w każdym Twoim workspace mógł dzwonić na telefony.",
+      "ownerOnly": "Linię telefoniczną łączy właściciel tego workspace.",
+      "fromHere": "Połączenia stąd wychodzą z numeru {{number}}.",
+      "setUp": "Połącz linię",
+      "mine": "Twoja linia",
+      "mineHint": "Z numeru {{number}} · token kończący się na {{hint}}",
+      "url": "Adres usługi",
+      "token": "Token usługi",
+      "sealed": "Jest sprawdzany w usłudze i przechowywany w zapieczętowanej postaci. Nikt go już nie zobaczy.",
+      "save": "Połącz",
+      "footer": "Linia należy do Ciebie, nie do tego workspace: działa w każdym Twoim workspace. Każde połączenie rozlicza Twoja usługa.",
+      "removeTitle": "Odłączyć Twoją linię telefoniczną?",
+      "removeText": "Doug w Twoich workspace przestanie przez nią dzwonić."
+    },
     "voices": {
       "feminine": "Żeński",
       "masculine": "Męski",

@@ -1667,6 +1667,14 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
 
         callNotes: notes,
       }),
+      phoneLine: async () => ({ state: "off", fromNumber: "", mine: null, editable: true }),
+      savePhoneLine: async (_orgId, input) => ({
+        state: "ok",
+        fromNumber: "+19788980563",
+        mine: { url: input.url, fromNumber: "+19788980563", hint: input.token.slice(-4) },
+        editable: true,
+      }),
+      removePhoneLine: async () => ({ state: "off", fromNumber: "", mine: null, editable: true }),
       invite: async () => ({ invited: [], refused: [] }),
       startSession: async () => {
         throw new ApiError(404, "not_found", "Not found");

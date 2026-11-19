@@ -75,6 +75,7 @@ import {
   createModelGateway,
   createPassToolSource,
   createPermissionToolSource,
+  createPhoneToolSource,
   createPortalToolSource,
   createReactToolSource,
   createReleaseAsksToolSource,
@@ -123,6 +124,7 @@ import {
   missionTurnPermissions,
   notifyOwnerOnBudget,
   OpencodeBrain,
+  type PhoneDeps,
   platformCapJudge,
   postPersonMessage,
   prepareAgentCode,
@@ -221,6 +223,14 @@ export interface EngineOptions {
 export function buildEngine(o: EngineOptions) {
   const { db, config, adapters } = o;
   const keyWrappers = [adapters.keyWrapper, ...adapters.legacyKeyWrappers];
+  // Phone calls (docs/adr/doug-0035-phone-calls.md): each owner's line to their calling service.
+  const phone: PhoneDeps = {
+    db,
+    pubsub: adapters.pubsub,
+    keyWrapper: adapters.keyWrapper,
+    keyWrappers,
+    publicUrl: config.PUBLIC_URL,
+  };
   const tuning = { kinds: config.EMBEDDINGS_KINDS, queryTimeoutMs: config.EMBEDDINGS_QUERY_TIMEOUT_MS };
   const embeddings: GatewayEmbeddings | undefined =
     o.embeddings ??
@@ -526,6 +536,8 @@ export function buildEngine(o: EngineOptions) {
       createDesignReviewToolSource(videoReviews),
       // The workspace's WhatsApp numbers, read and written by their agent and the people on them, as the same person
       // who answers there (docs/adr/doug-0004-whatsapp-bridge.md): listed only for an agent that may see one.
+      // The workspace's Doug calls a phone, with approval, through an owner's line (docs/adr/doug-0035-phone-calls.md).
+      createPhoneToolSource(phone),
       createWhatsAppToolSource(
         adapters.whatsapp
           ? {
@@ -1064,6 +1076,7 @@ export function buildEngine(o: EngineOptions) {
     speech,
     voice,
     liveVoice,
+    phone,
     videoReviews,
     /** The number's agent thinking (drafts of a number's instructions); undefined without a gateway. */
     whatsappAgent,
