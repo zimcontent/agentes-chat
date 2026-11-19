@@ -72,6 +72,30 @@ One time, in GitHub → Settings → Secrets and variables → Actions:
 
 A preview APK installs over an earlier one only when both were signed with the same key.
 
+## iOS on Xcode Cloud
+
+This project's iOS checks and builds run on Xcode Cloud (Apple's, with the developer account), not on GitHub
+Actions. The native project isn't committed, so `ios/ci_scripts/ci_post_clone.sh` (the one committed file under
+`ios/`) makes it after the clone: bun and node, the dependencies, `expo prebuild` and CocoaPods. Xcode Cloud then
+works on `apps/mobile/ios/DougBot.xcworkspace`, scheme `DougBot`.
+
+Because `ios/` exists in every checkout, a plain `expo prebuild` (or `expo run:ios`) on a fresh one reuses it and
+makes no Xcode project. Prebuild iOS with `sh scripts/prebuild-ios.sh` (it keeps `ci_scripts/` aside meanwhile), or
+with `--clean` and then `git checkout ios/ci_scripts`. EAS drops the folder before it installs
+(`eas-build-pre-install` in `package.json`), so its own prebuild starts from nothing.
+
+Set up once, from a Mac with Xcode signed in to the team:
+
+1. `bun install`, then in `apps/mobile`: `APP_VARIANT=production sh scripts/prebuild-ios.sh`, so the workspace
+   exists locally.
+2. Open `apps/mobile/ios/DougBot.xcworkspace` in Xcode, then Integrate › Create Workflow, and give Xcode Cloud access
+   to `zimcontent/dougbot` on GitHub.
+3. Workflows (App Store Connect › Xcode Cloud):
+   - **Simulators**, on a push to `qa/**` or by hand: Test action on the iPhones to check, or Build for simulators.
+   - **TestFlight**, by hand: Archive (iOS, App Store Connect), then TestFlight internal testing.
+4. Environment, per workflow: `APPLE_TEAM_ID`, and `IOS_BUILD_NUMBER_BASE` above the last build sent from EAS
+   (Xcode Cloud's own number is added to it).
+
 ## iOS on GitHub Actions
 
 Run **iOS build** (Actions → Run workflow): production only, sent to TestFlight (or, with "Send to TestFlight" off,
