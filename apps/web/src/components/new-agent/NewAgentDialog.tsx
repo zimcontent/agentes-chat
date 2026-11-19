@@ -72,8 +72,8 @@ import { useMediaQuery } from "@/components/NavDrawer";
 import { useOrg } from "@/components/org-context";
 import { ImageCropDialog } from "@/components/ProfilePhoto";
 import { agentCoverOptions, facePool } from "@/components/Sky";
-import { useTextLimit } from "@/hooks/useTextLimit";
 import { useStillBusy } from "@/hooks/useStillBusy";
+import { useTextLimit } from "@/hooks/useTextLimit";
 import {
   BLANK_LOOK,
   type CardLevel,

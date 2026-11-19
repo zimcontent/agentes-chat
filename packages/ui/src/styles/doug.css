@@ -3602,6 +3602,8 @@ html:root {
 html[data-client-accent] [data-theme] {
   --accent-text: var(--client-accent);
   --focus-color: var(--client-accent);
+}
+
 /* ── A failed run's actions: "Copy details" beside the close ×, both in the row's last column, 8 apart, hung over the
    reason's first line as the × alone was (the kit's `.ac-msg__error-row > .ac-btn--icon`). ── */
 [data-theme] .ac-msg__error-row > .ac-msg__error-acts {

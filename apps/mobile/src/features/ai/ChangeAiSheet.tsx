@@ -30,9 +30,9 @@ import {
   modelPickerUndo,
   type PickerBefore,
 } from "@agenteschat/client/lib/brain-picker";
+import { contextSize } from "@agenteschat/client/lib/context-limits";
 import { agentGrammar } from "@agenteschat/client/lib/grammar";
 import { can } from "@agenteschat/client/lib/permissions";
-import { contextSize } from "@agenteschat/client/lib/context-limits";
 import { modelChoices, providerLabel } from "@agenteschat/client/lib/providers";
 import { isRightHand } from "@agenteschat/client/lib/right-hand";
 import { useQueryClient } from "@tanstack/react-query";

@@ -2,6 +2,7 @@ import type { ModelTier } from "@agenteschat/providers";
 import { planState } from "@agenteschat/ui/plan-state";
 import type { TFunction } from "i18next";
 import type { AgentBrain, AiAccounts, MachineAccount, Model, PlanUsage, PlanWindow } from "../api/types";
+import { type EffortLevel, effortOf } from "./brain-advanced";
 import {
   modelPickerModels,
   modelPickerTiles,
@@ -9,7 +10,6 @@ import {
   type PickerModel,
   type PickerTile,
 } from "./brain-picker";
-import { type EffortLevel, effortOf } from "./brain-advanced";
 import { isContextLimit } from "./context-limits";
 import { PLAN_ALIASES, type PlanAlias, planModelValue, planName, planOf } from "./plans";
 import { apiProviderOf, isAuto, type ModelChoice } from "./providers";
