@@ -152,3 +152,44 @@ test("an anchor in a thread its updates no longer go to keeps the last update on
   const line = document.querySelector(".ac-workline") as HTMLElement;
   expect(line.querySelector(".ac-workline__update")?.textContent).toBe(UPDATE);
 });
+
+test("waiting on your approval, its card shows under the line too: approved there, the thread's card is approved as well", async () => {
+  const state = seedState();
+  state.messages = state.messages.filter((m) => m.channelId !== ENG_ID);
+  const view = work({ state: "waiting_approval", question: null });
+  state.messages.push(message("anchor", null, "Vou cuidar disso.", { longWork: view }));
+  state.messages.push(message("card", "anchor", "Preciso do seu ok.", { meta: { approvalId: "ap-w" } }));
+  const base = state.approvals[0] as (typeof state.approvals)[number];
+  state.approvals = [
+    {
+      ...base,
+      id: "ap-w",
+      runId: "r1",
+      agentId: ADA_ID,
+      channelId: ENG_ID,
+      threadId: "anchor",
+      messageId: "card",
+      status: "pending",
+      canDecide: true,
+      createdAt: new Date().toISOString(),
+      expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
+    },
+  ];
+  rendered = await renderApp(`/org/${ORG_ID}/c/${ENG_ID}`, { api: createFakeApi(state) });
+  await settle(8);
+  // One card in the conversation, right under the line: no thread opened to decide.
+  const approve = within(document.body).getAllByRole("button", { name: /^Aprovar/ });
+  expect(approve).toHaveLength(1);
+  await act(async () => fireEvent.click(approve[0] as HTMLElement));
+  await settle(6);
+  expect(state.approvals[0]?.status).toBe("approved");
+  // The card stays where it was clicked, saying how it ended.
+  expect(within(document.body).queryByRole("button", { name: /^Aprovar/ })).toBeNull();
+  // The thread holds the same request: decided there too, nothing left to approve.
+  const line = document.querySelector(".ac-workline") as HTMLElement;
+  await act(async () => fireEvent.click(within(line).getByRole("button", { name: "Abrir thread" })));
+  await settle(6);
+  const panel = document.querySelector(".thread-panel") as HTMLElement;
+  expect(panel.textContent).toContain("Aprovado por você");
+  expect(within(panel).queryByRole("button", { name: /^Aprovar/ })).toBeNull();
+});

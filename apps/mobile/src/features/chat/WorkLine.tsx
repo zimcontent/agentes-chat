@@ -1,4 +1,5 @@
-import { type Issue, type Message, useApi, useChannels, type WorkView } from "@agenteschat/client";
+import { type Issue, type Message, useApi, useApprovals, useChannels, type WorkView } from "@agenteschat/client";
+import { workApproval } from "@agenteschat/client/lib/approval-card";
 import { heldBack } from "@agenteschat/client/lib/issues";
 import { blockedText, workLine, workPlanProgress, workWaitsOnPerson } from "@agenteschat/client/lib/long-work";
 import { can } from "@agenteschat/client/lib/permissions";
@@ -13,6 +14,7 @@ import { router } from "@/ui/navigation";
 import { chatHref } from "../links/logic";
 import { useColors, useDirectory, useMeId, useOrgId } from "../shared/hooks";
 import { tapHaptic, useSurface } from "../shared/parts";
+import { ApprovalInline } from "./cards";
 import { RowPartContext, useCardTop } from "./look";
 
 /** The conversation's list scrolls to one of its messages (false: it doesn't show it). */
@@ -231,8 +233,25 @@ export function MessageWorkLine({ message, threaded }: { message: Message; threa
   const inside = thread === (work.threadId ?? work.anchorMessageId);
   const hidden = inside || (threaded && !workWaitsOnPerson(work));
   return (
-    <Line work={work} inUpdatesThread={inside} onThread={hidden ? undefined : () => router.push(threadHref(work))} />
+    <>
+      <Line work={work} inUpdatesThread={inside} onThread={hidden ? undefined : () => router.push(threadHref(work))} />
+      {/* In its thread the card is right there; elsewhere a copy of it, decided here as well. */}
+      {!inside && <WorkApproval work={work} />}
+    </>
   );
+}
+
+/**
+ * The approval its run waits on from this reader, as the thread's own card under the line: decided where the person
+ * talks, without opening the thread (`workApproval`). Once shown it stays, decided or not.
+ */
+function WorkApproval({ work }: { work: WorkView }) {
+  const approvals = useApprovals(useOrgId());
+  const [shownId, setShownId] = useState<string | null>(null);
+  const approval = workApproval(approvals.data, work.runId, shownId);
+  if (approval && approval.id !== shownId) setShownId(approval.id);
+  if (!approval?.messageId) return null;
+  return <ApprovalInline approvalId={approval.id} messageId={approval.messageId} />;
 }
 
 /** On a task's screen: the work's line and the agent's plan. */
