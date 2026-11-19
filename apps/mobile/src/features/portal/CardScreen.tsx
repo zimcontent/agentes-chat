@@ -1,5 +1,6 @@
-import type { PlanCard, PortalCardInput, PortalComment, PortalPlan } from "@agenteschat/client";
+import type { PlanCard, PortalComment, PortalPlan, PortalType } from "@agenteschat/client";
 import {
+  useDeletePortalCard,
   useMovePortalCardState,
   usePortalBoard,
   usePortalComments,
@@ -12,43 +13,83 @@ import {
 import { linkPill } from "@agenteschat/client/lib/link-pills";
 import {
   PORTAL_SEND_FILES,
+  PORTAL_TYPES,
   portalArticle,
+  portalCardAddress,
   portalChecks,
   portalClientColors,
   portalClientLogos,
   portalClientName,
+  portalDayOf,
   portalLink,
   portalOrderAt,
+  portalSendDate,
   portalTaskNumbers,
   portalTextParts,
+  portalTimeOf,
   portalWhen,
   portalWriterName,
 } from "@agenteschat/client/lib/portal";
+import * as Clipboard from "expo-clipboard";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Pressable, RefreshControl, StyleSheet, TextInput, View } from "react-native";
-import { Button, Chip, GroupedHeader, GroupedList, GroupedRow, Icon, Text, useFieldText } from "@/ui";
+import { ActivityIndicator, Alert, Pressable, RefreshControl, StyleSheet, TextInput, View } from "react-native";
+import { serverUrl } from "@/lib/server";
+import {
+  Button,
+  Chip,
+  GroupedHeader,
+  GroupedList,
+  GroupedRow,
+  Icon,
+  IconButton,
+  Text,
+  useFieldText,
+  useToast,
+} from "@/ui";
 import { router } from "@/ui/navigation";
 import { LinkPillText } from "../chat/LinkPillText";
 import { Face } from "../shared/Face";
 import { useColors, useDirectory, useMeId, useOrgId, usePullRefresh, useWhen } from "../shared/hooks";
+import { pickOne, showActionSheet } from "../shared/PickerSheet";
+import { PromptForm } from "../shared/PromptForm";
 import { PushedLargeTitle } from "../shared/PushedLargeTitle";
 import { PushedHeader, successHaptic } from "../shared/parts";
+import { SheetHostProvider, useSheet } from "../shared/SheetHost";
+import { DateSheet, LabelsSheet, MembersSheet, useAddCardFiles, useCardPatch } from "./CardEdit";
 import { usePortalFailed, usePortalRights, usePortalWords, useSendCard } from "./hooks";
-import { allPlanCards, commentsNewestFirst, findItem, listsFor, otherTeamColumn, sendProblemOf } from "./model";
+import {
+  allPlanCards,
+  cardLabels,
+  commentsNewestFirst,
+  fileKind,
+  findItem,
+  LABEL_COLOR,
+  listsFor,
+  otherTeamColumn,
+  sendProblemOf,
+} from "./model";
 import { openLink, PostPanel } from "./PostPanel";
 import { ClientMark, FileStrip, StagePill } from "./parts";
 import type { PortalWords } from "./words";
 
 /**
- * One card of a client's board (ADR 9001 §8) on the phone: its files (pictures and videos, each opening full screen),
- * where it is, its list, dates, task and members, the checklist, the caption and description, and what was said
- * about it. Whoever may give agents work moves it (between To do and In production, to another list), ticks its
- * checklist, marks it finished and sends it for approval with what it carries; once sent, the post's own panel takes
- * over (its state at the portal, scheduling, approving for the client). Anyone who may post comments. The rest of a
- * card's editing (dates, labels, members, files) is the web's.
+ * One card of a client's board (ADR 9001 §8) on the phone, doing everything the web's card dialog does: its files
+ * (pictures and videos, each opening full screen; added from the phone, put in order, taken off), the description,
+ * where it is and its list, its title, stage, type, both dates with the post's time, labels, task and members, whether
+ * it is finished, the checklist (ticked, added to, taken from), the caption, and what was said about it. Whoever may
+ * give agents work changes it and sends it for approval; once sent, the post's own panel takes over (its state at the
+ * portal, scheduling, approving for the client). Anyone who may post comments. "…" copies its link or deletes it.
  */
 export function CardScreen({ client, cardId }: { client: string; cardId: string }) {
+  return (
+    <SheetHostProvider>
+      <CardPage client={client} cardId={cardId} />
+    </SheetHostProvider>
+  );
+}
+
+function CardPage({ client, cardId }: { client: string; cardId: string }) {
   const w = usePortalWords();
   const c = useColors();
   const orgId = useOrgId();
@@ -78,6 +119,7 @@ export function CardScreen({ client, cardId }: { client: string; cardId: string 
       title={card.title}
       grouped
       keyboard
+      right={<CardMenu w={w} card={card} />}
       refreshControl={<RefreshControl refreshing={pull.refreshing} onRefresh={pull.onRefresh} />}
     >
       <View style={styles.page}>
@@ -93,6 +135,7 @@ export function CardScreen({ client, cardId }: { client: string; cardId: string 
           )}
           <Words w={w} card={card} />
           <Checklist w={w} card={card} />
+          <Files w={w} card={card} />
           <Comments w={w} card={card} />
         </View>
       </View>
@@ -100,13 +143,20 @@ export function CardScreen({ client, cardId }: { client: string; cardId: string 
   );
 }
 
-/** Where the card is, its list (another one picked in place), its dates, task, members and whether it is finished. */
+/**
+ * The card's facts, each changed in place as on the web's card: its title, stage (A produzir or Em produção while the
+ * team has it; the portal's once it was sent), list, type, the post's day and time, the production day, labels, task,
+ * members and whether it is finished. Whoever can't change the board reads them.
+ */
 function Facts({ w, card, plan }: { w: PortalWords; card: PlanCard; plan: PortalPlan }) {
   const { i18n } = useTranslation();
   const orgId = useOrgId();
   const dir = useDirectory();
+  const toast = useToast();
   const failed = usePortalFailed();
-  const save = useSavePortalCard(orgId);
+  const sheet = useSheet();
+  const { patch } = useCardPatch(card.id);
+  const move = useMovePortalCardState(orgId, card.client);
   const { changes } = usePortalRights();
   const [picking, setPicking] = useState(false);
   const task = portalTaskNumbers(usePortalTasks(orgId, card.task !== null).data).get(card.id);
@@ -115,7 +165,7 @@ function Facts({ w, card, plan }: { w: PortalWords; card: PlanCard; plan: Portal
   const names = card.members
     .map((id) => dir.memberById.get(id)?.name ?? dir.anyAgent(id)?.name ?? null)
     .filter((n): n is string => Boolean(n));
-  const patch = (fields: PortalCardInput) => save.mutate({ cardId: card.id, ...fields }, { onError: failed });
+  const labels = cardLabels(card, plan.labels);
   const moveTo = (list: string | null) => {
     setPicking(false);
     if (list === card.list) return;
@@ -124,9 +174,99 @@ function Facts({ w, card, plan }: { w: PortalWords; card: PlanCard; plan: Portal
   };
   const produce = portalWhen(i18n.language, card.produceOn);
   const postOn = portalWhen(i18n.language, card.postOn);
+  // The team's own stage is the person's to change while the card is the team's; the portal moves it after.
+  const teamStage = changes && !card.item && !card.material && (card.stage === "todo" || card.stage === "doing");
+  const pickStage = async () => {
+    const key = await pickOne({
+      title: w.edit.stagePick,
+      options: (["todo", "doing"] as const).map((s) => ({ key: s, label: w.columns[s] })),
+      value: card.state,
+    });
+    if (key !== "todo" && key !== "doing") return;
+    if (key === card.state && card.stage === key) return;
+    move.mutate(
+      { cardId: card.id, state: key },
+      { onSuccess: () => toast({ title: w.edit.stageSet(w.columns[key]), icon: "check" }), onError: failed },
+    );
+  };
+  const pickType = async () => {
+    const key = await pickOne({
+      title: w.type,
+      options: PORTAL_TYPES.map((t) => ({ key: t, label: w.types[t] })),
+      value: card.type,
+    });
+    const type = PORTAL_TYPES.find((t) => t === key);
+    if (!type || type === card.type) return;
+    patch({ type: type as PortalType }, () => toast({ title: w.edit.typeSet(w.types[type]), icon: "check" }));
+  };
+  const editTitle = () =>
+    sheet.open(
+      <PromptForm
+        title={w.edit.renameTitle}
+        placeholder={w.cardTitle}
+        submitLabel={w.save}
+        initial={card.title}
+        limit={{ max: 120 }}
+        onSubmit={(text) => {
+          if (!text || text === card.title) {
+            sheet.close();
+            return;
+          }
+          patch({ title: text }, () => {
+            sheet.close();
+            successHaptic();
+            toast({ title: w.edit.renamed, icon: "check" });
+          });
+        }}
+      />,
+    );
+  const editPostDate = () =>
+    sheet.open(
+      <DateSheet
+        title={w.postOn}
+        day={portalDayOf(card.date)}
+        time={portalTimeOf(card.date) ?? "09:00"}
+        onSave={(day, time) => {
+          const date = day ? portalSendDate(day, time) : null;
+          if (date === card.date) return;
+          patch({ date }, () =>
+            toast({
+              title: date ? w.dateSet(portalWhen(i18n.language, date) ?? date) : w.dateCleared,
+              icon: "check",
+            }),
+          );
+        }}
+      />,
+    );
+  const editProduce = () =>
+    sheet.open(
+      <DateSheet
+        title={w.produceOn}
+        day={card.produceOn}
+        onSave={(day) => {
+          if (day === card.produceOn) return;
+          patch({ produceOn: day }, () =>
+            toast({
+              title: day ? w.edit.produceSet(portalWhen(i18n.language, day) ?? day) : w.edit.produceCleared,
+              icon: "check",
+            }),
+          );
+        }}
+      />,
+    );
+  const datesEditable = changes && !card.item;
   return (
     <View>
       <GroupedList>
+        {changes ? <GroupedRow label={w.edit.title} sub={card.title} subLines={3} chevron onPress={editTitle} /> : null}
+        {card.material ? null : (
+          <GroupedRow
+            label={w.stage}
+            value={w.columns[card.stage]}
+            {...(teamStage ? { menu: true, onPress: () => void pickStage() } : {})}
+            {...(!teamStage && card.item ? { sub: w.edit.stageAuto, subLines: 2 } : {})}
+          />
+        )}
         <GroupedRow
           label={w.list}
           value={listName}
@@ -145,17 +285,67 @@ function Facts({ w, card, plan }: { w: PortalWords; card: PlanCard; plan: Portal
               />
             ))
           : null}
-        {card.material ? null : <GroupedRow label={w.postOn} value={postOn ?? w.noDate} />}
-        {card.material ? null : <GroupedRow label={w.produceOn} value={produce ?? w.noDate} />}
+        {card.material ? null : (
+          <GroupedRow
+            label={w.type}
+            value={w.types[card.type]}
+            {...(changes ? { menu: true, onPress: () => void pickType() } : {})}
+          />
+        )}
+        {card.material ? null : (
+          <GroupedRow
+            label={w.postOn}
+            value={postOn ?? w.noDate}
+            {...(datesEditable ? { chevron: true, onPress: editPostDate } : {})}
+          />
+        )}
+        {card.material ? null : (
+          <GroupedRow
+            label={w.produceOn}
+            value={produce ?? w.noDate}
+            {...(changes ? { chevron: true, onPress: editProduce } : {})}
+          />
+        )}
+        <GroupedRow
+          label={w.labels}
+          {...(labels.length === 0 ? { value: w.edit.labelsNone } : {})}
+          below={
+            labels.length > 0 ? (
+              <View style={styles.labelChips}>
+                {labels.map((l) => (
+                  <View key={l.id} style={[styles.labelChip, { backgroundColor: LABEL_COLOR[l.color] }]}>
+                    <Text variant="caption" style={styles.labelText} numberOfLines={1}>
+                      {l.name || " "}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : undefined
+          }
+          {...(changes
+            ? {
+                chevron: true,
+                onPress: () => sheet.open(<LabelsSheet client={card.client} cardId={card.id} />),
+              }
+            : {})}
+        />
+        <GroupedRow
+          label={w.members}
+          {...(names.length > 0
+            ? {
+                sub: names.map((n, i) => (i === 0 ? `${n} (${w.responsible})` : n)).join(", "),
+                subLines: 3,
+              }
+            : { value: w.edit.membersNone })}
+          {...(changes
+            ? {
+                chevron: true,
+                onPress: () => sheet.open(<MembersSheet client={card.client} cardId={card.id} />),
+              }
+            : {})}
+        />
         {task !== undefined ? (
           <GroupedRow label={w.task(task)} chevron onPress={() => router.push(`/issues/${task}`)} />
-        ) : null}
-        {names.length > 0 ? (
-          <GroupedRow
-            label={w.members}
-            sub={names.map((n, i) => (i === 0 && names.length > 1 ? `${n} (${w.responsible})` : n)).join(", ")}
-            subLines={3}
-          />
         ) : null}
         {card.material ? null : (
           <GroupedRow
@@ -167,6 +357,47 @@ function Facts({ w, card, plan }: { w: PortalWords; card: PlanCard; plan: Portal
         )}
       </GroupedList>
     </View>
+  );
+}
+
+/** "…" in the bar: the card's link to share (it opens this very card on the web), and its deletion. */
+function CardMenu({ w, card }: { w: PortalWords; card: PlanCard }) {
+  const orgId = useOrgId();
+  const toast = useToast();
+  const failed = usePortalFailed();
+  const remove = useDeletePortalCard(orgId);
+  const { changes } = usePortalRights();
+  const copy = () =>
+    void Clipboard.setStringAsync(portalCardAddress(serverUrl(), orgId, card.client, card.id)).then(() =>
+      toast({ title: w.edit.linkCopied, icon: "link" }),
+    );
+  const askDelete = () =>
+    Alert.alert(w.edit.deleteTitle, w.edit.deleteText(card.title), [
+      { text: w.cancel, style: "cancel" },
+      {
+        text: w.edit.delete,
+        style: "destructive",
+        onPress: () =>
+          remove.mutate(card.id, {
+            onSuccess: () => {
+              toast({ title: w.edit.deleted(card.title), icon: "trash" });
+              router.back();
+            },
+            onError: failed,
+          }),
+      },
+    ]);
+  return (
+    <IconButton
+      icon="more"
+      label={w.edit.more}
+      onPress={() =>
+        showActionSheet(w.cardActions(card.title), [
+          { label: w.edit.copyLink, onPress: copy },
+          ...(changes ? [{ label: w.edit.deleteCard, destructive: true, onPress: askDelete }] : []),
+        ])
+      }
+    />
   );
 }
 
@@ -312,14 +543,63 @@ function SendState({
   );
 }
 
-/** The caption the post goes with. */
+/**
+ * The caption the post goes with, written here as on the web's card: a press opens it in a field, Salvar keeps it.
+ * A material card (no post of its own) only shows a caption it already has; whoever can't change the board reads it.
+ */
 function Words({ w, card }: { w: PortalWords; card: PlanCard }) {
-  if (!card.caption) return null;
+  const c = useColors();
+  const toast = useToast();
+  const field = useFieldText("body");
+  const { patch, pending } = useCardPatch(card.id);
+  const { changes } = usePortalRights();
+  const [draft, setDraft] = useState<string | null>(null);
+  const edits = changes && !card.material;
+  if (!card.caption && !edits) return null;
+  const done = () =>
+    patch({ caption: (draft ?? "").trim() }, () => {
+      successHaptic();
+      setDraft(null);
+      toast({ title: w.edit.captionSaved, icon: "check" });
+    });
   return (
-    <View>
-      <GroupedList>
-        <GroupedRow label={w.caption} sub={card.caption} subLines={60} />
-      </GroupedList>
+    <View style={styles.say}>
+      <GroupedHeader>{w.caption}</GroupedHeader>
+      {draft !== null ? (
+        <>
+          <TextInput
+            value={draft}
+            onChangeText={setDraft}
+            placeholder={w.edit.captionPlaceholder}
+            placeholderTextColor={c.faint}
+            accessibilityLabel={w.caption}
+            autoFocus
+            multiline
+            maxLength={5000}
+            style={[styles.field, styles.described, field, { color: c.ink, backgroundColor: c.raised }]}
+          />
+          <View style={styles.formActs}>
+            <View style={styles.grow}>
+              <Button variant="primary" wide label={w.save} onPress={done} loading={pending} />
+            </View>
+            <View style={styles.grow}>
+              <Button variant="secondary" wide label={w.cancel} onPress={() => setDraft(null)} />
+            </View>
+          </View>
+        </>
+      ) : (
+        <Pressable
+          onPress={edits ? () => setDraft(card.caption) : undefined}
+          disabled={!edits}
+          accessibilityRole={edits ? "button" : "text"}
+          accessibilityLabel={card.caption || w.edit.captionPlaceholder}
+          style={({ pressed }) => [styles.descBox, { backgroundColor: c.raised }, pressed ? styles.pressed : null]}
+        >
+          <Text variant="body" tone={card.caption ? "ink" : "muted"}>
+            {card.caption || w.edit.captionPlaceholder}
+          </Text>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -393,43 +673,150 @@ function Description({ w, card }: { w: PortalWords; card: PlanCard }) {
   );
 }
 
-/** The checklist, ticked in place by whoever may change the board. */
+/**
+ * The checklist, as the web's: ticked in place, an item taken off with its ×, a new one added at its foot (return or
+ * the button). Whoever can't change the board only reads it.
+ */
 function Checklist({ w, card }: { w: PortalWords; card: PlanCard }) {
-  const orgId = useOrgId();
-  const failed = usePortalFailed();
-  const save = useSavePortalCard(orgId);
+  const c = useColors();
+  const field = useFieldText("body");
+  const { patch } = useCardPatch(card.id);
   const { changes } = usePortalRights();
+  const [text, setText] = useState("");
   const checks = portalChecks(card);
-  if (!checks) return null;
+  if (!checks && !changes) return null;
   const tick = (id: string) =>
-    save.mutate(
-      { cardId: card.id, checklist: card.checklist.map((x) => (x.id === id ? { ...x, done: !x.done } : x)) },
-      { onError: failed },
-    );
+    patch({ checklist: card.checklist.map((x) => (x.id === id ? { ...x, done: !x.done } : x)) });
+  const add = () => {
+    const words = text.trim();
+    if (!words) return;
+    patch({ checklist: [...card.checklist, { id: newCheckId(), text: words, done: false }] });
+    setText("");
+  };
   return (
-    <View>
+    <View style={styles.say}>
       <GroupedHeader
         aside={
-          <Text variant="footnote" tone="faint" style={styles.count}>
-            {w.checks(checks.done, checks.total)}
-          </Text>
+          checks ? (
+            <Text variant="footnote" tone="faint" style={styles.count}>
+              {w.checks(checks.done, checks.total)}
+            </Text>
+          ) : undefined
         }
       >
         {w.checklist}
       </GroupedHeader>
-      <GroupedList>
-        {card.checklist.map((x) => (
-          <GroupedRow
-            key={x.id}
-            label={x.text}
-            labelLines={3}
-            icon={x.done ? "checkc" : "circle"}
-            faint={x.done}
-            disabled={!changes}
-            {...(changes ? { onPress: () => tick(x.id) } : {})}
+      {card.checklist.length > 0 ? (
+        <GroupedList>
+          {card.checklist.map((x) => (
+            <GroupedRow
+              key={x.id}
+              label={x.text}
+              labelLines={3}
+              icon={x.done ? "checkc" : "circle"}
+              faint={x.done}
+              disabled={!changes}
+              {...(changes
+                ? {
+                    onPress: () => tick(x.id),
+                    remove: {
+                      label: w.edit.removeCheck(x.text),
+                      onPress: () => patch({ checklist: card.checklist.filter((y) => y.id !== x.id) }),
+                    },
+                  }
+                : {})}
+            />
+          ))}
+        </GroupedList>
+      ) : null}
+      {changes ? (
+        <View style={styles.addRow}>
+          <TextInput
+            value={text}
+            onChangeText={setText}
+            placeholder={w.edit.addCheck}
+            placeholderTextColor={c.faint}
+            accessibilityLabel={w.edit.addCheck}
+            maxLength={300}
+            returnKeyType="done"
+            submitBehavior="submit"
+            onSubmitEditing={add}
+            style={[styles.addField, field, { color: c.ink, backgroundColor: c.raised }]}
           />
-        ))}
-      </GroupedList>
+          <IconButton icon="plus" label={w.edit.addCheck} onPress={add} disabled={!text.trim()} />
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+/** A checklist item's id, as the web makes them (twelve characters). */
+const newCheckId = () =>
+  Array.from({ length: 12 }, () => "abcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random() * 36)]).join("");
+
+/**
+ * The card's files, as the web's attachments: in their order (the first picture or video is the cover), each moved up
+ * or down or taken off; new ones from the phone's photos or files, uploaded into the Drive with their progress.
+ */
+function Files({ w, card }: { w: PortalWords; card: PlanCard }) {
+  const { patch } = useCardPatch(card.id);
+  const { changes } = usePortalRights();
+  const add = useAddCardFiles(card);
+  if (!changes) return null;
+  const move = (i: number, by: -1 | 1) => {
+    const next = [...card.files];
+    const [file] = next.splice(i, 1);
+    if (!file) return;
+    next.splice(i + by, 0, file);
+    patch({ files: next });
+  };
+  const last = card.files.length - 1;
+  return (
+    <View style={styles.say}>
+      <GroupedHeader>{w.files}</GroupedHeader>
+      {card.files.length > 0 ? (
+        <GroupedList>
+          {card.files.map((f, i) => {
+            const kind = fileKind(f);
+            return (
+              <GroupedRow
+                key={f.id}
+                label={f.name}
+                icon={kind === "image" ? "image" : kind === "video" ? "play" : "file"}
+                onPress={() => router.push(`/file/${f.id}`)}
+                buttons={[
+                  ...(i > 0 ? [{ icon: "up" as const, label: w.edit.moveUp, onPress: () => move(i, -1) }] : []),
+                  ...(i < last ? [{ icon: "down" as const, label: w.edit.moveDown, onPress: () => move(i, 1) }] : []),
+                ]}
+                remove={{
+                  label: w.edit.removeFile(f.name),
+                  onPress: () => patch({ files: card.files.filter((x) => x.id !== f.id) }),
+                }}
+              />
+            );
+          })}
+        </GroupedList>
+      ) : null}
+      {add.progress ? (
+        <View style={styles.sending}>
+          <ActivityIndicator />
+          <Text variant="subhead" tone="muted">
+            {w.edit.uploading(add.progress.at, add.progress.total, add.progress.pct)}
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.formActs}>
+          <View style={styles.grow}>
+            <Button variant="secondary" wide icon="photos" label={w.edit.addPhotos} onPress={add.photos} />
+          </View>
+          <View style={styles.grow}>
+            <Button variant="secondary" wide icon="file" label={w.edit.addFile} onPress={add.files} />
+          </View>
+        </View>
+      )}
+      <Text variant="footnote" tone="muted">
+        {w.edit.filesHint}
+      </Text>
     </View>
   );
 }
@@ -594,4 +981,9 @@ const styles = StyleSheet.create({
   count: { paddingTop: 20, paddingBottom: 8, paddingRight: 0 },
   commentText: { marginTop: 2 },
   link: { fontWeight: "600", textDecorationLine: "underline" },
+  labelChips: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 },
+  labelChip: { borderRadius: 6, paddingHorizontal: 8, minHeight: 22, justifyContent: "center", maxWidth: 220 },
+  labelText: { color: "#ffffff", fontWeight: "600" },
+  addRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  addField: { flex: 1, minHeight: 44, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 },
 });
