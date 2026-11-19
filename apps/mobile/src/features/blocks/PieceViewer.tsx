@@ -86,7 +86,7 @@ export function PieceViewer({
       visible={visible}
       animationType="slide"
       presentationStyle="fullScreen"
-      supportedOrientations={["portrait"]}
+      supportedOrientations={["portrait", "landscape"]}
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView

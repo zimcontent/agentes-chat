@@ -171,9 +171,9 @@ describe("Configurações do workspace", () => {
     const row = document.getElementById("notice-phone-status")?.closest(".settings-row") as HTMLElement;
     expect(row.textContent).toContain("Ative no app do celular");
     expect(row.textContent).not.toContain("›");
-    await click(within(row).getByRole("button", { name: "Abrir no celular" }));
+    await click(within(row).getByRole("button", { name: "Parear celular" }));
     await settle(4);
-    expect(screen().getByRole("dialog", { name: "Abrir no celular" })).toBeTruthy();
+    expect(screen().getByRole("dialog", { name: "Parear celular" })).toBeTruthy();
   });
 
   test("connected connectors are listed; disconnect asks first", async () => {
