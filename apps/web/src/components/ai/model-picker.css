@@ -159,7 +159,9 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin-top: var(--space-2);
+  /* The first row on the menu's room, as every menu's: the same 8 under the head. */
+  margin-top: calc(var(--space-2) - var(--menu-pad));
+  padding-top: var(--menu-pad);
 }
 .mp__model[data-refused] .ac-menu__label {
   opacity: 0.55;
@@ -193,4 +195,20 @@
   .channel__acts .mp-trigger .mp-label__text {
     display: none;
   }
+}
+
+/* In a dialog (the agent's own page, `ModelPickerDialog`): the same picker, the sky at the dialog's top edge, the rest
+   on the dialog's own inset, the body scrolling past its room. */
+.mp-dialog .mp__body {
+  min-height: 0;
+  overflow: hidden auto;
+}
+.mp-dialog .mp__body > :not(.mp__sky) {
+  margin-inline: var(--dialog-pad);
+}
+.mp-dialog .team-scene.mp__sky {
+  height: 132px;
+}
+.mp-dialog .mp__foot {
+  padding-bottom: var(--dialog-pad);
 }

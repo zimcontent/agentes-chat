@@ -59,6 +59,7 @@ import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NO_COMPUTER, useNoComputer } from "@/components/AgentComputer";
 import { usePlanHold } from "@/components/ai/ConnectAiSteps";
+import { ModelPickerDialog } from "@/components/ai/ModelPicker";
 import { useConnectAi } from "@/components/ConnectAi";
 import { ToolOffWayOut, useToolOneClick } from "@/components/devices/ToolOneClick";
 import { CommandBlock } from "@/components/machine-bits";
@@ -497,8 +498,22 @@ export function WorkDialogs({
   brainAt?: BrainScreen;
   onClose: () => void;
 }) {
-  // Who thinks has its own dialog, under the sky like Connect's (ADR 0032 §5, addendum 2026-11-10).
-  if (open === "brain") return <BrainDialog onClose={onClose} at={brainAt} />;
+  const { agent } = useAgentEdit();
+  // "Mais opções" of the picker: the full "Quem pensa", until the dialog closes.
+  const [full, setFull] = useState(false);
+  const close = () => {
+    setFull(false);
+    onClose();
+  };
+  // Who thinks opens on the model picker, the same one a conversation has (tiles, account, models, effort); its "Mais
+  // opções", and a link to a screen of its own, open the full dialog under the sky like Connect's (ADR 0032 §5,
+  // addendum 2026-11-10).
+  if (open === "brain")
+    return brainAt || full ? (
+      <BrainDialog onClose={close} at={brainAt} />
+    ) : (
+      <ModelPickerDialog agent={agent} onClose={close} onMore={() => setFull(true)} />
+    );
   if (open === "computer") return <ComputerDialog onClose={onClose} />;
   if (open === "browser") return <BrowserDialog onClose={onClose} />;
   return null;
