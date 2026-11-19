@@ -25,3 +25,6 @@ docs/design/telas/
 
 # Translation work files (bun run i18n:missing)
 i18n-work/
+
+# Local demo seeds for screenshots, never committed.
+apps/server/.demo-seed/

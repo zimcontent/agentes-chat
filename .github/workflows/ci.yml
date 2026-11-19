@@ -219,8 +219,10 @@ jobs:
           if grep -l mermaidAPI $(ls assets/*.js | grep -vxF "$refs"); then exit 1; fi
       # A schema change without its migration fails here (drizzle-kit only diffs, no database). The
       # timeout covers drizzle-kit asking whether a column was renamed, which it can't in CI.
+      # Doug: the tables of our own (WhatsApp, portal, voice, twins...) are made at boot in packages/db/src/client.ts,
+      # outside drizzle's journal, so here this check always fails by design (SYNC-DOUG.md). Ours is check:migrations.
       - name: Migrations are up to date with the schema
-        if: success() || failure()
+        if: github.repository == 'agentes-chat/agentes-chat' && (success() || failure())
         timeout-minutes: 2
         run: |
           bun run db:generate ci-drift-check
