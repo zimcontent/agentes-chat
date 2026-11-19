@@ -206,8 +206,9 @@ describe("a runner that dies mid-request (brain turns never stay working)", () =
     await alive.hello((await pair()).token);
     const dead = fakeRunner(hub, { dead: true });
     await dead.hello((await pair(f.owner.id, "Gone box")).token);
-    // Busy for three and a half heartbeats: the first ping timer fires late, long after the last frame heard.
-    Bun.sleepSync(350);
+    // Busy for over two heartbeats (under the four after which silence closes anyway): the next ping tick fires
+    // late, long after the last pong it could read.
+    Bun.sleepSync(220);
     await Bun.sleep(400);
     expect(alive.closed()).toBeNull();
     expect(alive.sent.filter((frame) => frame.type === "ping").length).toBeGreaterThanOrEqual(3);
