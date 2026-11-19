@@ -1239,6 +1239,12 @@ function BlockChart({ part, accent }: { part: Extract<BlockViewPart, { kind: "ch
   );
 }
 
+/**
+ * A slide or a timeline's beat drawn whole screen (PieceViewer) keeps the margin of the piece it shows, larger than the
+ * chat's: it is the piece's own inside, not a screen's side (SCREEN_X) nor a card's (CARD_PAD).
+ */
+const BIG_PIECE_PAD = 20;
+
 const styles = StyleSheet.create({
   body: { gap: 14, paddingHorizontal: 14, paddingTop: 6, paddingBottom: 14 },
   cut: { height: INLINE_HEIGHT, overflow: "hidden" },
@@ -1339,7 +1345,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     overflow: "hidden",
   },
-  slideBig: { gap: 8, padding: 20, borderRadius: 20, borderBottomLeftRadius: 6 },
+  slideBig: { gap: 8, padding: BIG_PIECE_PAD, borderRadius: 20, borderBottomLeftRadius: 6 },
   slideTitle: { marginTop: "auto" },
   dots: { flexDirection: "row", justifyContent: "center", gap: 5 },
   dotSmall: { width: 5, height: 5, borderRadius: 3 },
@@ -1377,7 +1383,13 @@ const styles = StyleSheet.create({
   beat: { gap: 2, paddingLeft: 14, paddingVertical: 8 },
   dot: { position: "absolute", left: -6, top: 13, width: 10, height: 10, borderRadius: 5 },
   time: { fontVariant: ["tabular-nums"] },
-  beatBig: { gap: 8, padding: 20, borderRadius: 16, borderBottomLeftRadius: 4, borderWidth: StyleSheet.hairlineWidth },
+  beatBig: {
+    gap: 8,
+    padding: BIG_PIECE_PAD,
+    borderRadius: 16,
+    borderBottomLeftRadius: 4,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
   screen: {
     alignSelf: "flex-start",
     marginTop: 4,
