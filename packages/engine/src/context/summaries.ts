@@ -177,6 +177,23 @@ export async function currentThreadSummary(db: Database, orgId: string, threadRo
   return row ?? null;
 }
 
+/** Threads whose summary this process is rewriting now: two runs in one thread start one rewrite. */
+const rewriting = new Set<string>();
+
+/**
+ * Brings a thread's summary up to date beside a run, never in its way: a run in a long thread answers with the
+ * summary it finds (what it doesn't cover is the newest messages, which the run reads whole), and the next run reads
+ * this one.
+ */
+export function refreshThreadSummary(deps: ContextDeps, orgId: string, threadRootId: string): Promise<void> {
+  if (rewriting.has(threadRootId)) return Promise.resolve();
+  rewriting.add(threadRootId);
+  return ensureThreadSummary(deps, orgId, threadRootId, { force: true })
+    .then(() => {})
+    .catch(() => {})
+    .finally(() => rewriting.delete(threadRootId));
+}
+
 /**
  * Lazily summarizes a thread (ADR 0017): only when it is long
  * (`minMessages`) or asked for (`force`), and only when newer messages exist

@@ -106,6 +106,7 @@ import { PARTNER_WAITLIST_CONTACT_JOB, savePartnerWaitlistContact } from "./part
 import { notifyPersonLimit, PERSON_LIMIT_JOB } from "./person-usage";
 import { announcePortalPost, PORTAL_NOTICE_GROUP_MS, PORTAL_NOTIFY_JOB, type PortalNoticeDeps } from "./portal-notices";
 import { deliverPush } from "./push";
+import { isQuickAck } from "./quick-ack";
 import { reachOf, settleReach } from "./reach";
 import { routineCreatorOf } from "./requester";
 import { notifyRound, ROUND_NOTIFY_JOB } from "./review-rounds";
@@ -603,6 +604,8 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
       if (message.meta.taskConversation) return;
       // A fast reply while the task works (talker.ts): its task reads it; it starts nobody, not even by mention.
       if (message.meta.talker) return;
+      // An agent's first line before its answer (docs/adr/doug-0037): the answer that follows is what counts.
+      if (isQuickAck(message.meta)) return;
       // A GIF or a sticker alone (ADR 0091), an agent's silent one after its reply too: it starts nobody, routes
       // to nobody and gets no sticker after it. Its insert queues no `message.posted`; one delivered anyway does
       // nothing.

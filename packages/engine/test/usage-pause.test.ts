@@ -1995,7 +1995,7 @@ describe("a model OpenCode refuses for the key (a 403: the model or the account 
     f = await setup({ reply: () => ({ chunks: ["pela API"] }) });
     const { machineId, accountId } = await goAgent(f, "glm-5.3", reading());
     const { brain } = scripted(() => [{ type: "error", code: "claude_failed", message: FORBIDDEN }]);
-    await post(f, "@dev oi");
+    await post(f, "@dev olha isso");
     await drainOutbox(f.db, accountHandlers(f, brain));
     const [run] = await runs(f);
     expect(waitOf(run)).toMatchObject({ scope: "off", model: "glm-5.3" });
@@ -2031,7 +2031,7 @@ describe("a model OpenCode refuses for the key (a 403: the model or the account 
     const { brain, seen } = scripted((n) =>
       n === 0 ? [{ type: "error", code: "claude_failed", message: FORBIDDEN }] : [{ type: "done", text: "feito" }],
     );
-    await post(f, "@dev oi");
+    await post(f, "@dev olha isso");
     await drainOutbox(f.db, accountHandlers(f, brain));
     expect(seen.map((t) => t.model)).toEqual(["sonnet", "deepseek-v4.1-flash"]);
     const [run] = await runs(f);
@@ -2050,7 +2050,7 @@ describe("a model OpenCode refuses for the key (a 403: the model or the account 
     f = await setup({ reply: () => ({ chunks: ["pela API"] }) });
     await goAgent(f, "auto", reading());
     const { brain, seen } = scripted(() => [{ type: "error", code: "claude_failed", message: FORBIDDEN }]);
-    await post(f, "@dev oi");
+    await post(f, "@dev olha isso");
     await drainOutbox(f.db, accountHandlers(f, brain));
     expect(seen.map((t) => t.model)).toEqual(["sonnet", "glm-5.3"]);
     expect(waitOf((await runs(f))[0])).toMatchObject({ scope: "off" });
@@ -2064,7 +2064,7 @@ describe("a model OpenCode refuses for the key (a 403: the model or the account 
     const { brain, seen } = scripted((n) =>
       n === 0 ? [{ type: "error", code: "claude_failed", message: FORBIDDEN }] : [{ type: "done", text: "feito" }],
     );
-    await post(f, "@dev oi");
+    await post(f, "@dev olha isso");
     await drainOutbox(f.db, accountHandlers(f, brain));
     expect(seen.map((t) => t.model)).toEqual(["sonnet", "glm-5.3"]);
     const replies = (await listMessages(f.db, f.owner.id, f.org.id, f.general.id, {})).filter(
@@ -2099,7 +2099,7 @@ describe("a model OpenCode refuses for the key (a 403: the model or the account 
     f = await setup({ reply: () => ({ chunks: ["pela API"] }) });
     const { accountId } = await goAgent(f, "auto", reading("deepseek-v4.1-flash"));
     const { brain, seen } = scripted(() => [{ type: "error", code: "claude_failed", message: INACTIVE }]);
-    await post(f, "@dev oi");
+    await post(f, "@dev olha isso");
     await drainOutbox(f.db, accountHandlers(f, brain));
     expect(seen).toHaveLength(1);
     const [run] = await runs(f);
@@ -2118,7 +2118,7 @@ describe("a model OpenCode refuses for the key (a 403: the model or the account 
     f = await setup({ reply: () => ({ chunks: ["pela API"] }) });
     const { accountId } = await goAgent(f, "deepseek-v4.1-flash", reading());
     const { brain } = scripted(() => [{ type: "done", text: "feito" }]);
-    await post(f, "@dev oi");
+    await post(f, "@dev olha isso");
     await drainOutbox(f.db, accountHandlers(f, brain));
     expect((await accountUsage(f, accountId))?.answered).toBe("deepseek-v4.1-flash");
   });

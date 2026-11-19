@@ -117,6 +117,8 @@ const size = (r: ModelRequest) =>
  * code goes to a mailbox the agent reads being its own work adds 360; the ceiling leaves a little room above both.
  * `remember`'s `reach`, a memory kept in its workspace or taken to every copy of the agent (ADR doug-0013, addendum
  * 2026-11-19), adds 410 (49,030; 49,477 with the workspace's computer).
+ * A task carried to its end in one turn, an answer about as long as the message and no em dash came in at about the
+ * same size (48,635), once two rules stopped repeating them. With the `reach` above: 49,045 (49,492 with the computer).
  */
 const OI_CEILING_CHARS = 49_500;
 
