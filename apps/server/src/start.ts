@@ -56,6 +56,7 @@ import {
   allowPrivateOutbound,
   allowsPrivateEndpoints,
   backfillMemoryTrust,
+  cappedPlatformCredentials,
   composioUsageHook,
   // The approval portal kept in this server's own database (docs/adr/doug-0031-embedded-approval-portal.md).
   createEmbeddedApprovalPortal,
@@ -85,6 +86,7 @@ import {
   retireHostTokens,
   retireMillionSendMailboxes,
   setMessageLinkBase,
+  setPlatformCapDefault,
   setRestrictionNotices,
   setWorkspaceComputers,
   shareCacheInvalidations,
@@ -337,6 +339,7 @@ async function boot(
   let gifKey: GifKey | null = null;
   // The installation's own file store, made before the adapters that share it: the approval portal keeps a post's
   // files there (docs/adr/doug-0031-embedded-approval-portal.md).
+  setPlatformCapDefault(config.PLATFORM_AI_USD_PER_MONTH);
   const platformBlobs = platformBlobStore(config, database.db);
   const defaults: Adapters = {
     search: createPostgresSearchResolver(database.db),
@@ -347,9 +350,13 @@ async function boot(
     keyWrapper: localKeyWrapper,
     legacyKeyWrappers: [],
     email: emailSender(config, log),
-    platformCredentials: envPlatformCredentials({
-      anthropic: { apiKey: config.PLATFORM_ANTHROPIC_API_KEY, workspaceId: config.PLATFORM_ANTHROPIC_WORKSPACE_ID },
-    }),
+    // The server's own key, bounded per workspace by its platform cap (docs/adr/doug-0035-beta.md).
+    platformCredentials: cappedPlatformCredentials(
+      database.db,
+      envPlatformCredentials({
+        anthropic: { apiKey: config.PLATFORM_ANTHROPIC_API_KEY, workspaceId: config.PLATFORM_ANTHROPIC_WORKSPACE_ID },
+      }),
+    ),
     platformBlobs,
     // Phone app push (ADR 0035, ADR 0152, ADR 0178): only devices that registered get anything. Android straight
     // to Firebase and iPhones straight to Apple, or through the push relay (`PUSH_SENDER`).
