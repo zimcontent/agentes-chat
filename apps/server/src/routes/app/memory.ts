@@ -29,6 +29,7 @@ import {
   SERVER_REASONS,
   SETTING_GROUP,
   settingsGroup,
+  twinReachOf,
   userVisibleChannels,
   WAITING_GROUP,
 } from "@agenteschat/engine";
@@ -92,6 +93,10 @@ const Memory = z
       .optional()
       .openapi({ description: "A `rule` the viewer may remove: its giver, the agent's owner or an admin." }),
     channelId: z.uuid().nullable().optional().openapi({ description: "Where it was learned." }),
+    reach: z.enum(["all", "here"]).nullable().optional().openapi({
+      description:
+        "Among the agent's copies in other workspaces (ADR doug-0013): `all` goes to every copy, `here` stays in this workspace; null never leaves it (learned in a channel).",
+    }),
     updatedAt: z.string(),
     from: z
       .object({
@@ -314,6 +319,7 @@ async function memoryViews(db: Database, items: ContextItem[], visible: readonly
       playbook: isPlaybook(i),
       disputed: i.disputed,
       channelId: i.channelIds[0] ?? null,
+      reach: twinReachOf(i),
       updatedAt: i.updatedAt.toISOString(),
     };
   });
@@ -655,6 +661,10 @@ export function memoryRoutes(deps: AppDeps) {
             pinned: z.boolean().optional(),
             archived: z.boolean().optional(),
             confirmed: z.literal(true).optional(),
+            reach: z.enum(["all", "here"]).optional().openapi({
+              description:
+                "Where the agent works in other workspaces too (ADR doug-0013): `here` keeps it in this one, `all` sends it to every copy.",
+            }),
           }),
         ),
       },
@@ -668,6 +678,7 @@ export function memoryRoutes(deps: AppDeps) {
         pinned: input.pinned,
         archived: input.archived,
         confirmed: input.confirmed,
+        reach: input.reach,
       });
       // The memory mark on the message it came from changes for everyone in the channel.
       await announceMessageMemories({ db, pubsub: deps.adapters.pubsub }, orgId, row).catch(() => {});

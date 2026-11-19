@@ -4091,6 +4091,7 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
       edit: async (orgId, id, text) => patchMemory(orgId, id, { text }),
       setPinned: async (orgId, id, pinned) => patchMemory(orgId, id, { pinned }),
       setArchived: async (orgId, id, archived) => patchMemory(orgId, id, { archived }),
+      setReach: async (orgId, id, reach) => patchMemory(orgId, id, { reach }),
       confirm: async (orgId, id) => patchMemory(orgId, id, { confirmed: true }),
       listTeam: async () => state.memories.filter((m) => !m.agentId && !m.archived),
       makeTeam: async (orgId, id) => {
@@ -4332,7 +4333,7 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
   function patchMemory(
     orgId: string,
     id: string,
-    patch: { text?: string; pinned?: boolean; archived?: boolean; confirmed?: boolean },
+    patch: { text?: string; pinned?: boolean; archived?: boolean; confirmed?: boolean; reach?: "all" | "here" },
   ) {
     log("memory.patch", orgId, id, patch);
     const m = state.memories.find((x) => x.id === id);
@@ -4345,6 +4346,7 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
     }
     if (patch.pinned !== undefined) m.pinned = patch.pinned;
     if (patch.archived !== undefined) m.archived = patch.archived;
+    if (patch.reach !== undefined) m.reach = patch.reach;
     if (patch.confirmed) {
       m.lowTrust = false;
       m.verified = true;

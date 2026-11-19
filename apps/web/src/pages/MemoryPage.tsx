@@ -31,6 +31,7 @@ import { useTranslation } from "react-i18next";
 import { AskAgentButton } from "@/components/AskAgentButton";
 import { HelpLink } from "@/components/HelpLink";
 import { ErrorState, LoadingPage } from "@/components/Loading";
+import { ReachButton, reachLabel, useMemoryReach } from "@/components/MemoryReach";
 import { useOrg } from "@/components/org-context";
 import { useDirectory } from "@/hooks/useDirectory";
 import { useTextLimit } from "@/hooks/useTextLimit";
@@ -163,6 +164,7 @@ function MemoryView({ agent, item }: { agent: Agent; item?: string }) {
   const memory = useMemory(org.id, agent.id);
   const proposals = useProposals(org.id);
   const action = useMemoryAction(org.id, agent.id);
+  const reachOf = useMemoryReach(agent.id);
   const g = agentGrammar(agent.name);
   const [picked, setTab] = useState<MemoryTab | null>(null);
   const [q, setQ] = useState("");
@@ -250,6 +252,7 @@ function MemoryView({ agent, item }: { agent: Agent; item?: string }) {
                   {t("memory.lowTrust")}
                 </Chip>
               )}
+              {reachOf(m) && <Chip icon="globe">{reachLabel(t, reachOf(m) ?? "all")}</Chip>}
               <span className="memory-item__used">{usageLabel(t, m)}</span>
             </div>
             <p className="memory-item__text">{memoryLine(t, m)}</p>
@@ -276,6 +279,7 @@ function MemoryView({ agent, item }: { agent: Agent; item?: string }) {
                     {t("memory.confirm")}
                   </Button>
                 )}
+                {reachOf(m) && !m.archived && <ReachButton agentId={agent.id} m={m} reach={reachOf(m) ?? "all"} />}
                 <Button variant="link" onClick={() => setEditing(m)}>
                   {t("memory.edit")}
                 </Button>

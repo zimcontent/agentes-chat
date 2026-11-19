@@ -157,6 +157,11 @@ export const contextItems = pgTable(
      * Null: never copied. Created by `EXTRA_COLUMNS`.
      */
     twinKey: uuid(),
+    /**
+     * How far it goes among the agent's copies (ADR doug-0013 addendum 2026-11-19): `all` (the craft, every
+     * workspace), `here` (this workspace's business), null as its kind says (`memoryReach`). Created by `EXTRA_COLUMNS`.
+     */
+    reach: text().$type<"all" | "here">(),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },

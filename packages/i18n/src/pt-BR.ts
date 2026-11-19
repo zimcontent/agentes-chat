@@ -6803,6 +6803,12 @@ export const ptBR = {
       save: "Salvar",
       cancel: "Cancelar",
       forgotten: "Esquecido. Fica em Arquivadas se quiser de volta.",
+      reachAll: "Em todos os workspaces",
+      reachHere: "Só neste workspace",
+      keepHere: "Manter só aqui",
+      sendAll: "Levar para todos",
+      keptHere: "Fica neste workspace. As cópias dos outros workspaces são arquivadas em até um minuto.",
+      sentAll: "Vai para o agente nos seus outros workspaces em até um minuto.",
       rules: "Regras que as pessoas deram",
       rulesNote:
         "Valem em todo o trabalho para quem deu cada uma, venha o pedido de onde vier. As do responsável ou de um admin valem para todos.",

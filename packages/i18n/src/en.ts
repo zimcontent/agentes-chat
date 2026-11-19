@@ -6889,6 +6889,13 @@ export const en = {
       cancel: "Cancel",
       forgotten: "Forgotten. It's in Archived if you want it back.",
       saved: "Saved. It counts as verified now.",
+      /** Where the agent works in other workspaces too (ADR doug-0013): whether one memory goes there. */
+      reachAll: "In all workspaces",
+      reachHere: "Only in this workspace",
+      keepHere: "Keep only here",
+      sendAll: "Take to all",
+      keptHere: "It stays in this workspace. Copies the other workspaces got are archived within a minute.",
+      sentAll: "It goes to the agent in your other workspaces within a minute.",
       /** Lasting rules people gave the agent in the chat (a permission, where to send things), with who and when. */
       rules: "Rules people gave",
       rulesNote:

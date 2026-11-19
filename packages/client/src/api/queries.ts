@@ -4291,12 +4291,14 @@ export function useMemoryAction(orgId: string, agentId: string) {
         | { type: "pin"; id: string; pinned: boolean }
         | { type: "archive"; id: string; archived: boolean }
         | { type: "confirm"; id: string }
-        | { type: "team"; id: string },
+        | { type: "team"; id: string }
+        | { type: "reach"; id: string; reach: "all" | "here" },
     ) => {
       if (action.type === "edit") return api.memory.edit(orgId, action.id, action.text);
       if (action.type === "pin") return api.memory.setPinned(orgId, action.id, action.pinned);
       if (action.type === "confirm") return api.memory.confirm(orgId, action.id);
       if (action.type === "team") return api.memory.makeTeam(orgId, action.id);
+      if (action.type === "reach") return api.memory.setReach(orgId, action.id, action.reach);
       return api.memory.setArchived(orgId, action.id, action.archived);
     },
     onSuccess: () =>
