@@ -603,7 +603,12 @@ export function describedCard(
 ): { description?: string; carried?: number; refusal?: string } {
   const pieces = work?.pieces ?? [];
   if (from && from !== "none") {
-    const piece = pieces.find((p) => p.ref === from.trim().toLowerCase());
+    // The ref as a refusal lists it, even copied with its "ref " or quotes: an agent that pastes the line finds it.
+    const ref = from
+      .toLowerCase()
+      .replace(/^\s*ref\b/, "")
+      .replace(/[^0-9a-f]/g, "");
+    const piece = pieces.find((p) => p.ref === ref);
     if (!piece) {
       return {
         refusal: pieces.length
@@ -716,7 +721,10 @@ function cardTool(portal: ApprovalPortal): ToolDefinition {
         }
         // The work asked for goes on the card itself: a card made from a conversation that holds it never carries
         // only a line about it (the task made from the card is what the person reads next).
-        const from = str(input.description_from).trim();
+        const from = str(input.description_from)
+          .trim()
+          .replace(/^["'`]+|["'`]+$/g, "")
+          .toLowerCase();
         const writes = input.action === "create" || input.description !== undefined || Boolean(from);
         let carried = 0;
         if (writes && input.action !== "delete") {

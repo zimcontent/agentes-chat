@@ -214,6 +214,36 @@ describe("a card made from a conversation carries its work", () => {
     expect(await portal.cards()).toHaveLength(0);
   });
 
+  test("a ref copied from the refusal's line, or `None` in capitals, is read as meant", async () => {
+    f = await setup();
+    const root = await post(COPY, 120, null, true);
+    const ask = await post("sobe no cartão", 30, root);
+    const { portal, tool } = await cardTool();
+    const pasted = await tool.execute(
+      {
+        action: "create",
+        client: "lexeer",
+        title: "Carrossel",
+        description_from: `ref ${workRef(root).toUpperCase()}`,
+      },
+      ctxOf(ask, root),
+    );
+    expect(pasted.isError).toBeUndefined();
+    expect(await descriptionOf(portal, pasted.content)).toBe(COPY);
+    const none = await tool.execute(
+      {
+        action: "create",
+        client: "lexeer",
+        title: "Outro post",
+        description: "Ideia: bastidores.",
+        description_from: '"None"',
+      },
+      ctxOf(ask, root),
+    );
+    expect(none.isError).toBeUndefined();
+    expect(await descriptionOf(portal, none.content)).toBe("Ideia: bastidores.");
+  });
+
   test("changing a card's description is held to the same rule; changing only its stage is not", async () => {
     f = await setup();
     const root = await post(COPY, 120, null, true);
