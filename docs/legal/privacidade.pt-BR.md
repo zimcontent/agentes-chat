@@ -107,6 +107,9 @@ Além dos provedores de modelo, a instalação pode usar serviços externos. Cad
 {{#if svc.media}}
 - **Geração de imagens e vídeos** por um serviço de mídia pago em créditos (Zim Mídia). Ele recebe o pedido e as referências enviadas, e guarda as chaves dos provedores e a carteira de créditos do workspace.
 {{/if}}
+{{#if svc.houseVoice}}
+- **Voz da casa nas chamadas** (Qwen Audio, pela Empirio Labs), paga em créditos do serviço de mídia. Ela recebe o áudio da chamada, as instruções do agente e o que foi dito nela enquanto a chamada dura. A chave fica só no servidor.
+{{/if}}
 {{#if svc.speech}}
 - **Transcrição de voz** por um serviço de fala configurado pela instalação (AssemblyAI, ElevenLabs, Soniox, Groq, OpenAI ou DeepInfra, na ordem em que a instalação os tenta). Ele recebe o áudio da mensagem de voz. Os agentes que falam no WhatsApp com a ElevenLabs enviam a ela o texto que vão dizer. Um servidor de fala da própria instalação, na mesma rede, não manda nada para fora.
 {{/if}}
@@ -284,6 +287,7 @@ A tabela mostra, para cada serviço, se ele está ligado nesta instalação, con
 | Serviço de mídia (Zim Mídia) | Gerar imagens e vídeos | O pedido e as referências enviadas | {{on:svc.media}} |
 | Transcrição de voz | Transformar áudio em texto | O áudio da mensagem de voz | {{on:svc.speech}} |
 | Voz ao vivo | Falar em uma chamada | O áudio da chamada | Conforme a chave do workspace |
+| Voz da casa (Empirio Labs) | Falar em uma chamada | O áudio da chamada | {{on:svc.houseVoice}} |
 | Firebase e Apple (notificações) | Entregar o aviso no aparelho | O texto do aviso e o token do aparelho | {{on:svc.pushDirect}} |
 | Relay de notificações do agentes.chat | Entregar o aviso no aparelho | O texto do aviso e o token do aparelho | {{on:svc.pushRelay}} |
 | Notificações no navegador | Entregar o aviso no navegador | O aviso, cifrado | Sempre |

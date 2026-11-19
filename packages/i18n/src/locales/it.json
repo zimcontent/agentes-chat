@@ -11591,7 +11591,7 @@
       "notesExample": "Es.: Chiudete sempre con chi fa cosa ed entro quando. Chiamate il cliente per nome.",
       "agentNotes": "{{name}} nelle chiamate",
       "agentNotesExample": "Es.: Porta numeri prima delle opinioni. Contesta quando il budget non torna.",
-      "title": "Voce dal vivo (GPT-Live)",
+      "title": "Voce dal vivo",
       "lead": "Chiamate vocali con i tuoi agenti e Ascolta su ogni messaggio, ogni agente con la sua voce.",
       "on": "Attivata",
       "off": "Disattivata",
@@ -11615,7 +11615,19 @@
       "current": "Attuale",
       "previewOf": "Ascolta {{voice}}",
       "use": "Usa {{voice}}",
-      "refused": "Questa chiave non ha questa voce: al suo posto ha parlato {{voice}}."
+      "refused": "Questa chiave non ha questa voce: al suo posto ha parlato {{voice}}.",
+      "engine": "Voce delle chiamate",
+      "house": "Voce della casa (Qwen)",
+      "gptLive": "GPT-Live (la tua chiave)",
+      "houseCredits": "Pagata con i crediti di questo workspace: {{perMinute}} crediti al minuto. Saldo: {{balance}} crediti, circa {{minutes}} min.",
+      "houseNoWallet": "Pagata in crediti, {{perMinute}} al minuto. Il saldo ora non si può leggere.",
+      "gptLiveHint": "La voce di OpenAI, con la chiave di questo workspace. Circa 0,05 US$ al minuto per agente.",
+      "addCredits": "Compra crediti",
+      "monthly": "Limite mensile in crediti",
+      "monthlyNone": "Nessun limite",
+      "spent": "Usati questo mese: {{spent}} di {{limit}} crediti.",
+      "spentNoLimit": "Usati questo mese: {{spent}} crediti. Le chiamate si fermano solo quando il saldo finisce.",
+      "pickerLeadHouse": "Ascolta ogni voce come {{name}} e scegli. Ogni anteprima costa uno o due crediti."
     },
     "phoneLine": {
       "title": "Chiamate telefoniche",
@@ -11669,7 +11681,12 @@
       "noWords": "Questo messaggio non ha parole da raccontare.",
       "notHost": "Solo chi conduce la chiamata apre le voci degli agenti.",
       "ended": "Questa chiamata è terminata.",
-      "notIn": "Non sei più in questa chiamata."
+      "notIn": "Non sei più in questa chiamata.",
+      "noCredits": "Non ci sono crediti per un minuto di chiamata. Compra crediti nella pagina Media.",
+      "monthLimit": "Le chiamate hanno raggiunto il limite di crediti del mese. Chi configura il workspace può alzarlo in Impostazioni › Voce.",
+      "updateApp": "Qui le chiamate usano la voce della casa. Aggiorna l’app per chiamare.",
+      "noHouse": "La voce della casa non è disponibile qui.",
+      "badLimit": "Un limite è un numero intero di crediti."
     }
   },
   "media": {

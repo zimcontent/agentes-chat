@@ -27157,7 +27157,7 @@
     "value": "E.g.: Brings numbers before opinions. Pushes back when the budget doesn't fit."
   },
   "liveVoice.settings.title": {
-    "value": "Live voice (GPT-Live)"
+    "value": "Live voice"
   },
   "liveVoice.settings.lead": {
     "value": "Voice calls with your agents and Listen on any message, each agent in its own voice."
@@ -27230,6 +27230,42 @@
   },
   "liveVoice.settings.refused": {
     "value": "This key doesn't have this voice: {{voice}} spoke instead."
+  },
+  "liveVoice.settings.engine": {
+    "value": "The calls' voice"
+  },
+  "liveVoice.settings.house": {
+    "value": "House voice (Qwen)"
+  },
+  "liveVoice.settings.gptLive": {
+    "value": "GPT-Live (your key)"
+  },
+  "liveVoice.settings.houseCredits": {
+    "value": "Paid from this workspace's credits: {{perMinute}} credits a minute. Balance: {{balance}} credits, about {{minutes}} min."
+  },
+  "liveVoice.settings.houseNoWallet": {
+    "value": "Paid in credits, {{perMinute}} a minute. The balance can't be read now."
+  },
+  "liveVoice.settings.gptLiveHint": {
+    "value": "OpenAI's voice, on this workspace's own key. About US$ 0.05 a minute per agent."
+  },
+  "liveVoice.settings.addCredits": {
+    "value": "Buy credits"
+  },
+  "liveVoice.settings.monthly": {
+    "value": "Monthly limit in credits"
+  },
+  "liveVoice.settings.monthlyNone": {
+    "value": "No limit"
+  },
+  "liveVoice.settings.spent": {
+    "value": "Used this month: {{spent}} of {{limit}} credits."
+  },
+  "liveVoice.settings.spentNoLimit": {
+    "value": "Used this month: {{spent}} credits. Calls stop only when the balance runs out."
+  },
+  "liveVoice.settings.pickerLeadHouse": {
+    "value": "Hear each voice as {{name}} and pick one. Each sample uses a credit or two."
   },
   "liveVoice.phoneLine.title": {
     "value": "Phone calls"
@@ -27368,6 +27404,21 @@
   },
   "liveVoice.errors.notIn": {
     "value": "You're not in this call anymore."
+  },
+  "liveVoice.errors.noCredits": {
+    "value": "Not enough credits for a minute of call. Buy credits on the Media page."
+  },
+  "liveVoice.errors.monthLimit": {
+    "value": "The calls reached this month's credit limit. Whoever configures the workspace can raise it in Settings › Voice."
+  },
+  "liveVoice.errors.updateApp": {
+    "value": "Calls here use the house voice. Update the app to call."
+  },
+  "liveVoice.errors.noHouse": {
+    "value": "The house voice isn't available here."
+  },
+  "liveVoice.errors.badLimit": {
+    "value": "A limit is a whole number of credits."
   },
   "media.word.gif": {
     "value": "GIF"

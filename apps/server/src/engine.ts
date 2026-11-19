@@ -24,6 +24,7 @@ import {
   authorizeStream,
   type BrainTurn,
   blockSpecAt,
+  bunHouseSocket,
   bunSideband,
   CodexBrain,
   type ContextDeps,
@@ -881,6 +882,11 @@ export function buildEngine(o: EngineOptions) {
     keyWrapper: adapters.keyWrapper,
     keyWrappers,
     openSideband: bunSideband,
+    // The house voice (docs/adr/doug-0036-house-voice.md): with the server's Empirio key and the credit wallet.
+    house:
+      config.EMPIRIO_API_KEY && adapters.zimMedia
+        ? { apiKey: config.EMPIRIO_API_KEY, media: adapters.zimMedia, open: bunHouseSocket }
+        : null,
     pickWithSmallModel: async (orgId, system, prompt) => {
       const model = await smallModelFor({ db, gateway }, orgId, smallModels);
       if (!model) return null;

@@ -154,6 +154,7 @@ import type {
   JevKey,
   JevKeyInput,
   LiveVoice,
+  LiveVoiceEngine,
   Machine,
   MachineAccessReduce,
   MachineTool,
@@ -557,6 +558,12 @@ export const useSaveLiveVoiceKey = (orgId: string) =>
   useLiveVoiceChange(orgId, (api, apiKey: string) => api.liveVoice.saveKey(orgId, apiKey));
 export const useRemoveLiveVoiceKey = (orgId: string) =>
   useLiveVoiceChange<void>(orgId, (api) => api.liveVoice.removeKey(orgId));
+/** The voice of calls here (docs/adr/doug-0036-house-voice.md): the house voice, GPT-Live, or null for the default. */
+export const useSetLiveVoiceEngine = (orgId: string) =>
+  useLiveVoiceChange(orgId, (api, engine: LiveVoiceEngine | null) => api.liveVoice.setEngine(orgId, engine));
+/** The most credits the house voice may spend here in a month; null: no limit. */
+export const useSetLiveVoiceLimit = (orgId: string) =>
+  useLiveVoiceChange(orgId, (api, credits: number | null) => api.liveVoice.setMonthlyLimit(orgId, credits));
 /** The workspace's notes on how its agents behave on calls (docs/adr/doug-0006-live-voice.md §11). */
 export const useSaveCallNotes = (orgId: string) =>
   useLiveVoiceChange(orgId, (api, notes: string) => api.liveVoice.saveCallNotes(orgId, notes));

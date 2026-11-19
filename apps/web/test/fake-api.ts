@@ -165,6 +165,7 @@ const NO_LEGAL_SERVICES: LegalFacts["services"] = {
   support: false,
   telemetry: false,
   driveBackup: false,
+  houseVoice: false,
 };
 /** The brand's tones as the server sends them: ids fixed, words in pt-BR (the tests run in Portuguese). */
 const BRAND_TONES = [
@@ -1660,6 +1661,29 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
       get: async () => ({ state: "off", hint: null, editable: true, callNotes: "" }),
       saveKey: async () => ({ state: "ok", hint: "abcd", editable: true, callNotes: "" }),
       removeKey: async () => ({ state: "off", hint: null, editable: true, callNotes: "" }),
+      startVoice: async () => {
+        throw new ApiError(404, "not_found", "Not found");
+      },
+      setEngine: async (_orgId, engine) => ({
+        state: "ok",
+        engine: engine ?? "house",
+        chosenEngine: engine,
+        gptLiveKey: false,
+        house: { perMinute: 20, balance: 1000, monthlyCredits: null, spentThisMonth: 0 },
+        hint: null,
+        editable: true,
+        callNotes: "",
+      }),
+      setMonthlyLimit: async (_orgId, credits) => ({
+        state: "ok",
+        engine: "house",
+        chosenEngine: null,
+        gptLiveKey: false,
+        house: { perMinute: 20, balance: 1000, monthlyCredits: credits, spentThisMonth: 0 },
+        hint: null,
+        editable: true,
+        callNotes: "",
+      }),
       saveCallNotes: async (_orgId, notes) => ({
         state: "off",
         hint: null,

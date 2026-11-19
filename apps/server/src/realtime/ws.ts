@@ -26,10 +26,14 @@ import {
   closesWorkspace,
   ForbiddenError,
   getMembership,
+  HOUSE_RELAY_PATH,
+  houseRelayWaiting,
   isConnected,
+  type LiveVoiceDeps,
   type LiveWatch,
   NotFoundError,
   type OrgEvent,
+  openHouseRelay,
   profileIdOfKey,
   publishTyping,
   readRefusal,
@@ -98,6 +102,8 @@ export interface RealtimeDeps {
   browserLive?: BrowserLive;
   /** Agents' desktops and terminals (ADR 0058): people's stream sockets and the runners' data sockets. */
   streams?: StreamSockets;
+  /** Live voice: the house voice's relay sockets (docs/adr/doug-0036-house-voice.md); absent = not offered. */
+  liveVoice?: LiveVoiceDeps;
   /** How often an open socket checks its session and channels again (`SESSION_RECHECK_MS`; tests go faster). */
   sessionRecheckMs?: number;
 }
@@ -146,8 +152,19 @@ export interface FrameSocketData {
   pinger?: ReturnType<typeof setInterval>;
 }
 
+/**
+ * A house voice session's audio and events (docs/adr/doug-0036-house-voice.md), opened with the one-use ticket its
+ * start returned: the ticket is the whole check, as a frame socket's.
+ */
+export interface RelaySocketData {
+  kind: "live.relay";
+  ticket: string;
+  relay: ReturnType<typeof openHouseRelay>;
+  pinger?: ReturnType<typeof setInterval>;
+}
+
 /** Every socket of the server: browsers (`/api/ws`), runners (`/api/machines/connect`) and streams (ADR 0058). */
-export type SocketData = BrowserSocketData | MachineSocketData | StreamSocketData | FrameSocketData;
+export type SocketData = BrowserSocketData | MachineSocketData | StreamSocketData | FrameSocketData | RelaySocketData;
 
 type BrowserSocket = Bun.ServerWebSocket<BrowserSocketData>;
 type MachineSocket = Bun.ServerWebSocket<MachineSocketData>;
@@ -155,6 +172,8 @@ type StreamSocket = Bun.ServerWebSocket<StreamSocketData>;
 const isMachine = (ws: Bun.ServerWebSocket<SocketData>): ws is MachineSocket => ws.data.kind === "machine";
 const isFrames = (ws: Bun.ServerWebSocket<SocketData>): ws is Bun.ServerWebSocket<FrameSocketData> =>
   ws.data.kind === "browser.frames";
+const isRelay = (ws: Bun.ServerWebSocket<SocketData>): ws is Bun.ServerWebSocket<RelaySocketData> =>
+  ws.data.kind === "live.relay";
 const isStream = (ws: Bun.ServerWebSocket<SocketData>): ws is StreamSocket =>
   ws.data.kind === "stream.viewer" || ws.data.kind === "stream.data";
 
@@ -506,6 +525,40 @@ export function createRealtime(deps: RealtimeDeps) {
     },
   };
 
+  /** `GET /api/live-voice/relay?ticket=`: a house voice session's socket (docs/adr/doug-0036-house-voice.md). */
+  function upgradeRelay(req: Request, server: Bun.Server<SocketData>): Response | undefined {
+    const ticket = new URL(req.url).searchParams.get("ticket") ?? "";
+    if (!ticket || !houseRelayWaiting(ticket)) return new Response("Unknown or expired ticket", { status: 403 });
+    const data: RelaySocketData = { kind: "live.relay", ticket, relay: null };
+    return server.upgrade(req, { data }) ? undefined : new Response("WebSocket upgrade failed", { status: 400 });
+  }
+
+  const relaySocket = {
+    open(socket: Bun.ServerWebSocket<RelaySocketData>) {
+      if (!deps.liveVoice) return socket.close(1011, "no live voice");
+      socket.data.relay = openHouseRelay(deps.liveVoice, socket.data.ticket, {
+        text: (data) => {
+          if (socket.readyState === 1) socket.send(data);
+        },
+        binary: (pcm) => {
+          if (socket.readyState === 1) socket.sendBinary(pcm);
+        },
+        close: () => {
+          if (socket.readyState === 1) socket.close(1000, "ended");
+        },
+      });
+      if (!socket.data.relay) return socket.close(4403, "unknown or expired ticket");
+      socket.data.pinger = setInterval(() => socket.ping(), STREAM_LIMITS.pingMs);
+    },
+    message(socket: Bun.ServerWebSocket<RelaySocketData>, raw: string | Buffer) {
+      socket.data.relay?.message(typeof raw === "string" ? raw : new Uint8Array(raw));
+    },
+    close(socket: Bun.ServerWebSocket<RelaySocketData>) {
+      clearInterval(socket.data.pinger);
+      socket.data.relay?.close();
+    },
+  };
+
   /** Rates (`browser.fps`) one socket keeps for watches still starting: a few more than the browsers it may watch. */
   const MAX_KEPT_RATES = MAX_WATCHED_BROWSERS * 4;
 
@@ -689,6 +742,7 @@ export function createRealtime(deps: RealtimeDeps) {
       const path = new URL(req.url).pathname;
       if (path === realtime.path) return realtime.upgrade(req, server);
       if (path === BROWSER_FRAMES_PATH && deps.browserLive) return upgradeFrames(req, server);
+      if (path === HOUSE_RELAY_PATH && deps.liveVoice?.house) return upgradeRelay(req, server);
       if (deps.machines && path === deps.machines.path) {
         return deps.machines.upgrade(req, server as unknown as Bun.Server<MachineSocketData>);
       }
@@ -730,6 +784,7 @@ export function createRealtime(deps: RealtimeDeps) {
       idleTimeout: 120,
       async open(socket: Bun.ServerWebSocket<SocketData>) {
         if (isFrames(socket)) return frameSocket.open(socket);
+        if (isRelay(socket)) return relaySocket.open(socket);
         if (isMachine(socket)) return deps.machines?.open(socket);
         if (isStream(socket)) return deps.streams?.open(socket);
         const ws = socket as BrowserSocket;
@@ -816,6 +871,7 @@ export function createRealtime(deps: RealtimeDeps) {
       },
       async message(socket: Bun.ServerWebSocket<SocketData>, raw: string | Buffer): Promise<void> {
         if (isFrames(socket)) return frameSocket.message(socket, raw);
+        if (isRelay(socket)) return relaySocket.message(socket, raw);
         if (isMachine(socket)) return deps.machines?.message(socket, raw);
         if (isStream(socket)) return deps.streams?.message(socket, raw);
         const ws = socket as BrowserSocket;
@@ -900,6 +956,7 @@ export function createRealtime(deps: RealtimeDeps) {
       },
       async close(socket: Bun.ServerWebSocket<SocketData>, code: number) {
         if (isFrames(socket)) return frameSocket.close(socket);
+        if (isRelay(socket)) return relaySocket.close(socket);
         if (isMachine(socket)) return deps.machines?.close(socket);
         if (isStream(socket)) return deps.streams?.close(socket, code);
         const ws = socket as BrowserSocket;

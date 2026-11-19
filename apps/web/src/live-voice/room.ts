@@ -12,7 +12,7 @@ import {
   mayBringIn,
   namedAgent,
 } from "@agenteschat/client/lib/live-floor";
-import { LiveLeg } from "./leg";
+import { openVoiceLeg, type VoiceLeg } from "./leg";
 
 /**
  * A voice room in this browser (ADR doug-0006). People reach each other directly (a WebRTC connection between each pair,
@@ -81,7 +81,7 @@ interface Peer {
 }
 
 interface AgentVoice {
-  leg: LiveLeg | null;
+  leg: VoiceLeg | null;
   input: MediaStreamAudioDestinationNode;
   /** What it hears goes through here: open only while it has the word. */
   inGain: GainNode;
@@ -478,12 +478,12 @@ export class RoomCall {
     const track = voice?.input.stream.getAudioTracks()[0];
     if (!room || !voice || !track) return;
     try {
-      const leg = await LiveLeg.open(
+      const leg = await openVoiceLeg(
         track,
-        (sdp) =>
-          this.o.api.liveVoice.startSession(this.o.orgId, {
+        (extra) =>
+          this.o.api.liveVoice.startVoice(this.o.orgId, {
+            ...extra,
             kind: "call",
-            sdp,
             roomId: room.id,
             agentId,
             language: this.o.language,

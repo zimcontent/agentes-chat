@@ -234,9 +234,11 @@ import type {
   LiveRoom,
   LiveSession,
   LiveSessionInput,
+  LiveSessionStart,
   LiveSpeakerAsk,
   LiveSpeakerPick,
   LiveVoice,
+  LiveVoiceEngine,
   Machine,
   MachineAccess,
   MachineAccessReduce,
@@ -537,6 +539,15 @@ export interface ApiClient {
     removeKey(orgId: string): Promise<LiveVoice>;
     /** Opens a session from this app's WebRTC offer: OpenAI's answer comes back. */
     startSession(orgId: string, input: LiveSessionInput): Promise<LiveSession>;
+    /**
+     * Opens a session on the workspace's engine (docs/adr/doug-0036-house-voice.md): with `relay` in `transports`, a
+     * house voice session's ticket; on GPT-Live, its answer, or `{ transport: "offer" }` when sent without the offer.
+     */
+    startVoice(orgId: string, input: LiveSessionInput): Promise<LiveSessionStart>;
+    /** Picks the voice of calls here (`configure`); null: the default. */
+    setEngine(orgId: string, engine: LiveVoiceEngine | null): Promise<LiveVoice>;
+    /** The most credits the house voice may spend here in a month (`configure`); null: no limit. */
+    setMonthlyLimit(orgId: string, credits: number | null): Promise<LiveVoice>;
     endSession(orgId: string, sessionId: string): Promise<void>;
     channelRoom(orgId: string, channelId: string): Promise<{ room: LiveRoom | null }>;
     joinRoom(

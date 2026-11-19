@@ -620,6 +620,13 @@ export const envVars = {
     section: "Connectors",
     secret: true,
   },
+  EMPIRIO_API_KEY: {
+    schema: z.string().optional(),
+    description:
+      "Empirio Labs key for the house voice, optional (docs/adr/doug-0036-house-voice.md): Qwen Audio 3.1 Realtime Flash on calls, Ouvir and voice samples, paid by each workspace in Zim Mídia credits by the minute. Needs `ZIM_MEDIA_URL` and `ZIM_MEDIA_SECRET`. The apps' audio goes through this server to Empirio Labs; the key never leaves this server. Unset (default): calls use the workspace's own GPT-Live key.",
+    section: "Connectors",
+    secret: true,
+  },
   GIPHY_API_KEY: {
     schema: z.string().optional(),
     description:

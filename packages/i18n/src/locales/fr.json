@@ -11574,7 +11574,7 @@
       "notesExample": "Ex. : Terminez toujours par qui fait quoi et pour quand. Appelez le client par son nom.",
       "agentNotes": "{{name}} en appel",
       "agentNotesExample": "Ex. : Apporte des chiffres avant les opinions. Conteste quand le budget ne colle pas.",
-      "title": "Voix en direct (GPT-Live)",
+      "title": "Voix en direct",
       "lead": "Des appels vocaux avec vos agents et Écouter sur chaque message, chaque agent avec sa propre voix.",
       "on": "Activée",
       "off": "Désactivée",
@@ -11598,7 +11598,19 @@
       "current": "Actuelle",
       "previewOf": "Écouter {{voice}}",
       "use": "Utiliser {{voice}}",
-      "refused": "Cette clé n'a pas cette voix : {{voice}} a parlé à la place."
+      "refused": "Cette clé n'a pas cette voix : {{voice}} a parlé à la place.",
+      "engine": "Voix des appels",
+      "house": "Voix maison (Qwen)",
+      "gptLive": "GPT-Live (votre clé)",
+      "houseCredits": "Payée avec les crédits de cet espace : {{perMinute}} crédits par minute. Solde : {{balance}} crédits, environ {{minutes}} min.",
+      "houseNoWallet": "Payée en crédits, {{perMinute}} par minute. Le solde ne peut pas être lu pour le moment.",
+      "gptLiveHint": "La voix d’OpenAI, avec la clé de cet espace. Environ 0,05 US$ par minute et par agent.",
+      "addCredits": "Acheter des crédits",
+      "monthly": "Limite mensuelle en crédits",
+      "monthlyNone": "Sans limite",
+      "spent": "Utilisé ce mois-ci : {{spent}} sur {{limit}} crédits.",
+      "spentNoLimit": "Utilisé ce mois-ci : {{spent}} crédits. Les appels ne s’arrêtent que lorsque le solde est épuisé.",
+      "pickerLeadHouse": "Écoutez chaque voix comme {{name}} et choisissez. Chaque extrait coûte un ou deux crédits."
     },
     "phoneLine": {
       "title": "Appels téléphoniques",
@@ -11652,7 +11664,12 @@
       "noWords": "Ce message n'a pas de mots à raconter.",
       "notHost": "Seule la personne qui anime l'appel ouvre les voix des agents.",
       "ended": "Cet appel est terminé.",
-      "notIn": "Vous n'êtes plus dans cet appel."
+      "notIn": "Vous n'êtes plus dans cet appel.",
+      "noCredits": "Pas assez de crédits pour une minute d’appel. Achetez des crédits sur la page Médias.",
+      "monthLimit": "Les appels ont atteint la limite de crédits du mois. La personne qui configure l’espace peut l’augmenter dans Paramètres › Voix.",
+      "updateApp": "Les appels ici utilisent la voix maison. Mettez l’app à jour pour appeler.",
+      "noHouse": "La voix maison n’est pas disponible ici.",
+      "badLimit": "Une limite est un nombre entier de crédits."
     }
   },
   "media": {

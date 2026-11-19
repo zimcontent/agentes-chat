@@ -11963,7 +11963,7 @@
       "notesExample": "Np.: Zawsze kończcie tym, kto co robi i do kiedy. Zwracajcie się do klienta po imieniu.",
       "agentNotes": "{{name}} w rozmowach",
       "agentNotesExample": "Np.: Przynosi liczby przed opiniami. Sprzeciwia się, gdy budżet się nie spina.",
-      "title": "Głos na żywo (GPT-Live)",
+      "title": "Głos na żywo",
       "lead": "Rozmowy głosowe z agentami i Posłuchaj przy każdej wiadomości, każdy agent własnym głosem.",
       "on": "Włączony",
       "off": "Wyłączony",
@@ -11987,7 +11987,19 @@
       "current": "Obecny",
       "previewOf": "Posłuchaj: {{voice}}",
       "use": "Użyj: {{voice}}",
-      "refused": "Ten klucz nie ma tego głosu: zamiast niego mówił {{voice}}."
+      "refused": "Ten klucz nie ma tego głosu: zamiast niego mówił {{voice}}.",
+      "engine": "Głos rozmów",
+      "house": "Głos domowy (Qwen)",
+      "gptLive": "GPT-Live (twój klucz)",
+      "houseCredits": "Płatne kredytami tego workspace’u: {{perMinute}} kredytów za minutę. Saldo: {{balance}} kredytów, około {{minutes}} min.",
+      "houseNoWallet": "Płatne kredytami, {{perMinute}} za minutę. Salda nie da się teraz odczytać.",
+      "gptLiveHint": "Głos OpenAI, na kluczu tego workspace’u. Około 0,05 USD za minutę na agenta.",
+      "addCredits": "Kup kredyty",
+      "monthly": "Miesięczny limit w kredytach",
+      "monthlyNone": "Bez limitu",
+      "spent": "Zużyte w tym miesiącu: {{spent}} z {{limit}} kredytów.",
+      "spentNoLimit": "Zużyte w tym miesiącu: {{spent}} kredytów. Rozmowy zatrzymują się dopiero, gdy skończy się saldo.",
+      "pickerLeadHouse": "Posłuchaj każdego głosu jako {{name}} i wybierz. Każda próbka kosztuje jeden lub dwa kredyty."
     },
     "phoneLine": {
       "title": "Połączenia telefoniczne",
@@ -12041,7 +12053,12 @@
       "noWords": "Ta wiadomość nie ma słów do przeczytania.",
       "notHost": "Tylko osoba prowadząca rozmowę włącza głosy agentów.",
       "ended": "Ta rozmowa się zakończyła.",
-      "notIn": "Nie jesteś już w tej rozmowie."
+      "notIn": "Nie jesteś już w tej rozmowie.",
+      "noCredits": "Za mało kredytów na minutę rozmowy. Kup kredyty na stronie Media.",
+      "monthLimit": "Rozmowy osiągnęły limit kredytów na ten miesiąc. Osoba konfigurująca workspace może go podnieść w Ustawienia › Głos.",
+      "updateApp": "Rozmowy tutaj używają głosu domowego. Zaktualizuj aplikację, aby zadzwonić.",
+      "noHouse": "Głos domowy nie jest tu dostępny.",
+      "badLimit": "Limit to całkowita liczba kredytów."
     }
   },
   "media": {
