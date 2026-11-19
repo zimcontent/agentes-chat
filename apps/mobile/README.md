@@ -79,9 +79,14 @@ Actions. The native project isn't committed, so `ios/ci_scripts/ci_post_clone.sh
 `ios/`) makes it after the clone: bun and node, the dependencies, `expo prebuild` and CocoaPods. Xcode Cloud then
 works on `apps/mobile/ios/DougBot.xcworkspace`, scheme `DougBot`.
 
+Because `ios/` exists in every checkout, a plain `expo prebuild` (or `expo run:ios`) on a fresh one reuses it and
+makes no Xcode project. Prebuild iOS with `sh scripts/prebuild-ios.sh` (it keeps `ci_scripts/` aside meanwhile), or
+with `--clean` and then `git checkout ios/ci_scripts`. EAS drops the folder before it installs
+(`eas-build-pre-install` in `package.json`), so its own prebuild starts from nothing.
+
 Set up once, from a Mac with Xcode signed in to the team:
 
-1. `bun install`, then in `apps/mobile`: `APP_VARIANT=production bunx expo prebuild --platform ios`, so the workspace
+1. `bun install`, then in `apps/mobile`: `APP_VARIANT=production sh scripts/prebuild-ios.sh`, so the workspace
    exists locally.
 2. Open `apps/mobile/ios/DougBot.xcworkspace` in Xcode, then Integrate › Create Workflow, and give Xcode Cloud access
    to `zimcontent/dougbot` on GitHub.

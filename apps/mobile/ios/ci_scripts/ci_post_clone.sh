@@ -1,7 +1,7 @@
 #!/bin/sh
 # Xcode Cloud, after it clones the repo and before it builds (apps/mobile/README.md, "iOS on Xcode Cloud"): the
-# Expo app commits no native project, so this makes it here: bun and node, the dependencies, `expo prebuild` (never
-# `--clean`: it would delete this folder) and CocoaPods. Xcode Cloud then builds, tests or archives
+# Expo app commits no native project, so this makes it here: bun and node, the dependencies, `expo prebuild` (through
+# scripts/prebuild-ios.sh, which keeps this folder aside meanwhile; never `--clean`: it would delete it) and CocoaPods. Xcode Cloud then builds, tests or archives
 # `apps/mobile/ios/DougBot.xcworkspace` as its workflow says.
 #
 # Environment variables, set in the workflow (App Store Connect › Xcode Cloud › the workflow › Environment):
@@ -27,6 +27,6 @@ export IOS_BUILD_NUMBER=$(( ${IOS_BUILD_NUMBER_BASE:-0} + ${CI_BUILD_NUMBER:-0} 
 echo "DougBot build $IOS_BUILD_NUMBER ($APP_VARIANT)"
 
 cd apps/mobile
-bunx expo prebuild --platform ios --no-install
+sh scripts/prebuild-ios.sh
 cd ios
 pod install
