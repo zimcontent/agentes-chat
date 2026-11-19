@@ -12801,6 +12801,15 @@
   "home.agenda.status.in_review": {
     "value": "In review"
   },
+  "home.agenda.queue.list": {
+    "value": "{{name}}'s queue"
+  },
+  "home.agenda.queue.move": {
+    "value": "Move task #{{number}} in the queue. Drag it, or use the up and down arrow keys."
+  },
+  "home.agenda.queue.moved": {
+    "value": "Task #{{number}} is now {{place}} of {{count}}."
+  },
   "home.mission": {
     "value": "<b>{{name}}</b> needs you in a mission"
   },

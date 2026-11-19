@@ -341,6 +341,21 @@ describe("a member's work and a plan written by an agent", () => {
     expect((await myPortalWork(portal, "ronny", new Date("2026-11-15T01:00:00Z"))).today).toBe("2026-11-14");
   });
 
+  test("inside each day the member's cards go in their queue's order (ADR doug-0022), the rest after", async () => {
+    const portal = createFakeApprovalPortal({ items: [] });
+    const on = (title: string) => portal.createCard("acme", { title, members: ["ronny"], produceOn: "2026-11-14" });
+    const leticia = await on("Leticia");
+    const fontes = await on("Fontes");
+    const loose = await on("No task");
+    const queue = new Map([
+      [fontes.id, 1],
+      [leticia.id, 2],
+    ]);
+    const work = await myPortalWork(portal, "ronny", day, undefined, undefined, queue);
+    expect(work.today_.map((c) => c.title)).toEqual(["Fontes", "Leticia", "No task"]);
+    expect(loose.id).toBeTruthy();
+  });
+
   test("the plan: a card's stage is its own until it is sent, the portal's after; posts with no card are loose", async () => {
     const portal = createFakeApprovalPortal({
       items: [item({ id: "up-1", status: "approved", scheduledFor: "2026-11-20T10:00" }), item({ id: "up-2" })],

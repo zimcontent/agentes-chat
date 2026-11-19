@@ -5546,6 +5546,11 @@ export const ptBR = {
       high: "Alta",
       blocked: "Travada",
       status: { in_progress: "Em andamento", in_review: "Em revisão" },
+      queue: {
+        list: "Fila de {{name}}",
+        move: "Mover a tarefa #{{number}} na fila. Arraste, ou use as setas para cima e para baixo.",
+        moved: "A tarefa #{{number}} agora está em {{place}} de {{count}}.",
+      },
     },
     mission: "<b>{{name}}</b> espera você numa missão",
     seeAll: "Ver tudo",

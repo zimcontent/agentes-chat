@@ -5389,6 +5389,11 @@
       "status": {
         "in_progress": "In corso",
         "in_review": "In revisione"
+      },
+      "queue": {
+        "list": "Coda di {{name}}",
+        "move": "Sposta l'attività #{{number}} nella coda. Trascinala, o usa le frecce su e giù.",
+        "moved": "L'attività #{{number}} ora è {{place}} di {{count}}."
       }
     },
     "mission": "<b>{{name}}</b> ha bisogno di te in una missione",

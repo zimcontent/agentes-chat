@@ -5237,6 +5237,11 @@
       "status": {
         "in_progress": "Bezig",
         "in_review": "Ter beoordeling"
+      },
+      "queue": {
+        "list": "Wachtrij van {{name}}",
+        "move": "Taak #{{number}} in de wachtrij verplaatsen. Sleep hem, of gebruik de pijltjestoetsen omhoog en omlaag.",
+        "moved": "Taak #{{number}} staat nu op {{place}} van {{count}}."
       }
     },
     "mission": "<b>{{name}}</b> heeft je nodig in een missie",

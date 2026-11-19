@@ -4280,11 +4280,18 @@ export interface TeamAgendaTask {
   title: string;
   status: "todo" | "in_progress" | "in_review";
   priority: "low" | "normal" | "high";
-  /** `YYYY-MM-DD`; before `from` when it is late; null for one under way with no date. */
+  /** `YYYY-MM-DD`; before `from` when it is late; null when it has no date. */
   dueDate: string | null;
   assignee: { type: "person" | "agent"; id: string };
   project: { name: string; color: string } | null;
   blocked: boolean;
+}
+
+/** One task's move in its assignee's queue (ADR doug-0022): right after `afterId`, or to the top with null. */
+export interface TaskQueueMove {
+  assignee: TeamAgendaTask["assignee"];
+  taskId: string;
+  afterId: string | null;
 }
 
 export interface TeamAgenda {

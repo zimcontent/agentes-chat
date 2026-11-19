@@ -404,6 +404,7 @@ import type {
   SuggestedAi,
   TaskManagerView,
   TaskOutput,
+  TaskQueueMove,
   TaskSteps,
   Team,
   TeamAgenda,
@@ -1675,6 +1676,8 @@ export interface ApiClient {
      * and admins only. Optional so older fakes type-check.
      */
     agenda?(orgId: string, query: { from: string; days?: number }): Promise<TeamAgenda>;
+    /** Moves a task in its assignee's queue (owners and admins); answers the queue's ids in their new order. */
+    moveInQueue?(orgId: string, move: TaskQueueMove): Promise<{ order: string[] }>;
     /** `projectId`: only that project's tasks, or `none` for the ones with no project. */
     list(orgId: string, filters?: { q?: string; projectId?: string }): Promise<Issue[]>;
     get(orgId: string, number: number): Promise<Issue>;

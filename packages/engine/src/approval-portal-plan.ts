@@ -134,12 +134,17 @@ const OPEN_STAGES: readonly PortalColumn[] = ["todo", "doing", "adjusting"];
 export const portalDay = (now: Date, timeZone: string) =>
   new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
 
+/**
+ * `queue`: the member's place for each card's task (`portalQueueOf`, ADR doug-0022). Inside each group the cards go in
+ * that order, the team's priority; a card with no task of theirs keeps the group's own order after them.
+ */
 export async function myPortalWork(
   portal: ApprovalPortal,
   member: string,
   now = new Date(),
   timeZone = "America/Sao_Paulo",
   reviewsOf: ReviewsOf = noReviews,
+  queue: ReadonlyMap<string, number> = new Map(),
 ): Promise<MyPortalWork> {
   const [items, all] = await Promise.all([portal.items(), portal.cards()]);
   const cards = all.filter((card) => card.members.includes(member) && !card.material);
@@ -157,12 +162,16 @@ export async function myPortalWork(
     else if (card.produceOn === today) work.today_.push(plan);
     else work.next.push(plan);
   }
+  // Each person's queue first (docs/adr/doug-0022-task-queue-order.md), then the schedule.
+  const queued = (card: PlanCard) => queue.get(card.id) ?? Number.POSITIVE_INFINITY;
+  const byQueue = (a: PlanCard, b: PlanCard) => (queued(a) === queued(b) ? 0 : queued(a) < queued(b) ? -1 : 1);
   const bySchedule = (a: PlanCard, b: PlanCard) =>
     (a.produceOn ?? "9999").localeCompare(b.produceOn ?? "9999") ||
     place(a) - place(b) ||
     a.client.localeCompare(b.client) ||
     byOrder(a, b);
-  for (const bucket of [work.late, work.today_, work.next, work.undated]) bucket.sort(bySchedule);
+  for (const bucket of [work.late, work.today_, work.next, work.undated])
+    bucket.sort((a, b) => byQueue(a, b) || bySchedule(a, b));
   return work;
 }
 

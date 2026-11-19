@@ -5059,6 +5059,11 @@
       "status": {
         "in_progress": "进行中",
         "in_review": "审核中"
+      },
+      "queue": {
+        "list": "{{name}} 的队列",
+        "move": "在队列中移动任务 #{{number}}。拖动它，或使用上下方向键。",
+        "moved": "任务 #{{number}} 现在是第 {{place}} 个，共 {{count}} 个。"
       }
     },
     "mission": "<b>{{name}}</b> 在一项专项任务中需要你",

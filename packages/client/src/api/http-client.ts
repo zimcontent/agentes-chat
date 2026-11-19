@@ -1936,6 +1936,11 @@ export function createHttpApi(options: TransportOptions = {}): HttpApi {
     issues: {
       agenda: (orgId, query) =>
         request<TeamAgenda>(`${org(orgId)}/team-agenda`, { query: { from: query.from, days: query.days } }),
+      moveInQueue: (orgId, move) =>
+        request<{ order: string[] }>(`${org(orgId)}/queues/${enc(move.assignee.type)}/${enc(move.assignee.id)}`, {
+          method: "PUT",
+          json: { taskId: move.taskId, afterId: move.afterId },
+        }),
       list: async (orgId, filters = {}) =>
         (
           await request<{ issues: Issue[] }>(`${org(orgId)}/issues`, {

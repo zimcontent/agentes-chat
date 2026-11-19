@@ -5056,6 +5056,11 @@
       "status": {
         "in_progress": "進行中",
         "in_review": "レビュー中"
+      },
+      "queue": {
+        "list": "{{name}}のキュー",
+        "move": "タスク #{{number}} をキュー内で移動します。ドラッグするか、上下の矢印キーを使います。",
+        "moved": "タスク #{{number}} は {{count}} 件中 {{place}} 番目になりました。"
       }
     },
     "mission": "<b>{{name}}</b>がミッションであなたを必要としています",

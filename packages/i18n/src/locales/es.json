@@ -5383,6 +5383,11 @@
       "status": {
         "in_progress": "En curso",
         "in_review": "En revisión"
+      },
+      "queue": {
+        "list": "Cola de {{name}}",
+        "move": "Mover la tarea #{{number}} en la cola. Arrástrala o usa las flechas arriba y abajo.",
+        "moved": "La tarea #{{number}} ahora está en {{place}} de {{count}}."
       }
     },
     "mission": "<b>{{name}}</b> te necesita en una misión",

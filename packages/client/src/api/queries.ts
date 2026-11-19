@@ -72,6 +72,7 @@ import {
 } from "../lib/sidebar-items";
 import { repinAgent, SIDEBAR_VIEW_DEFAULT, unpinAgents } from "../lib/sidebar-view";
 import { playSound } from "../lib/sounds";
+import { movedInAgenda } from "../lib/team-agenda";
 import type { TeamWeekAct } from "../lib/team-week";
 import { threadStartOf } from "../lib/threads";
 import { upsertMessage, withLocalCopies } from "../lib/timeline";
@@ -224,6 +225,8 @@ import type {
   StorageMigration,
   StorageSave,
   TaskManagerView,
+  TaskQueueMove,
+  TeamAgenda,
   TeamProposalCard,
   ThreadAction,
   ThreadCreateInput,
@@ -4859,6 +4862,32 @@ export const useTeamAgenda = (orgId: string, from: string, days: number, enabled
   });
 };
 
+/**
+ * Moves a task in its assignee's queue on the agenda (ADR doug-0022): at once on every agenda on screen, then the
+ * server's order read back. A refusal puts the order back.
+ */
+export function useMoveInQueue(orgId: string) {
+  const api = useApi();
+  const qc = useQueryClient();
+  const root = ["org", orgId, "issues", "agenda"] as const;
+  return useMutation({
+    mutationFn: (move: TaskQueueMove) =>
+      api.issues.moveInQueue ? api.issues.moveInQueue(orgId, move) : Promise.reject(new Error("no queue")),
+    onMutate: async (move) => {
+      await qc.cancelQueries({ queryKey: root });
+      const before = qc.getQueriesData<TeamAgenda>({ queryKey: root });
+      for (const [key, agenda] of before) {
+        if (agenda) qc.setQueryData<TeamAgenda>(key, { ...agenda, tasks: movedInAgenda(agenda.tasks, move) });
+      }
+      return { before };
+    },
+    onError: (_e, _v, ctx) => {
+      for (const [key, agenda] of ctx?.before ?? []) qc.setQueryData(key, agenda);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: root }),
+  });
+}
+
 export const useIssue = (orgId: string, number: number, enabled = true) => {
   const api = useApi();
   return useQuery({
@@ -7064,7 +7093,9 @@ export function applyIssueEvent(qc: QueryClient, orgId: string, event: { type: s
     event.type === "issue.created" ||
     event.type === "issue.updated" ||
     event.type === "issue.deleted" ||
-    event.type === "issue.audience"
+    event.type === "issue.audience" ||
+    // Someone moved a task in a queue (ADR doug-0022): the agenda reads again.
+    event.type === "issue.queue"
   )
     readOncePerBurst(`${orgId}:issues`, () => void qc.invalidateQueries({ queryKey: keys.issues(orgId) }));
   // A task's conversation has no members to hear `channel.activity`: a notice about the task is my news of it.

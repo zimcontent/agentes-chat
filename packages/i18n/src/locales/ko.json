@@ -5054,6 +5054,11 @@
       "status": {
         "in_progress": "진행 중",
         "in_review": "검토 중"
+      },
+      "queue": {
+        "list": "{{name}}의 대기열",
+        "move": "작업 #{{number}}을(를) 대기열에서 옮깁니다. 끌거나 위아래 화살표 키를 사용하세요.",
+        "moved": "작업 #{{number}}이(가) 이제 {{count}}개 중 {{place}}번째입니다."
       }
     },
     "mission": "<b>{{name}}</b>이(가) 미션에서 나를 필요로 해요",

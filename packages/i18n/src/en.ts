@@ -5682,6 +5682,15 @@ export const en = {
       high: "High",
       blocked: "Blocked",
       status: { in_progress: "In progress", in_review: "In review" },
+      /** Each one's tasks in the order they are to be done (ADR doug-0022), moved by a handle or its arrow keys. */
+      queue: {
+        /** The ordered list of a person's or an agent's tasks. */
+        list: "{{name}}'s queue",
+        /** The handle's name for a screen reader: dragging it, or its up and down arrows, moves the task. */
+        move: "Move task #{{number}} in the queue. Drag it, or use the up and down arrow keys.",
+        /** Said after a move: the task's place among what shows. */
+        moved: "Task #{{number}} is now {{place}} of {{count}}.",
+      },
     },
     mission: "<b>{{name}}</b> needs you in a mission",
     seeAll: "See all",
