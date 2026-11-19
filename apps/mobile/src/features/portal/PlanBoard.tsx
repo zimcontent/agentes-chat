@@ -82,6 +82,9 @@ const TRASH_H = 48;
 const TRASH_REACH = 40;
 /** The lists' first line on the board (`styles.lists`' top padding): a list's cards box starts this far down plus its head. */
 const LISTS_TOP = 12;
+/** A list's side to its cards (`styles.cards`), and a card's side to its words (`styles.card`), Trello's density. */
+const LIST_X = 8;
+const CARD_X = 12;
 
 const columnKey = (col: Column) => (col.kind === "add" ? "+" : col.kind === "new" ? "new" : (col.group.id ?? "none"));
 
@@ -1338,7 +1341,7 @@ const styles = StyleSheet.create({
   // The count's smaller line sits on the name's first line.
   listCount: { paddingTop: 7, paddingHorizontal: 4 },
   cardsScroll: { flexGrow: 0, flexShrink: 1 },
-  cards: { paddingHorizontal: 8, paddingBottom: 4, gap: 8 },
+  cards: { paddingHorizontal: LIST_X, paddingBottom: 4, gap: 8 },
   listFoot: { height: 8 },
   // Inside the list's 20, 8 in: 12 (rounded inside rounded).
   // Trello's density: 10 over and under, 12 at the sides.
@@ -1346,7 +1349,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
     paddingVertical: 10,
-    paddingHorizontal: 12,
+    paddingHorizontal: CARD_X,
     gap: 10,
   },
   cardTop: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 6 },
@@ -1371,8 +1374,8 @@ const styles = StyleSheet.create({
   fact: { flexDirection: "row", alignItems: "center", gap: 4 },
   done: { opacity: 0.6 },
   pressed: { opacity: 0.7 },
-  // The plus lines up with the cards' words: the list's 8 to the card, the card's 12 to its words.
-  addRow: { minHeight: 44, justifyContent: "center", paddingHorizontal: 20 },
+  // The plus lines up with the cards' words: the list's side to the card, the card's to its words.
+  addRow: { minHeight: 44, justifyContent: "center", paddingHorizontal: LIST_X + CARD_X },
   addLabel: { flexDirection: "row", alignItems: "center", gap: 8 },
   swatch: { width: 28, height: 12, borderRadius: 4 },
   addList: { alignSelf: "flex-start" },

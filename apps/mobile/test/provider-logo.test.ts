@@ -40,7 +40,13 @@ describe("Pensa com: the brain by its maker's mark", () => {
     expect(drawn(line({ kind: "codex", model: "GPT-6 Sol" }))).toBe("openai");
     expect(drawn(line({ kind: "claude_code", model: "GLM-5.3", provider: "zai" }))).toBe("zai");
     expect(drawn(line({ kind: "claude_code", model: "Kimi K3", provider: "kimi" }))).toBe("kimi");
-    expect(line({ kind: "model", model: null })).toEqual({ text: "Claude Sonnet 5.5", kind: "agent", mark: null });
+    // `short` is the label beside a header's logo (711bbb4001): with no maker, the API model alone.
+    expect(line({ kind: "model", model: null })).toEqual({
+      text: "Claude Sonnet 5.5",
+      short: "Claude Sonnet 5.5",
+      kind: "agent",
+      mark: null,
+    });
     // A plan this phone has no mark for yet still shows (its initial), never another maker's mark.
     expect(line({ kind: "claude_code", model: "x", provider: "newplan" }).mark).toBe("newplan");
     expect(markOf("newplan")).toBeNull();

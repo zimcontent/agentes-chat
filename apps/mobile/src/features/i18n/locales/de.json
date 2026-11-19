@@ -977,6 +977,8 @@
       "invitation_accepted_other": "{{names}} haben deine Einladung angenommen",
       "composio_limit_one": "Dieser Workspace hat seine Composio-Aufrufe für den Monat aufgebraucht",
       "composio_limit_other": "Dieser Workspace hat seine Composio-Aufrufe für den Monat aufgebraucht",
+      "company_request_one": "{{names}} hat DougBot für ein Unternehmen angefragt",
+      "company_request_other": "{{names}} haben DougBot für ein Unternehmen angefragt",
       "change_request_one": "{{names}} bittet um eine Änderung im Team",
       "change_request_other": "{{names}} bitten um eine Änderung im Team",
       "usage_limit_warning": "Du hast {{percent}} % deines Limits in diesem Monat verbraucht",
@@ -1014,9 +1016,7 @@
       "computer_no_chrome_one": "Ein Computer braucht Google Chrome. Lade es unter google.com/chrome herunter",
       "computer_no_chrome_other": "Computer brauchen Google Chrome. Lade es unter google.com/chrome herunter",
       "app_created_one": "Eine KI-App hat etwas für dich erstellt",
-      "app_created_other": "KI-Apps haben etwas für dich erstellt",
-      "company_request_one": "{{names}} hat DougBot für ein Unternehmen angefragt",
-      "company_request_other": "{{names}} haben DougBot für ein Unternehmen angefragt"
+      "app_created_other": "KI-Apps haben etwas für dich erstellt"
     },
     "markRead": "Als gelesen markieren",
     "markUnread": "Als ungelesen markieren",
@@ -1072,6 +1072,8 @@
     "added": "{{name}} ist der Gruppe beigetreten"
   },
   "me": {
+    "groupAlerts": "Hinweise und Freigaben",
+    "groupLook": "Aussehen und Ton",
     "title": "Du",
     "role": {
       "owner": "Inhaber",
@@ -1204,9 +1206,7 @@
       "suggested": "Vorgeschlagen",
       "all": "Alle",
       "none": "Keine Zeitzone mit diesem Namen"
-    },
-    "groupAlerts": "Hinweise und Freigaben",
-    "groupLook": "Aussehen und Ton"
+    }
   },
   "delete": {
     "intro": "Das lässt sich nicht rückgängig machen.",
@@ -1271,6 +1271,8 @@
     "new": "Neue Aufgabe",
     "viewList": "Liste",
     "viewBoard": "Board",
+    "viewTeam": "Team",
+    "viewMine": "Meine",
     "search": "Aufgaben suchen",
     "noMatch": "Keine Aufgabe mit diesem Namen.",
     "list": {
@@ -1302,6 +1304,37 @@
       "canceled": "Abgebrochen"
     },
     "until": "fällig {{date}}",
+    "team": {
+      "today": "Heute",
+      "week": "Woche",
+      "everyone": "Alle",
+      "people": "Personen",
+      "agents": "Agenten",
+      "clear": "Niemand hat offene Aufgaben",
+      "mineClear": "Alles erledigt",
+      "clearToday": "Nichts in Arbeit, überfällig oder heute fällig.",
+      "clearWeek": "Nichts in Arbeit, überfällig oder diese Woche fällig.",
+      "working_one": "{{count}} arbeitet",
+      "working_other": "{{count}} arbeiten",
+      "lateCount_one": "{{count}} überfällig",
+      "lateCount_other": "{{count}} überfällig",
+      "blockedCount_one": "{{count}} blockiert",
+      "blockedCount_other": "{{count}} blockiert",
+      "doingCount_one": "Arbeitet an {{count}}",
+      "doingCount_other": "Arbeitet an {{count}}",
+      "notStarted": "Nichts in Arbeit",
+      "free": "Frei",
+      "queued_one": "{{count}} in der Warteschlange",
+      "queued_other": "{{count}} in der Warteschlange",
+      "expand": "Zeigt die ganze Warteschlange",
+      "collapse": "Zeigt nur das Nächste",
+      "now": "Jetzt",
+      "next": "Als Nächstes",
+      "more_one": "+{{count}} in der Warteschlange",
+      "more_other": "+{{count}} in der Warteschlange",
+      "blocked": "Blockiert",
+      "lateOn": "Überfällig seit {{date}}"
+    },
     "loadFailed": "Die Aufgaben ließen sich nicht laden.",
     "createdBy": "erstellt von {{name}}",
     "fromMessage": "aus einer Nachricht",
@@ -1497,6 +1530,21 @@
     }
   },
   "taskManager": {
+    "shortTitle": "Aktivität",
+    "stat": {
+      "working": "Bei der Arbeit",
+      "waiting": "Warten auf dich",
+      "done": "Heute erledigt"
+    },
+    "needsYou": "Braucht dich",
+    "review": "Öffnen und antworten",
+    "inProgress": "In Arbeit",
+    "paused": "Pausiert",
+    "pausedLine": "Pausiert",
+    "comingBack": "Kommen später wieder",
+    "more_one": "{{count}} weitere Aufgabe",
+    "more_other": "{{count}} weitere Aufgaben",
+    "fewer": "Weniger anzeigen",
     "loadFailed": "Die Arbeit konnte nicht geladen werden.",
     "gone": "Diese Arbeit ist nicht mehr da.",
     "quiet": "Nichts in Arbeit",
@@ -1553,6 +1601,10 @@
     }
   },
   "activityNow": {
+    "needsYou": "Wartet auf dich",
+    "running": "Arbeitet gerade",
+    "runningAll": "Alle ansehen",
+    "steps": "{{done}} von {{total}}",
     "kind": {
       "approval": "Freigeben",
       "question": "Frage",
@@ -1575,11 +1627,16 @@
       "today": "heute um {{time}}",
       "tomorrow": "morgen um {{time}}",
       "later": "{{day}} um {{time}}"
-    },
-    "needsYou": "Wartet auf dich",
-    "running": "Arbeitet gerade",
-    "runningAll": "Alle ansehen",
-    "steps": "{{done}} von {{total}}"
+    }
+  },
+  "toSchedule": {
+    "title": "Bereit zum Planen",
+    "row": "Beitrag freigegeben, zum Planen tippen",
+    "untitled": "Beitrag ohne Titel",
+    "sheetTitle": "Beitrag planen",
+    "confirm": "Planen",
+    "when": "Erscheint {{when}}",
+    "past": "Wähle eine Zeit, die noch nicht vorbei ist"
   },
   "agentLite": {
     "uses": "Darf nutzen",
@@ -3180,14 +3237,5 @@
   "brand": {
     "basedOn": "Basiert auf DougBot von Codari Global, LLC · AGPL-3.0",
     "source": "Quellcode von DougBot"
-  },
-  "toSchedule": {
-    "title": "Bereit zum Planen",
-    "row": "Beitrag freigegeben, zum Planen tippen",
-    "untitled": "Beitrag ohne Titel",
-    "sheetTitle": "Beitrag planen",
-    "confirm": "Planen",
-    "when": "Erscheint {{when}}",
-    "past": "Wähle eine Zeit, die noch nicht vorbei ist"
   }
 }

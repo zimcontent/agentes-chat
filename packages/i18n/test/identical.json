@@ -4765,7 +4765,8 @@
       "chat.messagePlain",
       "drive.filter.type",
       "vault.sheet.note",
-      "homeTools.mission"
+      "homeTools.mission",
+      "issues.team.agents"
     ],
     "de": [
       "onboarding.flow.brand.instagram",
@@ -4848,7 +4849,8 @@
       "drive.order.short.name",
       "vault.sheet.details",
       "homeTools.mission",
-      "homeTools.computer"
+      "homeTools.computer",
+      "issues.viewTeam"
     ],
     "it": [
       "onboarding.flow.brand.instagram",
@@ -4906,7 +4908,8 @@
       "connectors.accountTitle",
       "roles.icons.mail",
       "vault.sheet.password",
-      "homeTools.computer"
+      "homeTools.computer",
+      "issues.viewTeam"
     ],
     "nl": [
       "onboarding.flow.brand.instagram",
@@ -4997,7 +5000,9 @@
       "vault.sheet.site",
       "vault.sheet.details",
       "agentLite.ai",
-      "homeTools.computer"
+      "homeTools.computer",
+      "issues.viewTeam",
+      "issues.team.agents"
     ],
     "ja": [
       "onboarding.flow.brand.instagram",

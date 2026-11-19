@@ -17,7 +17,8 @@ test("a face's corner reaches the tile it draws, through every layer to the agen
   expect(face).toContain("radius={radius}\n      />");
   expect(face).toContain("photo={photo} radius={radius} />");
   expect(face).toContain("radius={moment.radius}");
-  expect(source("agent/AgentAvatar.tsx")).toContain("borderRadius: radius ?? size * 0.3");
+  // DougBot draws its own glass piece; a photo sits inside the frame with that frame's corner by default.
+  expect(source("agent/AgentAvatar.tsx")).toContain("borderRadius: radius ?? size * PHOTO_RADIUS");
   expect(source("agent/AgentAvatar.tsx")).toContain("a.radius === b.radius");
   const person = source("agent/PersonAvatar.tsx");
   expect(person).toContain("radius = size * 0.3");

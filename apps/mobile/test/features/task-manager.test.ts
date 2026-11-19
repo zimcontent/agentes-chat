@@ -394,7 +394,8 @@ describe("a computer's line (ADR 0128)", () => {
     const causes = shownCauses([onPlan("a"), onPlan("b"), inLine("c")]);
     const [plan, computer] = causes.map((c) => causeWords(t, "pt-BR", c, computers));
     expect(plan?.name).toBe("Plano do Claude no limite");
-    expect(plan?.fact).toMatch(/^Volta (às|amanhã|\S+ às) .+ · 2 tarefas$/);
+    // Runs are "trabalhos": "tarefa" means only a task with an owner and a stage (ADR doug-0018).
+    expect(plan?.fact).toMatch(/^Volta (às|amanhã|\S+ às) .+ · 2 trabalhos$/);
     expect(computer).toEqual({ name: "Computador da equipe", fact: "Cheio · 4 na fila · 2 trabalhando" });
     // The other computer still lists under Computadores; the one in the strip does not.
     expect(computersBesides(computers, causes).map((c) => c.id)).toEqual(["m2"]);

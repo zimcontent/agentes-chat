@@ -919,6 +919,7 @@
       "computer_ready_other": "你的工作区电脑已就绪",
       "invitation_accepted_other": "{{names}} 接受了你的邀请",
       "composio_limit_other": "此工作区已用完本月的 Composio 调用次数",
+      "company_request_other": "{{names}} 为公司申请了 DougBot",
       "change_request_other": "{{names}} 请求调整团队",
       "usage_limit_warning": "本月你已用掉额度的 {{percent}}%",
       "usage_limit_reached_notify": "你已达到本月的使用额度",
@@ -940,9 +941,7 @@
       "plan_model_dropped_other": "{{model}} 已从 {{plan}} 下架。{{names}} 暂时使用 {{runs}}",
       "computer_disk_full_other": "一台电脑的磁盘快满了",
       "computer_no_chrome_other": "电脑需要 Google Chrome。请在 google.com/chrome 下载",
-      "app_created_other": "一个 AI 应用为你创建了内容",
-      "company_request_one": "{{names}} 为公司申请了 DougBot",
-      "company_request_other": "{{names}} 为公司申请了 DougBot"
+      "app_created_other": "一个 AI 应用为你创建了内容"
     },
     "markRead": "标为已读",
     "markUnread": "标为未读",
@@ -998,6 +997,8 @@
     "added": "{{name}} 已加入群组"
   },
   "me": {
+    "groupAlerts": "提醒与审批",
+    "groupLook": "外观与声音",
     "title": "我",
     "role": {
       "owner": "所有者",
@@ -1124,9 +1125,7 @@
       "suggested": "推荐",
       "all": "全部",
       "none": "没有这个名称的时区"
-    },
-    "groupAlerts": "提醒与审批",
-    "groupLook": "外观与声音"
+    }
   },
   "delete": {
     "intro": "此操作无法撤销。",
@@ -1191,6 +1190,8 @@
     "new": "新建任务",
     "viewList": "列表",
     "viewBoard": "看板",
+    "viewTeam": "团队",
+    "viewMine": "我的",
     "search": "搜索任务",
     "noMatch": "没有这个名称的任务。",
     "list": {
@@ -1222,6 +1223,31 @@
       "canceled": "已取消"
     },
     "until": "{{date}} 截止",
+    "team": {
+      "today": "今天",
+      "week": "本周",
+      "everyone": "所有人",
+      "people": "成员",
+      "agents": "智能体",
+      "clear": "没有人有未完成的任务",
+      "mineClear": "你已处理完所有事项",
+      "clearToday": "没有进行中、逾期或今天到期的事项。",
+      "clearWeek": "没有进行中、逾期或本周到期的事项。",
+      "working_other": "工作中 {{count}}",
+      "lateCount_other": "逾期 {{count}}",
+      "blockedCount_other": "受阻 {{count}}",
+      "doingCount_other": "正在处理 {{count}} 项",
+      "notStarted": "没有进行中的事项",
+      "free": "空闲",
+      "queued_other": "队列中 {{count}} 项",
+      "expand": "显示整个队列",
+      "collapse": "只显示接下来的事项",
+      "now": "当前",
+      "next": "接下来",
+      "more_other": "队列中还有 {{count}} 项",
+      "blocked": "受阻",
+      "lateOn": "自 {{date}} 起逾期"
+    },
     "loadFailed": "无法加载任务。",
     "createdBy": "由 {{name}} 创建",
     "fromMessage": "来自一条消息",
@@ -1408,6 +1434,20 @@
     }
   },
   "taskManager": {
+    "shortTitle": "动态",
+    "stat": {
+      "working": "工作中",
+      "waiting": "等你处理",
+      "done": "今天完成"
+    },
+    "needsYou": "需要你处理",
+    "review": "打开并回复",
+    "inProgress": "进行中",
+    "paused": "已暂停",
+    "pausedLine": "已暂停",
+    "comingBack": "稍后继续",
+    "more_other": "还有 {{count}} 项任务",
+    "fewer": "收起",
     "loadFailed": "无法加载工作。",
     "gone": "这项工作已不在这里。",
     "quiet": "没有进行中的事项",
@@ -1462,6 +1502,10 @@
     }
   },
   "activityNow": {
+    "needsYou": "需要你处理",
+    "running": "正在工作",
+    "runningAll": "查看全部",
+    "steps": "{{done}}/{{total}}",
     "kind": {
       "approval": "审批",
       "question": "问题",
@@ -1484,11 +1528,16 @@
       "today": "今天 {{time}}",
       "tomorrow": "明天 {{time}}",
       "later": "{{day}} {{time}}"
-    },
-    "needsYou": "需要你处理",
-    "running": "正在工作",
-    "runningAll": "查看全部",
-    "steps": "{{done}}/{{total}}"
+    }
+  },
+  "toSchedule": {
+    "title": "待排期",
+    "row": "帖子已通过，点按排期",
+    "untitled": "无标题帖子",
+    "sheetTitle": "排期发布",
+    "confirm": "排期",
+    "when": "{{when}} 发布",
+    "past": "请选择一个尚未过去的时间"
   },
   "agentLite": {
     "uses": "可使用",
@@ -3049,14 +3098,5 @@
   "brand": {
     "basedOn": "基于 Codari Global, LLC 的 DougBot · AGPL-3.0",
     "source": "DougBot 源代码"
-  },
-  "toSchedule": {
-    "title": "待排期",
-    "row": "帖子已通过，点按排期",
-    "untitled": "无标题帖子",
-    "sheetTitle": "排期发布",
-    "confirm": "排期",
-    "when": "{{when}} 发布",
-    "past": "请选择一个尚未过去的时间"
   }
 }

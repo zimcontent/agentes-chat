@@ -1093,6 +1093,10 @@
       "composio_limit_few": "Рабочее пространство израсходовало вызовы Composio на этот месяц",
       "composio_limit_many": "Рабочее пространство израсходовало вызовы Composio на этот месяц",
       "composio_limit_other": "Рабочее пространство израсходовало вызовы Composio на этот месяц",
+      "company_request_one": "{{names}} запросил DougBot для компании",
+      "company_request_few": "{{names}} запросили DougBot для компании",
+      "company_request_many": "{{names}} запросили DougBot для компании",
+      "company_request_other": "{{names}} запросили DougBot для компании",
       "change_request_one": "{{names}} просит изменить команду",
       "change_request_few": "{{names}} просят изменить команду",
       "change_request_many": "{{names}} просят изменить команду",
@@ -1162,9 +1166,7 @@
       "app_created_one": "Приложение ИИ кое-что создало для вас",
       "app_created_few": "Приложение ИИ кое-что создало для вас",
       "app_created_many": "Приложение ИИ кое-что создало для вас",
-      "app_created_other": "Приложение ИИ кое-что создало для вас",
-      "company_request_one": "{{names}} запросил DougBot для компании",
-      "company_request_other": "{{names}} запросили DougBot для компании"
+      "app_created_other": "Приложение ИИ кое-что создало для вас"
     },
     "markRead": "Отметить как прочитанное",
     "markUnread": "Отметить как непрочитанное",
@@ -1220,6 +1222,8 @@
     "added": "{{name}} вступил(а) в группу"
   },
   "me": {
+    "groupAlerts": "Уведомления и одобрения",
+    "groupLook": "Вид и звук",
     "title": "Вы",
     "role": {
       "owner": "владелец",
@@ -1364,9 +1368,7 @@
       "suggested": "Рекомендуемые",
       "all": "Все",
       "none": "Нет часового пояса с таким названием"
-    },
-    "groupAlerts": "Уведомления и одобрения",
-    "groupLook": "Вид и звук"
+    }
   },
   "delete": {
     "intro": "Отменить это нельзя.",
@@ -1431,6 +1433,8 @@
     "new": "Новая задача",
     "viewList": "Список",
     "viewBoard": "Доска",
+    "viewTeam": "Команда",
+    "viewMine": "Мои",
     "search": "Поиск задач",
     "noMatch": "Задачи с таким названием нет.",
     "list": {
@@ -1462,6 +1466,49 @@
       "canceled": "Отменено"
     },
     "until": "срок {{date}}",
+    "team": {
+      "today": "Сегодня",
+      "week": "Неделя",
+      "everyone": "Все",
+      "people": "Люди",
+      "agents": "Агенты",
+      "clear": "Ни у кого нет открытых задач",
+      "mineClear": "Всё сделано",
+      "clearToday": "Ничего в работе, просроченного или на сегодня.",
+      "clearWeek": "Ничего в работе, просроченного или на эту неделю.",
+      "working_one": "{{count}} работает",
+      "working_few": "{{count}} работают",
+      "working_many": "{{count}} работают",
+      "working_other": "{{count}} работают",
+      "lateCount_one": "{{count}} просрочена",
+      "lateCount_few": "{{count}} просрочены",
+      "lateCount_many": "{{count}} просрочено",
+      "lateCount_other": "{{count}} просрочено",
+      "blockedCount_one": "{{count}} заблокирована",
+      "blockedCount_few": "{{count}} заблокированы",
+      "blockedCount_many": "{{count}} заблокировано",
+      "blockedCount_other": "{{count}} заблокировано",
+      "doingCount_one": "В работе: {{count}}",
+      "doingCount_few": "В работе: {{count}}",
+      "doingCount_many": "В работе: {{count}}",
+      "doingCount_other": "В работе: {{count}}",
+      "notStarted": "Ничего в работе",
+      "free": "Без задач",
+      "queued_one": "{{count}} в очереди",
+      "queued_few": "{{count}} в очереди",
+      "queued_many": "{{count}} в очереди",
+      "queued_other": "{{count}} в очереди",
+      "expand": "Показывает всю очередь",
+      "collapse": "Показывает только следующее",
+      "now": "Сейчас",
+      "next": "Далее",
+      "more_one": "+{{count}} в очереди",
+      "more_few": "+{{count}} в очереди",
+      "more_many": "+{{count}} в очереди",
+      "more_other": "+{{count}} в очереди",
+      "blocked": "Заблокирована",
+      "lateOn": "Просрочена с {{date}}"
+    },
     "loadFailed": "Не удалось загрузить задачи.",
     "createdBy": "автор: {{name}}",
     "fromMessage": "из сообщения",
@@ -1675,6 +1722,23 @@
     }
   },
   "taskManager": {
+    "shortTitle": "Активность",
+    "stat": {
+      "working": "Работают",
+      "waiting": "Ждут вас",
+      "done": "Сделано сегодня"
+    },
+    "needsYou": "Ждёт вас",
+    "review": "Открыть и ответить",
+    "inProgress": "В работе",
+    "paused": "На паузе",
+    "pausedLine": "На паузе",
+    "comingBack": "Вернутся позже",
+    "more_one": "Ещё {{count}} задача",
+    "more_few": "Ещё {{count}} задачи",
+    "more_many": "Ещё {{count}} задач",
+    "more_other": "Ещё {{count}} задачи",
+    "fewer": "Показать меньше",
     "loadFailed": "Не удалось загрузить работу.",
     "gone": "Этой работы больше нет.",
     "quiet": "Ничего не выполняется",
@@ -1735,6 +1799,10 @@
     }
   },
   "activityNow": {
+    "needsYou": "Ждёт вас",
+    "running": "Сейчас в работе",
+    "runningAll": "Показать все",
+    "steps": "{{done}} из {{total}}",
     "kind": {
       "approval": "Одобрить",
       "question": "Вопрос",
@@ -1757,11 +1825,16 @@
       "today": "сегодня в {{time}}",
       "tomorrow": "завтра в {{time}}",
       "later": "{{day}} в {{time}}"
-    },
-    "needsYou": "Ждёт вас",
-    "running": "Сейчас в работе",
-    "runningAll": "Показать все",
-    "steps": "{{done}} из {{total}}"
+    }
+  },
+  "toSchedule": {
+    "title": "Готово к планированию",
+    "row": "Пост одобрен, нажмите, чтобы запланировать",
+    "untitled": "Пост без названия",
+    "sheetTitle": "Запланировать пост",
+    "confirm": "Запланировать",
+    "when": "Выйдет {{when}}",
+    "past": "Выберите время, которое ещё не прошло"
   },
   "agentLite": {
     "uses": "Может использовать",
@@ -3442,14 +3515,5 @@
   "brand": {
     "basedOn": "На основе DougBot от Codari Global, LLC · AGPL-3.0",
     "source": "Исходный код DougBot"
-  },
-  "toSchedule": {
-    "title": "Готово к планированию",
-    "row": "Пост одобрен, нажмите, чтобы запланировать",
-    "untitled": "Пост без названия",
-    "sheetTitle": "Запланировать пост",
-    "confirm": "Запланировать",
-    "when": "Выйдет {{when}}",
-    "past": "Выберите время, которое ещё не прошло"
   }
 }

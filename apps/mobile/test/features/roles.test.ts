@@ -264,9 +264,10 @@ describe("Permissões (P4): the Todos trap is gone", () => {
     expect(permissionGroups(t, admin, data, owner).map((g) => g.id)).toEqual([ADVANCED]);
     const titles = (q: string) =>
       permissionGroups(t, suporte, data, owner, q).flatMap((g) => g.rows.map((r) => r.title));
-    expect(titles("criar canais")).toEqual(["Criar canais"]);
+    // The fork's Portuguese calls channels "grupos" (e67eda8fc6).
+    expect(titles("criar grupos")).toEqual(["Criar grupos"]);
     expect(titles("faturas")).toEqual(["Plano e cobrança"]);
-    expect(titles("conversas")).toEqual(["Mandar mensagens", "Criar canais", "Mencionar todos", "Organizar canais"]);
+    expect(titles("conversas")).toEqual(["Mandar mensagens", "Criar grupos", "Mencionar todos", "Organizar grupos"]);
     expect(titles("reagir")).toEqual(["Mandar mensagens"]);
     expect(titles("cobranca")).toEqual(["Plano e cobrança"]);
     expect(titles("nada disso")).toEqual([]);

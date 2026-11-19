@@ -1093,6 +1093,10 @@
       "composio_limit_few": "Ta przestrzeń robocza wykorzystała miesięczny limit wywołań Composio",
       "composio_limit_many": "Ta przestrzeń robocza wykorzystała miesięczny limit wywołań Composio",
       "composio_limit_other": "Ta przestrzeń robocza wykorzystała miesięczny limit wywołań Composio",
+      "company_request_one": "{{names}} poprosił o DougBot dla firmy",
+      "company_request_few": "{{names}} poprosili o DougBot dla firmy",
+      "company_request_many": "{{names}} poprosili o DougBot dla firmy",
+      "company_request_other": "{{names}} poprosili o DougBot dla firmy",
       "change_request_one": "{{names}} prosi o zmianę w zespole",
       "change_request_few": "{{names}} proszą o zmianę w zespole",
       "change_request_many": "{{names}} proszą o zmianę w zespole",
@@ -1162,9 +1166,7 @@
       "app_created_one": "Aplikacja AI coś dla ciebie utworzyła",
       "app_created_few": "Aplikacje AI coś dla ciebie utworzyły",
       "app_created_many": "Aplikacje AI coś dla ciebie utworzyły",
-      "app_created_other": "Aplikacje AI coś dla ciebie utworzyły",
-      "company_request_one": "{{names}} poprosił o DougBot dla firmy",
-      "company_request_other": "{{names}} poprosili o DougBot dla firmy"
+      "app_created_other": "Aplikacje AI coś dla ciebie utworzyły"
     },
     "markRead": "Oznacz jako przeczytane",
     "markUnread": "Oznacz jako nieprzeczytane",
@@ -1220,6 +1222,8 @@
     "added": "{{name}} dołączył(a) do grupy"
   },
   "me": {
+    "groupAlerts": "Alerty i akceptacje",
+    "groupLook": "Wygląd i dźwięk",
     "title": "Ty",
     "role": {
       "owner": "właściciel",
@@ -1364,9 +1368,7 @@
       "suggested": "Sugerowane",
       "all": "Wszystkie",
       "none": "Brak strefy czasowej o tej nazwie"
-    },
-    "groupAlerts": "Alerty i akceptacje",
-    "groupLook": "Wygląd i dźwięk"
+    }
   },
   "delete": {
     "intro": "Tego nie da się cofnąć.",
@@ -1431,6 +1433,8 @@
     "new": "Nowe zadanie",
     "viewList": "Lista",
     "viewBoard": "Tablica",
+    "viewTeam": "Zespół",
+    "viewMine": "Moje",
     "search": "Szukaj zadań",
     "noMatch": "Brak zadania o tej nazwie.",
     "list": {
@@ -1462,6 +1466,49 @@
       "canceled": "Anulowane"
     },
     "until": "termin {{date}}",
+    "team": {
+      "today": "Dzisiaj",
+      "week": "Tydzień",
+      "everyone": "Wszyscy",
+      "people": "Osoby",
+      "agents": "Agenci",
+      "clear": "Nikt nie ma otwartych zadań",
+      "mineClear": "Wszystko na bieżąco",
+      "clearToday": "Nic w toku, po terminie ani na dziś.",
+      "clearWeek": "Nic w toku, po terminie ani na ten tydzień.",
+      "working_one": "{{count}} pracuje",
+      "working_few": "{{count}} pracują",
+      "working_many": "{{count}} pracuje",
+      "working_other": "{{count}} pracuje",
+      "lateCount_one": "{{count}} po terminie",
+      "lateCount_few": "{{count}} po terminie",
+      "lateCount_many": "{{count}} po terminie",
+      "lateCount_other": "{{count}} po terminie",
+      "blockedCount_one": "{{count}} zablokowane",
+      "blockedCount_few": "{{count}} zablokowane",
+      "blockedCount_many": "{{count}} zablokowanych",
+      "blockedCount_other": "{{count}} zablokowanego",
+      "doingCount_one": "Pracuje nad {{count}}",
+      "doingCount_few": "Pracuje nad {{count}}",
+      "doingCount_many": "Pracuje nad {{count}}",
+      "doingCount_other": "Pracuje nad {{count}}",
+      "notStarted": "Nic w toku",
+      "free": "Bez zadań",
+      "queued_one": "{{count}} w kolejce",
+      "queued_few": "{{count}} w kolejce",
+      "queued_many": "{{count}} w kolejce",
+      "queued_other": "{{count}} w kolejce",
+      "expand": "Pokazuje całą kolejkę",
+      "collapse": "Pokazuje tylko to, co następne",
+      "now": "Teraz",
+      "next": "Następne",
+      "more_one": "+{{count}} w kolejce",
+      "more_few": "+{{count}} w kolejce",
+      "more_many": "+{{count}} w kolejce",
+      "more_other": "+{{count}} w kolejce",
+      "blocked": "Zablokowane",
+      "lateOn": "Po terminie od {{date}}"
+    },
     "loadFailed": "Nie udało się wczytać zadań.",
     "createdBy": "utworzone przez: {{name}}",
     "fromMessage": "z wiadomości",
@@ -1675,6 +1722,23 @@
     }
   },
   "taskManager": {
+    "shortTitle": "Aktywność",
+    "stat": {
+      "working": "Pracują",
+      "waiting": "Czekają na ciebie",
+      "done": "Ukończone dziś"
+    },
+    "needsYou": "Czeka na ciebie",
+    "review": "Otwórz i odpowiedz",
+    "inProgress": "W toku",
+    "paused": "Wstrzymane",
+    "pausedLine": "Wstrzymane",
+    "comingBack": "Wrócą później",
+    "more_one": "Jeszcze {{count}} zadanie",
+    "more_few": "Jeszcze {{count}} zadania",
+    "more_many": "Jeszcze {{count}} zadań",
+    "more_other": "Jeszcze {{count}} zadania",
+    "fewer": "Pokaż mniej",
     "loadFailed": "Nie udało się wczytać pracy.",
     "gone": "Tej pracy już tu nie ma.",
     "quiet": "Nic w toku",
@@ -1735,6 +1799,10 @@
     }
   },
   "activityNow": {
+    "needsYou": "Czeka na ciebie",
+    "running": "Teraz pracuje",
+    "runningAll": "Zobacz wszystko",
+    "steps": "{{done}} z {{total}}",
     "kind": {
       "approval": "Zatwierdź",
       "question": "Pytanie",
@@ -1757,11 +1825,16 @@
       "today": "dziś o {{time}}",
       "tomorrow": "jutro o {{time}}",
       "later": "{{day}} o {{time}}"
-    },
-    "needsYou": "Czeka na ciebie",
-    "running": "Teraz pracuje",
-    "runningAll": "Zobacz wszystko",
-    "steps": "{{done}} z {{total}}"
+    }
+  },
+  "toSchedule": {
+    "title": "Gotowe do zaplanowania",
+    "row": "Post zatwierdzony, dotknij, aby zaplanować",
+    "untitled": "Post bez tytułu",
+    "sheetTitle": "Zaplanuj post",
+    "confirm": "Zaplanuj",
+    "when": "Publikacja {{when}}",
+    "past": "Wybierz godzinę, która jeszcze nie minęła"
   },
   "agentLite": {
     "uses": "Może używać",
@@ -3442,14 +3515,5 @@
   "brand": {
     "basedOn": "Na podstawie DougBot od Codari Global, LLC · AGPL-3.0",
     "source": "Kod źródłowy DougBot"
-  },
-  "toSchedule": {
-    "title": "Gotowe do zaplanowania",
-    "row": "Post zatwierdzony, dotknij, aby zaplanować",
-    "untitled": "Post bez tytułu",
-    "sheetTitle": "Zaplanuj post",
-    "confirm": "Zaplanuj",
-    "when": "Publikacja {{when}}",
-    "past": "Wybierz godzinę, która jeszcze nie minęła"
   }
 }
