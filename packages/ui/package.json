@@ -45,6 +45,7 @@
     "./sky/team": "./src/sky/team.ts",
     "./agent-talk": "./src/agent-talk.ts",
     "./channel-refs": "./src/channel-refs.ts",
+    "./clip": "./src/clip.ts",
     "./diff": "./src/diff.ts",
     "./format": "./src/format.ts",
     "./markdown": "./src/markdown.ts",

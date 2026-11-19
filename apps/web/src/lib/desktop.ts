@@ -4,6 +4,7 @@ import { firstName } from "@agenteschat/client/lib/format";
 import { noticeLine } from "@agenteschat/client/lib/island";
 import { mediaWord } from "@agenteschat/client/lib/media";
 import { openTarget, targetPath } from "@agenteschat/client/lib/notifications";
+import { clipWhole } from "@agenteschat/ui/clip";
 import type { i18n as I18n, TFunction } from "i18next";
 import { useEffect } from "react";
 import type { DesktopServerWorkspaces } from "./workspaces";
@@ -86,10 +87,8 @@ const isNoticeKind = (kind: string): kind is NoticeKind => (NOTICE_KINDS as read
 const NOTICE_TITLE_MAX = 80;
 const NOTICE_BODY_MAX = 180;
 
-const oneLine = (text: string, max: number) => {
-  const one = text.replace(/\s+/g, " ").trim();
-  return one.length > max ? `${one.slice(0, max - 1).trimEnd()}…` : one;
-};
+// Doug: cut on a whole character, never half of an emoji.
+const oneLine = (text: string, max: number) => clipWhole(text.replace(/\s+/g, " ").trim(), max);
 
 /**
  * The desktop app's notification for one that just arrived (`notification.upserted`): new and unread, of a

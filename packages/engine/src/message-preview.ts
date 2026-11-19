@@ -1,3 +1,4 @@
+import { clipWhole } from "@agenteschat/ui/clip";
 import { type MessageMedia, mediaOf } from "./media";
 
 /** `meta.voice` of a message (ADR 0100): all the apps need to draw and play it. */
@@ -64,8 +65,8 @@ const GITHUB_LINE_REFS = ["event", "item", "state", "who", "number", "repo", "ag
 
 /** One line of at most `max` chars (a preview's text). */
 function oneLine(text: string, max = 200): string {
-  const line = text.replace(/\s+/g, " ").trim();
-  return line.length > max ? `${line.slice(0, max - 1).trimEnd()}…` : line;
+  // Doug: cut on a whole character, never half of an emoji.
+  return clipWhole(text.replace(/\s+/g, " ").trim(), max);
 }
 
 /**

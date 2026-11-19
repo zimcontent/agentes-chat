@@ -551,6 +551,19 @@ function Details({ routine: r, refetch }: { routine: Routine; refetch: () => Pro
                   ))}
                 </LayoutAnimationConfig>
               </Animated.View>
+            ) : runs.isError ? (
+              // Doug: a history that didn't load says so, with a retry, instead of "no runs yet".
+              <Block>
+                <Text variant="footnote" tone="muted">
+                  {t("common.loadFailed")}
+                </Text>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  label={t("mobile.common.retry")}
+                  onPress={() => void runs.refetch()}
+                />
+              </Block>
             ) : (
               <Block>
                 <Text variant="footnote" tone="muted">

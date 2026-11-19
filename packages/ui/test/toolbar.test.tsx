@@ -4,7 +4,7 @@ import { setupDom } from "../testing/dom";
 setupDom();
 
 import { act, fireEvent, render, within } from "@testing-library/react";
-import { Button, FilterChip, FilterToggle, SearchField, Toolbar } from "../src";
+import { Button, Dialog, FilterChip, FilterToggle, SearchField, Toolbar } from "../src";
 
 const body = () => within(document.body);
 
@@ -157,4 +157,56 @@ test("a raised button in a toolbar takes the field look of the search beside it:
   expect(look).toContain("box-shadow: inset 0 0 0 1px var(--field-line)");
   // The search's own look, so the row reads as one kind of control.
   expect(css.split("\n.ac-searchfield {")[1]?.split("}")[0]).toContain("box-shadow: inset 0 0 0 1px var(--field-line)");
+});
+
+describe("SearchField Escape", () => {
+  test("in a dialog, with text it clears the field and the dialog stays", () => {
+    const changes: boolean[] = [];
+    let cleared = 0;
+    render(
+      <Dialog open onOpenChange={(o) => changes.push(o)} title="Conectores" closeLabel="Fechar">
+        <SearchField
+          aria-label="Buscar"
+          value="abc"
+          onChange={() => {}}
+          onClear={() => cleared++}
+          clearLabel="Limpar"
+        />
+      </Dialog>,
+    );
+    fireEvent.keyDown(body().getByRole("searchbox"), { key: "Escape" });
+    expect(cleared).toBe(1);
+    expect(changes).toEqual([]);
+  });
+
+  test("without onClear it calls onChange with an empty value", () => {
+    const seen: string[] = [];
+    const { getByRole } = render(
+      <SearchField aria-label="Buscar" defaultValue="abc" onChange={(e) => seen.push(e.target.value)} />,
+    );
+    fireEvent.keyDown(getByRole("searchbox"), { key: "Escape" });
+    expect(seen).toEqual([""]);
+  });
+
+  test("while an input method composes, Escape leaves the text alone", () => {
+    let cleared = 0;
+    const { getByRole } = render(
+      <SearchField aria-label="Buscar" value="abc" onChange={() => {}} onClear={() => cleared++} clearLabel="Limpar" />,
+    );
+    fireEvent.keyDown(getByRole("searchbox"), { key: "Escape", isComposing: true });
+    expect(cleared).toBe(0);
+  });
+
+  test("empty, Escape goes on and closes the dialog", () => {
+    const changes: boolean[] = [];
+    let cleared = 0;
+    render(
+      <Dialog open onOpenChange={(o) => changes.push(o)} title="Conectores" closeLabel="Fechar">
+        <SearchField aria-label="Buscar" value="" onChange={() => {}} onClear={() => cleared++} clearLabel="Limpar" />
+      </Dialog>,
+    );
+    fireEvent.keyDown(body().getByRole("searchbox"), { key: "Escape" });
+    expect(cleared).toBe(0);
+    expect(changes).toEqual([false]);
+  });
 });

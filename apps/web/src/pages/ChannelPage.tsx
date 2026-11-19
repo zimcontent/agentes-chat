@@ -262,6 +262,8 @@ import { useConversationLook } from "@/chat/look";
 import { MessageBody } from "@/chat/MessageBody";
 import { useBrowserOffline } from "@/chat/offline";
 import { readingLanding } from "@/chat/reading";
+// Doug: the text a failed run copies.
+import { failedRunDetails } from "@/chat/run-details";
 import {
   blockRowByRun,
   nextSlots,
@@ -427,7 +429,7 @@ import { useHeaderSearch } from "@/hooks/useWorkspaceSearch";
 import { TYPED_VALUES } from "@/i18n";
 import { onAgentPanel, takeAgentPanel } from "@/lib/agent-panel-ask";
 import { onChannelDetails, takeChannelDetails } from "@/lib/channel-details";
-import { selectingIn } from "@/lib/context-menu";
+import { copyText, selectingIn } from "@/lib/context-menu";
 import { desktopPlatform, thisMac, useDocumentTitle } from "@/lib/desktop";
 import { holdOnScreen } from "@/lib/island";
 import { composes, typingInField } from "@/lib/keys";
@@ -3932,7 +3934,8 @@ function ConnectionBanner({ status }: { status: ConnectionStatus }) {
   return (
     <p className="channel__conn ac-iconline" data-back={!down || undefined} role="status">
       <Icon name={down ? "cloud" : "check"} size={16} />
-      {down ? t("channel.offline") : t("channel.backOnline")}
+      {/* Doug: no internet and a server that is only unreachable read differently. */}
+      {down ? t(offline ? "channel.offline" : "channel.serverReconnecting") : t("channel.backOnline")}
     </p>
   );
 }
@@ -4377,6 +4380,8 @@ export const TimelineMessage = memo(function TimelineMessage({
   const { org, me } = useOrg();
   const dismissRun = useDismissRun();
   const simple = simpleScreens(org);
+  // Doug: copy a failed run's details (error, code, run id) for a report.
+  const toast = useToast();
   const liveFailed = live?.status === "failed";
   // Refused by the workspace's standing: its own words, not the server's English.
   const refusal = liveFailed ? restrictionLine(t, live?.errorCode, live?.errorParams) : null;
@@ -4824,14 +4829,44 @@ export const TimelineMessage = memo(function TimelineMessage({
                   </span>
                 </p>
                 {live.agentId && <FailedRunFix code={live.errorCode} agentId={live.agentId} />}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  iconOnly
-                  icon="close"
-                  aria-label={t("common.close")}
-                  onClick={() => dismissRun(live.runId)}
-                />
+                {/* Doug: the copy button joins the close ×, both in the row's last column, 8 apart. */}
+                <span className="ac-msg__error-acts">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
+                    icon="copy"
+                    aria-label={t("channel.copyRunDetails")}
+                    title={t("channel.copyRunDetails")}
+                    onClick={() =>
+                      void copyText(
+                        failedRunDetails({
+                          agent: name,
+                          line:
+                            runFailureLine(
+                              t,
+                              name,
+                              { code: live.errorCode, params: live.errorParams },
+                              i18n.language,
+                            ) ?? t("channel.runFailedNoReason", { agent: name }),
+                          ...(live.error ? { error: live.error } : {}),
+                          ...(live.errorCode ? { code: live.errorCode } : {}),
+                          runId: live.runId,
+                          at: new Date(),
+                        }),
+                        () => toast.show(t("channel.runDetailsCopied")),
+                      )
+                    }
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    iconOnly
+                    icon="close"
+                    aria-label={t("common.close")}
+                    onClick={() => dismissRun(live.runId)}
+                  />
+                </span>
               </div>
             )}
             <LiveTools work={live.work ?? []} agentName={name} color={colorOf(agent)} steerNote={steerNote} stopped />

@@ -238,6 +238,35 @@ describe("Rotinas: the routine's page, edited where it is", () => {
     ).toEqual(["No ar", "Quem faz", "Quando", "Onde entrega", "Quando posta"]);
   });
 
+  // Doug: a run history that didn't load says so, with a retry, instead of an empty tab.
+  test("Execuções that fail to load say so and offer Tentar de novo", async () => {
+    let fail = true;
+    let asked = 0;
+    await open(async (api) => {
+      // No runs carried on the list either: the tab has nothing to fall back on.
+      const list = api.routines.list.bind(api.routines);
+      api.routines.list = async (...args: Parameters<typeof list>) =>
+        (await list(...args)).map((r) => ({ ...r, recentRuns: [], lastRun: null }));
+      const runs = api.routines.runs.bind(api.routines);
+      api.routines.runs = async (...args: Parameters<typeof runs>) => {
+        asked++;
+        if (fail) throw new Error("offline");
+        return runs(...args);
+      };
+    });
+    const dialog = await page();
+    await act(async () => fireEvent.mouseDown(within(dialog).getByRole("tab", { name: /^Execuções/ }), { button: 0 }));
+    await settle(4);
+    const retry = within(dialog).getByRole("button", { name: "Tentar de novo" });
+    expect(within(dialog).getByRole("tabpanel").textContent).not.toContain("Nenhuma execução");
+    fail = false;
+    const before = asked;
+    await click(retry);
+    await settle(4);
+    expect(asked).toBeGreaterThan(before);
+    expect(within(dialog).queryByRole("button", { name: "Tentar de novo" })).toBeNull();
+  });
+
   test("renaming in place: Enter saves it and Salvo shows by Rotina", async () => {
     const { state } = await open();
     const dialog = await page();

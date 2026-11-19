@@ -1,3 +1,4 @@
+import { clipWhole } from "@agenteschat/ui/clip";
 import type { ArtifactRef, Message, ReplyRef } from "../api/types";
 import { artifactRefs } from "./artifacts";
 import { plainLine } from "./markdown";
@@ -6,8 +7,8 @@ import { listedText, voiceOf } from "./voice";
 
 /** Same rule as the server (`replyExcerpt`): one line of plain words, ~200 characters. */
 export function quoteExcerpt(body: string, max = 200): string {
-  const line = plainLine(body);
-  return line.length > max ? `${line.slice(0, max - 1).trimEnd()}…` : line;
+  // Doug: cut on a whole character, never half of an emoji.
+  return clipWhole(plainLine(body), max);
 }
 
 /** `meta.replyTo` when it is well formed. */

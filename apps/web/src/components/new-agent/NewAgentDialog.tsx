@@ -73,6 +73,7 @@ import { useOrg } from "@/components/org-context";
 import { ImageCropDialog } from "@/components/ProfilePhoto";
 import { agentCoverOptions, facePool } from "@/components/Sky";
 import { useTextLimit } from "@/hooks/useTextLimit";
+import { useStillBusy } from "@/hooks/useStillBusy";
 import {
   BLANK_LOOK,
   type CardLevel,
@@ -412,6 +413,8 @@ function NewAgentDialog({
   const [pending, setPending] = useState<string | null>(null);
   const [appOpen, setAppOpen] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Doug: after a while the dialog says it is still creating, so a slow create does not look stuck.
+  const slow = useStillBusy(busy);
   const [addingSkills, setAddingSkills] = useState(false);
   const [skillOpen, setSkillOpen] = useState<string | null>(null);
   // Name ideas for an agent from scratch: which three show, and the one pointed at (tried on in the bubble).
@@ -1226,6 +1229,11 @@ function NewAgentDialog({
         {steps && step === "card" ? (
           // Narrow, the card's step ends on Create alone, the width of the sheet.
           <DialogFooter className="nac__foot nac__foot--create">
+            {slow && (
+              <span className="nac__slow" role="status">
+                {t("newAgentCard.stillCreating")}
+              </span>
+            )}
             <Button variant="primary" block loading={busy} disabled={!ready} onClick={() => void submit()}>
               {name ? t("newAgentCard.create", { name }) : t("newAgentCard.createBlank")}
             </Button>
@@ -1241,6 +1249,11 @@ function NewAgentDialog({
                   <Icon name="download" size={16} />
                   {t("newAgentCard.import")}
                 </button>
+                {slow && (
+                  <span className="nac__slow" role="status">
+                    {t("newAgentCard.stillCreating")}
+                  </span>
+                )}
                 {!brain.hasAi && connectAi && (
                   <Button size="sm" icon="bolt" onClick={() => connectAi.open({ forNewAgent: true })}>
                     {t("noAi.banner.orgAction")}

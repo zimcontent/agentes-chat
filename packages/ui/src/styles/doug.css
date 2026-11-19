@@ -3602,4 +3602,27 @@ html:root {
 html[data-client-accent] [data-theme] {
   --accent-text: var(--client-accent);
   --focus-color: var(--client-accent);
+/* ── A failed run's actions: "Copy details" beside the close ×, both in the row's last column, 8 apart, hung over the
+   reason's first line as the × alone was (the kit's `.ac-msg__error-row > .ac-btn--icon`). ── */
+[data-theme] .ac-msg__error-row > .ac-msg__error-acts {
+  display: flex;
+  gap: var(--space-2);
+  margin-block: calc((var(--msg-line) - var(--control-h-sm)) / 2);
+}
+
+/* ── Creating an agent that runs long: the line that says it is still going. Alone on the narrow footer, it takes
+   the row above Create. ── */
+[data-theme] .nac__slow {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+[data-theme] .nac__foot--create > .nac__slow {
+  flex: 1 1 100%;
+}
+
+/* ── A connector's one-color mark on the dark plate: a deep brand color (Atlassian's blue, Datadog's purple) sank
+   under 3:1 against it, so it leans a quarter toward the ink, as a link's pill already does (layout.css). Measured on
+   the catalog: the faintest mark goes from 1.87 to 3.25. ── */
+[data-theme="dark"] .connector-icon__mark {
+  background: color-mix(in srgb, var(--connector-color, var(--ink)) 75%, var(--ink));
 }

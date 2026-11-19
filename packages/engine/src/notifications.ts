@@ -17,11 +17,11 @@ import {
   schema,
   sql,
 } from "@agenteschat/db";
+import { clipWhole } from "@agenteschat/ui/clip";
 import { plainLine } from "@agenteschat/ui/markdown";
 import { decidableBySql } from "./approvals";
 import { NotFoundError, ValidationError } from "./errors";
 import { publishUserEvent } from "./events";
-import { cutText } from "./format";
 import type { PreviewMeta } from "./message-preview";
 import { noticeOn, noticePrefsOf, readNoticePrefs } from "./notice-prefs";
 import { listMemberships, requirePermission } from "./organizations";
@@ -528,7 +528,8 @@ const MAX_NAMES = 2;
 export function notificationSnippet(text: string | null | undefined, max = SNIPPET_LENGTH): string {
   if (!text) return "";
   const plain = plainLine(text, max);
-  return plain.length > max ? `${cutText(plain, max - 1).trimEnd()}…` : plain;
+  // Doug: cut on a whole character (a joined emoji stays whole too).
+  return clipWhole(plain, max);
 }
 
 export function notificationView(r: Row): NotificationView {

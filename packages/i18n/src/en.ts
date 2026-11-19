@@ -2887,6 +2887,8 @@ export const en = {
     runFailed: "{{agent}} couldn't answer: {{reason}}",
     runRefused: "{{agent}} didn't answer. {{reason}}",
     runFailedNoReason: "{{agent}} couldn't answer. Try again.",
+    copyRunDetails: "Copy details",
+    runDetailsCopied: "Details copied.",
     runBusy: "{{agent}} couldn't answer: the computer stayed busy with other tasks. Try again in a moment.",
     waitingApproval: "waiting for approval",
     notMemberTitle: "You're not in this group",
@@ -2995,6 +2997,7 @@ export const en = {
     },
     unreadDivider: "New",
     offline: "No connection. Whatever you send goes out on its own when it's back.",
+    serverReconnecting: "Reconnecting to DougBot. Whatever you send goes out on its own when it's back.",
     backOnline: "Connected again",
     sendingOffline: "goes out when the connection is back",
     endOfReply: "End of reply",
@@ -7983,6 +7986,8 @@ export const en = {
     create: "Create {{name}}",
     createBlank: "Create agent",
     failed: "Couldn't create it: {{reason}}",
+    /** Beside Create, once a create has lasted a while. */
+    stillCreating: "Still creating. This can take a little longer.",
     level: {
       read: "Reads",
       write: "Reads and writes",
@@ -21685,6 +21690,9 @@ export const en = {
     photosHint: "Up to {{images}} photos of {{imageMb}} MB.",
     photoType: "Only photos can be attached.",
     photosTooMany: "One feedback takes up to {{images}} photos.",
+    device: "Include device details",
+    /** Behind the ⓘ of Include device details. */
+    deviceHint: "Browser, window size, theme, time zone and recent errors. It helps find the problem.",
     send: "Send",
     thanks: "Delivered. Thank you.",
     reply: "Everything is read. An answer, if one is needed, comes to {{email}}.",
