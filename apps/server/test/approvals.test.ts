@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
-import { createReminder, grantScopes, type ToolSource } from "@agenteschat/engine";
+import { eq, schema } from "@dougbot/db";
+import { createReminder, grantScopes, type ToolSource } from "@dougbot/engine";
 import { browser, createTestServer, joinByInvitation, seedOrg, signUp, type TestServer } from "./harness";
 
 const merged: Record<string, unknown>[] = [];

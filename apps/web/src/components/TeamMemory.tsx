@@ -1,8 +1,8 @@
-import { useMemoryAction, useTeamMemories } from "@agenteschat/client";
-import { FIELD_LIMITS } from "@agenteschat/client/lib/field-limits";
-import { can } from "@agenteschat/client/lib/permissions";
-import { memoryLine } from "@agenteschat/client/lib/proposals";
-import { Button, Card, CardHeader, Field, Locked, overLimit, Textarea } from "@agenteschat/ui";
+import { useMemoryAction, useTeamMemories } from "@dougbot/client";
+import { FIELD_LIMITS } from "@dougbot/client/lib/field-limits";
+import { can } from "@dougbot/client/lib/permissions";
+import { memoryLine } from "@dougbot/client/lib/proposals";
+import { Button, Card, CardHeader, Field, Locked, overLimit, Textarea } from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorState, LoadingLine } from "@/components/Loading";

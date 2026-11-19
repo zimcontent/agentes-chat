@@ -1,4 +1,4 @@
-import { runBlockAct, SECTORS, type SectorCardDeps, sectorPills, showSectorCard } from "@agenteschat/engine";
+import { runBlockAct, SECTORS, type SectorCardDeps, sectorPills, showSectorCard } from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { apiError, errorResponse } from "../../http/errors";
 import { type AppDeps, createAppRouter, errors, json, requireSession, routineConnectorDeps, security } from "./context";

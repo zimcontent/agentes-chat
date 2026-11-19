@@ -1,6 +1,6 @@
-import { useSetPortalClientHidden, useSetPortalClientName } from "@agenteschat/client";
-import { portalClientName, portalClientSlugName, portalErrorText } from "@agenteschat/client/lib/portal";
-import { Button, Dialog, DialogBody, DialogFooter, Field, GroupHeading, Input } from "@agenteschat/ui";
+import { useSetPortalClientHidden, useSetPortalClientName } from "@dougbot/client";
+import { portalClientName, portalClientSlugName, portalErrorText } from "@dougbot/client/lib/portal";
+import { Button, Dialog, DialogBody, DialogFooter, Field, GroupHeading, Input } from "@dougbot/ui";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

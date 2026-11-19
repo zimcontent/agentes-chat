@@ -10,8 +10,8 @@ import {
   createS3BlobStore,
   StorageError,
   s3Error,
-} from "@agenteschat/adapters";
-import { eq, rowsOf, schema, sql } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { eq, rowsOf, schema, sql } from "@dougbot/db";
 import {
   type ArtifactDeps,
   acceptVoiceClip,

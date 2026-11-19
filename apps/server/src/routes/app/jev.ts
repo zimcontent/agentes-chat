@@ -8,8 +8,8 @@ import {
   pinnedOwner,
   requirePermission,
   ValidationError,
-} from "@agenteschat/engine";
-import { nanoUsdToUsd } from "@agenteschat/providers";
+} from "@dougbot/engine";
+import { nanoUsdToUsd } from "@dougbot/providers";
 import { createRoute, z } from "@hono/zod-openapi";
 import { apiError, errorResponse } from "../../http/errors";
 import { type AppDeps, body, createAppRouter, errors, json, requireSession, security } from "./context";
@@ -59,7 +59,7 @@ const WRITES = { limit: 10, windowMs: 60_000 };
 const notFound = "404 for everyone but the installation's pinned owner (ADR 0073), and on agentes.chat itself.";
 const tooMany = { 429: errorResponse("Too many tries (`rate_limited`)") };
 
-/** The installation's Jev key (ADR 0073): only its pinned owner, and never on agentes.chat's own servers. */
+/** The installation's Jev key (ADR 0073): only its pinned owner, and never on DougBot's own servers. */
 export function jevRoutes(deps: AppDeps) {
   const { db, config } = deps;
   const app = createAppRouter(deps);

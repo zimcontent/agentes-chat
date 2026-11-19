@@ -7,9 +7,9 @@ import {
   type ServerFrame,
   sealSecret,
   secretAad,
-} from "@agenteschat/adapters";
-import { and, eq, isNull, schema } from "@agenteschat/db";
-import { systemText } from "@agenteschat/providers";
+} from "@dougbot/adapters";
+import { and, eq, isNull, schema } from "@dougbot/db";
+import { systemText } from "@dougbot/providers";
 import {
   authenticateMachine,
   cancelRun,

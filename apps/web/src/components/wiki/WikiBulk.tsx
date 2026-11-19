@@ -1,8 +1,8 @@
-import { useWikiBulk, useWikiTrash, type WikiBulkFailed, type WikiBulkTarget } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { relativeTime } from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
-import { Button, Checkbox, Dialog, DialogBody, DialogFooter, EmptyState, Icon, PageHeader } from "@agenteschat/ui";
+import { useWikiBulk, useWikiTrash, type WikiBulkFailed, type WikiBulkTarget } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { relativeTime } from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
+import { Button, Checkbox, Dialog, DialogBody, DialogFooter, EmptyState, Icon, PageHeader } from "@dougbot/ui";
 import type { TFunction } from "i18next";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";

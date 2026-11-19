@@ -1,5 +1,5 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, type Executor, eq, inArray, isNotNull, isNull, or, schema, sql } from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import { and, type Database, type Executor, eq, inArray, isNotNull, isNull, or, schema, sql } from "@dougbot/db";
 import { getAgent } from "../agents";
 import { type AiStatusDeps, backgroundAiState, rightHandWorkAi } from "../ai-status";
 import type { ModelScope } from "../brains/select";

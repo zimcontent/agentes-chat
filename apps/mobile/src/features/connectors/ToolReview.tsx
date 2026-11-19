@@ -6,9 +6,9 @@ import {
   useCustomServerAction,
   useCustomServers,
   useMailAction,
-} from "@agenteschat/client";
-import { mailActionsChanged, mailActionsFrom, mailReviewTools } from "@agenteschat/client/lib/mail";
-import { type ReviewTool, reviewDecisions, reviewToolsOf } from "@agenteschat/client/lib/tool-review";
+} from "@dougbot/client";
+import { mailActionsChanged, mailActionsFrom, mailReviewTools } from "@dougbot/client/lib/mail";
+import { type ReviewTool, reviewDecisions, reviewToolsOf } from "@dougbot/client/lib/tool-review";
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, StyleSheet, View } from "react-native";

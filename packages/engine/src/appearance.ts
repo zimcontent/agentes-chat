@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
-import type { BlobStore, PubSub } from "@agenteschat/adapters";
-import { and, type Database, eq, schema } from "@agenteschat/db";
-import { HOUSE_VOICES, isHouseVoice, isLiveVoice, LIVE_VOICES } from "@agenteschat/providers/live-voice";
+import type { BlobStore, PubSub } from "@dougbot/adapters";
+import { and, type Database, eq, schema } from "@dougbot/db";
+import { HOUSE_VOICES, isHouseVoice, isLiveVoice, LIVE_VOICES } from "@dougbot/providers/live-voice";
 import { type Agent, getAgent } from "./agents";
 import { recordAudit } from "./audit";
 import { sniffImage, stripImageMetadata } from "./avatars";

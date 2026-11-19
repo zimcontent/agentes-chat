@@ -1,8 +1,8 @@
-import { type BlockChange, newClientId, useBlockAct, useBlockReply, useBlockValues } from "@agenteschat/client";
-import { blockOpenWeb } from "@agenteschat/client/lib/block-open";
-import type { ChartSpec } from "@agenteschat/client/lib/chart";
-import { formatTime } from "@agenteschat/client/lib/format";
-import { Button, Field, Input, Segmented, Switch, Textarea, widgetTones } from "@agenteschat/ui";
+import { type BlockChange, newClientId, useBlockAct, useBlockReply, useBlockValues } from "@dougbot/client";
+import { blockOpenWeb } from "@dougbot/client/lib/block-open";
+import type { ChartSpec } from "@dougbot/client/lib/chart";
+import { formatTime } from "@dougbot/client/lib/format";
+import { Button, Field, Input, Segmented, Switch, Textarea, widgetTones } from "@dougbot/ui";
 import {
   type BlockOpen,
   type BlockViewPart,
@@ -12,7 +12,7 @@ import {
   type MarkedText,
   parseBlockSpec,
   viewBlock,
-} from "@agenteschat/ui/blocks/spec";
+} from "@dougbot/ui/blocks/spec";
 import { useNavigate } from "@tanstack/react-router";
 import {
   type CSSProperties,
@@ -71,7 +71,7 @@ const keptOf = (key: string) => {
 /**
  * A live block drawn by the app itself (ADR 0113): the parts the agent described, with the app's own controls, over
  * the state everyone in the conversation shares. Nothing the agent wrote runs here: its words reach the screen only
- * as text, and its formulas are read by our interpreter (`@agenteschat/ui/blocks/spec`).
+ * as text, and its formulas are read by our interpreter (`@dougbot/ui/blocks/spec`).
  */
 export function SpecBlock({
   id,

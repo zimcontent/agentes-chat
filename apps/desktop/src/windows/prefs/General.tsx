@@ -1,5 +1,5 @@
-import type { AppLocale } from "@agenteschat/i18n/locale";
-import { Button, Dialog, DialogFooter, Input, Select, Switch } from "@agenteschat/ui";
+import type { AppLocale } from "@dougbot/i18n/locale";
+import { Button, Dialog, DialogFooter, Input, Select, Switch } from "@dougbot/ui";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHost, useSnapshot, useStore } from "../../app";
@@ -88,7 +88,7 @@ export function General() {
   // Read when pressed: a toast's action keeps the render it was made in.
   const askFirst = useRef(false);
   askFirst.current = works || local.run;
-  /** While agents work here or agentes.chat runs here, asks first, as Quit does. */
+  /** While agents work here or DougBot runs here, asks first, as Quit does. */
   const reopen = () => (askFirst.current ? setAskReopen(true) : void reopenNow());
 
   /** The drawing mode changes only on a new start: reopen now, or say it will. */
@@ -155,7 +155,7 @@ export function General() {
     }
   };
 
-  // Open at login has an ⓘ only where it changes something: agentes.chat running here, or agents working here.
+  // Open at login has an ⓘ only where it changes something: DougBot running here, or agents working here.
   const launchHint = local.run || works;
   const launchRow = (
     <PrefRow

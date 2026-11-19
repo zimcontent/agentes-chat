@@ -1,9 +1,9 @@
-import type { AgentStatus, Team } from "@agenteschat/client";
-import { useAgentStatuses, useAiStatus, useChannels, useWaitingOnMe } from "@agenteschat/client";
-import { agentWork, WORK_TICK_MS, workLine } from "@agenteschat/client/lib/agent-work";
-import { agentFaceOf, agentFaceWord, agentStatusText } from "@agenteschat/client/lib/presence";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
-import { Button, Card } from "@agenteschat/ui";
+import type { AgentStatus, Team } from "@dougbot/client";
+import { useAgentStatuses, useAiStatus, useChannels, useWaitingOnMe } from "@dougbot/client";
+import { agentWork, WORK_TICK_MS, workLine } from "@dougbot/client/lib/agent-work";
+import { agentFaceOf, agentFaceWord, agentStatusText } from "@dougbot/client/lib/presence";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
+import { Button, Card } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";

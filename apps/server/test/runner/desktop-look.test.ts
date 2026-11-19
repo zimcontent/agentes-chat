@@ -3,7 +3,7 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { DESKTOP_SIZE } from "@agenteschat/adapters/machine-protocol";
+import { DESKTOP_SIZE } from "@dougbot/adapters/machine-protocol";
 import {
   BROWSER_WM_CLASS,
   desktopName,

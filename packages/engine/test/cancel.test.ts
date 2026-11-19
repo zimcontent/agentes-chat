@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { channelTopic } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
+import { channelTopic } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
 import {
   addChannelMember,
   ConflictError,

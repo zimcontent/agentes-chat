@@ -1,9 +1,9 @@
 import { timingSafeEqual } from "node:crypto";
-import type { BlobStore, PortalClientColor, PortalStatus, PortalType } from "@agenteschat/adapters";
-import { PORTAL_CLIENT_COLORS, StorageError } from "@agenteschat/adapters";
-import type { Database } from "@agenteschat/db";
-import { and, asc, desc, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
-import { isAppLocale, LOCALE_CODES } from "@agenteschat/i18n/locale";
+import type { BlobStore, PortalClientColor, PortalStatus, PortalType } from "@dougbot/adapters";
+import { PORTAL_CLIENT_COLORS, StorageError } from "@dougbot/adapters";
+import type { Database } from "@dougbot/db";
+import { and, asc, desc, eq, inArray, isNull, schema, sql } from "@dougbot/db";
+import { isAppLocale, LOCALE_CODES } from "@dougbot/i18n/locale";
 import { recordAudit } from "./audit";
 import { portalClientToken, sha256 } from "./crypto";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "./errors";

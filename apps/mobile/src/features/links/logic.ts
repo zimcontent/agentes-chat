@@ -1,5 +1,5 @@
-import type { AiStatus, AppNotification, NotificationKind, NotificationSource } from "@agenteschat/client";
-import { openTarget, ROUTINE_TROUBLE, targetPath } from "@agenteschat/client/lib/notifications";
+import type { AiStatus, AppNotification, NotificationKind, NotificationSource } from "@dougbot/client";
+import { openTarget, ROUTINE_TROUBLE, targetPath } from "@dougbot/client/lib/notifications";
 import { deviceHref, deviceNoticeOf } from "../devices/logic";
 import { isSafeId } from "../shared/logic";
 

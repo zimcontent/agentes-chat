@@ -1,4 +1,4 @@
-import type { DashboardAudience } from "@agenteschat/client";
+import type { DashboardAudience } from "@dougbot/client";
 import { useSyncExternalStore } from "react";
 
 /**

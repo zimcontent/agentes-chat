@@ -1,4 +1,4 @@
-import type { ApiClient } from "@agenteschat/client";
+import type { ApiClient } from "@dougbot/client";
 import type { AgenteParaBot } from "@/brand/bots";
 import { appPushTarget } from "@/lib/push";
 import { liveFace } from "./face";

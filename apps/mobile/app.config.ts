@@ -204,7 +204,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ],
   },
   // Native permission texts (the OS shows them before the app's i18n runs). Only ready languages
-  // (@agenteschat/i18n/locale), here and in `supportedLocales`: the stores list these as the app's languages.
+  // (@dougbot/i18n/locale), here and in `supportedLocales`: the stores list these as the app's languages.
   locales: {
     en: "./assets/locales/en.json",
     "pt-BR": "./assets/locales/pt-BR.json",

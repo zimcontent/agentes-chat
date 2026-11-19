@@ -1,5 +1,5 @@
 import { timingSafeEqual } from "node:crypto";
-import { ComposioSignatureError, WhatsAppGatewayError } from "@agenteschat/adapters";
+import { ComposioSignatureError, WhatsAppGatewayError } from "@dougbot/adapters";
 import {
   addGitHubRepoHook,
   ConflictError,
@@ -28,7 +28,7 @@ import {
   webhookSetup,
   whatsappHookKnown,
   whatsappStickerFile,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
 import { requestLimitIp } from "../http/client-ip";
 import { apiError } from "../http/errors";

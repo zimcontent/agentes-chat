@@ -1,5 +1,5 @@
-import type { RateLimiter } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import type { RateLimiter } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import { namesLabel, namesOf } from "./approvals";
 import { getMembership } from "./organizations";
 import { personBehindCall } from "./requester";

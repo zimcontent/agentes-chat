@@ -45,7 +45,7 @@ export interface JevKey {
 export type JevKeyInput = string | { orgId: string; credentialId: string };
 
 /**
- * The installation's GIPHY key, for its pinned owner on a server that isn't agentes.chat's own (`GET
+ * The installation's GIPHY key, for its pinned owner on a server that isn't DougBot's own (`GET
  * /api/app/gif-key`, ADR 0091): with it, every workspace has GIFs (`OrgSettings.gifsAvailable`).
  */
 export interface GifKey {
@@ -113,7 +113,7 @@ export interface CompanyRequestInvite {
 }
 
 /**
- * The installation's speech engine, for its pinned owner on a server that isn't agentes.chat's own (`GET
+ * The installation's speech engine, for its pinned owner on a server that isn't DougBot's own (`GET
  * /api/app/speech-key`, ADR 0100): with one, every workspace has voice messages (`OrgSettings.voiceAvailable`).
  */
 export interface SpeechKey {
@@ -218,13 +218,13 @@ export interface AuthConfig {
   clientCode?: string | null;
   /** The server takes feedback (`POST /api/app/feedback`): the apps show the form; absent: a server too old to. */
   feedback?: boolean;
-  /** It goes to the agentes.chat team, not to whoever runs this server: the form says so and takes pictures only. */
+  /** It goes to the DougBot team, not to whoever runs this server: the form says so and takes pictures only. */
   feedbackRelay?: boolean;
   /** Every workspace gets a computer of its own (the Cloud); absent: a server too old to say. */
   workspaceComputer?: boolean;
   /** The billing service (ADR 0079): owners and admins open a workspace's plan there; null or absent: no billing. */
   billingUrl?: string | null;
-  /** One of agentes.chat's own servers (`Instance.cloud`); absent: a self-hosted server too old to say. */
+  /** One of DougBot's own servers (`Instance.cloud`); absent: a self-hosted server too old to say. */
   cloud?: boolean;
   /** The bot check's site key (Cloudflare Turnstile, ADR 0075); null or absent: no check, nothing from Cloudflare. */
   turnstileSiteKey?: string | null;
@@ -305,7 +305,7 @@ export interface SignInOptions {
 
 /** `GET /api/instance`: what the phone and desktop apps check before using a server. Public, nothing secret. */
 export interface Instance {
-  /** Always "agentes.chat". */
+  /** Always "DougBot". */
   name: string;
   version: string;
   /** The app API contract the server speaks, and the oldest one it still serves. */
@@ -363,7 +363,7 @@ export interface LegalFacts {
   backup: boolean;
   /** Where files are kept. */
   storage: "s3" | "disk" | "database";
-  /** One of agentes.chat's own servers, where the usage report is not optional. */
+  /** One of DougBot's own servers, where the usage report is not optional. */
   telemetryForced: boolean;
   /** Days a company's waiting-list request is kept; null: this server has no such form. */
   companyRequestsRetentionDays: number | null;
@@ -2469,7 +2469,7 @@ export type ConnectorCategory =
   | "automation"
   | "social";
 
-/** A connector agentes.chat knows (`GET /connectors/catalog`: ours and the one-click MCP servers, one per service). */
+/** A connector DougBot knows (`GET /connectors/catalog`: ours and the one-click MCP servers, one per service). */
 export interface ConnectorDef {
   id: string;
   label: string;
@@ -2487,7 +2487,7 @@ export interface ConnectorDef {
   oauthConfigured: boolean;
   /** Can be connected on this server; `false` shows "Em breve". */
   available: boolean;
-  /** The vendor hasn't approved agentes.chat yet: greyed out with a lock, nothing to open. Older servers leave it out. */
+  /** The vendor hasn't approved DougBot yet: greyed out with a lock, nothing to open. Older servers leave it out. */
   soon?: boolean;
   /** Connects through Composio (ADR 0107): its page signs in. Unavailable on a server without Composio. */
   via?: "composio";
@@ -2653,9 +2653,9 @@ export interface GitHubAppSetup {
 export interface GitHubAppInfo {
   installable: boolean;
   installations: GitHubAppInstallation[];
-  /** The server's pinned owner only; null for everyone else and on agentes.chat. */
+  /** The server's pinned owner only; null for everyone else and on DougBot. */
   setup?: GitHubAppSetup | null;
-  /** The server has no app and its owner can make one in Settings (never on agentes.chat). */
+  /** The server has no app and its owner can make one in Settings (never on DougBot). */
   ownerCreates?: boolean;
 }
 
@@ -3370,7 +3370,7 @@ export type CustomConnectStart =
   /** `pasteBack`: the sign-in ends on the person's computer; they paste that address to finish (Frame.io). */
   | { status: "oauth"; authorizeUrl: string; pasteBack?: true }
   /**
-   * `not_approved`: it has OAuth but only lets in apps it approved, and agentes.chat isn't one yet. `detail`: how it
+   * `not_approved`: it has OAuth but only lets in apps it approved, and DougBot isn't one yet. `detail`: how it
    * refused our registration, in its own words (`error: error_description`, short).
    */
   | { status: "needs_key"; reason?: "not_approved"; detail?: string };
@@ -4031,7 +4031,7 @@ export type ArtifactContent =
   | { kind: "diagram"; mermaid: string }
   | { kind: "html"; html: string }
   /**
-   * Parts the apps draw (`spec`, checked and drawn by `@agenteschat/ui/blocks/spec`), or the agent's own page (`html`),
+   * Parts the apps draw (`spec`, checked and drawn by `@dougbot/ui/blocks/spec`), or the agent's own page (`html`),
    * which runs only when a person asks (ADR 0113). Exactly one of the two.
    */
   | { kind: "block"; spec?: Record<string, unknown>; html?: string; subtitle?: string }
@@ -6718,7 +6718,7 @@ export interface AccountLoginStart {
   expiresAt: string;
 }
 
-/** Why a sign-in ended on the computer (mirror of `ACCOUNT_LOGIN_FAILURES` in `@agenteschat/adapters`). */
+/** Why a sign-in ended on the computer (mirror of `ACCOUNT_LOGIN_FAILURES` in `@dougbot/adapters`). */
 export type AccountLoginFailure =
   | "not_installed"
   | "no_tty"
@@ -8696,7 +8696,7 @@ export interface WifiIphone {
   osVersion: string;
 }
 
-/** The iPhones a Mac offers over Wi-Fi; `update`: its agentes.chat is too old for it. */
+/** The iPhones a Mac offers over Wi-Fi; `update`: its DougBot is too old for it. */
 export interface WifiIphones {
   available: WifiIphone[];
   update?: true;
@@ -8730,7 +8730,7 @@ export interface CliInstall {
   cause?: "git_missing" | "still_missing";
 }
 
-/** `fix: null`: none ran; `update`: the Mac's agentes.chat is too old to fix it (the Terminal way instead). */
+/** `fix: null`: none ran; `update`: the Mac's DougBot is too old to fix it (the Terminal way instead). */
 export interface XcodeFixView {
   fix: XcodeFix | null;
   update?: true;
@@ -8741,7 +8741,7 @@ export interface WifiPairing {
   id: string;
   way: "qr" | "code";
   state: "waiting" | "pairing" | "connecting" | "connected" | "failed";
-  /** Why it failed; `update`: the computer's agentes.chat is too old for it. */
+  /** Why it failed; `update`: the computer's DougBot is too old for it. */
   reason?: WifiPairFailure;
   /** Only when it starts: Android's QR text for Wireless debugging. */
   qr?: string;

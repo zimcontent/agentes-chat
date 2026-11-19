@@ -1,4 +1,4 @@
-import { HOUSE_VOICE_SAMPLE_RATE, type HouseVoiceTokens, houseVoiceCost } from "@agenteschat/providers/live-voice";
+import { HOUSE_VOICE_SAMPLE_RATE, type HouseVoiceTokens, houseVoiceCost } from "@dougbot/providers/live-voice";
 
 /**
  * The house voice's session (docs/adr/doug-0036-house-voice.md): Qwen Audio 3.1 Realtime Flash, which speaks OpenAI

@@ -1,7 +1,7 @@
-import { channelsQuery, keys } from "@agenteschat/client";
-import { noAnswer } from "@agenteschat/client/lib/errors";
-import { startPlace } from "@agenteschat/client/lib/home";
-import { rightHandOf } from "@agenteschat/client/lib/right-hand";
+import { channelsQuery, keys } from "@dougbot/client";
+import { noAnswer } from "@dougbot/client/lib/errors";
+import { startPlace } from "@dougbot/client/lib/home";
+import { rightHandOf } from "@dougbot/client/lib/right-hand";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { channelOfPath, isChatPath, lastPlace, opensWorkspace } from "@/lib/start";
 

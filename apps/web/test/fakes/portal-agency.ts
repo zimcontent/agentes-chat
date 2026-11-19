@@ -3,7 +3,7 @@
  * §10): one with an adjustment asked and late work, one all in production, one waiting on the client, one ready to
  * schedule, one with nothing open. Dates are relative to today, so "late" stays late whenever a test runs.
  */
-import type { Member } from "@agenteschat/client";
+import type { Member } from "@dougbot/client";
 import { type FakePortal, portalCard, portalItem } from "./portal";
 
 export const ME = "u-walter";

@@ -1,4 +1,4 @@
-import { and, type Database, eq, gte, inArray, isNull, lt, or, rowsOf, schema, sql } from "@agenteschat/db";
+import { and, type Database, eq, gte, inArray, isNull, lt, or, rowsOf, schema, sql } from "@dougbot/db";
 import { listApprovals } from "./approvals";
 import { seesAgentDetails } from "./audience";
 import { readsOrMayJoin } from "./channels";

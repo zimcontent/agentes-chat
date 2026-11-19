@@ -5,9 +5,9 @@ import {
   type GifProvider,
   type PubSub,
   type RateLimiter,
-} from "@agenteschat/adapters";
-import { and, type Database, desc, eq, gte, inArray, isNull, lte, or, schema, sql } from "@agenteschat/db";
-import { BRAND_NAME } from "@agenteschat/i18n/brand";
+} from "@dougbot/adapters";
+import { and, type Database, desc, eq, gte, inArray, isNull, lte, or, schema, sql } from "@dougbot/db";
+import { BRAND_NAME } from "@dougbot/i18n/brand";
 import {
   type AuthInfo,
   type CallToolResult,
@@ -42,7 +42,7 @@ const { agentRuns, appSends, approvals, messages, users, agents, channels } = sc
 /**
  * The tools an AI app gets on `/mcp` (ADR 0119 §3). They act as the person, through the same engine calls the web
  * app makes, so every permission is the person's own. None decides an approval, changes a setting or manages
- * people: approvals stay a human action inside agentes.chat.
+ * people: approvals stay a human action inside DougBot.
  */
 
 export interface AppsToolDeps {

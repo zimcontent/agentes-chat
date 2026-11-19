@@ -1,4 +1,4 @@
-import { useApi, useVideoReview, type VideoReview } from "@agenteschat/client";
+import { useApi, useVideoReview, type VideoReview } from "@dougbot/client";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Linking, StyleSheet, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";

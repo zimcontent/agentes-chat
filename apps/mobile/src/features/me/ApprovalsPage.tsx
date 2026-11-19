@@ -1,8 +1,8 @@
-import type { ApprovalCoverInput } from "@agenteschat/client";
-import { useApprovalCovers, useDeclineApprovalCover, useSetApprovalCover } from "@agenteschat/client";
-import { coveringLine } from "@agenteschat/client/lib/approval-words";
-import { endOfDay, formatShortDate, toYmd } from "@agenteschat/client/lib/format";
-import { rightHandOf } from "@agenteschat/client/lib/right-hand";
+import type { ApprovalCoverInput } from "@dougbot/client";
+import { useApprovalCovers, useDeclineApprovalCover, useSetApprovalCover } from "@dougbot/client";
+import { coveringLine } from "@dougbot/client/lib/approval-words";
+import { endOfDay, formatShortDate, toYmd } from "@dougbot/client/lib/format";
+import { rightHandOf } from "@dougbot/client/lib/right-hand";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { useOrg } from "@/providers/org";

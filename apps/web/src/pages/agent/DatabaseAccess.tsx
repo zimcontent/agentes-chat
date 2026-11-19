@@ -1,8 +1,8 @@
-import type { AgentDatabase, DatabaseConnection, DatabasePolicy } from "@agenteschat/client";
-import { useAgentDatabases, useDatabases, useSetAgentDatabase } from "@agenteschat/client";
-import type { Level } from "@agenteschat/client/lib/access-levels";
-import { databaseRulesCount, defaultDatabasePolicy } from "@agenteschat/client/lib/databases";
-import { Alert, Button, Card } from "@agenteschat/ui";
+import type { AgentDatabase, DatabaseConnection, DatabasePolicy } from "@dougbot/client";
+import { useAgentDatabases, useDatabases, useSetAgentDatabase } from "@dougbot/client";
+import type { Level } from "@dougbot/client/lib/access-levels";
+import { databaseRulesCount, defaultDatabasePolicy } from "@dougbot/client/lib/databases";
+import { Alert, Button, Card } from "@dougbot/ui";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LevelRow, RulesToggle } from "@/components/AccessLevels";

@@ -132,7 +132,7 @@ Besides model providers, the installation may use external services. Each is tur
 {{/if}}
 - **Hosting**: the server the installation runs on, contracted by the Provider or by the customer company, in {{serverLocation}}.
 {{#if svc.telemetry}}
-- **Anonymous usage report** to the agentes.chat project, described in section 11.
+- **Anonymous usage report** to the DougBot project, described in section 11.
 {{/if}}
 
 The sub-processors that process data on the Customer's behalf are in Annex II, with each service, its purpose and its state.
@@ -180,11 +180,11 @@ The installation is in {{serverLocation}}. Model providers and the services in s
 ## 11. Anonymous usage report
 
 {{#if svc.telemetry}}
-The installation sends an anonymous usage report once a day to the telemetry address of the agentes.chat project, from which DougBot derives. The report carries counts and sizes: how many people, agents and computers exist, which models were used and how many tokens, the sizes of the machines and how much the agents' browsers carried. It never carries messages, files, names, e-mails, addresses, paths or identifiers of people, workspaces or computers. The only identifier is a random number created at the installation's first start.
+The installation sends an anonymous usage report once a day to the telemetry address of the DougBot project, from which DougBot derives. The report carries counts and sizes: how many people, agents and computers exist, which models were used and how many tokens, the sizes of the machines and how much the agents' browsers carried. It never carries messages, files, names, e-mails, addresses, paths or identifiers of people, workspaces or computers. The only identifier is a random number created at the installation's first start.
 
 Sending is **on by default** (it is an opt-out, and does not rest on consent), and the legal basis is legitimate interest under Art. 7, IX, of the LGPD: the project's interest in knowing how the software runs so it can maintain and fix it, with data that identifies no one.
 {{#if telemetryForced}}
-On agentes.chat's own servers the report cannot be turned off.
+On DougBot's own servers the report cannot be turned off.
 {{else}}
 To turn it off, the installation's owner sets `TELEMETRY=off` in the server's configuration or uses the switch in Settings › General. Turned off, nothing is sent. The `agentes telemetry` command shows exactly what would be sent.
 {{/if}}
@@ -289,7 +289,7 @@ The table shows, for each service, whether it is on in this installation, accord
 | Live voice | Speaking on a call | The call's audio | According to the workspace's key |
 | House voice (Empirio Labs) | Speaking on a call | The call's audio | {{on:svc.houseVoice}} |
 | Firebase and Apple (notifications) | Delivering the notice to the device | The notice's text and the device token | {{on:svc.pushDirect}} |
-| agentes.chat notification relay | Delivering the notice to the device | The notice's text and the device token | {{on:svc.pushRelay}} |
+| DougBot notification relay | Delivering the notice to the device | The notice's text and the device token | {{on:svc.pushRelay}} |
 | Browser notifications | Delivering the notice to the browser | The notice, encrypted | Always |
 | Service integrator (Composio) | Connecting e-mail and other apps | What the connector's call needs | {{on:svc.composio}} |
 | Semantic search | Finding texts by meaning | The indexed stretches | {{on:svc.embeddings}} |

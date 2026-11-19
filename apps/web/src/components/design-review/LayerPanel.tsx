@@ -1,5 +1,5 @@
-import type { FrameLayer, LayerInfo, LayerPatch } from "@agenteschat/client/lib/design-bridge";
-import { Button, Icon, Segmented, Textarea } from "@agenteschat/ui";
+import type { FrameLayer, LayerInfo, LayerPatch } from "@dougbot/client/lib/design-bridge";
+import { Button, Icon, Segmented, Textarea } from "@dougbot/ui";
 import { useEffect, useRef, useState } from "react";
 import type { ReviewWords } from "@/components/video-review/words";
 

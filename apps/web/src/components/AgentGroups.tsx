@@ -1,7 +1,7 @@
-import type { Agent, AgentGroup } from "@agenteschat/client";
-import { useAgentGroupAction, useRoles } from "@agenteschat/client";
-import { groupOf, NO_GROUP } from "@agenteschat/client/lib/agent-groups";
-import { errorText } from "@agenteschat/client/lib/errors";
+import type { Agent, AgentGroup } from "@dougbot/client";
+import { useAgentGroupAction, useRoles } from "@dougbot/client";
+import { groupOf, NO_GROUP } from "@dougbot/client/lib/agent-groups";
+import { errorText } from "@dougbot/client/lib/errors";
 import {
   Button,
   colorFace,
@@ -17,7 +17,7 @@ import {
   MenuItem,
   MenuRadioGroup,
   MenuSeparator,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { type DragEvent, type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useDirectory } from "@/hooks/useDirectory";

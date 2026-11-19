@@ -1,4 +1,4 @@
-import { Icon, OptionCard, Tip } from "@agenteschat/ui";
+import { Icon, OptionCard, Tip } from "@dougbot/ui";
 import type { ReactNode } from "react";
 
 /**

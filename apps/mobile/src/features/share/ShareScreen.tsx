@@ -1,5 +1,5 @@
-import { keys, useApi } from "@agenteschat/client";
-import { makesAgents } from "@agenteschat/client/lib/permissions";
+import { keys, useApi } from "@dougbot/client";
+import { makesAgents } from "@dougbot/client/lib/permissions";
 import { useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { type NativeStackNavigationOptions, useNavigation } from "expo-router";

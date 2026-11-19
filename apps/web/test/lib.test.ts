@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { ApiError, handoffTimeLeft, type Me } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+import { ApiError, handoffTimeLeft, type Me } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import {
   clockAt,
   dayLabel,
@@ -20,8 +20,8 @@ import {
   shortModel,
   timeLeft,
   whenAt,
-} from "@agenteschat/client/lib/format";
-import { agentGrammar, isFeminineName } from "@agenteschat/client/lib/grammar";
+} from "@dougbot/client/lib/format";
+import { agentGrammar, isFeminineName } from "@dougbot/client/lib/grammar";
 import {
   earlyAccessHeaders,
   earlyAccessState,
@@ -32,10 +32,10 @@ import {
   safeRedirect,
   settingUp,
   webUrl,
-} from "@agenteschat/client/lib/guards";
-import { ONBOARDING_STEPS, stepIndex } from "@agenteschat/client/lib/onboarding";
-import { can } from "@agenteschat/client/lib/permissions";
-import { setupRow } from "@agenteschat/client/lib/setup-checklist";
+} from "@dougbot/client/lib/guards";
+import { ONBOARDING_STEPS, stepIndex } from "@dougbot/client/lib/onboarding";
+import { can } from "@dougbot/client/lib/permissions";
+import { setupRow } from "@dougbot/client/lib/setup-checklist";
 import {
   addressesIn,
   emailsFrom,
@@ -44,9 +44,9 @@ import {
   parseAmount,
   passwordState,
   slugify,
-} from "@agenteschat/client/lib/text";
-import { timeSpan } from "@agenteschat/client/lib/threads";
-import { en, ptBR } from "@agenteschat/i18n";
+} from "@dougbot/client/lib/text";
+import { timeSpan } from "@dougbot/client/lib/threads";
+import { en, ptBR } from "@dougbot/i18n";
 import type { TFunction } from "i18next";
 import { createBetterAuthClient } from "@/auth/better-auth";
 import { createI18n } from "@/i18n";

@@ -1,6 +1,6 @@
-import { type PortalListKind, usePortalLists } from "@agenteschat/client";
-import { portalErrorText } from "@agenteschat/client/lib/portal";
-import { Button, Dialog, DialogBody, DialogFooter, Field, Input } from "@agenteschat/ui";
+import { type PortalListKind, usePortalLists } from "@dougbot/client";
+import { portalErrorText } from "@dougbot/client/lib/portal";
+import { Button, Dialog, DialogBody, DialogFooter, Field, Input } from "@dougbot/ui";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

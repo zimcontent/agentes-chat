@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import { createFileArtifact, sendDesignForReview } from "@agenteschat/engine";
+import { createFileArtifact, sendDesignForReview } from "@dougbot/engine";
 import { browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 
 /** Design review over HTTP (docs/adr/doug-0010-design-review.md): slides, the page, notes on a slide, a saved edit. */

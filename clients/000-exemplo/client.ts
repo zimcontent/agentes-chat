@@ -1,11 +1,11 @@
-import type { AgentesModule } from "@agenteschat/modules";
+import type { DougBotModule } from "@dougbot/modules";
 
 /**
  * A client's own code (ADR doug-0032), loaded at boot only for the server whose `DOUG_CLIENT_CODE` is this folder's.
- * This one is the example every new client starts from: it shows what an `AgentesModule` may add, and it is the one
+ * This one is the example every new client starts from: it shows what an `DougBotModule` may add, and it is the one
  * the tests load. A client that needs nothing beyond the declarative `config.json` leaves this file out.
  */
-const exemplo: AgentesModule = {
+const exemplo: DougBotModule = {
   name: "client-000-exemplo",
   onStart() {
     // Runs once the server is listening, with the module's context (`config`, `db`, `adapters`, `edition`, `version`).

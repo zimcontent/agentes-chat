@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from "bun:test";
 import { chmodSync, mkdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { createTerm } from "@agenteschat/setup/src/term";
+import { createTerm } from "@dougbot/setup/src/term";
 import { connections, cpuName, type DoctorPhone, type DoctorSources, runDoctor } from "../../runner/doctor";
 import { acquireLock } from "../../runner/lock";
 import { removeDirs, tempDir } from "./helpers";

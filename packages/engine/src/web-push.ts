@@ -1,5 +1,5 @@
-import { generateVapidKeys, type KeyWrapper, type VapidKeys } from "@agenteschat/adapters";
-import { and, type Database, eq, isNull, schema } from "@agenteschat/db";
+import { generateVapidKeys, type KeyWrapper, type VapidKeys } from "@dougbot/adapters";
+import { and, type Database, eq, isNull, schema } from "@dougbot/db";
 import { openSecret, type SealedSecret, SealedValueError, sealSecret } from "./crypto";
 import { isPublicHostName } from "./net-guard";
 

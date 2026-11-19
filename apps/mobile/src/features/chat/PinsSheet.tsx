@@ -1,7 +1,7 @@
-import { cachePinned, type MessagePin, usePinMessage, usePins } from "@agenteschat/client";
-import { textOrMedia } from "@agenteschat/client/lib/media";
-import { can } from "@agenteschat/client/lib/permissions";
-import { pinsIn } from "@agenteschat/client/lib/pins";
+import { cachePinned, type MessagePin, usePinMessage, usePins } from "@dougbot/client";
+import { textOrMedia } from "@dougbot/client/lib/media";
+import { can } from "@dougbot/client/lib/permissions";
+import { pinsIn } from "@dougbot/client/lib/pins";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";

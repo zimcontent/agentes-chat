@@ -1,8 +1,8 @@
-import { useAuthConfig, useIssues, useMe, useOverview } from "@agenteschat/client";
-import { showsAbout } from "@agenteschat/client/lib/about";
-import { setSupportCameFrom, supportContactOf } from "@agenteschat/client/lib/support";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
-import { isAppLocale, localeInfo, readyLocales } from "@agenteschat/i18n/locale";
+import { useAuthConfig, useIssues, useMe, useOverview } from "@dougbot/client";
+import { showsAbout } from "@dougbot/client/lib/about";
+import { setSupportCameFrom, supportContactOf } from "@dougbot/client/lib/support";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
+import { isAppLocale, localeInfo, readyLocales } from "@dougbot/i18n/locale";
 import Constants from "expo-constants";
 import { usePathname } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";

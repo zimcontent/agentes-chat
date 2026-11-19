@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, setSystemTime, test } from "bun:test";
-import type { Agent, AgentBrain, BrowserUnavailableReason, Machine, MachineAccount } from "@agenteschat/client";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import type { Agent, AgentBrain, BrowserUnavailableReason, Machine, MachineAccount } from "@dougbot/client";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 

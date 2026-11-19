@@ -1,6 +1,6 @@
-import { useSeparateOperation, useSetSeparateOperation } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
-import { Card, CardHeader, Field, InfoHint, SettingNote, Switch, Textarea } from "@agenteschat/ui";
+import { useSeparateOperation, useSetSeparateOperation } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
+import { Card, CardHeader, Field, InfoHint, SettingNote, Switch, Textarea } from "@dougbot/ui";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

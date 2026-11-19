@@ -1,4 +1,4 @@
-import { drawSticker, STICKER_STILL_T, type StickerLook, type StickerMood } from "@agenteschat/ui/agent/stickers";
+import { drawSticker, STICKER_STILL_T, type StickerLook, type StickerMood } from "@dougbot/ui/agent/stickers";
 import { asCtx, type CompiledOp, compile, RecordingContext } from "./recorder";
 
 /**

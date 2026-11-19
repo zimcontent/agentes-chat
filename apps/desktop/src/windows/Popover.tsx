@@ -1,14 +1,14 @@
 /**
  * The menu bar popover. While agents work on this computer: what they are doing now, grouped by
  * organization, folder requests on top, pause for the whole computer, and the way to the app, Preferences and
- * Quit. Otherwise (agentes.chat, or a server whose agents work elsewhere) a small card: what waits for you and
- * the way in. With agentes.chat running on this computer, its card comes first (its state, restart, stop) with
+ * Quit. Otherwise (DougBot, or a server whose agents work elsewhere) a small card: what waits for you and
+ * the way in. With DougBot running on this computer, its card comes first (its state, restart, stop) with
  * its banners. This window also owns the tray icon's state, answers the site's questions about this computer
  * and raises the notifications for folder requests (it lives, hidden, for as long as the app runs).
  */
-import type { ControlAccessRequest, ControlBrowser, ControlJob } from "@agenteschat/adapters/runner-control";
-import { joinNames } from "@agenteschat/client/lib/format";
-import { Button, Icon, Kbd, normalizeAppearance, PixelSpinner, Segmented } from "@agenteschat/ui";
+import type { ControlAccessRequest, ControlBrowser, ControlJob } from "@dougbot/adapters/runner-control";
+import { joinNames } from "@dougbot/client/lib/format";
+import { Button, Icon, Kbd, normalizeAppearance, PixelSpinner, Segmented } from "@dougbot/ui";
 import {
   type CSSProperties,
   Fragment,
@@ -147,7 +147,7 @@ export function Popover() {
     void host.setTrayState(tray).catch(() => {});
   }, [host, tray]);
 
-  // On a Mac the menu bar icon shows while this computer works for agents or runs agentes.chat, unless the
+  // On a Mac the menu bar icon shows while this computer works for agents or runs DougBot, unless the
   // person chose.
   const works = homes.length > 0;
   const busyHere = works || local.run;
@@ -327,7 +327,7 @@ export function Popover() {
     [host],
   );
 
-  /** Asks first only while agents work here or agentes.chat runs here; otherwise quits at once, like any app. */
+  /** Asks first only while agents work here or DougBot runs here; otherwise quits at once, like any app. */
   const quit = () => {
     if (busyHere) setConfirmQuit(true);
     else void host.quit().catch(() => {});

@@ -1,7 +1,7 @@
-import { type LocaleState, useLocaleSync } from "@agenteschat/client/lib/locale-sync";
-import { resources } from "@agenteschat/i18n";
-import { BRAND_NAME, brandName, brandTree } from "@agenteschat/i18n/brand";
-import { loadStrings } from "@agenteschat/i18n/load";
+import { type LocaleState, useLocaleSync } from "@dougbot/client/lib/locale-sync";
+import { resources } from "@dougbot/i18n";
+import { BRAND_NAME, brandName, brandTree } from "@dougbot/i18n/brand";
+import { loadStrings } from "@dougbot/i18n/load";
 import {
   type AppLocale,
   appLocale,
@@ -10,7 +10,7 @@ import {
   LOCALE_CODES,
   localeInfo,
   readyLocales,
-} from "@agenteschat/i18n/locale";
+} from "@dougbot/i18n/locale";
 import i18n, { type i18n as I18n, type InitOptions } from "i18next";
 import { useEffect, useState } from "react";
 import { initReactI18next, useTranslation } from "react-i18next";
@@ -33,7 +33,7 @@ export const TYPED_VALUES = { tOptions: { interpolation: { escapeValue: true } }
 const STORAGE_KEY = "agentes.locale";
 /** "1" while a choice made signed out waits for the next sign-in to reach the server. */
 const PENDING_KEY = "agentes.locale.pending";
-/** The landing's language switch (agentes.chat), shared with the app's host. */
+/** The landing's language switch (DougBot), shared with the app's host. */
 const LANDING_COOKIE = "agentes_locale";
 
 function browserLanguages(): readonly string[] {

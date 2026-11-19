@@ -1,4 +1,4 @@
-import { and, type Database, desc, eq, gt, isNull, lt, or, schema, sql } from "@agenteschat/db";
+import { and, type Database, desc, eq, gt, isNull, lt, or, schema, sql } from "@dougbot/db";
 import { recordAudit } from "../audit";
 import { sha256 } from "../crypto";
 import { ConflictError, ForbiddenError, NotFoundError } from "../errors";

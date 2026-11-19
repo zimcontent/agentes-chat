@@ -13,8 +13,8 @@ import {
   revokeToken,
   startAuthorization,
   touchGrant,
-} from "@agenteschat/engine";
-import { BRAND_NAME } from "@agenteschat/i18n/brand";
+} from "@dougbot/engine";
+import { BRAND_NAME } from "@dougbot/i18n/brand";
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import type { Context } from "hono";
 import { bodyLimit } from "hono/body-limit";
@@ -23,7 +23,7 @@ import { requestLimitIp } from "../http/client-ip";
 import type { AppDeps } from "./app/context";
 
 /**
- * agentes.chat as a remote MCP server for AI apps (ADR 0119): the discovery documents, this server's own OAuth 2.1
+ * DougBot as a remote MCP server for AI apps (ADR 0119): the discovery documents, this server's own OAuth 2.1
  * authorization server (`/api/oauth/*`) and the MCP endpoint (`/mcp`). One origin for all of them: Claude drops
  * `Authorization` on a cross-host redirect.
  */

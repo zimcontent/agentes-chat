@@ -1,4 +1,4 @@
-import type { HexColor } from "@agenteschat/ui/agent/engine";
+import type { HexColor } from "@dougbot/ui/agent/engine";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import {

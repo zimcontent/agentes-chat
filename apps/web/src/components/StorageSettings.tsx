@@ -1,4 +1,4 @@
-import type { StorageConfig, StoragePlatform, StorageProvider, StorageTestResult } from "@agenteschat/client";
+import type { StorageConfig, StoragePlatform, StorageProvider, StorageTestResult } from "@dougbot/client";
 import {
   useSaveStorage,
   useStartMigration,
@@ -6,9 +6,9 @@ import {
   useStorageMigration,
   useTestStorage,
   useWorkspaceLimits,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { can } from "@agenteschat/client/lib/permissions";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { can } from "@dougbot/client/lib/permissions";
 import {
   AWS_REGIONS,
   awsBucketPolicy,
@@ -21,7 +21,7 @@ import {
   storageFormOf,
   storageUsageLine,
   toS3Input,
-} from "@agenteschat/client/lib/storage";
+} from "@dougbot/client/lib/storage";
 import {
   Alert,
   Button,
@@ -43,7 +43,7 @@ import {
   RadioGroup,
   Select,
   SettingNote,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { type CSSProperties, type ReactNode, useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { StorageMeter } from "@/components/Limits";

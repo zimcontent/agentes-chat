@@ -4,8 +4,8 @@ import {
   useDeleteReviewNote,
   type VideoReviewAttachment,
   type VideoReviewNote,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { Linking, Pressable, ScrollView, StyleSheet, View } from "react-native";

@@ -1,6 +1,6 @@
-import { type Issue, type IssueActivity, useIssueActivity, useIssueLive } from "@agenteschat/client";
-import { whenAt } from "@agenteschat/client/lib/format";
-import { issueEventText } from "@agenteschat/client/lib/issues";
+import { type Issue, type IssueActivity, useIssueActivity, useIssueLive } from "@dougbot/client";
+import { whenAt } from "@dougbot/client/lib/format";
+import { issueEventText } from "@dougbot/client/lib/issues";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import Animated, { FadeIn, LayoutAnimationConfig, LinearTransition } from "react-native-reanimated";

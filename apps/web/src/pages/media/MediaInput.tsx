@@ -7,8 +7,8 @@ import {
   type MediaModeSpec,
   type MediaRefFile,
   type MediaRefKind,
-} from "@agenteschat/client";
-import { Field, Icon, Menu, MenuItem, MenuSeparator, Select } from "@agenteschat/ui";
+} from "@dougbot/client";
+import { Field, Icon, Menu, MenuItem, MenuSeparator, Select } from "@dougbot/ui";
 import { type DragEvent, type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 

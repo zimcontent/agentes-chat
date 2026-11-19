@@ -1,5 +1,5 @@
-import { firstWords, ROUTE_LIMITS } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import { firstWords, ROUTE_LIMITS } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import { getAgent } from "../agents";
 import { ConflictError, NotFoundError, ValidationError } from "../errors";
 import { requirePermission } from "../organizations";

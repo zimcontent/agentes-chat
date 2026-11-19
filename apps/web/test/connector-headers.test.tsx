@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { ApiError, type CustomConnectStart } from "@agenteschat/client";
-import { MAX_HEADER_NAME, MAX_REQUEST_HEADERS } from "@agenteschat/client/lib/request-headers";
+import { ApiError, type CustomConnectStart } from "@dougbot/client";
+import { MAX_HEADER_NAME, MAX_REQUEST_HEADERS } from "@dougbot/client/lib/request-headers";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { openConnected, pick, rowMenu } from "./catalog";
 import { createFakeApi, ORG_ID, seedState } from "./fake-api";

@@ -1,6 +1,6 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, asc, type Database, desc, eq, gte, inArray, isNull, lt, schema, sql } from "@agenteschat/db";
-import { MODEL_TIERS, type ModelTier } from "@agenteschat/providers";
+import type { PubSub } from "@dougbot/adapters";
+import { and, asc, type Database, desc, eq, gte, inArray, isNull, lt, schema, sql } from "@dougbot/db";
+import { MODEL_TIERS, type ModelTier } from "@dougbot/providers";
 import { getAgent } from "./agents";
 import { decidableBySql } from "./approvals";
 import { audienceSql, listsAllAgents } from "./audience";

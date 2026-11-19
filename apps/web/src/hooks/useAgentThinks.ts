@@ -1,6 +1,6 @@
-import type { Agent } from "@agenteschat/client";
-import { useAiStatus, useModels } from "@agenteschat/client";
-import { agentThinks } from "@agenteschat/client/lib/brain";
+import type { Agent } from "@dougbot/client";
+import { useAiStatus, useModels } from "@dougbot/client";
+import { agentThinks } from "@dougbot/client/lib/brain";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
 import { useDirectory } from "@/hooks/useDirectory";

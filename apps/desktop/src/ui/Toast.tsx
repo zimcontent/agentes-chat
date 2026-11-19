@@ -1,4 +1,4 @@
-import { Button, Icon, type IconName } from "@agenteschat/ui";
+import { Button, Icon, type IconName } from "@dougbot/ui";
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from "react";
 
 /** The toast's one way forward ("Reopen now"): it closes the toast when pressed. */

@@ -5,10 +5,10 @@ import {
   useDms,
   useSetSidebarView,
   useSidebarView,
-} from "@agenteschat/client";
-import { listsAgent } from "@agenteschat/client/lib/audience";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
-import { dayOnePins, type PinKind, pinsOf, togglePin } from "@agenteschat/client/lib/sidebar-view";
+} from "@dougbot/client";
+import { listsAgent } from "@dougbot/client/lib/audience";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
+import { dayOnePins, type PinKind, pinsOf, togglePin } from "@dougbot/client/lib/sidebar-view";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/providers/org";
 import { useToast } from "@/ui";

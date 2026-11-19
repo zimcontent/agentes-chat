@@ -1,4 +1,4 @@
-import type { Executor } from "@agenteschat/db";
+import type { Executor } from "@dougbot/db";
 import { queueEmail } from "./email";
 
 /**

@@ -1,6 +1,6 @@
-import type { AgentSection, AgentTab, BrainScreen } from "@agenteschat/client/lib/agent-edit";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { Button } from "@agenteschat/ui";
+import type { AgentSection, AgentTab, BrainScreen } from "@dougbot/client/lib/agent-edit";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { Button } from "@dougbot/ui";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

@@ -18394,7 +18394,7 @@
   },
   "gallery": {
     "title": "Galería de componentes",
-    "subtitle": "Solo en desarrollo: los componentes de @agenteschat/ui."
+    "subtitle": "Solo en desarrollo: los componentes de @dougbot/ui."
   },
   "format": {
     "list": "{{names, list}}",

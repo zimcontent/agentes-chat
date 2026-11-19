@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { peekDraft } from "@agenteschat/client/lib/drafts";
-import { setSupportCameFrom } from "@agenteschat/client/lib/support";
+import { peekDraft } from "@dougbot/client/lib/drafts";
+import { setSupportCameFrom } from "@dougbot/client/lib/support";
 import { act, cleanup, fireEvent } from "@testing-library/react";
 import { createFakeApi, LODI_ID, ORG_ID, seedState, withRightHand } from "./fake-api";
 import { renderApp, screen, settle } from "./render";

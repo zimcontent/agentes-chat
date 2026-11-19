@@ -1,5 +1,5 @@
-import type { ApprovalPortal, ErrorReporter, LiveActivitySender, PubSub } from "@agenteschat/adapters";
-import { type Database, ensureMessagePartitions, schema } from "@agenteschat/db";
+import type { ApprovalPortal, ErrorReporter, LiveActivitySender, PubSub } from "@dougbot/adapters";
+import { type Database, ensureMessagePartitions, schema } from "@dougbot/db";
 import {
   type ArtifactDeps,
   autoLinkTwins,
@@ -72,7 +72,7 @@ import {
   trashExpiredDrafts,
   type VoiceDeps,
   wakeSnoozedNotifications,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { isExpectedError } from "./http/errors";
 import type { Logger } from "./logger";
 

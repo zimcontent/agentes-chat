@@ -1,6 +1,6 @@
-import { ApiProvider } from "@agenteschat/client";
-import { fillPluralGaps } from "@agenteschat/i18n/plurals";
-import { ptBR } from "@agenteschat/i18n/pt-BR";
+import { ApiProvider } from "@dougbot/client";
+import { fillPluralGaps } from "@dougbot/i18n/plurals";
+import { ptBR } from "@dougbot/i18n/pt-BR";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Slot } from "expo-router";
 import i18n from "i18next";

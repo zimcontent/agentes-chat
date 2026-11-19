@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { createAnthropicProvider, type ModelRequest, systemText } from "@agenteschat/providers";
-import type { FakeReply } from "@agenteschat/providers/testing";
+import { createAnthropicProvider, type ModelRequest, systemText } from "@dougbot/providers";
+import type { FakeReply } from "@dougbot/providers/testing";
 import { AUTONOMY_PHRASES, placeOf, type ScriptedTurn, TURNS, type TurnsWorld, turnsWorld } from "../eval/turns";
 import { drainOutbox, postPersonMessage } from "../src";
 

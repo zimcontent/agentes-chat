@@ -1,5 +1,5 @@
-import type { PortalClientColor, PortalPipelineEntry } from "@agenteschat/client";
-import { isPortalOff, usePortalOverview, usePortalPipeline } from "@agenteschat/client";
+import type { PortalClientColor, PortalPipelineEntry } from "@dougbot/client";
+import { isPortalOff, usePortalOverview, usePortalPipeline } from "@dougbot/client";
 import {
   PORTAL_FOCI,
   type PortalClientStatus,
@@ -12,7 +12,7 @@ import {
   portalStatusWaits,
   portalWhen,
   sortPortalClients,
-} from "@agenteschat/client/lib/portal";
+} from "@dougbot/client/lib/portal";
 import { useLocalSearchParams } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Pressable, RefreshControl, StyleSheet, View } from "react-native";

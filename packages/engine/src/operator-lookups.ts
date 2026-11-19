@@ -12,9 +12,9 @@ import {
   type SQL,
   schema,
   sql,
-} from "@agenteschat/db";
-import { modelInfo } from "@agenteschat/providers";
-import { parseFileLink, parseMessageLink } from "@agenteschat/tokens/message-links";
+} from "@dougbot/db";
+import { modelInfo } from "@dougbot/providers";
+import { parseFileLink, parseMessageLink } from "@dougbot/tokens/message-links";
 import { z } from "zod";
 import { UUID } from "./authority";
 import { decodeCursor } from "./cursor";

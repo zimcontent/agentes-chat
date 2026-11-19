@@ -17,15 +17,15 @@ import {
   useRoles,
   useToggleReaction,
   useWaiting,
-} from "@agenteschat/client";
-import { actionCardOf, costlyProposalOf, stretchCardOf } from "@agenteschat/client/lib/action-cards";
-import { foldTalk, TALK_LINE_CHARS, talksToAgent } from "@agenteschat/client/lib/agent-talk";
-import { APP_BRANDS } from "@agenteschat/client/lib/apps";
-import { channelRefsOf } from "@agenteschat/client/lib/channel-refs";
-import { type RunPosition, runAround } from "@agenteschat/client/lib/chat";
-import { mineOnRight } from "@agenteschat/client/lib/chat-look";
-import { choiceReplyLine } from "@agenteschat/client/lib/choices";
-import { agentsByAnyHandle } from "@agenteschat/client/lib/directory";
+} from "@dougbot/client";
+import { actionCardOf, costlyProposalOf, stretchCardOf } from "@dougbot/client/lib/action-cards";
+import { foldTalk, TALK_LINE_CHARS, talksToAgent } from "@dougbot/client/lib/agent-talk";
+import { APP_BRANDS } from "@dougbot/client/lib/apps";
+import { channelRefsOf } from "@dougbot/client/lib/channel-refs";
+import { type RunPosition, runAround } from "@dougbot/client/lib/chat";
+import { mineOnRight } from "@dougbot/client/lib/chat-look";
+import { choiceReplyLine } from "@dougbot/client/lib/choices";
+import { agentsByAnyHandle } from "@dougbot/client/lib/directory";
 import {
   CONTINUE_ERRORS,
   errorCode,
@@ -34,32 +34,32 @@ import {
   runErrorText,
   sendFailureText,
   sendNeedsEdit,
-} from "@agenteschat/client/lib/errors";
-import { mentionsReader } from "@agenteschat/client/lib/everyone";
-import { feedbackOfferOf } from "@agenteschat/client/lib/feedback-offer";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { issueWorkOf } from "@agenteschat/client/lib/issues";
-import { workAnchorBody, workContinuable, workIsOver } from "@agenteschat/client/lib/long-work";
-import { brainUnavailableOf, messageToolOff } from "@agenteschat/client/lib/machine-outages";
-import { isMediaAfterReply, messageMediaOf } from "@agenteschat/client/lib/media";
-import { memberRoleColor } from "@agenteschat/client/lib/member-groups";
-import { serverBody } from "@agenteschat/client/lib/message-body";
-import { missionSetupOf } from "@agenteschat/client/lib/missions";
-import { noAiCardOf } from "@agenteschat/client/lib/no-ai";
-import { isTalkerReply, routineReportText, talkerWaited } from "@agenteschat/client/lib/notices";
-import { can } from "@agenteschat/client/lib/permissions";
-import { modelStandInText } from "@agenteschat/client/lib/plan-usage";
-import { reachHandoffs } from "@agenteschat/client/lib/reach";
-import { replyOf } from "@agenteschat/client/lib/reply";
-import { decidedBody, reviewDecisionOf } from "@agenteschat/client/lib/review-decision";
-import { isReminderMessage, reminderBody, routineReplyOf } from "@agenteschat/client/lib/routines";
-import { simpleScreens } from "@agenteschat/client/lib/simple-mode";
-import { replyChipsOf } from "@agenteschat/client/lib/team-plan";
-import { usagePauseCardOf, usageWaitOf } from "@agenteschat/client/lib/usage-pause";
-import { appVia } from "@agenteschat/client/lib/via";
-import { listedText, voiceOf } from "@agenteschat/client/lib/voice";
-import { type ReplyStop, showsActivity, splitCanceled } from "@agenteschat/client/lib/work";
-import type { AgentColorName } from "@agenteschat/ui/agent/engine";
+} from "@dougbot/client/lib/errors";
+import { mentionsReader } from "@dougbot/client/lib/everyone";
+import { feedbackOfferOf } from "@dougbot/client/lib/feedback-offer";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { issueWorkOf } from "@dougbot/client/lib/issues";
+import { workAnchorBody, workContinuable, workIsOver } from "@dougbot/client/lib/long-work";
+import { brainUnavailableOf, messageToolOff } from "@dougbot/client/lib/machine-outages";
+import { isMediaAfterReply, messageMediaOf } from "@dougbot/client/lib/media";
+import { memberRoleColor } from "@dougbot/client/lib/member-groups";
+import { serverBody } from "@dougbot/client/lib/message-body";
+import { missionSetupOf } from "@dougbot/client/lib/missions";
+import { noAiCardOf } from "@dougbot/client/lib/no-ai";
+import { isTalkerReply, routineReportText, talkerWaited } from "@dougbot/client/lib/notices";
+import { can } from "@dougbot/client/lib/permissions";
+import { modelStandInText } from "@dougbot/client/lib/plan-usage";
+import { reachHandoffs } from "@dougbot/client/lib/reach";
+import { replyOf } from "@dougbot/client/lib/reply";
+import { decidedBody, reviewDecisionOf } from "@dougbot/client/lib/review-decision";
+import { isReminderMessage, reminderBody, routineReplyOf } from "@dougbot/client/lib/routines";
+import { simpleScreens } from "@dougbot/client/lib/simple-mode";
+import { replyChipsOf } from "@dougbot/client/lib/team-plan";
+import { usagePauseCardOf, usageWaitOf } from "@dougbot/client/lib/usage-pause";
+import { appVia } from "@dougbot/client/lib/via";
+import { listedText, voiceOf } from "@dougbot/client/lib/voice";
+import { type ReplyStop, showsActivity, splitCanceled } from "@dougbot/client/lib/work";
+import type { AgentColorName } from "@dougbot/ui/agent/engine";
 import { useQueryClient } from "@tanstack/react-query";
 import { memo, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { messagePath } from "@agenteschat/client/lib/message-links";
+import { messagePath } from "@dougbot/client/lib/message-links";
 import { act, cleanup, fireEvent } from "@testing-library/react";
 import { messageLink } from "@/components/MessageMore";
 import { ADA_ID, createFakeApi, ENG_ID, GENERAL_ID, ORG_ID, seedState } from "./fake-api";

@@ -17309,7 +17309,7 @@
   },
   "gallery": {
     "title": "コンポーネントギャラリー",
-    "subtitle": "開発専用：@agenteschat/ui のコンポーネント。"
+    "subtitle": "開発専用：@dougbot/ui のコンポーネント。"
   },
   "format": {
     "list": "{{names, list}}",

@@ -1,5 +1,5 @@
-import { bareJid, type WhatsAppMessage } from "@agenteschat/adapters";
-import { and, desc, eq, gt, lt, schema, sql } from "@agenteschat/db";
+import { bareJid, type WhatsAppMessage } from "@dougbot/adapters";
+import { and, desc, eq, gt, lt, schema, sql } from "@dougbot/db";
 import type { ArtifactDeps } from "../artifacts";
 import { recordAudit } from "../audit";
 import { openPersonAgentDm } from "../dms";

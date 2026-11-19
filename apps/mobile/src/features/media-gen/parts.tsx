@@ -1,4 +1,4 @@
-import { type MediaGenerationView, modelBrand, useApi } from "@agenteschat/client";
+import { type MediaGenerationView, modelBrand, useApi } from "@dougbot/client";
 import { Image } from "expo-image";
 import { useVideoPlayer, VideoView } from "expo-video";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";

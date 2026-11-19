@@ -1,6 +1,6 @@
-import type { Artifact, ArtifactFilters, ArtifactKind } from "@agenteschat/client";
-import { useArtifacts, useChannels, useDriveFolders, useDriveOrganize } from "@agenteschat/client";
-import { ARTIFACT_KINDS, KIND_ICON } from "@agenteschat/client/lib/artifacts";
+import type { Artifact, ArtifactFilters, ArtifactKind } from "@dougbot/client";
+import { useArtifacts, useChannels, useDriveFolders, useDriveOrganize } from "@dougbot/client";
+import { ARTIFACT_KINDS, KIND_ICON } from "@dougbot/client/lib/artifacts";
 import {
   DRIVE_GROUPS,
   DRIVE_SORTS,
@@ -14,11 +14,11 @@ import {
   onlyItsConversation,
   PRIVATE_SECTION,
   rangeOf,
-} from "@agenteschat/client/lib/drive";
-import { folderChain, folderPathOf, foldersIn } from "@agenteschat/client/lib/drive-folders";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { joinNames } from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
+} from "@dougbot/client/lib/drive";
+import { folderChain, folderPathOf, foldersIn } from "@dougbot/client/lib/drive-folders";
+import { errorText } from "@dougbot/client/lib/errors";
+import { joinNames } from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
 import {
   Button,
   Checkbox,
@@ -38,7 +38,7 @@ import {
   Segmented,
   Toolbar,
   useMatchMedia,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { type DragEvent, type MouseEvent, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActorAvatar } from "@/components/AgentAvatar";

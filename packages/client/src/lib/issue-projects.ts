@@ -1,4 +1,4 @@
-import { AGENT_COLORS } from "@agenteschat/tokens/look";
+import { AGENT_COLORS } from "@dougbot/tokens/look";
 import type { IssueProject, IssueProjectRef } from "../api/types";
 import { isUuid } from "./format";
 

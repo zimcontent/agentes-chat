@@ -5,8 +5,8 @@ import {
   type AgentAppearance,
   type AgentColor,
   type AgentFullLook,
-} from "@agenteschat/tokens/look";
-import { isSecretPath, setsCredential } from "@agenteschat/tokens/names";
+} from "@dougbot/tokens/look";
+import { isSecretPath, setsCredential } from "@dougbot/tokens/names";
 import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import type {
   ApiRule,

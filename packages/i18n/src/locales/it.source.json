@@ -44127,7 +44127,7 @@
     "value": "Component gallery"
   },
   "gallery.subtitle": {
-    "value": "Development only: the @agenteschat/ui components."
+    "value": "Development only: the @dougbot/ui components."
   },
   "format.list": {
     "value": "{{names, list}}"

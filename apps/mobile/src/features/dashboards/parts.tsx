@@ -7,8 +7,8 @@ import {
   type WidgetFormat,
   type WidgetSchedule,
   withEditRoles,
-} from "@agenteschat/client";
-import { WIDGET_SCHEDULES, WIDGET_SIZES, type WidgetSize } from "@agenteschat/ui/widgets/spec";
+} from "@dougbot/client";
+import { WIDGET_SCHEDULES, WIDGET_SIZES, type WidgetSize } from "@dougbot/ui/widgets/spec";
 import { type ReactNode, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, View } from "react-native";

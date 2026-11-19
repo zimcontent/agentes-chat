@@ -1,7 +1,7 @@
-import { useUpdateAgent } from "@agenteschat/client";
-import { followsWorkspace, shownApprovalsLevel } from "@agenteschat/client/lib/approvals-level";
-import { can } from "@agenteschat/client/lib/permissions";
-import { Card } from "@agenteschat/ui";
+import { useUpdateAgent } from "@dougbot/client";
+import { followsWorkspace, shownApprovalsLevel } from "@dougbot/client/lib/approvals-level";
+import { can } from "@dougbot/client/lib/permissions";
+import { Card } from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ApprovalsLevelDialog } from "@/components/ApprovalsLevelDialog";

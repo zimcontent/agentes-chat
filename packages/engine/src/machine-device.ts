@@ -1,6 +1,6 @@
 import { randomBytes, randomInt } from "node:crypto";
-import { type MachineOs, MIN_RUNNER_PROTOCOL, type PubSub } from "@agenteschat/adapters";
-import { and, count, type Database, eq, gt, inArray, isNull, schema } from "@agenteschat/db";
+import { type MachineOs, MIN_RUNNER_PROTOCOL, type PubSub } from "@dougbot/adapters";
+import { and, count, type Database, eq, gt, inArray, isNull, schema } from "@dougbot/db";
 import { recordAudit } from "./audit";
 import { caches } from "./cache";
 import type { DeviceAudience } from "./devices";

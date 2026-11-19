@@ -6,8 +6,8 @@ import {
   type ServerFrame,
   TASK_ACCOUNTS_PROTOCOL,
   type TaskExecutor,
-} from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   createAgent,
   createMachineHub,

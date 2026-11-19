@@ -33,8 +33,8 @@ import type {
   ScheduleParse,
   WebhookProvider,
   WebhookSetup,
-} from "@agenteschat/client";
-import { nextOccurrences } from "@agenteschat/ui";
+} from "@dougbot/client";
+import { nextOccurrences } from "@dougbot/ui";
 import { fromApiRule } from "@/lib/recurrence";
 import { clone, type MockContext, MockNotFoundError, minutesAgo, mockId, perOrg } from "./context";
 

@@ -1,7 +1,7 @@
-import { useDesktopLatest } from "@agenteschat/client";
-import { formatBytes } from "@agenteschat/client/lib/files";
-import { downloadHref } from "@agenteschat/client/lib/machines";
-import { Button, DougMark, Icon, Logo, Segmented } from "@agenteschat/ui";
+import { useDesktopLatest } from "@dougbot/client";
+import { formatBytes } from "@dougbot/client/lib/files";
+import { downloadHref } from "@dougbot/client/lib/machines";
+import { Button, DougMark, Icon, Logo, Segmented } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { ZimMedia } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
-import { CREDIT_NANO_USD, houseVoiceFor, isHouseVoice } from "@agenteschat/providers/live-voice";
+import type { ZimMedia } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
+import { CREDIT_NANO_USD, houseVoiceFor, isHouseVoice } from "@dougbot/providers/live-voice";
 import {
   endLiveSession,
   houseRelayWaiting,

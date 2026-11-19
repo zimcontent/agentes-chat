@@ -1,4 +1,4 @@
-import { PLAN_WINDOW_KINDS } from "@agenteschat/adapters";
+import { PLAN_WINDOW_KINDS } from "@dougbot/adapters";
 import {
   and,
   arrayOverlaps,
@@ -16,7 +16,7 @@ import {
   type SQL,
   schema,
   sql,
-} from "@agenteschat/db";
+} from "@dougbot/db";
 import { z } from "zod";
 import { audienceSql } from "./audience";
 import { operatorInputDigest } from "./crypto";

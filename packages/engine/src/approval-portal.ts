@@ -11,8 +11,8 @@ import {
   type PortalState,
   type PortalStatus,
   type PortalType,
-} from "@agenteschat/adapters";
-import { and, type Database, desc, eq, gte, isNull, lte, or, schema } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, type Database, desc, eq, gte, isNull, lte, or, schema } from "@dougbot/db";
 import { listPortalClients, upsertPortalClient } from "./approval-portal-clients";
 import {
   cardStage,

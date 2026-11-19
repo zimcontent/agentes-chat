@@ -1,4 +1,4 @@
-import type { LegalFacts } from "@agenteschat/client";
+import type { LegalFacts } from "@dougbot/client";
 import privacyPt from "../../../../docs/legal/privacidade.pt-BR.md?raw";
 import privacyEn from "../../../../docs/legal/privacy.en.md?raw";
 import termsPt from "../../../../docs/legal/termos.pt-BR.md?raw";

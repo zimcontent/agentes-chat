@@ -1,7 +1,7 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
-import { serverText } from "@agenteschat/i18n";
-import type { AppLocale } from "@agenteschat/i18n/locale";
+import type { PubSub } from "@dougbot/adapters";
+import { and, type Database, eq, inArray, isNull, schema, sql } from "@dougbot/db";
+import { serverText } from "@dougbot/i18n";
+import type { AppLocale } from "@dougbot/i18n/locale";
 import { fileRefOf } from "../artifacts";
 import { recordAudit } from "../audit";
 import { ValidationError } from "../errors";

@@ -1,5 +1,5 @@
-import { usePrefetchRecent, useSendWaiting } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+import { usePrefetchRecent, useSendWaiting } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import { type ErrorBoundaryProps, Stack } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";

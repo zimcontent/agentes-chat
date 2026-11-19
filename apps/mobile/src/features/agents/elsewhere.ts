@@ -1,5 +1,5 @@
-import { lowerFirst } from "@agenteschat/client/lib/format";
-import { rightHandOf } from "@agenteschat/client/lib/right-hand";
+import { lowerFirst } from "@dougbot/client/lib/format";
+import { rightHandOf } from "@dougbot/client/lib/right-hand";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { serverUrl } from "@/lib/server";

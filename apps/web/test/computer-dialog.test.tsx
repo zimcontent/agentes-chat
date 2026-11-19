@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, mock, setSystemTime, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
@@ -12,10 +12,10 @@ import type {
   DesktopStatus,
   Machine,
   SocketFactory,
-} from "@agenteschat/client";
-import { ApiError, keys } from "@agenteschat/client";
-import { SHARED_SEAT } from "@agenteschat/client/lib/seat";
-import { SeatContext } from "@agenteschat/client/lib/seat-context";
+} from "@dougbot/client";
+import { ApiError, keys } from "@dougbot/client";
+import { SHARED_SEAT } from "@dougbot/client/lib/seat";
+import { SeatContext } from "@dougbot/client/lib/seat-context";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { ComputerDialog } from "@/components/computer/ComputerDialog";
 import { useChannelRealtime } from "@/realtime/context";

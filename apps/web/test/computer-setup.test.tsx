@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, setSystemTime, spyOn, test } from "bun:test";
-import { domWindow, setupDom } from "@agenteschat/ui/testing/dom";
+import { domWindow, setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { ComputerSetup, Machine } from "@agenteschat/client";
-import { en, ptBR } from "@agenteschat/i18n";
+import type { ComputerSetup, Machine } from "@dougbot/client";
+import { en, ptBR } from "@dougbot/i18n";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { ADA_ID, createFakeApi, ENG_ID, fakeMachinesOf, ORG_ID, seedState } from "./fake-api";
 import { hintOf, shownText } from "./hint";

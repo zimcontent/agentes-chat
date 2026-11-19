@@ -1,4 +1,4 @@
-import type { Agent, AgentStyle } from "@agenteschat/client";
+import type { Agent, AgentStyle } from "@dougbot/client";
 import {
   useAiStatus,
   useComputerSetup,
@@ -6,20 +6,14 @@ import {
   useRightHandWave,
   useSetAgentStyle,
   useTeamAnswered,
-} from "@agenteschat/client";
-import { formatTime } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { aiStateOf, noAiCardOf } from "@agenteschat/client/lib/no-ai";
-import { can } from "@agenteschat/client/lib/permissions";
-import {
-  introCards,
-  introLeadKey,
-  isRightHand,
-  offersTeamSetup,
-  welcomeOpen,
-} from "@agenteschat/client/lib/right-hand";
-import { modeKey } from "@agenteschat/client/lib/workspace-mode";
-import { AgentSticker, Button, Message, MessageText, WAVE_SECONDS } from "@agenteschat/ui";
+} from "@dougbot/client";
+import { formatTime } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { aiStateOf, noAiCardOf } from "@dougbot/client/lib/no-ai";
+import { can } from "@dougbot/client/lib/permissions";
+import { introCards, introLeadKey, isRightHand, offersTeamSetup, welcomeOpen } from "@dougbot/client/lib/right-hand";
+import { modeKey } from "@dougbot/client/lib/workspace-mode";
+import { AgentSticker, Button, Message, MessageText, WAVE_SECONDS } from "@dougbot/ui";
 import { useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { MESSAGE_STICKER } from "@/chat/ChatMedia";

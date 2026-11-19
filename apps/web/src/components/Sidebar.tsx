@@ -10,7 +10,7 @@ import type {
   MemberPresence,
   SidebarSection as SectionKey,
   SidebarItem,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   agentStateIn,
   agentWorkingIn,
@@ -42,9 +42,9 @@ import {
   useVideoReviews,
   useWaitingOnMe,
   useWhatsApp,
-} from "@agenteschat/client";
-import { agentSections, groupOf } from "@agenteschat/client/lib/agent-groups";
-import { WORK_TICK_MS, workLine } from "@agenteschat/client/lib/agent-work";
+} from "@dougbot/client";
+import { agentSections, groupOf } from "@dougbot/client/lib/agent-groups";
+import { WORK_TICK_MS, workLine } from "@dougbot/client/lib/agent-work";
 import {
   audienceChip,
   audienceNames,
@@ -52,29 +52,29 @@ import {
   canTalk,
   hiddenAgentIds,
   listsAllAgents,
-} from "@agenteschat/client/lib/audience";
-import { channelTitle } from "@agenteschat/client/lib/channel-name";
-import { workspaceNotes } from "@agenteschat/client/lib/deletion";
-import { ErrorBoundary } from "@agenteschat/client/lib/error-boundary";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { formatTime, upperFirst } from "@agenteschat/client/lib/format";
-import { waitingAgents } from "@agenteschat/client/lib/outages";
-import { can, makesAgents, managesChannel } from "@agenteschat/client/lib/permissions";
+} from "@dougbot/client/lib/audience";
+import { channelTitle } from "@dougbot/client/lib/channel-name";
+import { workspaceNotes } from "@dougbot/client/lib/deletion";
+import { ErrorBoundary } from "@dougbot/client/lib/error-boundary";
+import { errorText } from "@dougbot/client/lib/errors";
+import { formatTime, upperFirst } from "@dougbot/client/lib/format";
+import { waitingAgents } from "@dougbot/client/lib/outages";
+import { can, makesAgents, managesChannel } from "@dougbot/client/lib/permissions";
 import {
   AVAILABILITIES,
   agentFaceWord,
   isOutOfOffice,
   presenceOfAvailability,
   statusEndNote,
-} from "@agenteschat/client/lib/presence";
-import { recentDms } from "@agenteschat/client/lib/recent";
-import { isRightHand, rightHandSeenKey } from "@agenteschat/client/lib/right-hand";
-import { SERVER_PLACE_ICON } from "@agenteschat/client/lib/server";
-import { inSidebarList, sidebarItemOrder, sidebarPlace } from "@agenteschat/client/lib/sidebar-items";
-import { AGENT_SORTS, sortAgents, splitPinned } from "@agenteschat/client/lib/sidebar-view";
-import { setSupportCameFrom, supportContactOf } from "@agenteschat/client/lib/support";
-import { badgeCount, looksUnread } from "@agenteschat/client/lib/unread";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/presence";
+import { recentDms } from "@dougbot/client/lib/recent";
+import { isRightHand, rightHandSeenKey } from "@dougbot/client/lib/right-hand";
+import { SERVER_PLACE_ICON } from "@dougbot/client/lib/server";
+import { inSidebarList, sidebarItemOrder, sidebarPlace } from "@dougbot/client/lib/sidebar-items";
+import { AGENT_SORTS, sortAgents, splitPinned } from "@dougbot/client/lib/sidebar-view";
+import { setSupportCameFrom, supportContactOf } from "@dougbot/client/lib/support";
+import { badgeCount, looksUnread } from "@dougbot/client/lib/unread";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
 import {
   type AgentColor,
   Avatar,
@@ -109,7 +109,7 @@ import {
   Skeleton,
   SkeletonGroup,
   selectionSkyUrl,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
 import {
@@ -369,7 +369,7 @@ export function Sidebar() {
     .flatMap((s) => (s.work ? [`${s.agentId}:${s.work.state}`] : []))
     .sort()
     .join();
-  // The tab's title: "(3) agentes.chat", what the sidebar's numbers add up to (agents it doesn't list left out).
+  // The tab's title: "(3) DougBot", what the sidebar's numbers add up to (agents it doesn't list left out).
   const hiddenAgents = useMemo(() => hiddenAgentIds(org, dir.agents), [org, dir.agents]);
   useUnreadTitle(orgId, hiddenAgents);
   const dms = useDms(orgId);
@@ -2865,7 +2865,7 @@ function useWorkspaceLook() {
 /**
  * Your workspaces in the account menu of a personal workspace (ADR 0159): the workspace menu's list, then New
  * workspace when the person may make one. In the desktop app (ADR 0154) by server, then Add workspace; New workspace
- * (it makes one here) sits under this server's workspaces only on a server of one's own, since on agentes.chat Add
+ * (it makes one here) sits under this server's workspaces only on a server of one's own, since on DougBot Add
  * workspace makes one (`offersNewWorkspace`). Mounted only while the menu is open: the counts load then. No role beside
  * each: one person's own workspaces.
  */

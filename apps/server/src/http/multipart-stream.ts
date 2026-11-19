@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { SpooledFile } from "@agenteschat/engine";
+import type { SpooledFile } from "@dougbot/engine";
 
 /**
  * A `multipart/form-data` upload read as it arrives: the file part goes to a file on this server's disk, counted and

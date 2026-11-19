@@ -1,6 +1,6 @@
-import { useChannels } from "@agenteschat/client";
-import { channelOptions } from "@agenteschat/client/lib/channel-refs";
-import { type ComposerSuggestion, Icon } from "@agenteschat/ui";
+import { useChannels } from "@dougbot/client";
+import { channelOptions } from "@dougbot/client/lib/channel-refs";
+import { type ComposerSuggestion, Icon } from "@dougbot/ui";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

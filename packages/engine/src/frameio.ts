@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { and, type Database, eq, isNull, schema } from "@agenteschat/db";
+import { and, type Database, eq, isNull, schema } from "@dougbot/db";
 import { activeConnections, type ConnectorDeps, connectionHeaders } from "./connectors/connections";
 import { customScope } from "./connectors/custom";
 import { connectOverHttp, type McpConnect, type McpSession } from "./connectors/mcp";

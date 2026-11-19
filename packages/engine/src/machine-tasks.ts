@@ -11,12 +11,12 @@ import {
   TASK_LIMITS,
   TASKS_PROTOCOL,
   type TaskExecutor,
-} from "@agenteschat/adapters";
-import { and, type Database, desc, type Executor, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
-import { serverText } from "@agenteschat/i18n";
-import type { AppLocale } from "@agenteschat/i18n/locale";
-import { isAutoModel } from "@agenteschat/providers";
-import { autoPlanModel, claudeCodeModel, planOf } from "@agenteschat/providers/plans";
+} from "@dougbot/adapters";
+import { and, type Database, desc, type Executor, eq, inArray, isNull, schema, sql } from "@dougbot/db";
+import { serverText } from "@dougbot/i18n";
+import type { AppLocale } from "@dougbot/i18n/locale";
+import { isAutoModel } from "@dougbot/providers";
+import { autoPlanModel, claudeCodeModel, planOf } from "@dougbot/providers/plans";
 import { getAgentCached } from "./agents";
 import { recordAudit } from "./audit";
 import { createAgentRuns, eligibleChannelAgents } from "./dispatch";

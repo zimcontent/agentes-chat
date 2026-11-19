@@ -3,10 +3,10 @@ import type { EventEmitter } from "node:events";
 import { existsSync, mkdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { createInterface } from "node:readline";
-import type { CommandProfile } from "@agenteschat/adapters/command-policy";
-import type { AgentScope } from "@agenteschat/adapters/machine-protocol";
-import { isAccountId } from "@agenteschat/adapters/machine-protocol";
-import { redactSecrets } from "@agenteschat/adapters/secret-box";
+import type { CommandProfile } from "@dougbot/adapters/command-policy";
+import type { AgentScope } from "@dougbot/adapters/machine-protocol";
+import { isAccountId } from "@dougbot/adapters/machine-protocol";
+import { redactSecrets } from "@dougbot/adapters/secret-box";
 import { ACCOUNT_MISSING_MESSAGE, accountEnv, cursorKeyOf, withoutContainers, withoutSignIns } from "./accounts";
 import {
   CODEX_TOOL_OUTPUT_MAX,

@@ -1,8 +1,8 @@
 import "@/lib/crypto-global";
-import { keys, useApi, useAuthConfig, useMe } from "@agenteschat/client";
-import { ErrorBoundary } from "@agenteschat/client/lib/error-boundary";
-import { serverHost } from "@agenteschat/client/lib/server";
-import { skyHourOf } from "@agenteschat/ui/sky/workspace";
+import { keys, useApi, useAuthConfig, useMe } from "@dougbot/client";
+import { ErrorBoundary } from "@dougbot/client/lib/error-boundary";
+import { serverHost } from "@dougbot/client/lib/server";
+import { skyHourOf } from "@dougbot/ui/sky/workspace";
 import { useQueryClient } from "@tanstack/react-query";
 import { type Href, ThemeProvider as NavigationThemeProvider, Stack, usePathname } from "expo-router";
 import * as ScreenOrientation from "expo-screen-orientation";

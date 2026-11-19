@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { useStillBusy } from "@/hooks/useStillBusy";
 

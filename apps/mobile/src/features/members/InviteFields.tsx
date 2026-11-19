@@ -1,9 +1,9 @@
-import { useChannels, useRoles } from "@agenteschat/client";
-import type { InviteLists, RefusedPick } from "@agenteschat/client/lib/invite-start";
-import { can } from "@agenteschat/client/lib/permissions";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
-import { everyoneOf, sortRoles } from "@agenteschat/client/lib/roles";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+import { useChannels, useRoles } from "@dougbot/client";
+import type { InviteLists, RefusedPick } from "@dougbot/client/lib/invite-start";
+import { can } from "@dougbot/client/lib/permissions";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
+import { everyoneOf, sortRoles } from "@dougbot/client/lib/roles";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import type { ReactElement } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

@@ -1,6 +1,6 @@
-import type { ComputerDevice, DeviceStatus, PhoneDevice } from "@agenteschat/client";
-import { useRoles } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+import type { ComputerDevice, DeviceStatus, PhoneDevice } from "@dougbot/client";
+import { useRoles } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import { type ReactNode, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, TextInput, type TextInputInstance, View } from "react-native";

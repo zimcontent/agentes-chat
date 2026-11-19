@@ -1,5 +1,5 @@
-import { type SeatOf, SHARED_SEAT, screenId } from "@agenteschat/client/lib/seat";
-import { SeatContext } from "@agenteschat/client/lib/seat-context";
+import { type SeatOf, SHARED_SEAT, screenId } from "@dougbot/client/lib/seat";
+import { SeatContext } from "@dougbot/client/lib/seat-context";
 import { useLocalSearchParams } from "expo-router";
 import { useMemo } from "react";
 import { ComputerScreen } from "@/features/computer/ComputerScreen";

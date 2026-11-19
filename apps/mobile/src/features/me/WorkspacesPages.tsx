@@ -1,7 +1,7 @@
-import { type Me, type OrgSummary, useApi, useMe } from "@agenteschat/client";
-import { workspaceNotes } from "@agenteschat/client/lib/deletion";
-import { CLOUD_SERVER, checkServer, normalizeServer, serverHost } from "@agenteschat/client/lib/server";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
+import { type Me, type OrgSummary, useApi, useMe } from "@dougbot/client";
+import { workspaceNotes } from "@dougbot/client/lib/deletion";
+import { CLOUD_SERVER, checkServer, normalizeServer, serverHost } from "@dougbot/client/lib/server";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
 import { useQueries } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -231,7 +231,7 @@ export function WorkspacesPage() {
 
 /**
  * Adicionar workspace, a short sheet (the system's form sheet, sized to its rows): on a server of one's own, a new one
- * there first; a new one on agentes.chat, or the team's own server; one line under them says nothing is lost.
+ * there first; a new one on DougBot, or the team's own server; one line under them says nothing is lost.
  */
 export function AddWorkspacePage() {
   const { t } = useTranslation();
@@ -239,7 +239,7 @@ export function AddWorkspacePage() {
   const me = useMe().data;
   const create = () => {
     askNewWorkspace(CLOUD_SERVER);
-    // Signed in to agentes.chat already: its first run opens over the app; otherwise its sign-in comes first.
+    // Signed in to DougBot already: its first run opens over the app; otherwise its sign-in comes first.
     if (serverUrl() === CLOUD_SERVER) router.dismissTo("/");
     else void openWorkspace(CLOUD_SERVER, null);
   };

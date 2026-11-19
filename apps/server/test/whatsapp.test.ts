@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeWhatsAppGateway } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { createFakeWhatsAppGateway } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import { type Browser, browser, createTestServer, joinByInvitation, seedOrg, signUp, type TestServer } from "./harness";
 
 /** WhatsApp numbers over HTTP: the app's routes and the address the gateway posts events to. */

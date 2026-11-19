@@ -6,12 +6,12 @@ import {
   type ScreenKind,
   useCatalog,
   useRun,
-} from "@agenteschat/client";
-import type { Activity, ActivityKind } from "@agenteschat/client/lib/activity";
-import { type FailureCause, failureCause } from "@agenteschat/client/lib/failure-cause";
-import { formatBytes } from "@agenteschat/client/lib/files";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { simpleScreens } from "@agenteschat/client/lib/simple-mode";
+} from "@dougbot/client";
+import type { Activity, ActivityKind } from "@dougbot/client/lib/activity";
+import { type FailureCause, failureCause } from "@dougbot/client/lib/failure-cause";
+import { formatBytes } from "@dougbot/client/lib/files";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { simpleScreens } from "@dougbot/client/lib/simple-mode";
 import {
   appKey,
   callLogo,
@@ -35,8 +35,8 @@ import {
   workFromSteps,
   workMeta,
   workSteps,
-} from "@agenteschat/client/lib/work";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/work";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import {
   type AgentColor,
   Icon,
@@ -45,7 +45,7 @@ import {
   ToolBlock,
   type ToolBlockItem,
   type ToolBlockLine,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import type { TFunction } from "i18next";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,4 +1,4 @@
-import { GIF_ID_PATTERN, type GifProvider, type PubSub } from "@agenteschat/adapters";
+import { GIF_ID_PATTERN, type GifProvider, type PubSub } from "@dougbot/adapters";
 import {
   and,
   asc,
@@ -15,11 +15,11 @@ import {
   type SQL,
   schema,
   sql,
-} from "@agenteschat/db";
-import { mentionsEveryone } from "@agenteschat/i18n/everyone";
-import { CHANNEL_REF } from "@agenteschat/ui/channel-refs";
-import { clipWhole } from "@agenteschat/ui/clip";
-import { plainLine } from "@agenteschat/ui/markdown";
+} from "@dougbot/db";
+import { mentionsEveryone } from "@dougbot/i18n/everyone";
+import { CHANNEL_REF } from "@dougbot/ui/channel-refs";
+import { clipWhole } from "@dougbot/ui/clip";
+import { plainLine } from "@dougbot/ui/markdown";
 import { type AgentActionView, actionsFor } from "./agent-actions";
 import { currentHandles } from "./agents";
 import { withDeletedArtifacts } from "./artifacts";

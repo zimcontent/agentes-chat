@@ -184,7 +184,7 @@ describe("GET /api/app/legal", () => {
     };
     expect(await daysOf()).toBe(365);
     expect(await daysOf({ COMPANY_REQUESTS_RETENTION_DAYS: "180" })).toBe(180);
-    // The form is self-hosting's own: on agentes.chat's own servers the Policy says nothing of it, whatever the value.
+    // The form is self-hosting's own: on DougBot's own servers the Policy says nothing of it, whatever the value.
     expect(await daysOf({ PUBLIC_URL: "https://app.agentes.chat", COMPANY_REQUESTS_RETENTION_DAYS: "180" })).toBeNull();
     // A retention of 0 promised nothing to erase, so the setting no longer takes it: below 1, the server refuses it at
     // boot instead of quietly promising what the sweep wouldn't do.

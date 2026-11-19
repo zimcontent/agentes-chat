@@ -1,4 +1,4 @@
-import type { Agent, AiAccounts as AiAccountsView, Credential } from "@agenteschat/client";
+import type { Agent, AiAccounts as AiAccountsView, Credential } from "@dougbot/client";
 import {
   keys,
   useAiAccounts,
@@ -10,7 +10,7 @@ import {
   usePlatformKey,
   useSettings,
   useUpdateSettings,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   agentsToGive,
   endsOnClaude,
@@ -18,20 +18,20 @@ import {
   offersSignInAgain,
   onSeveralComputers,
   ownSignIns,
-} from "@agenteschat/client/lib/ai-accounts";
-import { accountCards, accountCardTitle } from "@agenteschat/client/lib/ai-panel";
-import { mayPickModel } from "@agenteschat/client/lib/brain-picker";
-import { computerNameOf } from "@agenteschat/client/lib/computer";
-import { errorText, keyRefusal } from "@agenteschat/client/lib/errors";
-import { joinNames, relativeTime } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { agentAi, aiStateOf } from "@agenteschat/client/lib/no-ai";
-import { can } from "@agenteschat/client/lib/permissions";
-import { settingsSectionNameKey, settingsSectionTextKey } from "@agenteschat/client/lib/personal-view";
-import { planOf, signInProviderOf } from "@agenteschat/client/lib/plans";
-import { keyCopiesLine, keyName, keyNamedAfterProvider, keySource, shownKeys } from "@agenteschat/client/lib/providers";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/ai-accounts";
+import { accountCards, accountCardTitle } from "@dougbot/client/lib/ai-panel";
+import { mayPickModel } from "@dougbot/client/lib/brain-picker";
+import { computerNameOf } from "@dougbot/client/lib/computer";
+import { errorText, keyRefusal } from "@dougbot/client/lib/errors";
+import { joinNames, relativeTime } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { agentAi, aiStateOf } from "@dougbot/client/lib/no-ai";
+import { can } from "@dougbot/client/lib/permissions";
+import { settingsSectionNameKey, settingsSectionTextKey } from "@dougbot/client/lib/personal-view";
+import { planOf, signInProviderOf } from "@dougbot/client/lib/plans";
+import { keyCopiesLine, keyName, keyNamedAfterProvider, keySource, shownKeys } from "@dougbot/client/lib/providers";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

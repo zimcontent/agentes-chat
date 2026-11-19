@@ -1,4 +1,4 @@
-import type { ScreenKind } from "@agenteschat/adapters";
+import type { ScreenKind } from "@dougbot/adapters";
 import {
   clipLines,
   describeElement,

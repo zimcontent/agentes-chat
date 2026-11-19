@@ -6,7 +6,7 @@ import type {
   PersonLimits,
   PersonUsage,
   UsagePlace,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   keys,
   useApi,
@@ -17,8 +17,8 @@ import {
   useRefuseMoreUsage,
   useRoles,
   useSetPersonLimits,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import {
   capitalize,
   formatDecimal,
@@ -27,8 +27,8 @@ import {
   formatShortDate,
   formatUsd,
   relativeTime,
-} from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
+} from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
 import {
   chipCounts,
   filterPeople,
@@ -41,9 +41,9 @@ import {
   USAGE_PERIODS,
   type UsagePeriodKind,
   usagePeriod,
-} from "@agenteschat/client/lib/person-usage";
-import { rolePicksInSight, settingsSectionNameKey } from "@agenteschat/client/lib/personal-view";
-import { parseAmount } from "@agenteschat/client/lib/text";
+} from "@dougbot/client/lib/person-usage";
+import { rolePicksInSight, settingsSectionNameKey } from "@dougbot/client/lib/personal-view";
+import { parseAmount } from "@dougbot/client/lib/text";
 import {
   AvatarStack,
   agentGradient,
@@ -71,7 +71,7 @@ import {
   Toolbar,
   UsageDays,
   UsageSwatch,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";

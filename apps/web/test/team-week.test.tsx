@@ -1,10 +1,10 @@
 import { afterEach, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { Message } from "@agenteschat/client";
-import type { TeamWeekCard } from "@agenteschat/client/lib/team-week";
+import type { Message } from "@dougbot/client";
+import type { TeamWeekCard } from "@dougbot/client/lib/team-week";
 import { act, cleanup, fireEvent, screen } from "@testing-library/react";
 import { ADA_ID, createFakeApi, GENERAL_ID, LODI_ID, ORG_ID, seedDm, seedState, withRightHand } from "./fake-api";
 import { renderApp, settle } from "./render";

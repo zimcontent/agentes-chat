@@ -1,4 +1,4 @@
-import { type AppIconId, DEFAULT_APP_ICON } from "@agenteschat/client/lib/app-icons";
+import { type AppIconId, DEFAULT_APP_ICON } from "@dougbot/client/lib/app-icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { requireOptionalNativeModule } from "expo";
 import { Platform } from "react-native";

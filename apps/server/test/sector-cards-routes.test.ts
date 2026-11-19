@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { and, eq, schema } from "@agenteschat/db";
-import { ensureRightHand } from "@agenteschat/engine";
+import { and, eq, schema } from "@dougbot/db";
+import { ensureRightHand } from "@dougbot/engine";
 import { browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 
 let t: TestServer;

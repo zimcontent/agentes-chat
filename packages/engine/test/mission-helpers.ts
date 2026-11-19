@@ -1,4 +1,4 @@
-import { MACHINE_PROTOCOL_VERSION, type ServerFrame } from "@agenteschat/adapters";
+import { MACHINE_PROTOCOL_VERSION, type ServerFrame } from "@dougbot/adapters";
 import { grantScopes, insertMessageWithRuns, type MachineHub, setAgentComputerTarget } from "../src";
 import type { Fixture } from "./fixtures";
 import { pairMachine } from "./machine-fixtures";

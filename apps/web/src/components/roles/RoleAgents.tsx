@@ -1,5 +1,5 @@
-import type { Agent, AgentAudience, OrgRole, OrgRoles, Person } from "@agenteschat/client";
-import { useAgents, useUpdateRole, useWidenAudience } from "@agenteschat/client";
+import type { Agent, AgentAudience, OrgRole, OrgRoles, Person } from "@dougbot/client";
+import { useAgents, useUpdateRole, useWidenAudience } from "@dougbot/client";
 import {
   audienceOf,
   audiencePatch,
@@ -7,10 +7,10 @@ import {
   canEditAudience,
   EVERYONE_AUDIENCE,
   roleTalksTo,
-} from "@agenteschat/client/lib/audience";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
+} from "@dougbot/client/lib/audience";
+import { errorText } from "@dougbot/client/lib/errors";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
 import {
   everyoneOf,
   isEveryone,
@@ -20,7 +20,7 @@ import {
   roleName,
   sortRoles,
   withRow,
-} from "@agenteschat/client/lib/roles";
+} from "@dougbot/client/lib/roles";
 import {
   Button,
   Checkbox,
@@ -33,7 +33,7 @@ import {
   SearchField,
   Tip,
   Toolbar,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

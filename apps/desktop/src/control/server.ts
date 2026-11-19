@@ -1,4 +1,4 @@
-import { CLOUD_SERVER, isLoopback, isTailnet, normalizeServer, serverHost } from "@agenteschat/client/lib/server";
+import { CLOUD_SERVER, isLoopback, isTailnet, normalizeServer, serverHost } from "@dougbot/client/lib/server";
 import type { Home } from "./store";
 
 /** The servers this app opens (Rust keeps them in `servers.json`, `servers_get`). */
@@ -46,7 +46,7 @@ export interface ServerWorkspaces {
   agentsHere?: boolean;
 }
 
-/** agentes.chat, a server on this computer, one on the person's Tailscale network, or one elsewhere. */
+/** DougBot, a server on this computer, one on the person's Tailscale network, or one elsewhere. */
 export type ServerKind = "cloud" | "here" | "tailnet" | "own";
 
 export function serverKind(server: string): ServerKind {

@@ -1,4 +1,4 @@
-import { and, type Database, eq, isNull, schema } from "@agenteschat/db";
+import { and, type Database, eq, isNull, schema } from "@dougbot/db";
 import { type ArtifactActor, createFileArtifact, storedFileOfArtifact } from "./artifacts";
 import { portalPlaceOf } from "./design-delivery";
 import { ConflictError, NotFoundError, ValidationError } from "./errors";

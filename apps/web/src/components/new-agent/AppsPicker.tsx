@@ -1,8 +1,8 @@
-import type { ConnectorDef } from "@agenteschat/client";
-import { hiddenWithoutComposio } from "@agenteschat/client/lib/composio";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { connectorDescription, connectorName } from "@agenteschat/client/lib/scopes";
-import { Button, Dialog, DialogBody, DialogFooter, GroupHeading, Icon, SearchField } from "@agenteschat/ui";
+import type { ConnectorDef } from "@dougbot/client";
+import { hiddenWithoutComposio } from "@dougbot/client/lib/composio";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { connectorDescription, connectorName } from "@dougbot/client/lib/scopes";
+import { Button, Dialog, DialogBody, DialogFooter, GroupHeading, Icon, SearchField } from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ConnectorIcon, searchCatalog } from "@/components/ConnectorCatalog";

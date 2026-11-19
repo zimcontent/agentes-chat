@@ -1,13 +1,13 @@
 import { chmod, mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { AgentScope, MachineReplies, SecretRequest } from "@agenteschat/adapters/machine-protocol";
+import type { AgentScope, MachineReplies, SecretRequest } from "@dougbot/adapters/machine-protocol";
 import {
   generateSecretKeyPair,
   isReservedSecretName,
   openSecret,
   redactSecrets,
   SECRET_NAME,
-} from "@agenteschat/adapters/secret-box";
+} from "@dougbot/adapters/secret-box";
 import { originOf } from "./browser";
 import { coAuthorEnv, coAuthorHooks, coAuthorLines } from "./co-authors";
 import { errnoCode, RunnerError } from "./errors";

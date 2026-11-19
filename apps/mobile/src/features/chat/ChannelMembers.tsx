@@ -9,16 +9,16 @@ import {
   useLeaveChannel,
   useMuteChannel,
   useRoster,
-} from "@agenteschat/client";
-import { WORK_TICK_MS, workLine, workLineText } from "@agenteschat/client/lib/agent-work";
-import { listsAgent, opensDetails } from "@agenteschat/client/lib/audience";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { useHeldWhile } from "@agenteschat/client/lib/hold";
-import { isConnected, sheetGroups } from "@agenteschat/client/lib/member-groups";
-import { can, leavesChannel, makesAgents, managesChannel, setsAutoReply } from "@agenteschat/client/lib/permissions";
-import { agentMemberLine, agentStatusShort, agentWhyKey, isAgentOff, liveLine } from "@agenteschat/client/lib/presence";
-import { picksForMe, replyAloneKey } from "@agenteschat/client/lib/routing";
+} from "@dougbot/client";
+import { WORK_TICK_MS, workLine, workLineText } from "@dougbot/client/lib/agent-work";
+import { listsAgent, opensDetails } from "@dougbot/client/lib/audience";
+import { errorText } from "@dougbot/client/lib/errors";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { useHeldWhile } from "@dougbot/client/lib/hold";
+import { isConnected, sheetGroups } from "@dougbot/client/lib/member-groups";
+import { can, leavesChannel, makesAgents, managesChannel, setsAutoReply } from "@dougbot/client/lib/permissions";
+import { agentMemberLine, agentStatusShort, agentWhyKey, isAgentOff, liveLine } from "@dougbot/client/lib/presence";
+import { picksForMe, replyAloneKey } from "@dougbot/client/lib/routing";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
 import { Fragment, useState } from "react";

@@ -1,4 +1,4 @@
-import { useMediaGenerations, useMediaOverview } from "@agenteschat/client";
+import { useMediaGenerations, useMediaOverview } from "@dougbot/client";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, StyleSheet, useWindowDimensions, View } from "react-native";

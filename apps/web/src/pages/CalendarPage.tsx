@@ -1,5 +1,5 @@
-import type { CalendarEvent, CalendarRange, SeriesScope } from "@agenteschat/client";
-import { useCalendar, useCalendarAction, useReminderAction, useRoutines } from "@agenteschat/client";
+import type { CalendarEvent, CalendarRange, SeriesScope } from "@dougbot/client";
+import { useCalendar, useCalendarAction, useReminderAction, useRoutines } from "@dougbot/client";
 import {
   addDays,
   addMinutes,
@@ -19,12 +19,12 @@ import {
   upcomingItems,
   viewDays,
   viewRange,
-} from "@agenteschat/client/lib/calendar";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { dateOnly, formatTime, joinNames, toYmd } from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
-import { runPixelStatus, runPixels } from "@agenteschat/client/lib/routine-view";
-import { browserTimezone } from "@agenteschat/client/lib/routines";
+} from "@dougbot/client/lib/calendar";
+import { errorText } from "@dougbot/client/lib/errors";
+import { dateOnly, formatTime, joinNames, toYmd } from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
+import { runPixelStatus, runPixels } from "@dougbot/client/lib/routine-view";
+import { browserTimezone } from "@dougbot/client/lib/routines";
 import {
   ApprovalCard,
   Button,
@@ -40,7 +40,7 @@ import {
   Segmented,
   Toolbar,
   useDelayed,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { ActorAvatar } from "@/components/AgentAvatar";
@@ -62,7 +62,7 @@ import { useOpenParam } from "@/lib/open-param";
 import { useToast } from "@/lib/toast";
 import "./calendar.css";
 
-export { mondayOf } from "@agenteschat/client/lib/calendar";
+export { mondayOf } from "@dougbot/client/lib/calendar";
 
 const VIEWS: CalendarView[] = ["day", "week", "month", "agenda"];
 /** A linked event's day goes with it when its details close. */

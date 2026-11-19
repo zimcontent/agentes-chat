@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeEmailSender } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { createFakeEmailSender } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   ACCOUNT_CONTACT_JOB,
   deleteAccount,

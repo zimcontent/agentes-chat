@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { en } from "@agenteschat/i18n";
+import { en } from "@dougbot/i18n";
 import { toolActivity } from "../src/lib/activity";
 
 const ENGINE = join(import.meta.dir, "../../engine/src");

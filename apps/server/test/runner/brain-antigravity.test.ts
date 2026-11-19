@@ -2,10 +2,10 @@ import { afterEach, expect, test } from "bun:test";
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import { accountCodeAad } from "@agenteschat/adapters/machine-protocol";
-import { cutAtWord } from "@agenteschat/adapters/redact";
-import { sealSecret } from "@agenteschat/adapters/secret-box";
-import { planState } from "@agenteschat/ui/plan-state";
+import { accountCodeAad } from "@dougbot/adapters/machine-protocol";
+import { cutAtWord } from "@dougbot/adapters/redact";
+import { sealSecret } from "@dougbot/adapters/secret-box";
+import { planState } from "@dougbot/ui/plan-state";
 import {
   ACCOUNT_SIGNED_OUT,
   type AccountFolders,

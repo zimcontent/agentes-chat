@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeWhatsAppGateway, userTopic, WhatsAppGatewayError } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { createFakeWhatsAppGateway, userTopic, WhatsAppGatewayError } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   createWhatsAppAccount,
   handleWhatsAppEvent,

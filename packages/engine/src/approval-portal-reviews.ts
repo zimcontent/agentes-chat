@@ -1,5 +1,5 @@
-import type { PortalCard } from "@agenteschat/adapters";
-import { and, type Database, eq, inArray, schema, sql } from "@agenteschat/db";
+import type { PortalCard } from "@dougbot/adapters";
+import { and, type Database, eq, inArray, schema, sql } from "@dougbot/db";
 
 const { issues, videoReviews } = schema;
 

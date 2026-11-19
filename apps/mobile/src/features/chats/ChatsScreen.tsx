@@ -1,9 +1,9 @@
-import { keys, useArchivedChannels, useChannelCategories, useChannels, useMuteChannel } from "@agenteschat/client";
-import { canTalk } from "@agenteschat/client/lib/audience";
-import { waitingComputerByAgent } from "@agenteschat/client/lib/machine-outages";
-import { rightHandOf } from "@agenteschat/client/lib/right-hand";
-import { WORKING_POLL_MS } from "@agenteschat/client/lib/working";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
+import { keys, useArchivedChannels, useChannelCategories, useChannels, useMuteChannel } from "@dougbot/client";
+import { canTalk } from "@dougbot/client/lib/audience";
+import { waitingComputerByAgent } from "@dougbot/client/lib/machine-outages";
+import { rightHandOf } from "@dougbot/client/lib/right-hand";
+import { WORKING_POLL_MS } from "@dougbot/client/lib/working";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
 import { useQueryClient } from "@tanstack/react-query";
 import { useIsFocused } from "expo-router";
 import { useCallback, useEffect, useMemo } from "react";

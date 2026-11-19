@@ -1,11 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import {
-  DESKTOP_TEXT_PROTOCOL,
-  type MachineReplies,
-  type MachineRequest,
-  type StreamRequest,
-} from "@agenteschat/adapters";
-import { eq, rowsOf, schema, sql } from "@agenteschat/db";
+import { DESKTOP_TEXT_PROTOCOL, type MachineReplies, type MachineRequest, type StreamRequest } from "@dougbot/adapters";
+import { eq, rowsOf, schema, sql } from "@dougbot/db";
 import {
   createSessionScreening,
   enableOperatorEvents,

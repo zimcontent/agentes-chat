@@ -1,5 +1,5 @@
-import { type SignInProvider, useAuthConfig } from "@agenteschat/client";
-import { Button, Chip } from "@agenteschat/ui";
+import { type SignInProvider, useAuthConfig } from "@dougbot/client";
+import { Button, Chip } from "@dougbot/ui";
 import { type ReactNode, useId } from "react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/auth/context";

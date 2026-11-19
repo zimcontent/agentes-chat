@@ -6,11 +6,11 @@ import {
   useIssues,
   useMissionList,
   useTeamAgenda,
-} from "@agenteschat/client";
-import { dueLabel } from "@agenteschat/client/lib/format";
-import { liveProjectFilter, NO_PROJECT, projectFilterRows } from "@agenteschat/client/lib/issue-projects";
-import { can } from "@agenteschat/client/lib/permissions";
-import { localDay } from "@agenteschat/client/lib/team-agenda";
+} from "@dougbot/client";
+import { dueLabel } from "@dougbot/client/lib/format";
+import { liveProjectFilter, NO_PROJECT, projectFilterRows } from "@dougbot/client/lib/issue-projects";
+import { can } from "@dougbot/client/lib/permissions";
+import { localDay } from "@dougbot/client/lib/team-agenda";
 import { Fragment, type ReactNode, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {

@@ -1,5 +1,5 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, asc, type Database, type Executor, eq, inArray, isNotNull, isNull, schema, sql } from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import { and, asc, type Database, type Executor, eq, inArray, isNotNull, isNull, schema, sql } from "@dougbot/db";
 import { audienceSql, listsAllAgents } from "./audience";
 import { NotFoundError, ValidationError } from "./errors";
 import { publishOrgEvent } from "./events";

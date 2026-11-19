@@ -1,10 +1,10 @@
-import type { AppNotification, MediaKind, NotificationActor, Routine } from "@agenteschat/client";
-import { approvalOriginWords } from "@agenteschat/client/lib/approval-origin";
-import { namesText } from "@agenteschat/client/lib/format";
-import { upcomingRoutines } from "@agenteschat/client/lib/home";
-import { mediaKindOf } from "@agenteschat/client/lib/media";
-import { askersOf, runFailedGroupOf } from "@agenteschat/client/lib/notifications";
-import { routineNotificationWords, type Words } from "@agenteschat/client/lib/routine-view";
+import type { AppNotification, MediaKind, NotificationActor, Routine } from "@dougbot/client";
+import { approvalOriginWords } from "@dougbot/client/lib/approval-origin";
+import { namesText } from "@dougbot/client/lib/format";
+import { upcomingRoutines } from "@dougbot/client/lib/home";
+import { mediaKindOf } from "@dougbot/client/lib/media";
+import { askersOf, runFailedGroupOf } from "@dougbot/client/lib/notifications";
+import { routineNotificationWords, type Words } from "@dougbot/client/lib/routine-view";
 import type { TFunction } from "i18next";
 import { isDeviceNotice } from "../devices/logic";
 import { daysAgo } from "../shared/logic";
@@ -133,7 +133,7 @@ export const emojisOf = (n: AppNotification) => (n.kind === "reaction" ? (n.late
 
 // ── Esperando você as cards, and what comes next ─────────────────────────────────────────────────
 
-export { type WaitingCard, type WaitingCardKind, waitingCardOf } from "@agenteschat/client/lib/notifications";
+export { type WaitingCard, type WaitingCardKind, waitingCardOf } from "@dougbot/client/lib/notifications";
 
 /**
  * Who asks to join, as the card's line: "Ana asks to join", "Ana and Bruno ask to join", "Ana, Bruno and 2 more ask

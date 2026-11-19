@@ -1,22 +1,11 @@
-import type { Agent, AgentBrain } from "@agenteschat/client";
-import { keys, useAgentBrain, useApi, useCredentials, useModels, usePlatformKey } from "@agenteschat/client";
-import {
-  agentModelChip,
-  type Intent,
-  intentChoices,
-  intentOptions,
-  pricesInReais,
-} from "@agenteschat/client/lib/ai-panel";
-import {
-  mayPickModel,
-  modelPickerSave,
-  modelPickerUndo,
-  type PickerBefore,
-} from "@agenteschat/client/lib/brain-picker";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { can } from "@agenteschat/client/lib/permissions";
-import { modelChoices } from "@agenteschat/client/lib/providers";
-import { Button, Dialog, DialogBody, DialogFooter, Icon, type IconName, OptionList } from "@agenteschat/ui";
+import type { Agent, AgentBrain } from "@dougbot/client";
+import { keys, useAgentBrain, useApi, useCredentials, useModels, usePlatformKey } from "@dougbot/client";
+import { agentModelChip, type Intent, intentChoices, intentOptions, pricesInReais } from "@dougbot/client/lib/ai-panel";
+import { mayPickModel, modelPickerSave, modelPickerUndo, type PickerBefore } from "@dougbot/client/lib/brain-picker";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { can } from "@dougbot/client/lib/permissions";
+import { modelChoices } from "@dougbot/client/lib/providers";
+import { Button, Dialog, DialogBody, DialogFooter, Icon, type IconName, OptionList } from "@dougbot/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";

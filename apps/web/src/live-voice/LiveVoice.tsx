@@ -1,10 +1,10 @@
-import type { Agent, Message } from "@agenteschat/client";
-import { useApi, useChannelLiveRoom, useLiveVoice } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import type { FloorAgent } from "@agenteschat/client/lib/live-floor";
-import { can } from "@agenteschat/client/lib/permissions";
-import { playSound } from "@agenteschat/client/lib/sounds";
-import { Avatar, Button, Checkbox, Dialog, DialogBody, DialogFooter, Icon, Textarea } from "@agenteschat/ui";
+import type { Agent, Message } from "@dougbot/client";
+import { useApi, useChannelLiveRoom, useLiveVoice } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import type { FloorAgent } from "@dougbot/client/lib/live-floor";
+import { can } from "@dougbot/client/lib/permissions";
+import { playSound } from "@dougbot/client/lib/sounds";
+import { Avatar, Button, Checkbox, Dialog, DialogBody, DialogFooter, Icon, Textarea } from "@dougbot/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   createContext,

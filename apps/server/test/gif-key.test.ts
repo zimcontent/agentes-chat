@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
+import { eq, schema } from "@dougbot/db";
 import {
   type Browser,
   browser,
@@ -11,7 +11,7 @@ import {
 } from "./harness";
 
 /**
- * The installation's GIPHY key (ADR 0091, amended 2026-10-31): only its owner has it, never on agentes.chat, and GIFs
+ * The installation's GIPHY key (ADR 0091, amended 2026-10-31): only its owner has it, never on DougBot, and GIFs
  * follow it in every workspace at once, without a restart.
  */
 

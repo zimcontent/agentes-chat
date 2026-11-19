@@ -1,4 +1,4 @@
-import type { LocaleStrings } from "@agenteschat/i18n/plurals";
+import type { LocaleStrings } from "@dougbot/i18n/plurals";
 
 /**
  * The screens' strings (pt-BR; English, `keys.en.ts`, is the source), under `mobile.*`, next

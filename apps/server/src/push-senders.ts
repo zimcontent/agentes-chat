@@ -5,8 +5,8 @@ import {
   createPhonePushSender,
   type LiveActivitySender,
   type PushSender,
-} from "@agenteschat/adapters";
-import type { Config } from "@agenteschat/config";
+} from "@dougbot/adapters";
+import type { Config } from "@dougbot/config";
 
 /** The config a server's own phone credentials come from. */
 type PushConfig = Pick<

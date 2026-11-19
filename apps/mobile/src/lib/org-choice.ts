@@ -1,7 +1,7 @@
-import type { OrgSummary } from "@agenteschat/client";
-import { otherWorkspaces } from "@agenteschat/client/lib/deletion";
-import { settingUp } from "@agenteschat/client/lib/guards";
-import type { ServerProblem } from "@agenteschat/client/lib/server";
+import type { OrgSummary } from "@dougbot/client";
+import { otherWorkspaces } from "@dougbot/client/lib/deletion";
+import { settingUp } from "@dougbot/client/lib/guards";
+import type { ServerProblem } from "@dougbot/client/lib/server";
 
 /**
  * The workspaces the app opens (pure): not one this person is still setting up, which only the first run opens (it

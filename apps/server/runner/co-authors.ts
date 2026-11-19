@@ -1,6 +1,6 @@
 import { chmodSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
-import type { AgentScope } from "@agenteschat/adapters/machine-protocol";
+import type { AgentScope } from "@dougbot/adapters/machine-protocol";
 
 /**
  * The `Co-authored-by` lines on every commit the agent's own processes make with git (ADR 0156): the server sends

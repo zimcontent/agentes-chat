@@ -1,4 +1,4 @@
-import type { PubSub, ScreenKind } from "@agenteschat/adapters";
+import type { PubSub, ScreenKind } from "@dougbot/adapters";
 import {
   and,
   type Database,
@@ -16,9 +16,9 @@ import {
   type SQL,
   schema,
   sql,
-} from "@agenteschat/db";
-import { clipWhole } from "@agenteschat/ui/clip";
-import { plainLine } from "@agenteschat/ui/markdown";
+} from "@dougbot/db";
+import { clipWhole } from "@dougbot/ui/clip";
+import { plainLine } from "@dougbot/ui/markdown";
 import { decidableBySql } from "./approvals";
 import { NotFoundError, ValidationError } from "./errors";
 import { publishUserEvent } from "./events";

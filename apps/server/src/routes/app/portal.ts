@@ -7,7 +7,7 @@ import {
   PORTAL_STATUSES,
   PORTAL_TYPES,
   type PortalCard,
-} from "@agenteschat/adapters";
+} from "@dougbot/adapters";
 import {
   AFTER_APPROVE,
   approveForClient,
@@ -54,7 +54,7 @@ import {
   TEAM_APPROVAL_NOTE,
   USER_LOCALES,
   upsertPortalClient,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
 import { apiError, errorResponse } from "../../http/errors";

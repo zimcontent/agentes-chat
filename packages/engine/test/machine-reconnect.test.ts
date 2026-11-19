@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { MACHINE_PROTOCOL_VERSION } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { MACHINE_PROTOCOL_VERSION } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   authenticateMachine,
   computerTarget,

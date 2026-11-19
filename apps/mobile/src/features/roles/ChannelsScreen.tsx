@@ -1,10 +1,10 @@
-import type { Channel, ChannelInput, OrgRole } from "@agenteschat/client";
-import { channelMembersQuery, keys, useApi, useChannelCategories, useChannels } from "@agenteschat/client";
-import { sameList } from "@agenteschat/client/lib/agent-edit";
-import { accessOf } from "@agenteschat/client/lib/channel-access";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { managesChannel } from "@agenteschat/client/lib/permissions";
-import { channelLeavers, isEveryone, roleLock, roleName, sortRoles } from "@agenteschat/client/lib/roles";
+import type { Channel, ChannelInput, OrgRole } from "@dougbot/client";
+import { channelMembersQuery, keys, useApi, useChannelCategories, useChannels } from "@dougbot/client";
+import { sameList } from "@dougbot/client/lib/agent-edit";
+import { accessOf } from "@dougbot/client/lib/channel-access";
+import { errorText } from "@dougbot/client/lib/errors";
+import { managesChannel } from "@dougbot/client/lib/permissions";
+import { channelLeavers, isEveryone, roleLock, roleName, sortRoles } from "@dougbot/client/lib/roles";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

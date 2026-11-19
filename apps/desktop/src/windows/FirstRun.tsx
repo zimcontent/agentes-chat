@@ -9,8 +9,8 @@ import {
   isLoopback,
   parseConnectLink,
   type ServerCheck,
-} from "@agenteschat/client/lib/server";
-import { isEmail } from "@agenteschat/client/lib/text";
+} from "@dougbot/client/lib/server";
+import { isEmail } from "@dougbot/client/lib/text";
 import {
   Avatar,
   Button,
@@ -25,7 +25,7 @@ import {
   PlaceScene,
   Switch,
   useNow,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { type FormEvent, type ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useHost } from "../app";
@@ -77,7 +77,7 @@ export function FirstRun({ start }: { start?: FirstScreen } = {}) {
   const [screen, setScreen] = useState<FirstScreen>(start ?? "choose");
   // Opened by the site's "Add a workspace" (ADR 0154): its first screen says so.
   const [adding, setAdding] = useState(false);
-  // Adding a workspace with agentes.chat already signed in here: making one is the big button, not signing in.
+  // Adding a workspace with DougBot already signed in here: making one is the big button, not signing in.
   const [cloudSignedIn, setCloudSignedIn] = useState(false);
   const [trail, setTrail] = useState<FirstScreen[]>(start ? ["choose"] : []);
   // `typed`: the sheet confirms an address typed or picked in Connect, so Cancel goes back there with it.
@@ -86,7 +86,7 @@ export function FirstRun({ start }: { start?: FirstScreen } = {}) {
   );
   // This build carries the server: "On this computer" is offered.
   const [canRunHere, setCanRunHere] = useState(false);
-  // The agentes.chat this computer runs (the app's, or one from the terminal): named as such, never by its address,
+  // The DougBot this computer runs (the app's, or one from the terminal): named as such, never by its address,
   // and its owner page opened directly while it waits for one.
   const [local, setLocal] = useState<LocalServerStatus | null>(null);
   // Connect's address: it stays when a sheet about it is cancelled (the screen comes back new).
@@ -530,7 +530,7 @@ function Connect({
   onBack: () => void;
   /** "Don't have one yet?": the always-on install. */
   onInstall: () => void;
-  /** The agentes.chat this computer runs or has from the terminal (its owner claim, while it waits for one). */
+  /** The DougBot this computer runs or has from the terminal (its owner claim, while it waits for one). */
   local: LocalServerStatus | null;
   /** Its addresses (`ownAddresses`). */
   own: readonly string[];
@@ -732,7 +732,7 @@ function Connect({
 }
 
 /**
- * agentes.chat on this computer, inside the app: the owner's name and email (until the owner exists), reach
+ * DougBot on this computer, inside the app: the owner's name and email (until the owner exists), reach
  * through Tailscale (off), usage statistics (on; as they were, for one that ran here before), then Start, and the
  * steps as the app runs them, each problem on its own step. One installed from the terminal already runs here:
  * Use it (its owner page while it waits for one); installed but not running: it starts there. The app runs it
@@ -1169,7 +1169,7 @@ function HereSetup({
 }
 
 /**
- * L: a server in large type, asked about before anything changes. The agentes.chat this computer runs reads as such
+ * L: a server in large type, asked about before anything changes. The DougBot this computer runs reads as such
  * (at its local or its Tailscale address alike), never as an address; one on a Tailscale network says what that means.
  */
 function LinkSheet({

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { and, eq, schema } from "@agenteschat/db";
+import { and, eq, schema } from "@dougbot/db";
 import {
   APP_MANAGE_TOOL_NAMES,
   APP_TOOL_NAMES,
@@ -9,7 +9,7 @@ import {
   MACHINE_CONTROL_TOPIC,
   parseScopes,
   reachableFromInternet,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { callTool, connectApp, mcp } from "./ai-apps";
 import { browser, createTestServer, joinByInvitation, seedOrg, signUp, type TestServer } from "./harness";
 

@@ -1,5 +1,5 @@
-import { markTerms } from "@agenteschat/client/lib/search-filters";
-import { matchesWords } from "@agenteschat/ui/search";
+import { markTerms } from "@dougbot/client/lib/search-filters";
+import { matchesWords } from "@dougbot/ui/search";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";

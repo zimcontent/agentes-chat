@@ -1,8 +1,8 @@
-import { usePrefetchMessages } from "@agenteschat/client";
-import { threadWorkState, threadWorkTone, threadWorkWord, workTime } from "@agenteschat/client/lib/agent-work";
-import { previewBody } from "@agenteschat/client/lib/message-body";
-import { agentFaceWord } from "@agenteschat/client/lib/presence";
-import { modeKey } from "@agenteschat/client/lib/workspace-mode";
+import { usePrefetchMessages } from "@dougbot/client";
+import { threadWorkState, threadWorkTone, threadWorkWord, workTime } from "@dougbot/client/lib/agent-work";
+import { previewBody } from "@dougbot/client/lib/message-body";
+import { agentFaceWord } from "@dougbot/client/lib/presence";
+import { modeKey } from "@dougbot/client/lib/workspace-mode";
 import { Link } from "expo-router";
 import { memo, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";

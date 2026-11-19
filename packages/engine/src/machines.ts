@@ -10,21 +10,9 @@ import {
   MIN_RUNNER_PROTOCOL,
   type PubSub,
   REMOTE_PAUSE_PROTOCOL,
-} from "@agenteschat/adapters";
-import {
-  and,
-  type Database,
-  desc,
-  type Executor,
-  eq,
-  inArray,
-  isNotNull,
-  isNull,
-  or,
-  schema,
-  sql,
-} from "@agenteschat/db";
-import { appLocale } from "@agenteschat/i18n/locale";
+} from "@dougbot/adapters";
+import { and, type Database, desc, type Executor, eq, inArray, isNotNull, isNull, or, schema, sql } from "@dougbot/db";
+import { appLocale } from "@dougbot/i18n/locale";
 import { getAgent, workspaceHomeId } from "./agents";
 import { type AuditEntry, recordAudit } from "./audit";
 import { isSandboxedBrain } from "./brains/types";

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { reviewWords } from "@agenteschat/client";
+import { reviewWords } from "@dougbot/client";
 import { changesHintOf, sendsNext } from "../../src/features/review/logic";
 import {
   checkWork,

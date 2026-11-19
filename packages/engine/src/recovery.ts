@@ -1,6 +1,6 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, asc, type Database, desc, type Executor, eq, inArray, rowsOf, schema, sql } from "@agenteschat/db";
-import { textOf } from "@agenteschat/providers";
+import type { PubSub } from "@dougbot/adapters";
+import { and, asc, type Database, desc, type Executor, eq, inArray, rowsOf, schema, sql } from "@dougbot/db";
+import { textOf } from "@dougbot/providers";
 import { announceAgentStatus } from "./agent-status";
 import { publishApproval } from "./approvals";
 import { executesHere, RUN_STALE_MS } from "./cancel";

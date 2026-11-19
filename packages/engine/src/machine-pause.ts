@@ -1,5 +1,5 @@
-import { type PubSub, REMOTE_PAUSE_PROTOCOL } from "@agenteschat/adapters";
-import { type Database, eq, schema } from "@agenteschat/db";
+import { type PubSub, REMOTE_PAUSE_PROTOCOL } from "@dougbot/adapters";
+import { type Database, eq, schema } from "@dougbot/db";
 import { recordAudit } from "./audit";
 import { ForbiddenError, ValidationError } from "./errors";
 import type { MachineCaller } from "./machine-hub";

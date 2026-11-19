@@ -8,8 +8,8 @@
  * their own for a person who owns several workspaces: their agents of the same handle there (`autoLinkTwins`).
  */
 import { createHash } from "node:crypto";
-import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, eq, inArray, isNull, lt, or, rowsOf, schema, sql } from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import { and, type Database, eq, inArray, isNull, lt, or, rowsOf, schema, sql } from "@dougbot/db";
 import { insertAnchored, joinInstructions, mergeInstructions } from "./agent-twins-merge";
 import { recordAudit } from "./audit";
 import { invalidateOrg } from "./cache";

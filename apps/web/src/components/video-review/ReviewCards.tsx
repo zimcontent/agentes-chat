@@ -1,5 +1,5 @@
-import { type Message, reviewLinksIn, useVideoReviews, type VideoReviewSummary } from "@agenteschat/client";
-import { Chip, type ChipTone, Icon } from "@agenteschat/ui";
+import { type Message, reviewLinksIn, useVideoReviews, type VideoReviewSummary } from "@dougbot/client";
+import { Chip, type ChipTone, Icon } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { useApi } from "@/api/context";
 import { useOrg } from "@/components/org-context";

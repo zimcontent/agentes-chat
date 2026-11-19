@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
-import { OVER_BUDGET_REASON, proposeChange, proposeSettings, WAITING_GROUP } from "@agenteschat/engine";
+import { eq, schema } from "@dougbot/db";
+import { OVER_BUDGET_REASON, proposeChange, proposeSettings, WAITING_GROUP } from "@dougbot/engine";
 import { browser, createTestServer, joinByInvitation, seedOrg, signUp, type TestServer } from "./harness";
 
 let t: TestServer;

@@ -2,8 +2,8 @@
  * Vault rows as people and agents see them (ADR 0144). Never a value: a contact's fields are the only thing opened
  * here, since they are meant to be read (by the people who see the item and by the agents who may use it).
  */
-import { VAULT_READ_ONLY_CONFIG, type VaultSources } from "@agenteschat/adapters";
-import { asc, type Executor, eq, schema } from "@agenteschat/db";
+import { VAULT_READ_ONLY_CONFIG, type VaultSources } from "@dougbot/adapters";
+import { asc, type Executor, eq, schema } from "@dougbot/db";
 import {
   accessView,
   type ConnectionRow,

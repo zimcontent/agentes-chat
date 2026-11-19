@@ -1,6 +1,6 @@
-import type { ApprovalPortal, PubSub } from "@agenteschat/adapters";
-import { and, type Database, eq, gte, isNull, rowsOf, schema, sql } from "@agenteschat/db";
-import { parseBlockSpec } from "@agenteschat/ui/blocks/spec";
+import type { ApprovalPortal, PubSub } from "@dougbot/adapters";
+import { and, type Database, eq, gte, isNull, rowsOf, schema, sql } from "@dougbot/db";
+import { parseBlockSpec } from "@dougbot/ui/blocks/spec";
 import { type ArtifactDeps, createConversationArtifact, getArtifact } from "../artifacts";
 import { markBlockActed } from "../block-state";
 import { replyToBlock } from "../blocks";

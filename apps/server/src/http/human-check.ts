@@ -1,5 +1,5 @@
-import { createTurnstileCheck, type HumanAction, type HumanCheck, type HumanCheckRefusal } from "@agenteschat/adapters";
-import { type Config, ConfigError } from "@agenteschat/config";
+import { createTurnstileCheck, type HumanAction, type HumanCheck, type HumanCheckRefusal } from "@dougbot/adapters";
+import { type Config, ConfigError } from "@dougbot/config";
 import type { Logger } from "../logger";
 import { requestIp, requestLimitIp } from "./client-ip";
 import { HUMAN_PASS_PREFIX, type HumanPasses } from "./human-pass";

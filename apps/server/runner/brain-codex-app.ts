@@ -5,8 +5,8 @@ import { copyFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import path from "node:path";
 import { createInterface } from "node:readline";
-import type { CommandProfile, CommandScope } from "@agenteschat/adapters/command-policy";
-import { type BrainSteerReply, type BrainSteerRequest, isBrainEffort } from "@agenteschat/adapters/machine-protocol";
+import type { CommandProfile, CommandScope } from "@dougbot/adapters/command-policy";
+import { type BrainSteerReply, type BrainSteerRequest, isBrainEffort } from "@dougbot/adapters/machine-protocol";
 import { accountEnv, withoutContainers, yieldRoute } from "./accounts";
 import {
   CODEX_DIRECT_MCP_CONFIG,

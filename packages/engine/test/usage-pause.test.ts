@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, setSystemTime, test } from "bun:test";
-import { channelTopic, MACHINE_PROTOCOL_VERSION, orgTopic, type PlanUsage } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import { autoPlanModel, CODING_PLANS, learnPlanModels } from "@agenteschat/providers/plans";
+import { channelTopic, MACHINE_PROTOCOL_VERSION, orgTopic, type PlanUsage } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import { autoPlanModel, CODING_PLANS, learnPlanModels } from "@dougbot/providers/plans";
 import {
   addChannelMember,
   archiveAgent,

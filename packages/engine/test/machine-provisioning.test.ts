@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, setSystemTime, test } from "bun:test";
-import { MACHINE_PROTOCOL_VERSION, orgTopic, type ServerFrame } from "@agenteschat/adapters";
-import { and, type Database, eq, schema, sql } from "@agenteschat/db";
-import { runMigration } from "@agenteschat/db/testing";
+import { MACHINE_PROTOCOL_VERSION, orgTopic, type ServerFrame } from "@dougbot/adapters";
+import { and, type Database, eq, schema, sql } from "@dougbot/db";
+import { runMigration } from "@dougbot/db/testing";
 import {
   agentComputerInfo,
   computerPreparing,

@@ -1,4 +1,4 @@
-import type { AgentColorName } from "@agenteschat/ui/agent/engine";
+import type { AgentColorName } from "@dougbot/ui/agent/engine";
 import type { StyleProp, ViewStyle } from "react-native";
 
 /**

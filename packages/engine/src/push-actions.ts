@@ -1,12 +1,12 @@
-import type { PushAction } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import type { PushAction } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   type BlockView,
   type BlockViewButton,
   type BlockViewPart,
   compileBlock,
   viewBlock,
-} from "@agenteschat/ui/blocks/spec";
+} from "@dougbot/ui/blocks/spec";
 import { type ArtifactDeps, blockSpecAt } from "./artifacts";
 import { drawBlock, getBlockState, setBlockState } from "./block-state";
 import { replyToBlock } from "./blocks";

@@ -1,6 +1,6 @@
-import { useMembers, useRoles } from "@agenteschat/client";
-import { isSolo, keeperKey, keeperName, othersHere } from "@agenteschat/client/lib/personal-view";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+import { useMembers, useRoles } from "@dougbot/client";
+import { isSolo, keeperKey, keeperName, othersHere } from "@dougbot/client/lib/personal-view";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
 

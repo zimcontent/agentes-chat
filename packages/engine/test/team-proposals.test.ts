@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { and, eq, inArray, isNull, schema } from "@agenteschat/db";
+import { and, eq, inArray, isNull, schema } from "@dougbot/db";
 import {
   BUSINESS_TEMPLATES,
   createAgent,

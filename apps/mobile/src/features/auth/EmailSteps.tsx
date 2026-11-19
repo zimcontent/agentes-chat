@@ -1,8 +1,8 @@
-import { type InvitationPreview, useAuthConfig } from "@agenteschat/client";
-import { INVITATION_MAIL_HEADER, INVITATION_MAIL_PARAM, INVITATION_TOKEN_HEADER } from "@agenteschat/client/lib/guards";
-import { humanCheckHeaders, withHumanCheck } from "@agenteschat/client/lib/human-check";
-import { nameIsPassword, passwordState, webmailOf } from "@agenteschat/client/lib/text";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
+import { type InvitationPreview, useAuthConfig } from "@dougbot/client";
+import { INVITATION_MAIL_HEADER, INVITATION_MAIL_PARAM, INVITATION_TOKEN_HEADER } from "@dougbot/client/lib/guards";
+import { humanCheckHeaders, withHumanCheck } from "@dougbot/client/lib/human-check";
+import { nameIsPassword, passwordState, webmailOf } from "@dougbot/client/lib/text";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Linking, View } from "react-native";

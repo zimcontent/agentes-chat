@@ -31,8 +31,8 @@ import {
   useMediaTopup,
   useMediaTopupStatus,
   useUploadMediaRef,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import {
   Button,
   Dialog,
@@ -47,7 +47,7 @@ import {
   Select,
   Switch,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

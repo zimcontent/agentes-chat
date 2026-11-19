@@ -11,9 +11,9 @@ import {
   type SpeechFetch,
   STREAM_CLOSE,
   type StorageHost,
-} from "@agenteschat/adapters";
-import { type Config, connectorOAuthApps, githubAppConfig, mcpCallerIdentity } from "@agenteschat/config";
-import type { Database } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { type Config, connectorOAuthApps, githubAppConfig, mcpCallerIdentity } from "@dougbot/config";
+import type { Database } from "@dougbot/db";
 import {
   AntigravityBrain,
   APP_FAULT_HINT,
@@ -158,8 +158,8 @@ import {
   warmAgentBrowser,
   withComposio,
   withJudgeFallback,
-} from "@agenteschat/engine";
-import { createOpenAIEmbeddings, createVoyageEmbeddings, type ModelProvider, modelInfo } from "@agenteschat/providers";
+} from "@dougbot/engine";
+import { createOpenAIEmbeddings, createVoyageEmbeddings, type ModelProvider, modelInfo } from "@dougbot/providers";
 import { type AppleTokenRevoker, appleTokenRevoker } from "./auth";
 import { hookConfig, whatsappVoiceOut } from "./routes/app/context";
 import { version } from "./version";

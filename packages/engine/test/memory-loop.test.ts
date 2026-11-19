@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { countQueries, eq, schema } from "@agenteschat/db";
+import { countQueries, eq, schema } from "@dougbot/db";
 import {
   addRunStep,
   buildTeamWeek,

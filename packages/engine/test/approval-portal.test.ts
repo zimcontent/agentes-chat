@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { createFakeApprovalPortal, type PortalItem } from "@agenteschat/adapters";
+import { createFakeApprovalPortal, type PortalItem } from "@dougbot/adapters";
 import {
   type ArtifactDeps,
   approveForClient,

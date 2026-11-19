@@ -1,5 +1,5 @@
-import { useChannels, useDms, useMembers } from "@agenteschat/client";
-import type { SearchDirectory } from "@agenteschat/client/lib/search-filters";
+import { useChannels, useDms, useMembers } from "@dougbot/client";
+import type { SearchDirectory } from "@dougbot/client/lib/search-filters";
 import { useEffect, useMemo, useState } from "react";
 import { readValue, writeValue } from "@/lib/storage";
 import { useDirectory, useOrgId } from "../shared/hooks";

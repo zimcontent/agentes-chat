@@ -1,12 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHash, generateKeyPairSync, randomBytes } from "node:crypto";
 import { deflateSync, gzipSync } from "node:zlib";
-import {
-  DELETE_BRANCHES_POINTER,
-  NO_TERMINAL_COMMANDS,
-  otherBranchPointer,
-} from "@agenteschat/adapters/command-policy";
-import { and, eq, schema } from "@agenteschat/db";
+import { DELETE_BRANCHES_POINTER, NO_TERMINAL_COMMANDS, otherBranchPointer } from "@dougbot/adapters/command-policy";
+import { and, eq, schema } from "@dougbot/db";
 import {
   agentCommitEmail,
   type ConnectorDeps,

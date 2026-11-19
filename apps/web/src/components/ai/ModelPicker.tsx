@@ -1,4 +1,4 @@
-import type { Agent, AgentBrain, AgentBrainInput, Message } from "@agenteschat/client";
+import type { Agent, AgentBrain, AgentBrainInput, Message } from "@dougbot/client";
 import {
   keys,
   useAgentBrain,
@@ -8,8 +8,8 @@ import {
   useModels,
   usePlatformKey,
   useUpdateAgent,
-} from "@agenteschat/client";
-import { type EffortLevel, effortLevelsOf, effortOf, effortTextOf } from "@agenteschat/client/lib/brain-advanced";
+} from "@dougbot/client";
+import { type EffortLevel, effortLevelsOf, effortOf, effortTextOf } from "@dougbot/client/lib/brain-advanced";
 import {
   mayPickModel,
   modelPickerModels,
@@ -18,13 +18,13 @@ import {
   modelPickerUndo,
   type PickerBefore,
   type PickerModel,
-} from "@agenteschat/client/lib/brain-picker";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { can } from "@agenteschat/client/lib/permissions";
-import { modelStandInKey, planMeterText } from "@agenteschat/client/lib/plan-usage";
-import { planOf } from "@agenteschat/client/lib/plans";
-import { modelChoices } from "@agenteschat/client/lib/providers";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
+} from "@dougbot/client/lib/brain-picker";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { can } from "@dougbot/client/lib/permissions";
+import { modelStandInKey, planMeterText } from "@dougbot/client/lib/plan-usage";
+import { planOf } from "@dougbot/client/lib/plans";
+import { modelChoices } from "@dougbot/client/lib/providers";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
 import {
   BrainIcon,
   Button,
@@ -40,7 +40,7 @@ import {
   planLevel,
   planLine,
   UsageRing,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { type CSSProperties, type ReactElement, useState } from "react";
 import { useTranslation } from "react-i18next";

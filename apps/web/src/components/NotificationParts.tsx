@@ -1,20 +1,20 @@
-import type { AppNotification, NotificationActor } from "@agenteschat/client";
-import { appCreatedLine } from "@agenteschat/client/lib/apps";
-import { WORKSPACE_COMPUTER_KIND } from "@agenteschat/client/lib/computer";
-import { deviceNoticeOf } from "@agenteschat/client/lib/devices";
-import { formatUsd, namesText } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
+import type { AppNotification, NotificationActor } from "@dougbot/client";
+import { appCreatedLine } from "@dougbot/client/lib/apps";
+import { WORKSPACE_COMPUTER_KIND } from "@dougbot/client/lib/computer";
+import { deviceNoticeOf } from "@dougbot/client/lib/devices";
+import { formatUsd, namesText } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
 import {
   askersOf,
   channelOf,
   runFailedGroupOf,
   widgetNoticeOf,
   workspaceHeadline,
-} from "@agenteschat/client/lib/notifications";
-import type { Words } from "@agenteschat/client/lib/routine-view";
-import { teamWatchLine } from "@agenteschat/client/lib/team-watch";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
-import { Avatar, ComputerIcon, cx, Icon } from "@agenteschat/ui";
+} from "@dougbot/client/lib/notifications";
+import type { Words } from "@dougbot/client/lib/routine-view";
+import { teamWatchLine } from "@dougbot/client/lib/team-watch";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
+import { Avatar, ComputerIcon, cx, Icon } from "@dougbot/ui";
 import type { TFunction } from "i18next";
 import { Trans, useTranslation } from "react-i18next";
 import { ActorAvatar, AgentAvatar } from "@/components/AgentAvatar";

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
@@ -18,10 +18,10 @@ import type {
   TaskSteps,
   TaskWait,
   WorkingRun,
-} from "@agenteschat/client";
-import { keys, TASK_MANAGER_POLL_MS } from "@agenteschat/client";
-import { formatTime } from "@agenteschat/client/lib/format";
-import { usageWhenShort } from "@agenteschat/client/lib/plan-usage";
+} from "@dougbot/client";
+import { keys, TASK_MANAGER_POLL_MS } from "@dougbot/client";
+import { formatTime } from "@dougbot/client/lib/format";
+import { usageWhenShort } from "@dougbot/client/lib/plan-usage";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import {
   ADA_ID,

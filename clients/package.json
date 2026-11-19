@@ -1,5 +1,5 @@
 {
-  "name": "@agenteschat/clients",
+  "name": "@dougbot/clients",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,7 +7,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@agenteschat/modules": "workspace:*"
+    "@dougbot/modules": "workspace:*"
   },
   "license": "AGPL-3.0-only"
 }

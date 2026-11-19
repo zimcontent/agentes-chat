@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
-import { ApiError } from "@agenteschat/client";
-import { knownErrorText } from "@agenteschat/client/lib/errors";
-import { planHoldPhoneLine } from "@agenteschat/client/lib/no-ai";
-import { railState } from "@agenteschat/client/lib/onboarding";
+import { ApiError } from "@dougbot/client";
+import { knownErrorText } from "@dougbot/client/lib/errors";
+import { planHoldPhoneLine } from "@dougbot/client/lib/no-ai";
+import { railState } from "@dougbot/client/lib/onboarding";
 import { isInviteToken } from "../../src/features/auth/links";
 import { PURPOSES, stepFailedText, workspaceAnswer, zoneCity, zoneLabel } from "../../src/features/onboarding/logic";
 import { translator } from "./fixtures";

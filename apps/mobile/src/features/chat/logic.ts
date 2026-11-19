@@ -9,16 +9,16 @@ import type {
   MessagePin,
   ReactionCount,
   TypingWho,
-} from "@agenteschat/client";
-import { agentProposalOf, costlyProposalOf, stretchCardOf } from "@agenteschat/client/lib/action-cards";
-import { type ActivityEntry, barEntries, type barWords, markedPieces, markInk } from "@agenteschat/client/lib/activity";
-import { splitChannelRefs } from "@agenteschat/client/lib/channel-refs";
-import type { ChatStyle, ChatTextSize } from "@agenteschat/client/lib/chat-look";
-import { agentsByAnyHandle } from "@agenteschat/client/lib/directory";
-import { loneIdRef, splitIdRefs } from "@agenteschat/client/lib/id-refs";
-import { issueWorkOf } from "@agenteschat/client/lib/issues";
-import { detailsAt, MENTION, type TableAlign, tableAt } from "@agenteschat/client/lib/markdown";
-import { messageMediaOf } from "@agenteschat/client/lib/media";
+} from "@dougbot/client";
+import { agentProposalOf, costlyProposalOf, stretchCardOf } from "@dougbot/client/lib/action-cards";
+import { type ActivityEntry, barEntries, type barWords, markedPieces, markInk } from "@dougbot/client/lib/activity";
+import { splitChannelRefs } from "@dougbot/client/lib/channel-refs";
+import type { ChatStyle, ChatTextSize } from "@dougbot/client/lib/chat-look";
+import { agentsByAnyHandle } from "@dougbot/client/lib/directory";
+import { loneIdRef, splitIdRefs } from "@dougbot/client/lib/id-refs";
+import { issueWorkOf } from "@dougbot/client/lib/issues";
+import { detailsAt, MENTION, type TableAlign, tableAt } from "@dougbot/client/lib/markdown";
+import { messageMediaOf } from "@dougbot/client/lib/media";
 import {
   answeredNotices,
   isAgentOnlyNotice,
@@ -29,13 +29,13 @@ import {
   noticeOf,
   noticeView,
   settledNotices,
-} from "@agenteschat/client/lib/notices";
-import { replyOf } from "@agenteschat/client/lib/reply";
-import { isRoutineCall, routineReplyOf } from "@agenteschat/client/lib/routines";
-import { secretRequestOf } from "@agenteschat/client/lib/secret-requests";
-import { usagePauseCardOf } from "@agenteschat/client/lib/usage-pause";
-import { voiceOf } from "@agenteschat/client/lib/voice";
-import { type AgentColorName, gradientOf, mentionTone, mixHex } from "@agenteschat/ui/agent/engine";
+} from "@dougbot/client/lib/notices";
+import { replyOf } from "@dougbot/client/lib/reply";
+import { isRoutineCall, routineReplyOf } from "@dougbot/client/lib/routines";
+import { secretRequestOf } from "@dougbot/client/lib/secret-requests";
+import { usagePauseCardOf } from "@dougbot/client/lib/usage-pause";
+import { voiceOf } from "@dougbot/client/lib/voice";
+import { type AgentColorName, gradientOf, mentionTone, mixHex } from "@dougbot/ui/agent/engine";
 import type { TFunction } from "i18next";
 import { agentLook, previewOf } from "../shared/logic";
 import { continuesReply } from "./media";

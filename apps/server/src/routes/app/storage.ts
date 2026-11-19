@@ -1,5 +1,5 @@
-import { diskSpace } from "@agenteschat/adapters/host-stats";
-import type { Config } from "@agenteschat/config";
+import { diskSpace } from "@dougbot/adapters/host-stats";
+import type { Config } from "@dougbot/config";
 import {
   getMigration,
   getStorage,
@@ -10,7 +10,7 @@ import {
   startMigration,
   storedBytes,
   testStorage,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { installMode } from "../../telemetry";
 import { type AppDeps, body, createAppRouter, errors, json, OrgParams, requireSession, security } from "./context";

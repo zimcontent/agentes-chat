@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { ClientOverrides } from "@agenteschat/modules";
-import { loadClient, overridesOf } from "@agenteschat/modules";
+import type { ClientOverrides } from "@dougbot/modules";
+import { loadClient, overridesOf } from "@dougbot/modules";
 import { browser, createTestServer, signUp, type TestServer } from "./harness";
 
 /**

@@ -1,6 +1,6 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, type Executor, eq, isNotNull, ne, schema, sql } from "@agenteschat/db";
-import { en } from "@agenteschat/i18n/en";
+import type { PubSub } from "@dougbot/adapters";
+import { and, type Database, type Executor, eq, isNotNull, ne, schema, sql } from "@dougbot/db";
+import { en } from "@dougbot/i18n/en";
 import { enqueueAccountContact } from "./account-contacts";
 import { recordAudit } from "./audit";
 import { profileIdOfKey } from "./browser/profiles";

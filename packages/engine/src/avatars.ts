@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { type ApprovalPortal, type BlobStore, PORTAL_LOGO_FILE, type PubSub } from "@agenteschat/adapters";
-import { and, type Database, eq, isNull, schema, sql } from "@agenteschat/db";
+import { type ApprovalPortal, type BlobStore, PORTAL_LOGO_FILE, type PubSub } from "@dougbot/adapters";
+import { and, type Database, eq, isNull, schema, sql } from "@dougbot/db";
 import { recordAudit } from "./audit";
 import { caches } from "./cache";
 import { managesChannel } from "./channels";

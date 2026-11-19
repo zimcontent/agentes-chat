@@ -1,8 +1,8 @@
-import type { Proposal } from "@agenteschat/client";
-import { ApiError, useDecideProposal, useDecideProposals, useProposals } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { relativeTime, whenAt } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
+import type { Proposal } from "@dougbot/client";
+import { ApiError, useDecideProposal, useDecideProposals, useProposals } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { relativeTime, whenAt } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
 import {
   isOpen,
   proposalTarget,
@@ -11,8 +11,8 @@ import {
   proposerOf,
   sortProposals,
   staleCount,
-} from "@agenteschat/client/lib/proposals";
-import { modeKey } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/proposals";
+import { modeKey } from "@dougbot/client/lib/workspace-mode";
 import {
   Alert,
   Button,
@@ -26,7 +26,7 @@ import {
   Locked,
   PageHeader,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

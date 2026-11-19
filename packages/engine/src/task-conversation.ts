@@ -1,4 +1,4 @@
-import { and, type Database, type Executor, eq, inArray, isNull, or, rowsOf, schema, sql } from "@agenteschat/db";
+import { and, type Database, type Executor, eq, inArray, isNull, or, rowsOf, schema, sql } from "@dougbot/db";
 import { quietNoticeSql } from "./notices";
 import { admitTaskAgents } from "./task-access";
 

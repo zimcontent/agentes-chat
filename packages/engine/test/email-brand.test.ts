@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { BRAND_NAME, brandText } from "@agenteschat/i18n/brand";
-import { LOCALE_CODES } from "@agenteschat/i18n/locale";
+import { BRAND_NAME, brandText } from "@dougbot/i18n/brand";
+import { LOCALE_CODES } from "@dougbot/i18n/locale";
 import { defaultEmailFrom, type EmailTemplate, emailArtAt, renderEmail } from "../src";
 import { EMAIL_SAMPLES, PERSONAL_EMAIL_SAMPLES } from "./email-samples";
 

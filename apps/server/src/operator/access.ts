@@ -16,7 +16,7 @@ import {
   WAITLIST_LOCALES,
   waitlistCounts,
   waitlistNext,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
 import { apiError, errorResponse } from "../http/errors";
 import { body, iso, json } from "../routes/app/context";

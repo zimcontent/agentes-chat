@@ -1,9 +1,9 @@
-import type { ManagedTask } from "@agenteschat/client";
-import { useCatalog, useContinueTasks, useStopReason, useStopTasks } from "@agenteschat/client";
-import { activityVerb, appLabel } from "@agenteschat/client/lib/activity";
-import { capitalize, joinNames } from "@agenteschat/client/lib/format";
-import { brainName } from "@agenteschat/client/lib/outages";
-import { playSound } from "@agenteschat/client/lib/sounds";
+import type { ManagedTask } from "@dougbot/client";
+import { useCatalog, useContinueTasks, useStopReason, useStopTasks } from "@dougbot/client";
+import { activityVerb, appLabel } from "@dougbot/client/lib/activity";
+import { capitalize, joinNames } from "@dougbot/client/lib/format";
+import { brainName } from "@dougbot/client/lib/outages";
+import { playSound } from "@dougbot/client/lib/sounds";
 import {
   linePlace,
   programKey,
@@ -16,9 +16,9 @@ import {
   taskWaitGroupText,
   taskWaitWords,
   waitsOnPerson,
-} from "@agenteschat/client/lib/task-manager";
-import { callLogo } from "@agenteschat/client/lib/work";
-import { Button, Chip, cx, Icon, Input, Locked, PixelStop, Popover, ProviderLogo, Spinner, Tip } from "@agenteschat/ui";
+} from "@dougbot/client/lib/task-manager";
+import { callLogo } from "@dougbot/client/lib/work";
+import { Button, Chip, cx, Icon, Input, Locked, PixelStop, Popover, ProviderLogo, Spinner, Tip } from "@dougbot/ui";
 import { useNavigate } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
 import { type ButtonHTMLAttributes, type KeyboardEvent, type ReactNode, useEffect, useState } from "react";

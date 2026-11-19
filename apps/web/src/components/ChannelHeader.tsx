@@ -1,6 +1,6 @@
-import type { Agent, Channel, Member } from "@agenteschat/client";
-import { channelTitle } from "@agenteschat/client/lib/channel-name";
-import { Icon } from "@agenteschat/ui";
+import type { Agent, Channel, Member } from "@dougbot/client";
+import { channelTitle } from "@dougbot/client/lib/channel-name";
+import { Icon } from "@dougbot/ui";
 import { useTranslation } from "react-i18next";
 import { ChannelPinsButton } from "@/components/ChannelPins";
 import { QueueButton } from "@/components/ComputerQueue";

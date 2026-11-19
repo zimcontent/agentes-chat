@@ -470,7 +470,7 @@ export const useSaveSpeechKey = () =>
 export const useRemoveSpeechKey = () => useSpeechKeyChange<void>((api) => api.system.removeSpeechKey());
 
 /**
- * The company requests, for the installation's owner (`null` to everyone else, and on agentes.chat itself), one page
+ * The company requests, for the installation's owner (`null` to everyone else, and on DougBot itself), one page
  * at a time, filtered by step and by a search over the company, the person and the address.
  */
 export const useCompanyRequests = (query: { status?: string; q?: string } = {}) => {

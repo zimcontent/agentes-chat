@@ -1,4 +1,4 @@
-import { meQuery } from "@agenteschat/client";
+import { meQuery } from "@dougbot/client";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { takeFragmentParam } from "@/lib/fragment";

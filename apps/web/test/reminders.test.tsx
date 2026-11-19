@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { Routine } from "@agenteschat/client";
-import { activityText, toolActivity } from "@agenteschat/client/lib/activity";
-import { isRoutineCall, onceParts, reminderBody, routineReplyOf } from "@agenteschat/client/lib/routines";
+import type { Routine } from "@dougbot/client";
+import { activityText, toolActivity } from "@dougbot/client/lib/activity";
+import { isRoutineCall, onceParts, reminderBody, routineReplyOf } from "@dougbot/client/lib/routines";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { createI18n } from "@/i18n";
 import { isDoneOnce } from "@/pages/RoutinesPage";

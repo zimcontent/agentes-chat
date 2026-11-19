@@ -1,4 +1,4 @@
-import type { AiRouting, Credential, JevKey } from "@agenteschat/client";
+import type { AiRouting, Credential, JevKey } from "@dougbot/client";
 import {
   useAiStatus,
   useCheckJevKey,
@@ -7,12 +7,12 @@ import {
   useModelLabel,
   useRemoveJevKey,
   useSaveJevKey,
-} from "@agenteschat/client";
-import { errorCode, errorText } from "@agenteschat/client/lib/errors";
-import { formatDecimal, formatUsd } from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
-import { keyLooksValid } from "@agenteschat/client/lib/providers";
-import { routingLineOf } from "@agenteschat/client/lib/routing";
+} from "@dougbot/client";
+import { errorCode, errorText } from "@dougbot/client/lib/errors";
+import { formatDecimal, formatUsd } from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
+import { keyLooksValid } from "@dougbot/client/lib/providers";
+import { routingLineOf } from "@dougbot/client/lib/routing";
 import {
   Button,
   Card,
@@ -30,7 +30,7 @@ import {
   OptionList,
   ProviderLogo,
   SettingNote,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useRouterState } from "@tanstack/react-router";
 import { Fragment, type ReactNode, type Ref, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

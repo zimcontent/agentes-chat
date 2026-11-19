@@ -1,4 +1,4 @@
-import { type Agent, useAgents } from "@agenteschat/client";
+import { type Agent, useAgents } from "@dougbot/client";
 import {
   type AccessResource,
   asksAt,
@@ -7,8 +7,8 @@ import {
   levelOf,
   nextLevel,
   resourcesOf,
-} from "@agenteschat/client/lib/access-levels";
-import { addsConnectors, can } from "@agenteschat/client/lib/permissions";
+} from "@dougbot/client/lib/access-levels";
+import { addsConnectors, can } from "@dougbot/client/lib/permissions";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, StyleSheet, View } from "react-native";

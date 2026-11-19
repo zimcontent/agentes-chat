@@ -10,12 +10,12 @@ import {
   useMachines,
   useMe,
   useMembers,
-} from "@agenteschat/client";
-import { computerEdition } from "@agenteschat/client/lib/computer";
-import { formerById } from "@agenteschat/client/lib/directory";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { clockHour } from "@agenteschat/client/lib/format";
-import { namesComputers } from "@agenteschat/client/lib/machines";
+} from "@dougbot/client";
+import { computerEdition } from "@dougbot/client/lib/computer";
+import { formerById } from "@dougbot/client/lib/directory";
+import { errorText } from "@dougbot/client/lib/errors";
+import { clockHour } from "@dougbot/client/lib/format";
+import { namesComputers } from "@dougbot/client/lib/machines";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/providers/org";

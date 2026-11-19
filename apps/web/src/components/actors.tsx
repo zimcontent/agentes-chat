@@ -1,6 +1,6 @@
-import type { Actor } from "@agenteschat/client";
-import { listsAgent } from "@agenteschat/client/lib/audience";
-import { Icon, type SelectOption } from "@agenteschat/ui";
+import type { Actor } from "@dougbot/client";
+import { listsAgent } from "@dougbot/client/lib/audience";
+import { Icon, type SelectOption } from "@dougbot/ui";
 import { useTranslation } from "react-i18next";
 import { ActorAvatar } from "@/components/AgentAvatar";
 import { useOrg } from "@/components/org-context";

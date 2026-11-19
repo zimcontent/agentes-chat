@@ -1,4 +1,4 @@
-import type { HouseLiveSession } from "@agenteschat/client";
+import type { HouseLiveSession } from "@dougbot/client";
 import type { LegHandlers, LiveEvent } from "./leg";
 
 /**

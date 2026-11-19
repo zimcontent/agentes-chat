@@ -1,7 +1,7 @@
-import type { AgentBrain, AgentBrainInput, BrainSpeed } from "@agenteschat/client";
-import { keys, useAgentBrain, useAiAccounts, useAiStatus, useApi, useModels } from "@agenteschat/client";
-import { signInPlan } from "@agenteschat/client/lib/ai-accounts";
-import { EVERYONE_AUDIENCE } from "@agenteschat/client/lib/audience";
+import type { AgentBrain, AgentBrainInput, BrainSpeed } from "@dougbot/client";
+import { keys, useAgentBrain, useAiAccounts, useAiStatus, useApi, useModels } from "@dougbot/client";
+import { signInPlan } from "@dougbot/client/lib/ai-accounts";
+import { EVERYONE_AUDIENCE } from "@dougbot/client/lib/audience";
 import {
   type Advanced,
   advancedSummary,
@@ -9,19 +9,19 @@ import {
   isAdvancedDefault,
   SPEEDS,
   viewSpeedFits,
-} from "@agenteschat/client/lib/brain-advanced";
-import { computerNameOf } from "@agenteschat/client/lib/computer";
+} from "@dougbot/client/lib/brain-advanced";
+import { computerNameOf } from "@dougbot/client/lib/computer";
 import {
   autoContextLine,
   type ContextLimit,
   contextChoices,
   contextSize,
   isContextLimit,
-} from "@agenteschat/client/lib/context-limits";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { planOf } from "@agenteschat/client/lib/plans";
-import { isAuto } from "@agenteschat/client/lib/providers";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/context-limits";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { planOf } from "@dougbot/client/lib/plans";
+import { isAuto } from "@dougbot/client/lib/providers";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

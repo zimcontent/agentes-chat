@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+import { and, eq, inArray, isNull, schema, sql } from "@dougbot/db";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "../errors";
 import { publishAgentsChanged } from "../events";
 import { PermanentJobError } from "../outbox";

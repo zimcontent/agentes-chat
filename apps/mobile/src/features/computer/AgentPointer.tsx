@@ -9,9 +9,9 @@ import {
   glideStart,
   nextPointer,
   pointerInView,
-} from "@agenteschat/client";
-import { useSeat } from "@agenteschat/client/lib/seat-context";
-import { gradientOf } from "@agenteschat/ui/agent/engine";
+} from "@dougbot/client";
+import { useSeat } from "@dougbot/client/lib/seat-context";
+import { gradientOf } from "@dougbot/ui/agent/engine";
 import { memo, useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {

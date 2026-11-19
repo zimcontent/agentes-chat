@@ -48,7 +48,7 @@ export const providerCredentials = pgTable(
     orgId: uuid()
       .notNull()
       .references(() => organizations.id, { onDelete: "cascade" }),
-    /** Provider id from `PROVIDERS` in `@agenteschat/providers` (text, so new providers need no migration). */
+    /** Provider id from `PROVIDERS` in `@dougbot/providers` (text, so new providers need no migration). */
     provider: text().notNull(),
     label: text().notNull(),
     /** `v1.<iv>.<ciphertext>.<tag>` of the API key, under the data key. */
@@ -149,7 +149,7 @@ export const agents = pgTable(
     role: text().notNull().default(""),
     /** Standing instructions, part of the system prompt. */
     instructions: text().notNull().default(""),
-    /** Model id from the catalog in `@agenteschat/providers`. */
+    /** Model id from the catalog in `@dougbot/providers`. */
     model: text().notNull(),
     /**
      * Provider credential this agent bills to. Null = the platform key, which

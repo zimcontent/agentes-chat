@@ -1,5 +1,5 @@
-import { and, type Database, eq, inArray, isNull, schema } from "@agenteschat/db";
-import { BRAND_NAME } from "@agenteschat/i18n/brand";
+import { and, type Database, eq, inArray, isNull, schema } from "@dougbot/db";
+import { BRAND_NAME } from "@dougbot/i18n/brand";
 import { openSecret, sealSecret } from "../crypto";
 import { ValidationError } from "../errors";
 import { oneLine } from "../mail/text";
@@ -214,7 +214,7 @@ export function oauthScope(meta: AuthServerMetadata, scopes: string[]): string |
 }
 
 /**
- * The client agentes.chat registered with this issuer for this org, or a new
+ * The client DougBot registered with this issuer for this org, or a new
  * one (Dynamic Client Registration). A registration is reused only while an
  * active connection uses it: once every connection to that server is gone,
  * the server may have dropped the client (Supabase answered "Unrecognized

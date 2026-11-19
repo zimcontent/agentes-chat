@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
-import { runMigration } from "@agenteschat/db/testing";
-import { customModelId, ProviderError } from "@agenteschat/providers";
+import { eq, schema } from "@dougbot/db";
+import { runMigration } from "@dougbot/db/testing";
+import { customModelId, ProviderError } from "@dougbot/providers";
 import {
   checkCredential,
   createAgent,

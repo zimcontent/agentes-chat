@@ -1,4 +1,4 @@
-import type { WidgetSpec } from "@agenteschat/client";
+import type { WidgetSpec } from "@dougbot/client";
 
 /*
  * The phone's widget tiles (ADR 0135), without React: their colors, sizes and the small reads each kind's drawing

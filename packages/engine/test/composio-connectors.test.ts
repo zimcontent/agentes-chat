@@ -8,8 +8,8 @@ import {
   FileTooLargeError,
   fakeMailAuthError,
   MailError,
-} from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   ARTIFACT_LIMITS,
   acceptCustomSuggestion,

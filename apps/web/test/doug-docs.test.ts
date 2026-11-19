@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import { HELP_PAGES, helpInline } from "@agenteschat/i18n/help";
-import { readyLocales } from "@agenteschat/i18n/locale";
+import { HELP_PAGES, helpInline } from "@dougbot/i18n/help";
+import { readyLocales } from "@dougbot/i18n/locale";
 import { ABOUT_SLUG, brandCode, DOC_GROUPS, type DocSlug, docInline, docPage, docSlug } from "@/docs/doug-docs";
 
 const ORIGIN = "https://doug.example";
@@ -47,7 +47,7 @@ test("the installer's address is this server's, and a link between pages stays i
 test("the other project's package and image are in no page", () => {
   for (const { code } of readyLocales()) {
     const blocks = docPage("install-on-a-server", code).sections.flatMap((s) => s.blocks);
-    expect(JSON.stringify(blocks)).not.toMatch(/@agenteschat|agentes-chat/);
+    expect(JSON.stringify(blocks)).not.toMatch(/@dougbot|agentes-chat/);
     expect(blocks.some((b) => typeof b !== "string" && "code" in b && b.code.includes("/install | sh"))).toBe(true);
   }
 });

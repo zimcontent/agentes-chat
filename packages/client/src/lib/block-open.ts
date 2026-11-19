@@ -1,6 +1,6 @@
 import { isUuid } from "./format";
 
-/** A block's place to open (`BlockOpen` in `@agenteschat/ui/blocks/spec`, which this package doesn't import). */
+/** A block's place to open (`BlockOpen` in `@dougbot/ui/blocks/spec`, which this package doesn't import). */
 export interface BlockOpen {
   place: string;
   id?: string;

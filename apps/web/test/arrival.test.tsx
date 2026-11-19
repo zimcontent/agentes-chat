@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { FeedbackInput } from "@agenteschat/client";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import type { FeedbackInput } from "@dougbot/client";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 

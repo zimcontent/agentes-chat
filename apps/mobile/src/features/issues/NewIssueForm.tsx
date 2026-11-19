@@ -6,12 +6,12 @@ import {
   useIssueAction,
   useIssueColumns,
   useIssueProjects,
-} from "@agenteschat/client";
-import { FIELD_LIMITS } from "@agenteschat/client/lib/field-limits";
-import { pickableProjects } from "@agenteschat/client/lib/issue-projects";
-import { PRIORITIES } from "@agenteschat/client/lib/issues";
-import { aiStateOf } from "@agenteschat/client/lib/no-ai";
-import { EVERYONE } from "@agenteschat/client/lib/who-sees";
+} from "@dougbot/client";
+import { FIELD_LIMITS } from "@dougbot/client/lib/field-limits";
+import { pickableProjects } from "@dougbot/client/lib/issue-projects";
+import { PRIORITIES } from "@dougbot/client/lib/issues";
+import { aiStateOf } from "@dougbot/client/lib/no-ai";
+import { EVERYONE } from "@dougbot/client/lib/who-sees";
 import { useLocalSearchParams, usePreventRemove } from "expo-router";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

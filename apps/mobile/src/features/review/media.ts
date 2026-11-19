@@ -1,4 +1,4 @@
-import { ApiError, type ReviewWords, reviewWords } from "@agenteschat/client";
+import { ApiError, type ReviewWords, reviewWords } from "@dougbot/client";
 import { File } from "expo-file-system";
 import { useTranslation } from "react-i18next";
 import { appHeaders, lastCookie } from "@/lib/auth";
@@ -6,7 +6,7 @@ import { FILE_PART_MAX_BYTES, fitsFilePart } from "./logic";
 
 export { FILE_PART_MAX_BYTES } from "./logic";
 
-/** The review's words in the app's language (shared with the web: `@agenteschat/client`). */
+/** The review's words in the app's language (shared with the web: `@dougbot/client`). */
 export function useReviewWords(): ReviewWords {
   const { i18n } = useTranslation();
   return reviewWords(i18n.language);

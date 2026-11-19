@@ -1,8 +1,8 @@
-import { type AgentColorName, gradientOf, mixHex } from "@agenteschat/ui/agent/engine";
-import { BAYER, bayerAt, ditherIndex } from "@agenteschat/ui/sky/math";
+import { type AgentColorName, gradientOf, mixHex } from "@dougbot/ui/agent/engine";
+import { BAYER, bayerAt, ditherIndex } from "@dougbot/ui/sky/math";
 
 /** The web's soft tones (activity bar, cards): the same function, so both draw the same colors. */
-export { softTones } from "@agenteschat/ui/sky/math";
+export { softTones } from "@dougbot/ui/sky/math";
 
 export { BAYER, bayerAt };
 

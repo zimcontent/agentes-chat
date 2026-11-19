@@ -1,9 +1,9 @@
 /**
  * Doug's brand, in one place: the product's name, its mark and whether the pixel art draws. A fork with its own name
  * and logo (TRADEMARKS.md, "Forks") changes these, not every screen. The name itself is written once, in
- * `@agenteschat/i18n/brand`, which the server and the emails read too.
+ * `@dougbot/i18n/brand`, which the server and the emails read too.
  */
-export { BRAND_NAME, brandName, setClientProductName, subscribeBrand } from "@agenteschat/i18n/brand";
+export { BRAND_NAME, brandName, setClientProductName, subscribeBrand } from "@dougbot/i18n/brand";
 
 /**
  * The mark as a file, only for what can't run the identity's code (the browser tab's icon): `apps/web/public/favicon.svg`,

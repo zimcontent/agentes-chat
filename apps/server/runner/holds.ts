@@ -9,7 +9,7 @@ import {
   type MachineReplies,
   type MachineRequest,
   type RunnerHolds,
-} from "@agenteschat/adapters/machine-protocol";
+} from "@dougbot/adapters/machine-protocol";
 import type { AgentUser } from "./agent-users";
 import { RunnerError } from "./errors";
 import { readJson, writeJson } from "./json-file";

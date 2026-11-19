@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { Connection, GitHubAppInstallation, GitHubAppSetup } from "@agenteschat/client";
+import type { Connection, GitHubAppInstallation, GitHubAppSetup } from "@dougbot/client";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { setNavigateAway } from "@/lib/navigate";
 import { rowMenu } from "./catalog";
@@ -43,7 +43,7 @@ const OCTO = installation("octo-labs", {
   repositorySelection: "selected",
   manageUrl: "https://github.com/settings/installations/109",
 });
-/** GitHub through the agentes.chat app alone: the connection the server makes with the first installation. */
+/** GitHub through the DougBot app alone: the connection the server makes with the first installation. */
 const appOnly = (accounts: string): Connection => ({
   id: "conn-gh",
   connector: "github",

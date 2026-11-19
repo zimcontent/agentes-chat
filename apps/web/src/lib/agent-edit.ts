@@ -1,5 +1,5 @@
-import type { AgentAudience } from "@agenteschat/client";
-import type { Level, LevelState } from "@agenteschat/client/lib/access-levels";
+import type { AgentAudience } from "@dougbot/client";
+import type { Level, LevelState } from "@dougbot/client/lib/access-levels";
 import {
   type AgentSection,
   type AgentTab,
@@ -8,12 +8,12 @@ import {
   sameAudience,
   sameBrain,
   sameList,
-} from "@agenteschat/client/lib/agent-edit";
-import { handleAfterRename } from "@agenteschat/client/lib/new-agent";
-import { type RepoChoice, sameRepoChoice } from "@agenteschat/client/lib/repos";
-import type { AgentFullLook } from "@agenteschat/ui";
+} from "@dougbot/client/lib/agent-edit";
+import { handleAfterRename } from "@dougbot/client/lib/new-agent";
+import { type RepoChoice, sameRepoChoice } from "@dougbot/client/lib/repos";
+import type { AgentFullLook } from "@dougbot/ui";
 
-export * from "@agenteschat/client/lib/agent-edit";
+export * from "@dougbot/client/lib/agent-edit";
 
 /*
  * The agent page: one draft over

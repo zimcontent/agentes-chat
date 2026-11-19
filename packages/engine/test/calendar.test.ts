@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { channelTopic, userTopic } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
+import { channelTopic, userTopic } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
 import {
   calendarRange,
   confirmCalendarProposal,

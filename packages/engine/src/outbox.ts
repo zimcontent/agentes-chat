@@ -1,5 +1,5 @@
-import { startInFlight } from "@agenteschat/adapters/in-flight";
-import { and, type Database, type Executor, eq, inArray, type SQL, schema, sql } from "@agenteschat/db";
+import { startInFlight } from "@dougbot/adapters/in-flight";
+import { and, type Database, type Executor, eq, inArray, type SQL, schema, sql } from "@dougbot/db";
 import { errorNumber } from "./errors";
 import { percentile } from "./format";
 

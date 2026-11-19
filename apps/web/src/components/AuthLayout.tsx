@@ -1,4 +1,4 @@
-import { Logo } from "@agenteschat/ui";
+import { Logo } from "@dougbot/ui";
 import { type ReactNode, useRef } from "react";
 import { AuthHorizon } from "@/components/Sky";
 import { LanguageSelect } from "./LanguageSelect";

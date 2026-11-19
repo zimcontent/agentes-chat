@@ -1,5 +1,5 @@
-import type { schema } from "@agenteschat/db";
-import { AUDIT_PAGE_MAX, listAudit } from "@agenteschat/engine";
+import type { schema } from "@dougbot/db";
+import { AUDIT_PAGE_MAX, listAudit } from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { type AppDeps, createAppRouter, errors, json, OrgParams, requireSession, security } from "./context";
 

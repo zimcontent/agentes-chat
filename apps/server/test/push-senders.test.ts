@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { createFakePushSender } from "@agenteschat/adapters";
-import { loadConfig } from "@agenteschat/config";
+import { createFakePushSender } from "@dougbot/adapters";
+import { loadConfig } from "@dougbot/config";
 import {
   apnsKeyGaps,
   apnsKeyOf,

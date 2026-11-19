@@ -4,8 +4,8 @@
  * without a browser or a desktop (they have no computer); tests put handoffs in
  * `fake.handoffs`, settings in `fake.settings` and desktops in `fake.desktops`.
  */
-import type { AgentBrowserSettings, AgentHolds, ApiClient, BrowserHandoff, DesktopStatus } from "@agenteschat/client";
-import { ApiError, handoffScreen } from "@agenteschat/client";
+import type { AgentBrowserSettings, AgentHolds, ApiClient, BrowserHandoff, DesktopStatus } from "@dougbot/client";
+import { ApiError, handoffScreen } from "@dougbot/client";
 
 export interface FakeBrowser {
   client: ApiClient["browser"];

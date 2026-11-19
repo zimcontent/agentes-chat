@@ -1,7 +1,7 @@
-import type { PlanCard } from "@agenteschat/client";
-import { usePortalMine } from "@agenteschat/client";
-import { portalClientName, portalWhen } from "@agenteschat/client/lib/portal";
-import { Chip, GroupHeading } from "@agenteschat/ui";
+import type { PlanCard } from "@dougbot/client";
+import { usePortalMine } from "@dougbot/client";
+import { portalClientName, portalWhen } from "@dougbot/client/lib/portal";
+import { Chip, GroupHeading } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

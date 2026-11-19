@@ -1,13 +1,6 @@
-import type { OrgRole, OrgRoles, Person } from "@agenteschat/client";
-import {
-  channelMembersQuery,
-  useApi,
-  useChannels,
-  useCreateRole,
-  useDeleteRole,
-  useUpdateRole,
-} from "@agenteschat/client";
-import { errorCode, errorText } from "@agenteschat/client/lib/errors";
+import type { OrgRole, OrgRoles, Person } from "@dougbot/client";
+import { channelMembersQuery, useApi, useChannels, useCreateRole, useDeleteRole, useUpdateRole } from "@dougbot/client";
+import { errorCode, errorText } from "@dougbot/client/lib/errors";
 import {
   deleteLeavers,
   holdsAll,
@@ -17,7 +10,7 @@ import {
   ROLES_MAX,
   roleName,
   sortRoles,
-} from "@agenteschat/client/lib/roles";
+} from "@dougbot/client/lib/roles";
 import {
   type AgentColor,
   Alert,
@@ -36,7 +29,7 @@ import {
   Select,
   SettingRow,
   Switch,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useQueries } from "@tanstack/react-query";
 import { type CSSProperties, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

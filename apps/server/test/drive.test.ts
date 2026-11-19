@@ -3,8 +3,8 @@ import { statfsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createFakeS3, createMemoryStorageHost } from "@agenteschat/adapters";
-import { schema } from "@agenteschat/db";
+import { createFakeS3, createMemoryStorageHost } from "@dougbot/adapters";
+import { schema } from "@dougbot/db";
 import { storagePlatform } from "../src/routes/app/storage";
 import { browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 

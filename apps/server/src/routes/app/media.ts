@@ -1,4 +1,4 @@
-import { MEDIA_MODES, ZimMediaError } from "@agenteschat/adapters";
+import { MEDIA_MODES, ZimMediaError } from "@dougbot/adapters";
 import {
   can,
   driveMediaRef,
@@ -14,7 +14,7 @@ import {
   startGeneration,
   uploadMediaRef,
   ValidationError,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
 import { apiError, errorResponse } from "../../http/errors";

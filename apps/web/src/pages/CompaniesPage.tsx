@@ -1,8 +1,8 @@
-import { ApiError } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { withHumanCheck } from "@agenteschat/client/lib/human-check";
-import { isStrictEmail } from "@agenteschat/client/lib/text";
-import { Button, ChipField, type ChipFieldOption, Field, Input, Locked, Spinner, Textarea } from "@agenteschat/ui";
+import { ApiError } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { withHumanCheck } from "@dougbot/client/lib/human-check";
+import { isStrictEmail } from "@dougbot/client/lib/text";
+import { Button, ChipField, type ChipFieldOption, Field, Input, Locked, Spinner, Textarea } from "@dougbot/ui";
 import { Link, useSearch } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
 import { type FormEvent, useEffect, useId, useMemo, useRef, useState } from "react";

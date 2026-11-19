@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { DESKTOP_USE_PROTOCOL, type MachineRequest } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import { DESKTOP_USE_PROTOCOL, type MachineRequest } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   ARTIFACT_LIMITS,
   absorbToolData,

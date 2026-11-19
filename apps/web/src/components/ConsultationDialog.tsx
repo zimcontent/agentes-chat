@@ -1,4 +1,4 @@
-import { type Message, useConsultations, useExchangeConversation } from "@agenteschat/client";
+import { type Message, useConsultations, useExchangeConversation } from "@dougbot/client";
 import {
   type ConsultLineState,
   type ConsultPairItem,
@@ -8,12 +8,12 @@ import {
   consultLineState,
   consultOriginKey,
   openableConsultation,
-} from "@agenteschat/client/lib/consult-group";
-import { consultSubject } from "@agenteschat/client/lib/consultations";
-import { dayLabel, formatTime, joinNames, namesText } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { buildTimeline } from "@agenteschat/client/lib/timeline";
-import { AvatarStack, Button, DayDivider, Dialog, DialogFooter, Icon, PixelSpinner, Segmented } from "@agenteschat/ui";
+} from "@dougbot/client/lib/consult-group";
+import { consultSubject } from "@dougbot/client/lib/consultations";
+import { dayLabel, formatTime, joinNames, namesText } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { buildTimeline } from "@dougbot/client/lib/timeline";
+import { AvatarStack, Button, DayDivider, Dialog, DialogFooter, Icon, PixelSpinner, Segmented } from "@dougbot/ui";
 import { Fragment, type ReactNode, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MessageBody } from "@/chat/MessageBody";

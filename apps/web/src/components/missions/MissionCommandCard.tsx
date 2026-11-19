@@ -1,9 +1,9 @@
-import type { MissionCommandDecision, MissionCommandMeta } from "@agenteschat/client";
-import { ApiError, useMission, useMissionAct, useMissionCommands } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { formatTime } from "@agenteschat/client/lib/format";
-import { executorName } from "@agenteschat/client/lib/missions";
-import { Button, Checkbox, Chip, DetailsDialog, DetailsSection, Icon, Skeleton, Tip } from "@agenteschat/ui";
+import type { MissionCommandDecision, MissionCommandMeta } from "@dougbot/client";
+import { ApiError, useMission, useMissionAct, useMissionCommands } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { formatTime } from "@dougbot/client/lib/format";
+import { executorName } from "@dougbot/client/lib/missions";
+import { Button, Checkbox, Chip, DetailsDialog, DetailsSection, Icon, Skeleton, Tip } from "@dougbot/ui";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useApi } from "@/api/context";

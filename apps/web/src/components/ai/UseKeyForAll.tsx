@@ -1,9 +1,9 @@
-import type { AgentSetup, AiAccounts as AiAccountsView } from "@agenteschat/client";
-import { keys, useApi, useSetupPreview } from "@agenteschat/client";
-import { setupOutcome, takers } from "@agenteschat/client/lib/agent-setup";
-import { type KeyModel, keyModelFirst, keyModelGroups } from "@agenteschat/client/lib/brain-picker";
-import { type CodingPlan, planOf } from "@agenteschat/client/lib/plans";
-import { providerLabel } from "@agenteschat/client/lib/providers";
+import type { AgentSetup, AiAccounts as AiAccountsView } from "@dougbot/client";
+import { keys, useApi, useSetupPreview } from "@dougbot/client";
+import { setupOutcome, takers } from "@dougbot/client/lib/agent-setup";
+import { type KeyModel, keyModelFirst, keyModelGroups } from "@dougbot/client/lib/brain-picker";
+import { type CodingPlan, planOf } from "@dougbot/client/lib/plans";
+import { providerLabel } from "@dougbot/client/lib/providers";
 import {
   Button,
   Checkbox,
@@ -16,7 +16,7 @@ import {
   type OptionListItem,
   ProviderLogo,
   SettingNote,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

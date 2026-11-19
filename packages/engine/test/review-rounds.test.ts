@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { type ApprovalPortal, createFakeWhatsAppGateway, type PortalItem, type PortalJob } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import { type ApprovalPortal, createFakeWhatsAppGateway, type PortalItem, type PortalJob } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   bringClientNotes,
   createFileArtifact,

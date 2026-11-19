@@ -8,8 +8,8 @@ import type {
   VaultItem,
   VaultItemDetail,
   VaultOverview,
-} from "@agenteschat/client";
-import { ApiProvider } from "@agenteschat/client";
+} from "@dougbot/client";
+import { ApiProvider } from "@dougbot/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode, useEffect, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";

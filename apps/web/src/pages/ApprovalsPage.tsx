@@ -1,4 +1,4 @@
-import type { Agent, Approval, ConnectorDef } from "@agenteschat/client";
+import type { Agent, Approval, ConnectorDef } from "@dougbot/client";
 import {
   sendHelpers,
   useApprovals,
@@ -10,7 +10,7 @@ import {
   useDecideApprovals,
   usePostMessage,
   useRun,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   APPROVAL_REASON_MAX,
   approvalCards,
@@ -24,10 +24,10 @@ import {
   type LinePlace,
   RUNNING_FOR_MS,
   runKeys,
-} from "@agenteschat/client/lib/approval-card";
-import { aheadPhase, approveAlwaysOffered } from "@agenteschat/client/lib/approval-kind";
-import { approvalLead } from "@agenteschat/client/lib/approval-lead";
-import { approvalOriginShort, approvalWords } from "@agenteschat/client/lib/approval-origin";
+} from "@dougbot/client/lib/approval-card";
+import { aheadPhase, approveAlwaysOffered } from "@dougbot/client/lib/approval-kind";
+import { approvalLead } from "@dougbot/client/lib/approval-lead";
+import { approvalOriginShort, approvalWords } from "@dougbot/client/lib/approval-origin";
 import {
   type ApprovalEffect,
   type ApprovalUndo,
@@ -35,16 +35,16 @@ import {
   approvalTarget,
   approvalText,
   stepsAround,
-} from "@agenteschat/client/lib/approval-review";
+} from "@dougbot/client/lib/approval-review";
 import {
   aheadEndLine,
   approvalDoing,
   approvalGroupWaitsFor,
   approvalWaitsFor,
   requesterDecidesLine,
-} from "@agenteschat/client/lib/approval-words";
-import { fromServer, itemName } from "@agenteschat/client/lib/connected";
-import { failureCause } from "@agenteschat/client/lib/failure-cause";
+} from "@dougbot/client/lib/approval-words";
+import { fromServer, itemName } from "@dougbot/client/lib/connected";
+import { failureCause } from "@dougbot/client/lib/failure-cause";
 import {
   daysBetween,
   formatTime,
@@ -53,11 +53,11 @@ import {
   nextLabel,
   relativeTime,
   timeLeft,
-} from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { connectorName } from "@agenteschat/client/lib/scopes";
-import { simpleScreens } from "@agenteschat/client/lib/simple-mode";
-import { formatDuration, type ToolItem, toolItemsSaved, toolPhrase, workFromSteps } from "@agenteschat/client/lib/work";
+} from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { connectorName } from "@dougbot/client/lib/scopes";
+import { simpleScreens } from "@dougbot/client/lib/simple-mode";
+import { formatDuration, type ToolItem, toolItemsSaved, toolPhrase, workFromSteps } from "@dougbot/client/lib/work";
 import {
   Button,
   Card,
@@ -85,7 +85,7 @@ import {
   Tip,
   Toolbar,
   WorkSweep,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
 import {

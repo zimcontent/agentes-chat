@@ -658,7 +658,7 @@ export const reviewFlaggedOf = (reason: string) =>
 const UNCONTESTED: ReadonlySet<string> = new Set([REVIEW_REASON, "ended"]);
 
 /**
- * What the server says of a restriction besides its code: the reason the workspace is told, and on agentes.chat
+ * What the server says of a restriction besides its code: the reason the workspace is told, and on DougBot
  * Cloud `cloud` (`"true"` in a run's values, which are text) with a held agent's or a blocked account's kind.
  */
 export interface RestrictionFacts {

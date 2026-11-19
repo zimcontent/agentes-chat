@@ -1,12 +1,7 @@
-import {
-  autoContextFor,
-  CONTEXT_LIMITS,
-  type ContextLimit,
-  contextLimitsFor,
-} from "@agenteschat/providers/context-limits";
+import { autoContextFor, CONTEXT_LIMITS, type ContextLimit, contextLimitsFor } from "@dougbot/providers/context-limits";
 import type { TFunction } from "i18next";
 
-export * from "@agenteschat/providers/context-limits";
+export * from "@dougbot/providers/context-limits";
 
 /** A context size as the apps write it, in every language: `200K`, `400K`, `1M`. */
 export const contextSize = (tokens: number) =>

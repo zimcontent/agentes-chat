@@ -1,5 +1,5 @@
-import { type BlobStoreResolver, MAX_INLINE_FILE_BYTES } from "@agenteschat/adapters";
-import { and, type Database, eq, gt, lt, or, schema } from "@agenteschat/db";
+import { type BlobStoreResolver, MAX_INLINE_FILE_BYTES } from "@dougbot/adapters";
+import { and, type Database, eq, gt, lt, or, schema } from "@dougbot/db";
 import { NotFoundError } from "./errors";
 import type { ComputerHandle } from "./sandbox";
 

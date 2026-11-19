@@ -1,4 +1,4 @@
-import type { PlanCard, PortalComment, PortalPlan, PortalType } from "@agenteschat/client";
+import type { PlanCard, PortalComment, PortalPlan, PortalType } from "@dougbot/client";
 import {
   useDeletePortalCard,
   useMovePortalCardState,
@@ -9,8 +9,8 @@ import {
   usePortalPlan,
   usePortalTasks,
   useSavePortalCard,
-} from "@agenteschat/client";
-import { linkPill } from "@agenteschat/client/lib/link-pills";
+} from "@dougbot/client";
+import { linkPill } from "@dougbot/client/lib/link-pills";
 import {
   PORTAL_SEND_FILES,
   PORTAL_TYPES,
@@ -29,7 +29,7 @@ import {
   portalTimeOf,
   portalWhen,
   portalWriterName,
-} from "@agenteschat/client/lib/portal";
+} from "@dougbot/client/lib/portal";
 import * as Clipboard from "expo-clipboard";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

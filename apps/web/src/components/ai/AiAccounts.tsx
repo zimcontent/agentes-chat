@@ -1,5 +1,5 @@
-import type { AiAccounts as AiAccountsView } from "@agenteschat/client";
-import { keys, useAiAccounts, useAiStatus, useApi, useMachines } from "@agenteschat/client";
+import type { AiAccounts as AiAccountsView } from "@dougbot/client";
+import { keys, useAiAccounts, useAiStatus, useApi, useMachines } from "@dougbot/client";
 import {
   agentsToGive,
   endsOnClaude,
@@ -8,13 +8,13 @@ import {
   offersSignInAgain,
   type PlanAccount,
   unusedCopies,
-} from "@agenteschat/client/lib/ai-accounts";
-import { computerNameOf } from "@agenteschat/client/lib/computer";
-import { joinNames } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { agentAi, aiStateOf } from "@agenteschat/client/lib/no-ai";
-import { isPlanId, planOf, signInProviderOf } from "@agenteschat/client/lib/plans";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/ai-accounts";
+import { computerNameOf } from "@dougbot/client/lib/computer";
+import { joinNames } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { agentAi, aiStateOf } from "@dougbot/client/lib/no-ai";
+import { isPlanId, planOf, signInProviderOf } from "@dougbot/client/lib/plans";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import {
   Button,
   Dialog,
@@ -26,7 +26,7 @@ import {
   Menu,
   MenuItem,
   SettingNote,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

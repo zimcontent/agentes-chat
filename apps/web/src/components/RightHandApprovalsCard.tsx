@@ -1,9 +1,9 @@
-import type { Agent, Approval, Message } from "@agenteschat/client";
-import { CardVia, useApproval, useApprovals, useDecideApprovals, useMembers } from "@agenteschat/client";
-import type { ApprovalsCard } from "@agenteschat/client/lib/action-cards";
-import { digestCounts, digestGroups, digestRows } from "@agenteschat/client/lib/approval-card";
-import { approvalDetail, approvalTitle, digestLine } from "@agenteschat/client/lib/approval-words";
-import { Button, HintLine } from "@agenteschat/ui";
+import type { Agent, Approval, Message } from "@dougbot/client";
+import { CardVia, useApproval, useApprovals, useDecideApprovals, useMembers } from "@dougbot/client";
+import type { ApprovalsCard } from "@dougbot/client/lib/action-cards";
+import { digestCounts, digestGroups, digestRows } from "@dougbot/client/lib/approval-card";
+import { approvalDetail, approvalTitle, digestLine } from "@dougbot/client/lib/approval-words";
+import { Button, HintLine } from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ApprovalAsk } from "@/components/ApprovalAsk";

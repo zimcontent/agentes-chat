@@ -5,7 +5,7 @@ import {
   type WhatsAppAccount,
   type WhatsAppChat,
   type WhatsAppMessage,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { StyleSheet, View } from "react-native";

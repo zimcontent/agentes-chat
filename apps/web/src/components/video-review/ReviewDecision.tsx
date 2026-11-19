@@ -1,5 +1,5 @@
-import type { ReviewDecisionView } from "@agenteschat/client/lib/review-decision";
-import { Button, Icon, Popover } from "@agenteschat/ui";
+import type { ReviewDecisionView } from "@dougbot/client/lib/review-decision";
+import { Button, Icon, Popover } from "@dougbot/ui";
 import { type ReactNode, useState } from "react";
 import { copyText } from "@/lib/context-menu";
 import { useReviewWords } from "./words";

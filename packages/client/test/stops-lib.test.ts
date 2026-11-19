@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { resources } from "@agenteschat/i18n";
+import { resources } from "@dougbot/i18n";
 import i18next, { type TFunction } from "i18next";
 import type { EndedTask } from "../src/index";
 import { runErrorText } from "../src/lib/errors";

@@ -1,10 +1,10 @@
-import { type Message, usePinMessage, useTaskFromMessage } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { messagePath } from "@agenteschat/client/lib/message-links";
-import { can } from "@agenteschat/client/lib/permissions";
-import { listedText } from "@agenteschat/client/lib/voice";
-import { Button, EmojiPickerPopover, Menu } from "@agenteschat/ui";
-import { chartBlocksOf, chartBlockToWidgetSpec } from "@agenteschat/ui/widgets/spec";
+import { type Message, usePinMessage, useTaskFromMessage } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { messagePath } from "@dougbot/client/lib/message-links";
+import { can } from "@dougbot/client/lib/permissions";
+import { listedText } from "@dougbot/client/lib/voice";
+import { Button, EmojiPickerPopover, Menu } from "@dougbot/ui";
+import { chartBlocksOf, chartBlockToWidgetSpec } from "@dougbot/ui/widgets/spec";
 import { useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

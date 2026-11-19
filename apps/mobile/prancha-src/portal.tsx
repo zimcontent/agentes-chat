@@ -8,8 +8,8 @@ import type {
   PortalClientSummary,
   PortalItem,
   PortalPlan,
-} from "@agenteschat/client";
-import { ApiProvider } from "@agenteschat/client";
+} from "@dougbot/client";
+import { ApiProvider } from "@dougbot/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HeaderHeightContext } from "expo-router/react-navigation";
 import { type ReactNode, useEffect, useState } from "react";

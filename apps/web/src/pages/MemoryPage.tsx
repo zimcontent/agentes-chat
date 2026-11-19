@@ -1,11 +1,11 @@
-import type { Agent, Memory, MemoryKind } from "@agenteschat/client";
-import { useMemory, useMemoryAction, useProposals } from "@agenteschat/client";
-import { FIELD_LIMITS } from "@agenteschat/client/lib/field-limits";
-import { daysBetween, relativeTime } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { memoryLine } from "@agenteschat/client/lib/proposals";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
-import { modeKey } from "@agenteschat/client/lib/workspace-mode";
+import type { Agent, Memory, MemoryKind } from "@dougbot/client";
+import { useMemory, useMemoryAction, useProposals } from "@dougbot/client";
+import { FIELD_LIMITS } from "@dougbot/client/lib/field-limits";
+import { daysBetween, relativeTime } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { memoryLine } from "@dougbot/client/lib/proposals";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
+import { modeKey } from "@dougbot/client/lib/workspace-mode";
 import {
   Button,
   Chip,
@@ -23,7 +23,7 @@ import {
   Tabs,
   Textarea,
   Toolbar,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
 import { useEffect, useRef, useState } from "react";

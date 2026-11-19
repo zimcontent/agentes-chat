@@ -1,5 +1,5 @@
-import { listsAgent } from "@agenteschat/client/lib/audience";
-import { type AvatarProps, AvatarStack } from "@agenteschat/ui";
+import { listsAgent } from "@dougbot/client/lib/audience";
+import { type AvatarProps, AvatarStack } from "@dougbot/ui";
 import { ActorAvatar } from "@/components/AgentAvatar";
 import { useOrg } from "@/components/org-context";
 import { useDirectory } from "@/hooks/useDirectory";

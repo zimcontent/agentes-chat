@@ -1,6 +1,6 @@
-import type { Memory } from "@agenteschat/client";
-import { useMemoryAction } from "@agenteschat/client";
-import { FIELD_LIMITS } from "@agenteschat/client/lib/field-limits";
+import type { Memory } from "@dougbot/client";
+import { useMemoryAction } from "@dougbot/client";
+import { FIELD_LIMITS } from "@dougbot/client/lib/field-limits";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";

@@ -1,9 +1,9 @@
-import { type Issue, type Message, useApprovals, useChannels, useMembers, type WorkView } from "@agenteschat/client";
-import { approvalCardItems, asOfNow, cardDeadline, workApproval } from "@agenteschat/client/lib/approval-card";
-import { heldBack } from "@agenteschat/client/lib/issues";
-import { workLine, workPlanProgress, workWaitsOnPerson } from "@agenteschat/client/lib/long-work";
-import { can } from "@agenteschat/client/lib/permissions";
-import { WorkLine, WorkLineAction, WorkPlan } from "@agenteschat/ui";
+import { type Issue, type Message, useApprovals, useChannels, useMembers, type WorkView } from "@dougbot/client";
+import { approvalCardItems, asOfNow, cardDeadline, workApproval } from "@dougbot/client/lib/approval-card";
+import { heldBack } from "@dougbot/client/lib/issues";
+import { workLine, workPlanProgress, workWaitsOnPerson } from "@dougbot/client/lib/long-work";
+import { can } from "@dougbot/client/lib/permissions";
+import { WorkLine, WorkLineAction, WorkPlan } from "@dougbot/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";

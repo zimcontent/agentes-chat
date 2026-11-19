@@ -1,8 +1,8 @@
-import type { PortalCard } from "@agenteschat/client";
-import { isPortalOff, usePortalBoard, usePortalOverview } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
-import { portalClientName, portalTotals } from "@agenteschat/client/lib/portal";
-import { Button, EmptyState, PageHeader, Segmented } from "@agenteschat/ui";
+import type { PortalCard } from "@dougbot/client";
+import { isPortalOff, usePortalBoard, usePortalOverview } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
+import { portalClientName, portalTotals } from "@dougbot/client/lib/portal";
+import { Button, EmptyState, PageHeader, Segmented } from "@dougbot/ui";
 import { useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorState, LoadingCards } from "@/components/Loading";

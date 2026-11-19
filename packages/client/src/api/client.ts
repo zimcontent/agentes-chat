@@ -1,5 +1,5 @@
-import type { AppLocale } from "@agenteschat/i18n/locale";
-import type { PlanModel } from "@agenteschat/providers/plans";
+import type { AppLocale } from "@dougbot/i18n/locale";
+import type { PlanModel } from "@dougbot/providers/plans";
 import type { DashboardsApi } from "../dashboards/api";
 import type { ChatPrefs } from "../lib/chat-look";
 import type { OnboardingStepId } from "../lib/onboarding";
@@ -466,7 +466,7 @@ export interface ApiClient {
     instance(): Promise<Instance>;
     /** The company details the legal pages fill in (`LEGAL_*`): public, nothing secret. */
     legal(): Promise<LegalFacts>;
-    /** `null` unless I am the installation's owner (and not on agentes.chat itself). */
+    /** `null` unless I am the installation's owner (and not on DougBot itself). */
     telemetry(): Promise<ServerTelemetry | null>;
     setTelemetry(enabled: boolean): Promise<ServerTelemetry>;
     /** By email to whoever runs the server; only where it takes feedback (`AuthConfig.feedback`). */
@@ -519,7 +519,7 @@ export interface ApiClient {
   };
   /** Voice messages (ADR 0100). */
   voice: {
-    /** Whether I may record now: fair use, on agentes.chat's own servers. */
+    /** Whether I may record now: fair use, on DougBot's own servers. */
     allowed(orgId: string): Promise<{ allowed: boolean }>;
     /** Stores a recording; its message arrives over the socket with this `clientId`. */
     send(
@@ -1129,7 +1129,7 @@ export interface ApiClient {
     /** This month's usage per agent; `null` without the `view_usage` permission. */
     usage(orgId: string): Promise<AgentUsage[] | null>;
   };
-  /** Bringing agents and what's around them from another app or another agentes.chat (ADR 0055); admins. */
+  /** Bringing agents and what's around them from another app or another DougBot (ADR 0055); admins. */
   imports: {
     /** The plan of a bundle (`dryRun`), or the picked items applied: either way every item with its action. */
     apply(orgId: string, input: ImportInput): Promise<ImportPlan>;
@@ -1284,7 +1284,7 @@ export interface ApiClient {
     undoRightHand(orgId: string, decisionId: string): Promise<void>;
   };
   connectors: {
-    /** Connectors agentes.chat knows, with their scopes, plus the built-in scopes. */
+    /** Connectors DougBot knows, with their scopes, plus the built-in scopes. */
     catalog(): Promise<ConnectorCatalog>;
     /** The organization's connections (no secrets). */
     list(orgId: string): Promise<Connection[]>;

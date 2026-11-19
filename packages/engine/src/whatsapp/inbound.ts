@@ -5,8 +5,8 @@ import {
   type WhatsAppEvent,
   type WhatsAppHistoryChat,
   type WhatsAppMessage,
-} from "@agenteschat/adapters";
-import { and, asc, type Database, desc, eq, inArray, or, schema, sql } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, asc, type Database, desc, eq, inArray, or, schema, sql } from "@dougbot/db";
 import { NotFoundError } from "../errors";
 import { enqueue } from "../outbox";
 import { hookHash, publishWhatsAppChanged, type WhatsAppAccountRow, type WhatsAppDeps } from "./accounts";

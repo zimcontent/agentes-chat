@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { Message, RunStep } from "@agenteschat/client";
-import { applyChannelEvent, emptyStreams, reconcileRuns, type StreamsState } from "@agenteschat/client";
-import { splitCanceled, stopsMovedOn, workFromSteps } from "@agenteschat/client/lib/work";
+import type { Message, RunStep } from "@dougbot/client";
+import { applyChannelEvent, emptyStreams, reconcileRuns, type StreamsState } from "@dougbot/client";
+import { splitCanceled, stopsMovedOn, workFromSteps } from "@dougbot/client/lib/work";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { ADA_ID, createFakeApi, ENG_ID, ORG_ID, seedState, withRightHand } from "./fake-api";
 import { renderApp, screen, settle } from "./render";

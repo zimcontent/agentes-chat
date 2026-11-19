@@ -1,5 +1,5 @@
-import { and, type Database, eq, schema } from "@agenteschat/db";
-import { isAutoModel, isKnownModel, parseCustomModel } from "@agenteschat/providers";
+import { and, type Database, eq, schema } from "@dougbot/db";
+import { isAutoModel, isKnownModel, parseCustomModel } from "@dougbot/providers";
 import { type Agent, getAgent } from "../agents";
 import { recordAudit } from "../audit";
 import {

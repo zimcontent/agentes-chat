@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { BRAND_NAME as CONFIG_NAME, testConfig } from "@agenteschat/config";
-import { BRAND_NAME } from "@agenteschat/i18n/brand";
+import { BRAND_NAME as CONFIG_NAME, testConfig } from "@dougbot/config";
+import { BRAND_NAME } from "@dougbot/i18n/brand";
 
 /**
- * DougBot: the name is written in `@agenteschat/i18n/brand` (the apps' kit re-exports it). The config package imports
+ * DougBot: the name is written in `@dougbot/i18n/brand` (the apps' kit re-exports it). The config package imports
  * no other, so it holds a copy: this keeps the two the same.
  */
 describe("this instance's name", () => {

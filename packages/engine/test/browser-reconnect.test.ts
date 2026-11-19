@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { decodeBrowserFrame, encodeBrowserFrame, type ServerFrame, STREAM_CLOSE } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { decodeBrowserFrame, encodeBrowserFrame, type ServerFrame, STREAM_CLOSE } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   BROWSER_SCOPE,
   type BrowserLiveDeps,

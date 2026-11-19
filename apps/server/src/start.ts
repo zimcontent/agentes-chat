@@ -40,15 +40,15 @@ import {
   type MailAdapters,
   postgresJsNotifier,
   type WebPushSender,
-} from "@agenteschat/adapters";
-import { type Config, ConfigError, composioAuthConfigs, loadConfig, redactConfig } from "@agenteschat/config";
+} from "@dougbot/adapters";
+import { type Config, ConfigError, composioAuthConfigs, loadConfig, redactConfig } from "@dougbot/config";
 import {
   createDatabase,
   type Database,
   type DatabaseHandle,
   ensureMessagePartitions,
   MigrationMismatchError,
-} from "@agenteschat/db";
+} from "@dougbot/db";
 import {
   APP_JOB_KINDS,
   activeRunCount,
@@ -94,19 +94,19 @@ import {
   vapidKeys,
   vapidSubject,
   widenDmHowTos,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import {
-  type AgentesModule,
   ClientConfigError,
   type ClientOverrides,
+  type DougBotModule,
   type Edition,
   loadClient,
   locateClient,
   type ModuleContext,
   overridesOf,
   resolveAdapters,
-} from "@agenteschat/modules";
-import { createModelProviders, enableOpenRouterModels } from "@agenteschat/providers";
+} from "@dougbot/modules";
+import { createModelProviders, enableOpenRouterModels } from "@dougbot/providers";
 import { createApp } from "./app";
 import { createAuth } from "./auth";
 import { buildEngine } from "./engine";
@@ -139,7 +139,7 @@ const EXIT_FLUSH_MS = 2_000;
 
 export interface StartOptions {
   edition: Edition;
-  modules?: AgentesModule[];
+  modules?: DougBotModule[];
   /**
    * Answer only requests addressed to this server's own names (`127.0.0.1:<PORT>`, `localhost:<PORT>`
    * and `PUBLIC_URL`'s host), with a 421 for any other: native mode listens on loopback, where a web
@@ -164,7 +164,7 @@ export function applyBootSwitches(config: Config) {
 }
 
 /**
- * Boots an agentes.chat server: config → database → migrations → adapters
+ * Boots a DougBot server: config → database → migrations → adapters
  * (core defaults, then module overrides) → HTTP + WebSocket → workers.
  * Shared by the self-hosted entrypoint (`src/main.ts`) and any entrypoint
  * that adds public modules (ADR 0002); only `modules` differ.
@@ -951,7 +951,7 @@ function webPushSender(config: Config, db: Database, wrappers: () => KeyWrapper[
 }
 
 /**
- * GIF search (ADR 0091): on agentes.chat's own servers GIPHY only with `GIPHY_API_KEY`; elsewhere a provider that
+ * GIF search (ADR 0091): on DougBot's own servers GIPHY only with `GIPHY_API_KEY`; elsewhere a provider that
  * follows the installation's key (`GIPHY_API_KEY`, or the one its owner adds in Settings), there while it has one.
  */
 function gifProvider(config: Config, key: () => string | null): GifProvider | null {

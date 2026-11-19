@@ -1,13 +1,13 @@
-import { type Message, useIssue } from "@agenteschat/client";
-import { formatTime } from "@agenteschat/client/lib/format";
+import { type Message, useIssue } from "@dougbot/client";
+import { formatTime } from "@dougbot/client/lib/format";
 import {
   type HandedTask,
   handedTasksOf,
   type IssueWorkRef,
   issueTakenOf,
   STATUS_ICON,
-} from "@agenteschat/client/lib/issues";
-import { Chip, EventPill, Icon } from "@agenteschat/ui";
+} from "@dougbot/client/lib/issues";
+import { Chip, EventPill, Icon } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";

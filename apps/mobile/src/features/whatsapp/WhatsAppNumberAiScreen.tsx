@@ -6,12 +6,12 @@ import {
   useWhatsAppBrain,
   type WhatsAppBrain,
   type WhatsAppBrainInput,
-} from "@agenteschat/client";
-import { brainLine } from "@agenteschat/client/lib/brain";
-import { modelInput, modelRows } from "@agenteschat/client/lib/brain-picker";
-import { contextSize } from "@agenteschat/client/lib/context-limits";
-import { brainPlan } from "@agenteschat/client/lib/plans";
-import { isAuto } from "@agenteschat/client/lib/providers";
+} from "@dougbot/client";
+import { brainLine } from "@dougbot/client/lib/brain";
+import { modelInput, modelRows } from "@dougbot/client/lib/brain-picker";
+import { contextSize } from "@dougbot/client/lib/context-limits";
+import { brainPlan } from "@dougbot/client/lib/plans";
+import { isAuto } from "@dougbot/client/lib/providers";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { GroupedFooter, GroupedHeader, GroupedList, GroupedRow, ProviderLogo, Segmented, Text, useToast } from "@/ui";

@@ -1,5 +1,5 @@
-import { ApiError, useVaultItem, type VaultItemDetail } from "@agenteschat/client";
-import { relativeTime } from "@agenteschat/client/lib/format";
+import { ApiError, useVaultItem, type VaultItemDetail } from "@dougbot/client";
+import { relativeTime } from "@dougbot/client/lib/format";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Linking, Text as RNText, StyleSheet, View } from "react-native";

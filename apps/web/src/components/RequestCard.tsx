@@ -1,5 +1,5 @@
-import type { Agent } from "@agenteschat/client";
-import { askKindWords } from "@agenteschat/client/lib/approval-words";
+import type { Agent } from "@dougbot/client";
+import { askKindWords } from "@dougbot/client/lib/approval-words";
 import {
   cx,
   DougOutline,
@@ -12,7 +12,7 @@ import {
   Locked,
   prefersReducedMotion,
   Spinner,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import {
   createContext,
   type FormEvent,

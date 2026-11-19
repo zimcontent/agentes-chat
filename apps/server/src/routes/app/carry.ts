@@ -1,4 +1,4 @@
-import { connectorOAuthApps } from "@agenteschat/config";
+import { connectorOAuthApps } from "@dougbot/config";
 import {
   agentTwinView,
   CARRY_LIMITS,
@@ -14,7 +14,7 @@ import {
   leaveTwin,
   setSeparateOperation,
   withComposio,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { endpointNet } from "./agents";
 import { type AppDeps, body, createAppRouter, errors, json, OrgParams, requireSession, security } from "./context";

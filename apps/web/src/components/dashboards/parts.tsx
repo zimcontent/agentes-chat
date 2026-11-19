@@ -5,7 +5,7 @@ import type {
   DashboardSummary,
   Member,
   OrgRole,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   editorsSummary,
   editorsText,
@@ -14,9 +14,9 @@ import {
   toggleEditRole,
   useMembers,
   useRoles,
-} from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
-import { isEveryone, sortRoles } from "@agenteschat/client/lib/roles";
+} from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
+import { isEveryone, sortRoles } from "@dougbot/client/lib/roles";
 import {
   HintLine,
   Icon,
@@ -28,7 +28,7 @@ import {
   Radio,
   RadioGroup,
   RoleMark,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useId } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar, PersonAvatar } from "@/components/AgentAvatar";

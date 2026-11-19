@@ -13,7 +13,7 @@ import {
   parseServerFrame,
   type RunnerFrame,
   type RunnerTools,
-} from "@agenteschat/adapters/machine-protocol";
+} from "@dougbot/adapters/machine-protocol";
 import {
   type AgentUids,
   DesktopManager,

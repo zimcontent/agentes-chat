@@ -1,5 +1,5 @@
-import { type ArtifactDetail, useApi } from "@agenteschat/client";
-import { relativeDay } from "@agenteschat/client/lib/format";
+import { type ArtifactDetail, useApi } from "@dougbot/client";
+import { relativeDay } from "@dougbot/client/lib/format";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActionSheetIOS, Alert, Linking, Platform } from "react-native";

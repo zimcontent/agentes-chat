@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { MACHINE_PROTOCOL_VERSION, MACHINE_STATS_PROTOCOL } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { MACHINE_PROTOCOL_VERSION, MACHINE_STATS_PROTOCOL } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   buildTelemetryReport,
   createMachineHub,

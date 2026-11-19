@@ -1,4 +1,4 @@
-import type { Issue, VideoReview } from "@agenteschat/client";
+import type { Issue, VideoReview } from "@dougbot/client";
 import {
   useRetryFinal,
   useSendTaskVideo,
@@ -6,10 +6,10 @@ import {
   useSetReviewPost,
   useTaskVideo,
   useVideoReview,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { can } from "@agenteschat/client/lib/permissions";
-import { Button, Chip, cx, DetailsSection, Icon, Input, Spinner, Textarea } from "@agenteschat/ui";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { can } from "@dougbot/client/lib/permissions";
+import { Button, Chip, cx, DetailsSection, Icon, Input, Spinner, Textarea } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

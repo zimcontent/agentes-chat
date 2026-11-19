@@ -1,6 +1,6 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, desc, type Executor, eq, inArray, isNull, rowsOf, schema, sql } from "@agenteschat/db";
-import { isCustomModel, isKnownModel } from "@agenteschat/providers";
+import type { PubSub } from "@dougbot/adapters";
+import { and, type Database, desc, type Executor, eq, inArray, isNull, rowsOf, schema, sql } from "@dougbot/db";
+import { isCustomModel, isKnownModel } from "@dougbot/providers";
 import { canTalkTo, speakerFor } from "./audience";
 import { recordAudit } from "./audit";
 import { nextCronTime } from "./cron";

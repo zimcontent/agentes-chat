@@ -1,9 +1,9 @@
-import type { ThreadActor, ThreadInfo } from "@agenteschat/client";
-import { useChannels, useThreadList } from "@agenteschat/client";
-import { relativeTime } from "@agenteschat/client/lib/format";
-import { STATUS_ICON } from "@agenteschat/client/lib/issues";
-import { previewBody } from "@agenteschat/client/lib/message-body";
-import { threadStatus, threadTitle } from "@agenteschat/client/lib/threads";
+import type { ThreadActor, ThreadInfo } from "@dougbot/client";
+import { useChannels, useThreadList } from "@dougbot/client";
+import { relativeTime } from "@dougbot/client/lib/format";
+import { STATUS_ICON } from "@dougbot/client/lib/issues";
+import { previewBody } from "@dougbot/client/lib/message-body";
+import { threadStatus, threadTitle } from "@dougbot/client/lib/threads";
 import {
   AvatarStack,
   Button,
@@ -23,7 +23,7 @@ import {
   SearchField,
   Segmented,
   Toolbar,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

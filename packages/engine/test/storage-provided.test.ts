@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeS3, createMemoryStorageHost, type StorageHost, StorageHostError } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import { createFakeS3, createMemoryStorageHost, type StorageHost, StorageHostError } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   createArtifact,
   createBlobStoreResolver,

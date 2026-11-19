@@ -1,4 +1,4 @@
-import { Button, cx } from "@agenteschat/ui";
+import { Button, cx } from "@dougbot/ui";
 import { type ReactNode, useRef } from "react";
 import { WelcomeSky } from "@/components/Sky";
 import "./welcome.css";

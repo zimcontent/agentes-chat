@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
+import { eq, schema } from "@dougbot/db";
 import {
   addChannelMember,
   closeRoutineRun,

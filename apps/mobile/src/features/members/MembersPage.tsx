@@ -7,14 +7,14 @@ import {
   usePeople,
   useRemoveMember,
   useRoles,
-} from "@agenteschat/client";
-import { settingsFrozen } from "@agenteschat/client/lib/deletion";
-import { knownErrorText } from "@agenteschat/client/lib/errors";
-import { namesText } from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
-import { removalLines } from "@agenteschat/client/lib/removal";
-import { isBelow, leaves, removes } from "@agenteschat/client/lib/roles";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client";
+import { settingsFrozen } from "@dougbot/client/lib/deletion";
+import { knownErrorText } from "@dougbot/client/lib/errors";
+import { namesText } from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
+import { removalLines } from "@dougbot/client/lib/removal";
+import { isBelow, leaves, removes } from "@dougbot/client/lib/roles";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";

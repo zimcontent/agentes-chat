@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { and, eq, isNull, schema } from "@agenteschat/db";
+import { and, eq, isNull, schema } from "@dougbot/db";
 import {
   CURSOR_CALLBACK,
   pinnedLookup,
@@ -8,7 +8,7 @@ import {
   restoreAccount,
   scheduleAccountDeletion,
   sha256,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { authorize, callTool, connectApp, LOOPBACK, mcp, pkce, registerClient, requestIdOf, token } from "./ai-apps";
 import { browser, createTestServer, joinByInvitation, ORIGIN, seedOrg, signUp, type TestServer } from "./harness";
 

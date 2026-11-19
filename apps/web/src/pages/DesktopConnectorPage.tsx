@@ -1,6 +1,6 @@
-import { ApiError, useCompleteOAuth } from "@agenteschat/client";
-import { errorCode, oauthReturnText } from "@agenteschat/client/lib/errors";
-import { safeRedirect } from "@agenteschat/client/lib/guards";
+import { ApiError, useCompleteOAuth } from "@dougbot/client";
+import { errorCode, oauthReturnText } from "@dougbot/client/lib/errors";
+import { safeRedirect } from "@dougbot/client/lib/guards";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";

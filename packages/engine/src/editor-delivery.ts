@@ -7,8 +7,8 @@ import {
   type PortalItem,
   type PortalJob,
   type PortalType,
-} from "@agenteschat/adapters";
-import { and, asc, type Database, desc, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, asc, type Database, desc, eq, inArray, isNull, schema, sql } from "@dougbot/db";
 import { portalColumnOf } from "./approval-portal";
 import { storedFileOfArtifact } from "./artifacts";
 import { afterApproveOf, type DesignDelivery } from "./design-delivery";

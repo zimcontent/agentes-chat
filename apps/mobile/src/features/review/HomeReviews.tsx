@@ -1,4 +1,4 @@
-import { useVideoReviews } from "@agenteschat/client";
+import { useVideoReviews } from "@dougbot/client";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Count, Icon, Text } from "@/ui";
 import { router } from "@/ui/navigation";

@@ -105,7 +105,7 @@ describe("a client's folder (ADR doug-0032)", () => {
     const brokenJson = clientsDir({ "064": { "config.json": "{ nope" } });
     await expect(loadClient("064", brokenJson)).rejects.toThrow(/isn't valid JSON/);
     const noModule = clientsDir({ "064": { "client.ts": "export default { nope: true };" } });
-    await expect(loadClient("064", noModule)).rejects.toThrow(/must export default an AgentesModule/);
+    await expect(loadClient("064", noModule)).rejects.toThrow(/must export default an DougBotModule/);
     const brokenModule = clientsDir({ "064": { "client.ts": "export default ;" } });
     await expect(loadClient("064", brokenModule)).rejects.toThrow(/didn't load/);
   });

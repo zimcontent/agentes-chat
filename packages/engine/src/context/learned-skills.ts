@@ -1,5 +1,5 @@
-import type { BlobStoreResolver, PubSub } from "@agenteschat/adapters";
-import { and, type Database, desc, eq, gt, inArray, isNull, lt, or, rowsOf, schema, sql } from "@agenteschat/db";
+import type { BlobStoreResolver, PubSub } from "@dougbot/adapters";
+import { and, type Database, desc, eq, gt, inArray, isNull, lt, or, rowsOf, schema, sql } from "@dougbot/db";
 import { recordAgentActions } from "../agent-actions";
 import { runCalls } from "../continuation";
 import { dmPeople } from "../dms";

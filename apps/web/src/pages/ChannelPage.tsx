@@ -18,7 +18,7 @@ import type {
   ScreenKind,
   SecretRequest,
   ThreadInfo,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   ApiError,
   agentStateOfRun,
@@ -79,8 +79,8 @@ import {
   useWaitingOnMe,
   useWikiTree,
   type WaitingItem,
-} from "@agenteschat/client";
-import { actionCardOf } from "@agenteschat/client/lib/action-cards";
+} from "@dougbot/client";
+import { actionCardOf } from "@dougbot/client/lib/action-cards";
 import {
   barConsultTime,
   barElapsed,
@@ -92,17 +92,17 @@ import {
   runElapsed,
   someoneTypes,
   waitsForWords,
-} from "@agenteschat/client/lib/activity";
-import type { AgentTab } from "@agenteschat/client/lib/agent-edit";
-import { foldTalk, TALK_LINE_CHARS, talksToAgent } from "@agenteschat/client/lib/agent-talk";
-import { returnsHere } from "@agenteschat/client/lib/agent-work";
-import { looksLikeApiKey } from "@agenteschat/client/lib/api-key-text";
-import { approvalCardItems, asOfNow, cardDeadline } from "@agenteschat/client/lib/approval-card";
-import { artifactRefs } from "@agenteschat/client/lib/artifacts";
-import { canTalk, unavailableNotice } from "@agenteschat/client/lib/audience";
-import { accessInput, accessOf, accessValid, type ChannelAccess } from "@agenteschat/client/lib/channel-access";
-import { channelTitle } from "@agenteschat/client/lib/channel-name";
-import { channelRefsOf } from "@agenteschat/client/lib/channel-refs";
+} from "@dougbot/client/lib/activity";
+import type { AgentTab } from "@dougbot/client/lib/agent-edit";
+import { foldTalk, TALK_LINE_CHARS, talksToAgent } from "@dougbot/client/lib/agent-talk";
+import { returnsHere } from "@dougbot/client/lib/agent-work";
+import { looksLikeApiKey } from "@dougbot/client/lib/api-key-text";
+import { approvalCardItems, asOfNow, cardDeadline } from "@dougbot/client/lib/approval-card";
+import { artifactRefs } from "@dougbot/client/lib/artifacts";
+import { canTalk, unavailableNotice } from "@dougbot/client/lib/audience";
+import { accessInput, accessOf, accessValid, type ChannelAccess } from "@dougbot/client/lib/channel-access";
+import { channelTitle } from "@dougbot/client/lib/channel-name";
+import { channelRefsOf } from "@dougbot/client/lib/channel-refs";
 import {
   entersWithMotion,
   greetingSuggestions,
@@ -113,15 +113,15 @@ import {
   runPosition,
   screenAboveEnd,
   usageLine,
-} from "@agenteschat/client/lib/chat";
-import { firstUnreadId, opensAtLastRead, unreadThreadRootId } from "@agenteschat/client/lib/chat-look";
-import { choiceReplyLine } from "@agenteschat/client/lib/choices";
-import { draftKeyOf } from "@agenteschat/client/lib/composer-drafts";
-import { type ConsultPairItem, consultsForLine } from "@agenteschat/client/lib/consult-group";
-import { consultationsOf } from "@agenteschat/client/lib/consultations";
-import { deviceWaitOf } from "@agenteschat/client/lib/devices";
-import { clearDraft, draftJoins, peekDraft } from "@agenteschat/client/lib/drafts";
-import { ErrorBoundary } from "@agenteschat/client/lib/error-boundary";
+} from "@dougbot/client/lib/chat";
+import { firstUnreadId, opensAtLastRead, unreadThreadRootId } from "@dougbot/client/lib/chat-look";
+import { choiceReplyLine } from "@dougbot/client/lib/choices";
+import { draftKeyOf } from "@dougbot/client/lib/composer-drafts";
+import { type ConsultPairItem, consultsForLine } from "@dougbot/client/lib/consult-group";
+import { consultationsOf } from "@dougbot/client/lib/consultations";
+import { deviceWaitOf } from "@dougbot/client/lib/devices";
+import { clearDraft, draftJoins, peekDraft } from "@dougbot/client/lib/drafts";
+import { ErrorBoundary } from "@dougbot/client/lib/error-boundary";
 import {
   errorCode,
   errorText,
@@ -132,26 +132,19 @@ import {
   runFailureLine,
   sendFailureText,
   sendNeedsEdit,
-} from "@agenteschat/client/lib/errors";
-import { everyoneWord, isEveryoneMention, mentionsReader, offersEveryone } from "@agenteschat/client/lib/everyone";
-import {
-  droppedLink,
-  fileIcon,
-  fitsUpload,
-  formatBytes,
-  MAX_UPLOAD_MB,
-  previewKind,
-} from "@agenteschat/client/lib/files";
-import { dayLabel, formatClock, formatFullDate, formatTime } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { useHeldWhile } from "@agenteschat/client/lib/hold";
-import { issueTakenOf, issueWorkOf, taskConversationOf } from "@agenteschat/client/lib/issues";
-import { workAnchorBody, workContinuable, workIsOver } from "@agenteschat/client/lib/long-work";
-import { supersededBrainNotices } from "@agenteschat/client/lib/machine-outages";
-import { hasWideBlock, plainLine } from "@agenteschat/client/lib/markdown";
-import { isMediaAfterReply, isMediaAlone, messageMediaOf, quoteText, textOrMedia } from "@agenteschat/client/lib/media";
-import { serverBody } from "@agenteschat/client/lib/message-body";
-import { joinDrafts, tooLongToSend } from "@agenteschat/client/lib/message-length";
+} from "@dougbot/client/lib/errors";
+import { everyoneWord, isEveryoneMention, mentionsReader, offersEveryone } from "@dougbot/client/lib/everyone";
+import { droppedLink, fileIcon, fitsUpload, formatBytes, MAX_UPLOAD_MB, previewKind } from "@dougbot/client/lib/files";
+import { dayLabel, formatClock, formatFullDate, formatTime } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { useHeldWhile } from "@dougbot/client/lib/hold";
+import { issueTakenOf, issueWorkOf, taskConversationOf } from "@dougbot/client/lib/issues";
+import { workAnchorBody, workContinuable, workIsOver } from "@dougbot/client/lib/long-work";
+import { supersededBrainNotices } from "@dougbot/client/lib/machine-outages";
+import { hasWideBlock, plainLine } from "@dougbot/client/lib/markdown";
+import { isMediaAfterReply, isMediaAlone, messageMediaOf, quoteText, textOrMedia } from "@dougbot/client/lib/media";
+import { serverBody } from "@dougbot/client/lib/message-body";
+import { joinDrafts, tooLongToSend } from "@dougbot/client/lib/message-length";
 import {
   isOpenMission,
   missionCommandOf,
@@ -163,29 +156,29 @@ import {
   missionSuggestionOf,
   parseMissionCommand,
   taskNoticeOf,
-} from "@agenteschat/client/lib/missions";
-import { noAiCardOf } from "@agenteschat/client/lib/no-ai";
-import { isTalkerReply, noticeOf, routineReportText, talkerWaited } from "@agenteschat/client/lib/notices";
-import { brainUnavailableOf, isOfflineNotice } from "@agenteschat/client/lib/outages";
-import { can, leavesChannel, makesAgents, managesChannel, setsAutoReply } from "@agenteschat/client/lib/permissions";
-import { modelStandInText } from "@agenteschat/client/lib/plan-usage";
-import { reachHandoffs } from "@agenteschat/client/lib/reach";
-import { localMeta, replyOf } from "@agenteschat/client/lib/reply";
-import { reviewDecisionOf } from "@agenteschat/client/lib/review-decision";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
-import { isReminderMessage, reminderBody, routineReplyOf } from "@agenteschat/client/lib/routines";
-import { picksForMe, replyAloneKey } from "@agenteschat/client/lib/routing";
-import { ConversationSeat } from "@agenteschat/client/lib/seat-context";
-import { seenMessageId } from "@agenteschat/client/lib/seen";
-import { simpleScreens } from "@agenteschat/client/lib/simple-mode";
-import { hiddenCount, tasksOf, todayStart } from "@agenteschat/client/lib/task-manager";
-import { contextMarks, hiddenByThreads, rangeCandidates, threadStartOf } from "@agenteschat/client/lib/threads";
-import { buildTimeline, lastPostedId, mergeTimeline, type TimelineItem } from "@agenteschat/client/lib/timeline";
-import { usageWaitOf } from "@agenteschat/client/lib/usage-pause";
-import { appVia } from "@agenteschat/client/lib/via";
-import { listedText, voiceOf } from "@agenteschat/client/lib/voice";
-import { waitingAway, waitingNotification } from "@agenteschat/client/lib/waiting";
-import { barStep, makingImage, showsActivity, splitCanceled } from "@agenteschat/client/lib/work";
+} from "@dougbot/client/lib/missions";
+import { noAiCardOf } from "@dougbot/client/lib/no-ai";
+import { isTalkerReply, noticeOf, routineReportText, talkerWaited } from "@dougbot/client/lib/notices";
+import { brainUnavailableOf, isOfflineNotice } from "@dougbot/client/lib/outages";
+import { can, leavesChannel, makesAgents, managesChannel, setsAutoReply } from "@dougbot/client/lib/permissions";
+import { modelStandInText } from "@dougbot/client/lib/plan-usage";
+import { reachHandoffs } from "@dougbot/client/lib/reach";
+import { localMeta, replyOf } from "@dougbot/client/lib/reply";
+import { reviewDecisionOf } from "@dougbot/client/lib/review-decision";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
+import { isReminderMessage, reminderBody, routineReplyOf } from "@dougbot/client/lib/routines";
+import { picksForMe, replyAloneKey } from "@dougbot/client/lib/routing";
+import { ConversationSeat } from "@dougbot/client/lib/seat-context";
+import { seenMessageId } from "@dougbot/client/lib/seen";
+import { simpleScreens } from "@dougbot/client/lib/simple-mode";
+import { hiddenCount, tasksOf, todayStart } from "@dougbot/client/lib/task-manager";
+import { contextMarks, hiddenByThreads, rangeCandidates, threadStartOf } from "@dougbot/client/lib/threads";
+import { buildTimeline, lastPostedId, mergeTimeline, type TimelineItem } from "@dougbot/client/lib/timeline";
+import { usageWaitOf } from "@dougbot/client/lib/usage-pause";
+import { appVia } from "@dougbot/client/lib/via";
+import { listedText, voiceOf } from "@dougbot/client/lib/voice";
+import { waitingAway, waitingNotification } from "@dougbot/client/lib/waiting";
+import { barStep, makingImage, showsActivity, splitCanceled } from "@dougbot/client/lib/work";
 import {
   AffixInput,
   Avatar,
@@ -230,7 +223,7 @@ import {
   Spinner,
   skeletonOnScreen,
   type VoiceNotice,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, Navigate, useNavigate, useRouter } from "@tanstack/react-router";
 import {

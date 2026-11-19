@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { keys } from "@agenteschat/client";
+import { keys } from "@dougbot/client";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { connectRequest } from "@/pages/onboarding/AiStep";
 import { createFakeApi, type FakeState, GENERAL_ID, LODI_ID, ORG_ID, seedState, withRightHand } from "./fake-api";

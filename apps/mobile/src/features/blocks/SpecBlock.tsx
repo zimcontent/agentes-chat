@@ -1,8 +1,8 @@
-import { type BlockChange, useBlockAct, useBlockReply, useBlockValues } from "@agenteschat/client";
-import { blockOpenPhone } from "@agenteschat/client/lib/block-open";
-import type { ChartSpec } from "@agenteschat/client/lib/chart";
-import { clockHour } from "@agenteschat/client/lib/format";
-import type { AgentColorName } from "@agenteschat/ui/agent/engine";
+import { type BlockChange, useBlockAct, useBlockReply, useBlockValues } from "@dougbot/client";
+import { blockOpenPhone } from "@dougbot/client/lib/block-open";
+import type { ChartSpec } from "@dougbot/client/lib/chart";
+import { clockHour } from "@dougbot/client/lib/format";
+import type { AgentColorName } from "@dougbot/ui/agent/engine";
 import {
   type BlockOpen,
   type BlockViewPart,
@@ -12,7 +12,7 @@ import {
   type MarkedText,
   parseBlockSpec,
   viewBlock,
-} from "@agenteschat/ui/blocks/spec";
+} from "@dougbot/ui/blocks/spec";
 import * as Clipboard from "expo-clipboard";
 import { randomUUID } from "expo-crypto";
 import { LinearGradient } from "expo-linear-gradient";
@@ -98,7 +98,7 @@ type Values = ReturnType<typeof useBlockValues>;
 /**
  * A live block drawn by the app itself (ADR 0113): the parts the agent described, with the app's own controls, over
  * the state everyone in the conversation shares. Nothing the agent wrote runs on the phone: its words reach the screen
- * only as text, and its formulas are read by our interpreter (`@agenteschat/ui/blocks/spec`). So it needs no web view,
+ * only as text, and its formulas are read by our interpreter (`@dougbot/ui/blocks/spec`). So it needs no web view,
  * draws at once with the message, and any number of them can be on screen.
  */
 export function SpecBlock({

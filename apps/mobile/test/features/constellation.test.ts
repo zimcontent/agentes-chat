@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { Memory, WikiGraph } from "@agenteschat/client";
+import type { Memory, WikiGraph } from "@dougbot/client";
 import {
   aroundStar,
   fitStars,

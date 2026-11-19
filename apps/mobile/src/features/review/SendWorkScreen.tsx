@@ -1,12 +1,5 @@
-import {
-  useApi,
-  useChannels,
-  useIssues,
-  useSendWork,
-  useVideoReview,
-  type VideoReviewSummary,
-} from "@agenteschat/client";
-import { channelTitle } from "@agenteschat/client/lib/channel-name";
+import { useApi, useChannels, useIssues, useSendWork, useVideoReview, type VideoReviewSummary } from "@dougbot/client";
+import { channelTitle } from "@dougbot/client/lib/channel-name";
 import * as DocumentPicker from "expo-document-picker";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";

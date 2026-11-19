@@ -64,7 +64,7 @@ and the apps read them as they do those of a server that predates the field. The
 product:
 
 - the signature (`Logo` on the web, `Assinatura` and the launch splash's label on the phone) and the tab's title,
-  through `setClientProductName`, `brandName` and `subscribeBrand` in `@agenteschat/i18n/brand`: every string that
+  through `setClientProductName`, `brandName` and `subscribeBrand` in `@dougbot/i18n/brand`: every string that
   names the product reads the client's from then on, and a signature on screen follows the name as it arrives
   (`useSyncExternalStore`, so no prop carries it down and no logo is left behind saying the build's). The strings
   already loaded are branded again (`rebrandLoaded` in `apps/web/src/i18n`: a copy of every language's bundle in the
@@ -125,8 +125,8 @@ is refused with that key named, and an accent under 3:1 on either stage (black, 
 - `bun run check:boundaries` is what keeps §4's inside. It reads every file a client folder may hold (`.ts`, `.tsx`,
   `.mts`, `.cts`, `.js`, `.jsx`, `.mjs`, `.cjs`) with Bun's own parser (`Bun.Transpiler().scanImports`), not a pattern,
   so an `import "x"` with no `from`, an `export … from`, a type-only import and a `from` on the next line are all read.
-  A specifier may be one of `CLIENT_PACKAGES` (`@agenteschat/modules`, `@agenteschat/adapters`, `@agenteschat/config`,
-  `@agenteschat/db`, `@agenteschat/providers`, `@hono/zod-openapi`, `zod`), a `node:` builtin, or a relative path that
+  A specifier may be one of `CLIENT_PACKAGES` (`@dougbot/modules`, `@dougbot/adapters`, `@dougbot/config`,
+  `@dougbot/db`, `@dougbot/providers`, `@hono/zod-openapi`, `zod`), a `node:` builtin, or a relative path that
   **resolves inside the client's own folder** (`./a/b` does, `../x` and `./a/../../..` don't). A `import(` / `require(` /
   `import.meta.resolve(` whose argument is not a string literal — a variable, a template with a hole — is refused by the
   expression itself, since there is no path to check. A folder can thus extend through the module API and nothing else:

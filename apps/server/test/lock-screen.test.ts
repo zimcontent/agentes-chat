@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeLiveActivitySender } from "@agenteschat/adapters";
+import { createFakeLiveActivitySender } from "@dougbot/adapters";
 import { browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 
 /** The lock screen's routes (docs/adr/doug-0021-lock-screen.md): Live Activities and a block's button pressed there. */

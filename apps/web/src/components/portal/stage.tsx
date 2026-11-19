@@ -1,5 +1,5 @@
-import type { PortalCardReview, PortalColumn, PortalLabel } from "@agenteschat/client";
-import { Chip } from "@agenteschat/ui";
+import type { PortalCardReview, PortalColumn, PortalLabel } from "@dougbot/client";
+import { Chip } from "@dougbot/ui";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 

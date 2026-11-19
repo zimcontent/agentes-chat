@@ -1,4 +1,4 @@
-import { type SectorName, useSectorPills, useShowSectorCard } from "@agenteschat/client";
+import { type SectorName, useSectorPills, useShowSectorCard } from "@dougbot/client";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { haptics, useToast } from "@/ui";

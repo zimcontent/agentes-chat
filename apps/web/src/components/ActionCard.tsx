@@ -1,4 +1,4 @@
-import type { AgentDraft, AgentProposalCard, Message, SkillSourceUpdate } from "@agenteschat/client";
+import type { AgentDraft, AgentProposalCard, Message, SkillSourceUpdate } from "@dougbot/client";
 import {
   useAiStatus,
   useAllInvitations,
@@ -16,7 +16,7 @@ import {
   useSkillAction,
   useSkills,
   useSkillUsage,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   actionCardOf,
   agentProposalEnd,
@@ -34,21 +34,21 @@ import {
   skillUpdateState,
   suggestedAiText,
   type UpdateSkillsCard,
-} from "@agenteschat/client/lib/action-cards";
-import { delegateUndoLine } from "@agenteschat/client/lib/approval-words";
-import { connectedItems, itemName } from "@agenteschat/client/lib/connected";
-import { setDraftFor } from "@agenteschat/client/lib/drafts";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { joinNames, whenAt } from "@agenteschat/client/lib/format";
-import { hostOf } from "@agenteschat/client/lib/import/shared";
-import { choiceOf } from "@agenteschat/client/lib/mail";
-import { can } from "@agenteschat/client/lib/permissions";
-import { sentToText } from "@agenteschat/client/lib/proposals";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
-import { holdersOf } from "@agenteschat/client/lib/roles";
-import { connectorName } from "@agenteschat/client/lib/scopes";
-import { SKILL_UPDATE_TOAST } from "@agenteschat/client/lib/skills";
-import { Button, Dialog, EventPillAction, Icon, Spinner } from "@agenteschat/ui";
+} from "@dougbot/client/lib/action-cards";
+import { delegateUndoLine } from "@dougbot/client/lib/approval-words";
+import { connectedItems, itemName } from "@dougbot/client/lib/connected";
+import { setDraftFor } from "@dougbot/client/lib/drafts";
+import { errorText } from "@dougbot/client/lib/errors";
+import { joinNames, whenAt } from "@dougbot/client/lib/format";
+import { hostOf } from "@dougbot/client/lib/import/shared";
+import { choiceOf } from "@dougbot/client/lib/mail";
+import { can } from "@dougbot/client/lib/permissions";
+import { sentToText } from "@dougbot/client/lib/proposals";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
+import { holdersOf } from "@dougbot/client/lib/roles";
+import { connectorName } from "@dougbot/client/lib/scopes";
+import { SKILL_UPDATE_TOAST } from "@dougbot/client/lib/skills";
+import { Button, Dialog, EventPillAction, Icon, Spinner } from "@dougbot/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { lazy, type ReactNode, Suspense, useState } from "react";
 import { useTranslation } from "react-i18next";

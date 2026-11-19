@@ -1,5 +1,5 @@
-import { useIssues, useOverview, useVideoReviews, useWhatsApp, useWhatsAppChats } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
+import { useIssues, useOverview, useVideoReviews, useWhatsApp, useWhatsAppChats } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
 import { useCallback, useMemo, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";

@@ -1,4 +1,4 @@
-import type { IconName } from "@agenteschat/ui";
+import type { IconName } from "@dougbot/ui";
 import type { MouseEvent } from "react";
 import { matchesNow, TOUCH } from "@/hooks/useMatchMedia";
 import { inDesktopApp } from "./desktop";

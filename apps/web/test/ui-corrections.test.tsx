@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, spyOn, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
 import { join } from "node:path";
-import type { Message } from "@agenteschat/client";
-import { markedPieces, markFaced, markInk } from "@agenteschat/client/lib/activity";
-import { mentionsHandle } from "@agenteschat/client/lib/markdown";
-import { apiProviderOf } from "@agenteschat/client/lib/providers";
-import { splitAtNames, wordIndex } from "@agenteschat/client/lib/text";
+import type { Message } from "@dougbot/client";
+import { markedPieces, markFaced, markInk } from "@dougbot/client/lib/activity";
+import { mentionsHandle } from "@dougbot/client/lib/markdown";
+import { apiProviderOf } from "@dougbot/client/lib/providers";
+import { splitAtNames, wordIndex } from "@dougbot/client/lib/text";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { ActorWho, withAgentFace, withAgentFaces } from "@/components/AgentAvatar";

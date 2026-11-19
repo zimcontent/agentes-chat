@@ -1,4 +1,4 @@
-import { portalCardAddress } from "@agenteschat/client/lib/portal";
+import { portalCardAddress } from "@dougbot/client/lib/portal";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
 import { copyText } from "@/lib/context-menu";

@@ -1,6 +1,6 @@
-import { authErrorText } from "@agenteschat/client/lib/errors";
-import { isEmail, nameIsPassword, passwordState } from "@agenteschat/client/lib/text";
-import { Button, Icon, Input, Locked } from "@agenteschat/ui";
+import { authErrorText } from "@dougbot/client/lib/errors";
+import { isEmail, nameIsPassword, passwordState } from "@dougbot/client/lib/text";
+import { Button, Icon, Input, Locked } from "@dougbot/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { type FormEvent, useRef, useState } from "react";

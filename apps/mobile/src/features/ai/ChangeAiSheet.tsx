@@ -1,13 +1,5 @@
-import type { Agent, AgentBrain, AiAccounts } from "@agenteschat/client";
-import {
-  keys,
-  useAgentBrain,
-  useAiAccounts,
-  useApi,
-  useCredentials,
-  useModels,
-  usePlatformKey,
-} from "@agenteschat/client";
+import type { Agent, AgentBrain, AiAccounts } from "@dougbot/client";
+import { keys, useAgentBrain, useAiAccounts, useApi, useCredentials, useModels, usePlatformKey } from "@dougbot/client";
 import {
   accountCardTitle,
   agentModelChip,
@@ -23,18 +15,13 @@ import {
   standInFor,
   standInOrderWith,
   standingOf,
-} from "@agenteschat/client/lib/ai-panel";
-import {
-  mayPickModel,
-  modelPickerSave,
-  modelPickerUndo,
-  type PickerBefore,
-} from "@agenteschat/client/lib/brain-picker";
-import { contextSize } from "@agenteschat/client/lib/context-limits";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { can } from "@agenteschat/client/lib/permissions";
-import { modelChoices, providerLabel } from "@agenteschat/client/lib/providers";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
+} from "@dougbot/client/lib/ai-panel";
+import { mayPickModel, modelPickerSave, modelPickerUndo, type PickerBefore } from "@dougbot/client/lib/brain-picker";
+import { contextSize } from "@dougbot/client/lib/context-limits";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { can } from "@dougbot/client/lib/permissions";
+import { modelChoices, providerLabel } from "@dougbot/client/lib/providers";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

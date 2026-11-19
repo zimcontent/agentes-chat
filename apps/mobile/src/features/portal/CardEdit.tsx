@@ -1,8 +1,8 @@
-import type { PlanCard, PortalCardFile, PortalCardInput } from "@agenteschat/client";
-import { useAgents, useApi, useMembers, usePortalPlan, useSavePortalCard } from "@agenteschat/client";
-import { listsAgent } from "@agenteschat/client/lib/audience";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { portalWithResponsible } from "@agenteschat/client/lib/portal";
+import type { PlanCard, PortalCardFile, PortalCardInput } from "@dougbot/client";
+import { useAgents, useApi, useMembers, usePortalPlan, useSavePortalCard } from "@dougbot/client";
+import { listsAgent } from "@dougbot/client/lib/audience";
+import { errorText } from "@dougbot/client/lib/errors";
+import { portalWithResponsible } from "@dougbot/client/lib/portal";
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
 import { useRef, useState } from "react";

@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { schema } from "@agenteschat/db";
-import { grantScopes, notify, type ToolSource } from "@agenteschat/engine";
+import { schema } from "@dougbot/db";
+import { grantScopes, notify, type ToolSource } from "@dougbot/engine";
 import { browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 
 let t: TestServer;

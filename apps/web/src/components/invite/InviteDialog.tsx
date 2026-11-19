@@ -1,7 +1,7 @@
-import type { Agent, BatchInviteResult, Channel, InviteBatch, InviteLinkMade } from "@agenteschat/client";
-import { keys, useAllInvitations, useApi, useAuthConfig, useChannels, useWorkspaceLimits } from "@agenteschat/client";
-import { errorText, noAnswer } from "@agenteschat/client/lib/errors";
-import { formatShortDate } from "@agenteschat/client/lib/format";
+import type { Agent, BatchInviteResult, Channel, InviteBatch, InviteLinkMade } from "@dougbot/client";
+import { keys, useAllInvitations, useApi, useAuthConfig, useChannels, useWorkspaceLimits } from "@dougbot/client";
+import { errorText, noAnswer } from "@dougbot/client/lib/errors";
+import { formatShortDate } from "@dougbot/client/lib/format";
 import {
   INVITE_LINK_DEFAULTS,
   INVITE_LINK_MAX_USES,
@@ -12,13 +12,13 @@ import {
   type LinkChoices,
   plainLink,
   sameChoices,
-} from "@agenteschat/client/lib/invite-start";
-import { INVITE_NOTE_MAX, sendsEmail } from "@agenteschat/client/lib/join-requests";
-import { membersFull } from "@agenteschat/client/lib/limits";
-import { can } from "@agenteschat/client/lib/permissions";
-import { playSound } from "@agenteschat/client/lib/sounds";
-import { isEmail } from "@agenteschat/client/lib/text";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/invite-start";
+import { INVITE_NOTE_MAX, sendsEmail } from "@dougbot/client/lib/join-requests";
+import { membersFull } from "@dougbot/client/lib/limits";
+import { can } from "@dougbot/client/lib/permissions";
+import { playSound } from "@dougbot/client/lib/sounds";
+import { isEmail } from "@dougbot/client/lib/text";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
 import {
   Avatar,
   Button,
@@ -37,7 +37,7 @@ import {
   Segmented,
   Select,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { type UseMutationResult, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import {

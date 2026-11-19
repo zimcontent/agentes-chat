@@ -1,4 +1,4 @@
-import { type MediaGenerationView, useApi, useMediaOverview } from "@agenteschat/client";
+import { type MediaGenerationView, useApi, useMediaOverview } from "@dougbot/client";
 import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";

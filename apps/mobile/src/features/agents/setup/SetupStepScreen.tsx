@@ -1,4 +1,4 @@
-import type { Agent, AgentAudience, AudienceMode, SetupStep } from "@agenteschat/client";
+import type { Agent, AgentAudience, AudienceMode, SetupStep } from "@dougbot/client";
 import {
   keys,
   useAgentAccess,
@@ -14,7 +14,7 @@ import {
   useUpdateAgent,
   useUpdateSettings,
   useWidenAudience,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   type AccessResource,
   asksAt,
@@ -23,32 +23,27 @@ import {
   levelOf,
   nextLevel,
   resourcesOf,
-} from "@agenteschat/client/lib/access-levels";
-import { channelsAfter, sameAudience } from "@agenteschat/client/lib/agent-edit";
-import { audienceOf, audiencePatch } from "@agenteschat/client/lib/audience";
-import { firstName } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { addsAgentsTo, can } from "@agenteschat/client/lib/permissions";
-import { rolePicksInSight } from "@agenteschat/client/lib/personal-view";
-import { planOf } from "@agenteschat/client/lib/plans";
-import { AUTO } from "@agenteschat/client/lib/providers";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
-import { isEveryone, sortRoles } from "@agenteschat/client/lib/roles";
-import { connectorName } from "@agenteschat/client/lib/scopes";
-import {
-  firstRunAppList,
-  setupRole,
-  suggestedChannels,
-  suggestedLevels,
-} from "@agenteschat/client/lib/setup-checklist";
+} from "@dougbot/client/lib/access-levels";
+import { channelsAfter, sameAudience } from "@dougbot/client/lib/agent-edit";
+import { audienceOf, audiencePatch } from "@dougbot/client/lib/audience";
+import { firstName } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { addsAgentsTo, can } from "@dougbot/client/lib/permissions";
+import { rolePicksInSight } from "@dougbot/client/lib/personal-view";
+import { planOf } from "@dougbot/client/lib/plans";
+import { AUTO } from "@dougbot/client/lib/providers";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
+import { isEveryone, sortRoles } from "@dougbot/client/lib/roles";
+import { connectorName } from "@dougbot/client/lib/scopes";
+import { firstRunAppList, setupRole, suggestedChannels, suggestedLevels } from "@dougbot/client/lib/setup-checklist";
 import {
   aboutYouContext,
   LIFE_AREAS,
   type LifeArea,
   lifeAreaTemplate,
   readAboutYou,
-} from "@agenteschat/client/lib/team-plan";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/team-plan";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

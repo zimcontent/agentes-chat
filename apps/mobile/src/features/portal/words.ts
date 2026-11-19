@@ -1,4 +1,4 @@
-import type { PortalClientColor, PortalColumn, PortalMissing, PortalStatus, PortalType } from "@agenteschat/client";
+import type { PortalClientColor, PortalColumn, PortalMissing, PortalStatus, PortalType } from "@dougbot/client";
 
 /**
  * The approval portal's words on the phone (ADR 9001). This feature is this instance's own, so its words live beside

@@ -1,5 +1,5 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, type Executor, eq, schema, sql } from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import { and, type Database, type Executor, eq, schema, sql } from "@dougbot/db";
 import { routineBriefOfRun } from "./background";
 import type { ToolResult } from "./brains/types";
 import { deliverNotice, publishDelivery } from "./delivery";

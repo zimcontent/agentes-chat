@@ -1,5 +1,5 @@
-import { type BrainPickOption, brainPickText, pickGroups } from "@agenteschat/client/lib/brain-picker";
-import { matchesWords } from "@agenteschat/ui/search";
+import { type BrainPickOption, brainPickText, pickGroups } from "@dougbot/client/lib/brain-picker";
+import { matchesWords } from "@dougbot/ui/search";
 import { Fragment, type ReactNode, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

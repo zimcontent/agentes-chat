@@ -1,4 +1,4 @@
-import { type GifKey, isAgentesCloud, NotFoundError, pinnedOwner, ValidationError } from "@agenteschat/engine";
+import { type GifKey, isAgentesCloud, NotFoundError, pinnedOwner, ValidationError } from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { apiError, errorResponse } from "../../http/errors";
 import { type AppDeps, body, createAppRouter, errors, json, requireSession, security } from "./context";
@@ -33,7 +33,7 @@ const notFound = "404 for everyone but the installation's pinned owner (ADR 0073
 const tooMany = { 429: errorResponse("Too many tries (`rate_limited`)") };
 
 /**
- * The installation's GIPHY key (ADR 0091, amended 2026-10-31): only its pinned owner, and never on agentes.chat's own
+ * The installation's GIPHY key (ADR 0091, amended 2026-10-31): only its pinned owner, and never on DougBot's own
  * servers, whose key is in their environment. A save or a removal turns GIFs on or off in every workspace at once
  * (`gifsAvailable`).
  */

@@ -1,5 +1,5 @@
 /**
- * `npx @agenteschat/setup`: from an empty directory to a running agentes.chat, on a tailnet by default.
+ * `npx @agenteschat/setup`: from an empty directory to a running DougBot, on a tailnet by default.
  * Inside the app image (`docker run … agentes setup`) there is no Docker to drive, so it prepares the
  * directory and prints the commands that finish the job.
  */
@@ -1421,7 +1421,7 @@ const succeeds = (command: string, args: string[]) =>
   spawnSync(command, args, { stdio: "ignore", timeout: 10_000 }).status === 0;
 
 /**
- * The agents' computer, once agentes.chat answers: the server's installer for it, then up to
+ * The agents' computer, once DougBot answers: the server's installer for it, then up to
  * `COMPUTER_WAIT_S` for its first answer to the server, read from its own log. Not answering yet is a
  * warning: it keeps trying on its own. One kept from an earlier run is left alone while it's up to date.
  */

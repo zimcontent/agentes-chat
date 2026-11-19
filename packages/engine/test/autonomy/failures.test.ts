@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { schema } from "@agenteschat/db";
-import { ProviderError } from "@agenteschat/providers";
+import { schema } from "@dougbot/db";
+import { ProviderError } from "@dougbot/providers";
 import {
   consultationWait,
   getMessage,

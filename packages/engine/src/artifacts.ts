@@ -5,7 +5,7 @@ import {
   type GlanceVideo,
   type PubSub,
   type SpeechEngine,
-} from "@agenteschat/adapters";
+} from "@dougbot/adapters";
 import {
   and,
   type Database,
@@ -21,14 +21,8 @@ import {
   type SQL,
   schema,
   sql,
-} from "@agenteschat/db";
-import {
-  type BlockSpec,
-  BlockSpecError,
-  blockSpecText,
-  dryRunBlock,
-  parseBlockSpec,
-} from "@agenteschat/ui/blocks/spec";
+} from "@dougbot/db";
+import { type BlockSpec, BlockSpecError, blockSpecText, dryRunBlock, parseBlockSpec } from "@dougbot/ui/blocks/spec";
 import { type AgentsDmReads, agentsDmReads, readerOfRun } from "./agents-dm-reads";
 import { recordAudit } from "./audit";
 import { runAuthorityById, runPerson, UUID } from "./authority";
@@ -1868,7 +1862,7 @@ export type ArtifactSort = "recent" | "name" | "kind";
 /** The longest page a list returns. */
 export const ARTIFACT_PAGE_MAX = 200;
 
-/** The order of `sort: "kind"`, as the apps list the kinds (mirror of `ARTIFACT_KINDS` in `@agenteschat/client`). */
+/** The order of `sort: "kind"`, as the apps list the kinds (mirror of `ARTIFACT_KINDS` in `@dougbot/client`). */
 const KIND_ORDER = ["document", "table", "diff", "diagram", "html", "file"];
 
 /** The files the actor can see that pass `filters` (all but the kinds), as SQL, and what an agent's DM reads. */

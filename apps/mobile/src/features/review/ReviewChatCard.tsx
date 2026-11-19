@@ -1,4 +1,4 @@
-import { reviewLinksIn, useApi, useVideoReviews } from "@agenteschat/client";
+import { reviewLinksIn, useApi, useVideoReviews } from "@dougbot/client";
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Button, Chip, Icon, Text } from "@/ui";

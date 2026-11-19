@@ -1,18 +1,5 @@
-import type { PubSub } from "@agenteschat/adapters";
-import {
-  and,
-  asc,
-  type Database,
-  desc,
-  eq,
-  inArray,
-  isNotNull,
-  isNull,
-  ne,
-  notInArray,
-  or,
-  schema,
-} from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import { and, asc, type Database, desc, eq, inArray, isNotNull, isNull, ne, notInArray, or, schema } from "@dougbot/db";
 import { recordAudit } from "./audit";
 import { caches } from "./cache";
 import { ForbiddenError, NotFoundError } from "./errors";

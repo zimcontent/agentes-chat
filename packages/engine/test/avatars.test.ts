@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createMemoryBlobStore } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import { createMemoryBlobStore } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   AVATAR_LIMITS,
   avatarFile,

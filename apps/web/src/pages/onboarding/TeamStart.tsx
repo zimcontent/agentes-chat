@@ -1,6 +1,6 @@
-import { dougOrder } from "@agenteschat/client/lib/doug-team";
-import { joinNames } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
+import { dougOrder } from "@dougbot/client/lib/doug-team";
+import { joinNames } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
 import {
   type AgentAppearance,
   Button,
@@ -11,7 +11,7 @@ import {
   RadioCard,
   RadioGroup,
   Skeleton,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";

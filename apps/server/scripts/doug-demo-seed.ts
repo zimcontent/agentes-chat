@@ -5,8 +5,8 @@
 // Logos: DOUG_LOGOS, by default the `logos` folder beside the clone.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { createPostgresBlobStore } from "@agenteschat/adapters";
-import { and, createDatabase, eq, schema } from "@agenteschat/db";
+import { createPostgresBlobStore } from "@dougbot/adapters";
+import { and, createDatabase, eq, schema } from "@dougbot/db";
 import {
   createAgent,
   createChannel,
@@ -15,7 +15,7 @@ import {
   openPersonAgentDm,
   setAvatar,
   setChannelIcon,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 
 /**
  * The DougBot team (identidade/dougbot-identidade, §7) and a few free bots, with the trades that pick their forms, and

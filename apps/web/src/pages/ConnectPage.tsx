@@ -1,22 +1,11 @@
-import type { Machine } from "@agenteschat/client";
-import { ApiError, useConfirmDevice, useDenyDevice, useMachineDevice, useMe } from "@agenteschat/client";
-import { workspaceLabel, workspaceNotes } from "@agenteschat/client/lib/deletion";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { relativeTime } from "@agenteschat/client/lib/format";
-import { computerKind, formatUserCode, locationText } from "@agenteschat/client/lib/machines";
-import { can } from "@agenteschat/client/lib/permissions";
-import {
-  Alert,
-  Button,
-  Card,
-  ComputerPortrait,
-  EmptyState,
-  Field,
-  Input,
-  Locked,
-  Select,
-  Switch,
-} from "@agenteschat/ui";
+import type { Machine } from "@dougbot/client";
+import { ApiError, useConfirmDevice, useDenyDevice, useMachineDevice, useMe } from "@dougbot/client";
+import { workspaceLabel, workspaceNotes } from "@dougbot/client/lib/deletion";
+import { errorText } from "@dougbot/client/lib/errors";
+import { relativeTime } from "@dougbot/client/lib/format";
+import { computerKind, formatUserCode, locationText } from "@dougbot/client/lib/machines";
+import { can } from "@dougbot/client/lib/permissions";
+import { Alert, Button, Card, ComputerPortrait, EmptyState, Field, Input, Locked, Select, Switch } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,6 +1,6 @@
-import type { DesktopRelease } from "@agenteschat/client";
-import { platformOf } from "@agenteschat/client/lib/machines";
-import { Button, Icon } from "@agenteschat/ui";
+import type { DesktopRelease } from "@dougbot/client";
+import { platformOf } from "@dougbot/client/lib/machines";
+import { Button, Icon } from "@dougbot/ui";
 import { type CSSProperties, useLayoutEffect, useRef, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { type DesktopDownload, DownloadButtons, useBuildName, useDesktopDownloads } from "@/components/devices/parts";

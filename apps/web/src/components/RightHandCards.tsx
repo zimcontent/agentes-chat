@@ -5,7 +5,7 @@ import type {
   Message,
   Proposal,
   WorkspaceActionCard,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   CardVia,
   keys,
@@ -25,7 +25,7 @@ import {
   useRoles,
   useSendDm,
   useSetMemberRoles,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   actionCardApplyKey,
   actionCardDestroys,
@@ -44,13 +44,13 @@ import {
   type OpenPageCard,
   rolesAfter,
   type SettingsProposalCard,
-} from "@agenteschat/client/lib/action-cards";
-import { APP_PAGES, appPagePath } from "@agenteschat/client/lib/app-pages";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { formatTime } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { can } from "@agenteschat/client/lib/permissions";
-import { settingsSectionNameKey } from "@agenteschat/client/lib/personal-view";
+} from "@dougbot/client/lib/action-cards";
+import { APP_PAGES, appPagePath } from "@dougbot/client/lib/app-pages";
+import { errorText } from "@dougbot/client/lib/errors";
+import { formatTime } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { can } from "@dougbot/client/lib/permissions";
+import { settingsSectionNameKey } from "@dougbot/client/lib/personal-view";
 import {
   cardDecidedBy,
   cardOutcome,
@@ -63,8 +63,8 @@ import {
   rowStatus,
   sentToText,
   settingLineText,
-} from "@agenteschat/client/lib/proposals";
-import { Button, EventPillAction, Icon, Switch } from "@agenteschat/ui";
+} from "@dougbot/client/lib/proposals";
+import { Button, EventPillAction, Icon, Switch } from "@dougbot/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";

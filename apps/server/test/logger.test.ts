@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, spyOn, test } from "bun:test";
-import { createFakeErrorReporter } from "@agenteschat/adapters";
+import { createFakeErrorReporter } from "@dougbot/adapters";
 import { createLogger } from "../src/logger";
 
 describe("logger", () => {

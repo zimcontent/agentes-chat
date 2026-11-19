@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { and, desc, eq, gt, schema, sql } from "@agenteschat/db";
+import { and, desc, eq, gt, schema, sql } from "@dougbot/db";
 import { ConflictError, TooManyError, ValidationError } from "../errors";
 import { publishWhatsAppChanged, type WhatsAppAccountRow, type WhatsAppDeps, whatsappGateway } from "./accounts";
 import { deliverWhatsAppText, whatsappJidOf } from "./conversations";

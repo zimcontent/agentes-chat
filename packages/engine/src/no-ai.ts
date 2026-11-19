@@ -1,6 +1,6 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, desc, type Executor, eq, gt, inArray, isNull, schema, sql } from "@agenteschat/db";
-import { BRAND_NAME } from "@agenteschat/i18n/brand";
+import type { PubSub } from "@dougbot/adapters";
+import { and, type Database, desc, type Executor, eq, gt, inArray, isNull, schema, sql } from "@dougbot/db";
+import { BRAND_NAME } from "@dougbot/i18n/brand";
 import { aiConnectIntent, type ConnectIntent } from "./ai-intent";
 import { type AgentAi, type AiStatusDeps, agentAiState, NO_AI_REASONS, orgHasAi } from "./ai-status";
 import { audienceError, canTalkTo, type Speaker, speakerFor } from "./audience";

@@ -1,5 +1,5 @@
-import { useClientLook } from "@agenteschat/client";
-import { productName } from "@agenteschat/client/lib/client-custom";
+import { useClientLook } from "@dougbot/client";
+import { productName } from "@dougbot/client/lib/client-custom";
 import { Text as RNText, View } from "react-native";
 import { DB_FONTES } from "@/brand/tokens";
 import { LogoMark } from "./LogoMark";

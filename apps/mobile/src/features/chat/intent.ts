@@ -1,4 +1,4 @@
-import type { Agent, Message } from "@agenteschat/client";
+import type { Agent, Message } from "@dougbot/client";
 import type { IconName } from "@/ui";
 import { approvalIdOf, artifactsOf, questionOf } from "./logic";
 

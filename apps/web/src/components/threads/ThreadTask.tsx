@@ -1,7 +1,7 @@
-import type { ThreadInfo } from "@agenteschat/client";
-import { useIssue } from "@agenteschat/client";
-import { STATUS_ICON } from "@agenteschat/client/lib/issues";
-import { Button } from "@agenteschat/ui";
+import type { ThreadInfo } from "@dougbot/client";
+import { useIssue } from "@dougbot/client";
+import { STATUS_ICON } from "@dougbot/client/lib/issues";
+import { Button } from "@dougbot/ui";
 import { lazy, Suspense, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

@@ -1,4 +1,4 @@
-import type { BrowserHandoff } from "@agenteschat/client";
+import type { BrowserHandoff } from "@dougbot/client";
 import {
   drivesOnDesktop,
   HANDOFF_OVER,
@@ -11,10 +11,10 @@ import {
   useApi,
   useBrowserHandoffMutations,
   useDesktopStatus,
-} from "@agenteschat/client";
-import { formatTime } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { Button, Icon } from "@agenteschat/ui";
+} from "@dougbot/client";
+import { formatTime } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { Button, Icon } from "@dougbot/ui";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

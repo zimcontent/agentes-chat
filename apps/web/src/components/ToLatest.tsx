@@ -1,5 +1,5 @@
-import { badgeCount } from "@agenteschat/client/lib/unread";
-import { Button, CountBadge } from "@agenteschat/ui";
+import { badgeCount } from "@dougbot/client/lib/unread";
+import { Button, CountBadge } from "@dougbot/ui";
 
 /**
  * Back to the latest messages: a round button at the bottom right of the message list, while the person reads more

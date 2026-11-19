@@ -1,6 +1,6 @@
-import { rightHandOf } from "@agenteschat/client/lib/right-hand";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
-import type { StickerLook, StickerMood } from "@agenteschat/ui/agent/stickers";
+import { rightHandOf } from "@dougbot/client/lib/right-hand";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
+import type { StickerLook, StickerMood } from "@dougbot/ui/agent/stickers";
 import { useTranslation } from "react-i18next";
 import { useOrgMaybe } from "@/providers/org";
 import { Button, EmptyState, type EmptyStateProps, type IconName } from "@/ui";

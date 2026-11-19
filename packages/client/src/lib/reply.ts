@@ -1,4 +1,4 @@
-import { clipWhole } from "@agenteschat/ui/clip";
+import { clipWhole } from "@dougbot/ui/clip";
 import type { ArtifactRef, Message, ReplyRef } from "../api/types";
 import { artifactRefs } from "./artifacts";
 import { plainLine } from "./markdown";

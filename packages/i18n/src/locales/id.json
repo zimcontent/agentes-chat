@@ -17363,7 +17363,7 @@
   },
   "gallery": {
     "title": "Galeri komponen",
-    "subtitle": "Hanya untuk pengembangan: komponen @agenteschat/ui."
+    "subtitle": "Hanya untuk pengembangan: komponen @dougbot/ui."
   },
   "format": {
     "list": "{{names, list}}",

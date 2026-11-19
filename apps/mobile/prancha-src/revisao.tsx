@@ -4,7 +4,7 @@ import {
   type VideoReview,
   type VideoReviewNote,
   type VideoReviewSummary,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HeaderHeightContext } from "expo-router/react-navigation";
 import { type ReactNode, useState } from "react";

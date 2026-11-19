@@ -1,5 +1,5 @@
-import { type AgentScope, DESKTOP_PROTOCOL, type PubSub } from "@agenteschat/adapters";
-import { and, type Database, type Executor, eq, gte, inArray, schema, sql } from "@agenteschat/db";
+import { type AgentScope, DESKTOP_PROTOCOL, type PubSub } from "@dougbot/adapters";
+import { and, type Database, type Executor, eq, gte, inArray, schema, sql } from "@dougbot/db";
 import { announceAgentStatus } from "./agent-status";
 import { publishApproval } from "./approvals";
 import { recordAudit } from "./audit";

@@ -1,10 +1,10 @@
-import type { LiveRun, Message } from "@agenteschat/client";
-import { ApiError, continuedRunIdOf, keys, useContinuedRun, workingSinceOf } from "@agenteschat/client";
-import { activityVerb, toolActivity } from "@agenteschat/client/lib/activity";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { can } from "@agenteschat/client/lib/permissions";
-import { playSound } from "@agenteschat/client/lib/sounds";
-import { PixelStop, Spinner } from "@agenteschat/ui";
+import type { LiveRun, Message } from "@dougbot/client";
+import { ApiError, continuedRunIdOf, keys, useContinuedRun, workingSinceOf } from "@dougbot/client";
+import { activityVerb, toolActivity } from "@dougbot/client/lib/activity";
+import { errorText } from "@dougbot/client/lib/errors";
+import { can } from "@dougbot/client/lib/permissions";
+import { playSound } from "@dougbot/client/lib/sounds";
+import { PixelStop, Spinner } from "@dougbot/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";

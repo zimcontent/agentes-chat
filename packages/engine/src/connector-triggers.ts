@@ -1,5 +1,5 @@
-import { parseAddressList } from "@agenteschat/adapters";
-import { and, type Database, eq, isNull, schema } from "@agenteschat/db";
+import { parseAddressList } from "@dougbot/adapters";
+import { and, type Database, eq, isNull, schema } from "@dougbot/db";
 import { type ConnectorDeps, connectionHeaders, noteRefusedSignIn } from "./connectors/connections";
 import { customScope } from "./connectors/custom";
 import { connectOverHttp, type McpConnect, type McpSession } from "./connectors/mcp";

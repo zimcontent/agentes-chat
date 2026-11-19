@@ -4,12 +4,12 @@ import { type Config, configSchema, envVars } from "./schema";
 export { composioAuthConfigs, connectorOAuthApps, githubAppConfig, mcpCallerIdentity } from "./connectors";
 export { type Config, type EnvVarDefinition, type EnvVarName, envVars } from "./schema";
 
-/** agentes.chat's own servers: their legal pages are their own, and their mail goes out from agentes.chat. */
+/** DougBot's own servers: their legal pages are their own, and their mail goes out from DougBot. */
 const OFFICIAL_HOSTS = new Set(["app.agentes.chat", "agentes.chat", "www.agentes.chat"]);
 
 /**
  * DougBot: the name a person reads as the sender. This package imports no other of the workspace, so it holds the
- * name as text; `BRAND_NAME` in `@agenteschat/i18n/brand` is the one to change, and a test keeps the two equal
+ * name as text; `BRAND_NAME` in `@dougbot/i18n/brand` is the one to change, and a test keeps the two equal
  * (`apps/server/test/brand.test.ts`).
  */
 export const BRAND_NAME = "DougBot";

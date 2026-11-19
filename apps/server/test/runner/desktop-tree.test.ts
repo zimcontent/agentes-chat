@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import type { MachineRequest } from "@agenteschat/adapters/machine-protocol";
-import { sealSecret, secretAad } from "@agenteschat/adapters/secret-box";
-import { observeSnapshot } from "@agenteschat/engine";
+import type { MachineRequest } from "@dougbot/adapters/machine-protocol";
+import { sealSecret, secretAad } from "@dougbot/adapters/secret-box";
+import { observeSnapshot } from "@dougbot/engine";
 import type { HelperNode, HelperSnapshot, HelperWindow } from "../../runner/desktop-helper";
 import { type DesktopLook, desktopLook, desktopRefs } from "../../runner/desktop-tree";
 import { handleRequest } from "../../runner/handlers";

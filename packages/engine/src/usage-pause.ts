@@ -1,6 +1,6 @@
-import type { PlanUsage, PubSub } from "@agenteschat/adapters";
-import { and, type Database, desc, type Executor, eq, inArray, type SQL, schema, sql } from "@agenteschat/db";
-import { extraUsageLeft, PLAN_PAUSE, planBinding, planState } from "@agenteschat/ui/plan-state";
+import type { PlanUsage, PubSub } from "@dougbot/adapters";
+import { and, type Database, desc, type Executor, eq, inArray, type SQL, schema, sql } from "@dougbot/db";
+import { extraUsageLeft, PLAN_PAUSE, planBinding, planState } from "@dougbot/ui/plan-state";
 import { recordAudit } from "./audit";
 import { UUID } from "./authority";
 import { forgetPlanLimit, storedPlanUsage } from "./brains/select";

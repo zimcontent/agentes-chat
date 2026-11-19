@@ -1,9 +1,9 @@
-import type { AskToJoinResult, InvitationPreview } from "@agenteschat/client";
-import { ApiError, invitationQuery, invitationStateQuery, keys, useAuthConfig, useMe } from "@agenteschat/client";
-import { authErrorText, errorCode, errorText, invitedErrorText, knownErrorText } from "@agenteschat/client/lib/errors";
-import { formatShortDate, joinNames } from "@agenteschat/client/lib/format";
-import { INVITATION_MAIL_PARAM, signInPath } from "@agenteschat/client/lib/guards";
-import { type HumanAction, type HumanCheck, withHumanCheck } from "@agenteschat/client/lib/human-check";
+import type { AskToJoinResult, InvitationPreview } from "@dougbot/client";
+import { ApiError, invitationQuery, invitationStateQuery, keys, useAuthConfig, useMe } from "@dougbot/client";
+import { authErrorText, errorCode, errorText, invitedErrorText, knownErrorText } from "@dougbot/client/lib/errors";
+import { formatShortDate, joinNames } from "@dougbot/client/lib/format";
+import { INVITATION_MAIL_PARAM, signInPath } from "@dougbot/client/lib/guards";
+import { type HumanAction, type HumanCheck, withHumanCheck } from "@dougbot/client/lib/human-check";
 import {
   ANSWER_POLL_MS,
   askView,
@@ -12,7 +12,7 @@ import {
   JOIN_NOTE_MAX,
   sendsEmail,
   typedCode,
-} from "@agenteschat/client/lib/join-requests";
+} from "@dougbot/client/lib/join-requests";
 import {
   emailTypoFix,
   isEmail,
@@ -20,8 +20,8 @@ import {
   nameIsPassword,
   passwordState,
   webmailOf,
-} from "@agenteschat/client/lib/text";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/text";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
 import {
   Button,
   cx,
@@ -33,7 +33,7 @@ import {
   overLimit,
   PixelSpinner,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { type FormEvent, type KeyboardEvent, type ReactNode, type Ref, useEffect, useRef, useState } from "react";

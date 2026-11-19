@@ -1,4 +1,4 @@
-import type { PubSub } from "@agenteschat/adapters";
+import type { PubSub } from "@dougbot/adapters";
 import {
   and,
   arrayContains,
@@ -12,7 +12,7 @@ import {
   rowsOf,
   schema,
   sql,
-} from "@agenteschat/db";
+} from "@dougbot/db";
 import {
   AUTO_MODEL,
   customModelId,
@@ -20,9 +20,9 @@ import {
   isAutoModel,
   MODEL_CATALOG,
   parseCustomModel,
-} from "@agenteschat/providers";
-import { houseVoiceFor, isLiveVoice, LIVE_VOICES, liveVoiceFor } from "@agenteschat/providers/live-voice";
-import { isIdHandle } from "@agenteschat/ui/names";
+} from "@dougbot/providers";
+import { houseVoiceFor, isLiveVoice, LIVE_VOICES, liveVoiceFor } from "@dougbot/providers/live-voice";
+import { isIdHandle } from "@dougbot/ui/names";
 import type { AgentAppearance } from "./appearance";
 import { dropAgentRules } from "./approval-rules";
 import { answersOthers, audienceOf, canTalkTo, speakerFor } from "./audience";

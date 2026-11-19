@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { ProviderError } from "@agenteschat/providers";
+import { ProviderError } from "@dougbot/providers";
 import { routineFailureCode } from "../src/routine-ledger";
 import {
   brainFailureText,

@@ -1,8 +1,8 @@
-import type { Actor, Agent, Member, Message } from "@agenteschat/client";
-import { useAgents, useFormerAgents, useMembers, useRoles } from "@agenteschat/client";
-import { agentsByAnyHandle, formerById } from "@agenteschat/client/lib/directory";
-import { memberRoleColor } from "@agenteschat/client/lib/member-groups";
-import { type AgentColor, agentGradient, botDoAgente, corDoBot, DougBot } from "@agenteschat/ui";
+import type { Actor, Agent, Member, Message } from "@dougbot/client";
+import { useAgents, useFormerAgents, useMembers, useRoles } from "@dougbot/client";
+import { agentsByAnyHandle, formerById } from "@dougbot/client/lib/directory";
+import { memberRoleColor } from "@dougbot/client/lib/member-groups";
+import { type AgentColor, agentGradient, botDoAgente, corDoBot, DougBot } from "@dougbot/ui";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { lookOf } from "@/lib/look";

@@ -1,6 +1,6 @@
-import type { CardDelegate } from "@agenteschat/client";
-import { useUndoRightHand } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
+import type { CardDelegate } from "@dougbot/client";
+import { useUndoRightHand } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/providers/org";

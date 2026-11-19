@@ -22,9 +22,9 @@ import {
   CHROME_NEEDED,
   CHROMIUM_LINUX,
   CHROMIUM_NEEDED,
-} from "@agenteschat/adapters/machine-protocol";
-import { lastLine, REQUIREMENTS as SETUP_REQUIREMENTS } from "@agenteschat/setup/src/lib";
-import { TERM_SH } from "@agenteschat/setup/src/term-sh";
+} from "@dougbot/adapters/machine-protocol";
+import { lastLine, REQUIREMENTS as SETUP_REQUIREMENTS } from "@dougbot/setup/src/lib";
+import { TERM_SH } from "@dougbot/setup/src/term-sh";
 import {
   expiredLinkScript,
   expiredLinkScriptPowerShell,
@@ -148,7 +148,7 @@ test("the install script quotes the server URL and is valid sh", () => {
   expect(script).toContain("grep -q '\"token\"'");
   expect(script).toContain("managedBy");
   expect(installScript("https://x.test/it's")).toContain("SERVER='https://x.test/it'\\''s'\n");
-  // The look of every agentes.chat command line, in sh (packages/setup/src/term-sh.ts).
+  // The look of every DougBot command line, in sh (packages/setup/src/term-sh.ts).
   expect(script).toContain(`\n${TERM_SH}`);
   if (process.platform !== "win32") {
     const check = spawnSync("sh", ["-n"], { input: script, encoding: "utf8" });

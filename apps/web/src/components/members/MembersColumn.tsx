@@ -1,17 +1,17 @@
-import type { Agent, Channel, Member } from "@agenteschat/client";
-import { agentStateIn, useChannels, useRoles } from "@agenteschat/client";
-import { WORK_TICK_MS, workLine, workLineText } from "@agenteschat/client/lib/agent-work";
-import { ErrorBoundary } from "@agenteschat/client/lib/error-boundary";
-import { relativeTime } from "@agenteschat/client/lib/format";
-import { memberGroups } from "@agenteschat/client/lib/member-groups";
+import type { Agent, Channel, Member } from "@dougbot/client";
+import { agentStateIn, useChannels, useRoles } from "@dougbot/client";
+import { WORK_TICK_MS, workLine, workLineText } from "@dougbot/client/lib/agent-work";
+import { ErrorBoundary } from "@dougbot/client/lib/error-boundary";
+import { relativeTime } from "@dougbot/client/lib/format";
+import { memberGroups } from "@dougbot/client/lib/member-groups";
 import {
   agentFaceWord,
   agentMemberLine,
   agentStatusShort,
   agentWhyKey,
   isOutOfOffice,
-} from "@agenteschat/client/lib/presence";
-import { Avatar, Button, Icon, matchesWords, OPEN_LAYER, PixelSpinner, RoleMark, SearchField } from "@agenteschat/ui";
+} from "@dougbot/client/lib/presence";
+import { Avatar, Button, Icon, matchesWords, OPEN_LAYER, PixelSpinner, RoleMark, SearchField } from "@dougbot/ui";
 import { type KeyboardEvent, type TouchEvent, useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";

@@ -40,7 +40,7 @@ export const companyRequests = pgTable(
     interests: text().array().notNull().default([]),
     /** Their words, in a field of its own: what the form doesn't ask. */
     message: text().notNull().default(""),
-    /** The page's language (a code of `@agenteschat/i18n/locale`). */
+    /** The page's language (a code of `@dougbot/i18n/locale`). */
     locale: text().notNull().default("en"),
     /** Where it came from ("companies", the page). */
     source: text().notNull().default("companies"),

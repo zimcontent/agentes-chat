@@ -10,7 +10,7 @@
  * (`entity_profile`). A text crosses into a workspace unless it names something of another workspace of the group
  * that this one doesn't know as well.
  */
-import { and, type Database, eq, inArray, isNull, rowsOf, schema, sql } from "@agenteschat/db";
+import { and, type Database, eq, inArray, isNull, rowsOf, schema, sql } from "@dougbot/db";
 import { recordAudit } from "./audit";
 import { CRAFT_KINDS } from "./context/items";
 import { ForbiddenError, NotFoundError, ValidationError } from "./errors";

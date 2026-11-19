@@ -1,4 +1,4 @@
-import type { Agent } from "@agenteschat/client";
+import type { Agent } from "@dougbot/client";
 import {
   addDm,
   useAgentAccess,
@@ -8,17 +8,17 @@ import {
   useProposals,
   useRuns,
   useTeam,
-} from "@agenteschat/client";
-import { levelsOf, resourcesOf } from "@agenteschat/client/lib/access-levels";
-import { workLine } from "@agenteschat/client/lib/agent-work";
-import { formatPercent, formatTime } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { can } from "@agenteschat/client/lib/permissions";
-import { usageShown } from "@agenteschat/client/lib/plan-usage";
-import { agentFaceWord, agentStatusText } from "@agenteschat/client/lib/presence";
-import { pendingOnAgent } from "@agenteschat/client/lib/proposals";
-import { supervisorOf } from "@agenteschat/client/lib/team-views";
-import { excerpt } from "@agenteschat/client/lib/text";
+} from "@dougbot/client";
+import { levelsOf, resourcesOf } from "@dougbot/client/lib/access-levels";
+import { workLine } from "@dougbot/client/lib/agent-work";
+import { formatPercent, formatTime } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { can } from "@dougbot/client/lib/permissions";
+import { usageShown } from "@dougbot/client/lib/plan-usage";
+import { agentFaceWord, agentStatusText } from "@dougbot/client/lib/presence";
+import { pendingOnAgent } from "@dougbot/client/lib/proposals";
+import { supervisorOf } from "@dougbot/client/lib/team-views";
+import { excerpt } from "@dougbot/client/lib/text";
 import {
   BrainIcon,
   Button,
@@ -31,8 +31,8 @@ import {
   MenuItem,
   Meter,
   ProviderLogo,
-} from "@agenteschat/ui";
-import { planState } from "@agenteschat/ui/plan-state";
+} from "@dougbot/ui";
+import { planState } from "@dougbot/ui/plan-state";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useState } from "react";

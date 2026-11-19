@@ -1,16 +1,16 @@
-import { instanceQuery, useAuthConfig, useMe } from "@agenteschat/client";
-import { mayAsk } from "@agenteschat/client/lib/audience";
-import { setDraftFor } from "@agenteschat/client/lib/drafts";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { rightHandOf } from "@agenteschat/client/lib/right-hand";
+import { instanceQuery, useAuthConfig, useMe } from "@dougbot/client";
+import { mayAsk } from "@dougbot/client/lib/audience";
+import { setDraftFor } from "@dougbot/client/lib/drafts";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { rightHandOf } from "@dougbot/client/lib/right-hand";
 import {
   type SupportDraftWords,
   supportCameFrom,
   supportContactOf,
   supportDraft,
   whatsAppHref,
-} from "@agenteschat/client/lib/support";
-import { Button, Card, CardHeader, Icon } from "@agenteschat/ui";
+} from "@dougbot/client/lib/support";
+import { Button, Card, CardHeader, Icon } from "@dougbot/ui";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";

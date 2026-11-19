@@ -1,9 +1,9 @@
 import { afterEach, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
-import { createFakeComposioClient, createFakeErrorReporter, createFakeMailConnector } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import { type McpConnect, mcpPreset } from "@agenteschat/engine";
+import { createFakeComposioClient, createFakeErrorReporter, createFakeMailConnector } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import { type McpConnect, mcpPreset } from "@dougbot/engine";
 import { browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 
 let t: TestServer;

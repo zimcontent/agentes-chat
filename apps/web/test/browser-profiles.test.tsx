@@ -1,10 +1,10 @@
 import { afterEach, expect, test } from "bun:test";
-import type { BrowserProfile } from "@agenteschat/client";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import type { BrowserProfile } from "@dougbot/client";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { ApiError } from "@agenteschat/client";
+import { ApiError } from "@dougbot/client";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { ADA_ID, ATLAS_ID, createFakeApi, fakeBrowserOf, fakeMachinesOf, ORG_ID, seedState } from "./fake-api";
 import { renderApp, screen, settle } from "./render";

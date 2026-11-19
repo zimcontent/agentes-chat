@@ -1,8 +1,8 @@
-import type { DeviceAudience } from "@agenteschat/client";
-import { useRoles } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { firstName } from "@agenteschat/client/lib/format";
-import { isEveryone, sortRoles } from "@agenteschat/client/lib/roles";
+import type { DeviceAudience } from "@dougbot/client";
+import { useRoles } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { firstName } from "@dougbot/client/lib/format";
+import { isEveryone, sortRoles } from "@dougbot/client/lib/roles";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, StyleSheet } from "react-native";

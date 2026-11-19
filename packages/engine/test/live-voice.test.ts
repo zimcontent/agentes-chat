@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { userTopic } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import { LIVE_VOICE_NANO_USD_PER_SECOND, liveVoiceFor } from "@agenteschat/providers/live-voice";
+import { userTopic } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import { LIVE_VOICE_NANO_USD_PER_SECOND, liveVoiceFor } from "@dougbot/providers/live-voice";
 import {
   addLiveLines,
   askFromLiveRoom,

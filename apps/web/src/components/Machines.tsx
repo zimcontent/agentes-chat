@@ -1,4 +1,4 @@
-import type { Machine, MachineAccessReduce, MachinePause, MachineToolName } from "@agenteschat/client";
+import type { Machine, MachineAccessReduce, MachinePause, MachineToolName } from "@dougbot/client";
 import {
   profilesApply,
   useAgents,
@@ -9,10 +9,10 @@ import {
   useMachineAction,
   useMachines,
   useReduceMachineAccess,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { clockAt, joinNames, relativeTime } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { clockAt, joinNames, relativeTime } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
 import {
   allowedFolders,
   allowsInApp,
@@ -26,10 +26,10 @@ import {
   machineTitle,
   sharedFolderFacts,
   sharedFolderOf,
-} from "@agenteschat/client/lib/machines";
-import { can } from "@agenteschat/client/lib/permissions";
-import { type Seat, SHARED_SEAT } from "@agenteschat/client/lib/seat";
-import { SeatContext, useSeat } from "@agenteschat/client/lib/seat-context";
+} from "@dougbot/client/lib/machines";
+import { can } from "@dougbot/client/lib/permissions";
+import { type Seat, SHARED_SEAT } from "@dougbot/client/lib/seat";
+import { SeatContext, useSeat } from "@dougbot/client/lib/seat-context";
 import {
   AvatarStack,
   Button,
@@ -51,7 +51,7 @@ import {
   MenuItem,
   MenuSeparator,
   ProviderLogo,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
 import { type ReactNode, useEffect, useMemo, useState } from "react";
@@ -345,7 +345,7 @@ function RemoveDialog({
 }
 
 /**
- * Configurações → Computadores, first: this server's computer (`HOST_COMPUTER_TOKEN`), the machine agentes.chat
+ * Configurações → Computadores, first: this server's computer (`HOST_COMPUTER_TOKEN`), the machine DougBot
  * is installed on. An admin who stopped it here can use it again; with none, admins read how to make it one,
  * but only while sign-up is closed (with open sign-up the server refuses one).
  */

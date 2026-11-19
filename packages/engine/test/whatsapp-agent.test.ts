@@ -6,8 +6,8 @@ import {
   DEFAULT_VOICE_OUT,
   GEMINI_ROUTE_PROTOCOL,
   ROUTE_LIMITS,
-} from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   answerWhatsAppChat,
   createWhatsAppAccount,

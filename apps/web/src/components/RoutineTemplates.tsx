@@ -1,13 +1,13 @@
-import { useCatalog, useConnections, useCustomServers } from "@agenteschat/client";
-import { connectedItems } from "@agenteschat/client/lib/connected";
+import { useCatalog, useConnections, useCustomServers } from "@dougbot/client";
+import { connectedItems } from "@dougbot/client/lib/connected";
 import {
   noAppWorks,
   type RoutineTemplateArea,
   type RoutineTemplateOption,
   routineTemplateOptions,
-} from "@agenteschat/client/lib/routine-templates";
-import { Field, Icon, type IconName, SearchSelect, type SelectOption } from "@agenteschat/ui";
-import { matchesWords } from "@agenteschat/ui/search";
+} from "@dougbot/client/lib/routine-templates";
+import { Field, Icon, type IconName, SearchSelect, type SelectOption } from "@dougbot/ui";
+import { matchesWords } from "@dougbot/ui/search";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";

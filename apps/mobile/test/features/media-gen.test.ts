@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { type MediaModel, mediaModeSpec, NO_MEDIA_FILES } from "@agenteschat/client";
+import { type MediaModel, mediaModeSpec, NO_MEDIA_FILES } from "@dougbot/client";
 import {
   aspectRatioOf,
   brandLogoId,

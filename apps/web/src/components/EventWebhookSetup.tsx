@@ -4,16 +4,16 @@ import {
   useWebhookSetup,
   useWebhookSetupAction,
   type WebhookProvider,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import {
   FRAMEIO_WEBHOOKS_PAGE,
   githubHookLink,
   SENTRY_NEW_INTEGRATION,
   WEBHOOK_PROVIDER_NAMES,
   webhookTestState,
-} from "@agenteschat/client/lib/routine-webhooks";
-import { Button, Field, Icon, Input, SearchSelect, Spinner } from "@agenteschat/ui";
+} from "@dougbot/client/lib/routine-webhooks";
+import { Button, Field, Icon, Input, SearchSelect, Spinner } from "@dougbot/ui";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AskAdminButton } from "@/components/AdminAsk";

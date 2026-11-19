@@ -17905,7 +17905,7 @@
   },
   "gallery": {
     "title": "Komponentengalerie",
-    "subtitle": "Nur für die Entwicklung: die Komponenten von @agenteschat/ui."
+    "subtitle": "Nur für die Entwicklung: die Komponenten von @dougbot/ui."
   },
   "format": {
     "list": "{{names, list}}",

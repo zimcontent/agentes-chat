@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { sealSecret, secretAad } from "@agenteschat/adapters";
-import { asc, eq, inArray, ne, schema, sql } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
-import { systemText } from "@agenteschat/providers";
-import type { FakeReply } from "@agenteschat/providers/testing";
+import { sealSecret, secretAad } from "@dougbot/adapters";
+import { asc, eq, inArray, ne, schema, sql } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
+import { systemText } from "@dougbot/providers";
+import type { FakeReply } from "@dougbot/providers/testing";
 import {
   type AgentRun,
   answerNow,

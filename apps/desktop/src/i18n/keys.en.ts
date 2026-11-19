@@ -1,4 +1,4 @@
-import type { Widen } from "@agenteschat/i18n/widen";
+import type { Widen } from "@dougbot/i18n/widen";
 
 /** The desktop app's own strings in English, the source: every other language follows this shape. */
 export const desktopEn = {
@@ -664,7 +664,7 @@ export const desktopEn = {
       /** Behind the ⓘ while WEBKIT_DISABLE_DMABUF_RENDERER was set when the app started: the switch can't change it. */
       compatOwn:
         "WEBKIT_DISABLE_DMABUF_RENDERER decides this now. To choose here, quit the app and open it without that variable.",
-      /** Asked before Reopen now while agents work on this computer or agentes.chat runs here. */
+      /** Asked before Reopen now while agents work on this computer or DougBot runs here. */
       reopenTitle: "Reopen agentes.chat?",
       reopenBody: "Agents can't use this computer until the app opens again. What is already running finishes first.",
     },

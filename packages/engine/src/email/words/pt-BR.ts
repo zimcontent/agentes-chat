@@ -1,4 +1,4 @@
-import { plural } from "@agenteschat/i18n/format";
+import { plural } from "@dougbot/i18n/format";
 import { atHost, sentences, type Words } from "./en";
 
 export const ptBR: Words = {

@@ -1,4 +1,4 @@
-import { clipWhole } from "@agenteschat/ui/clip";
+import { clipWhole } from "@dougbot/ui/clip";
 import { type MessageMedia, mediaOf } from "./media";
 
 /** `meta.voice` of a message (ADR 0100): all the apps need to draw and play it. */

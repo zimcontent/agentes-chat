@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { asc, eq, schema } from "@agenteschat/db";
-import { systemText } from "@agenteschat/providers";
+import { asc, eq, schema } from "@dougbot/db";
+import { systemText } from "@dougbot/providers";
 import {
   buildRunContext,
   createAgent,

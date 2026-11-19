@@ -1,10 +1,10 @@
 import { afterAll, afterEach, beforeAll, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
 import { join } from "node:path";
-import type { AiAccounts, AiComputer, PlanUsage } from "@agenteschat/client";
+import type { AiAccounts, AiComputer, PlanUsage } from "@dougbot/client";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { toggleSidebar } from "@/components/Sidebar";
 import { declarations, topLevel } from "./built-css";

@@ -8,9 +8,9 @@ import {
   PRIVATE_KEY,
   redactCommon,
   SIGNED_SHAPES,
-} from "@agenteschat/adapters";
-import { and, type Database, eq, isNull, schema } from "@agenteschat/db";
-import { clipText } from "@agenteschat/ui/widgets/spec";
+} from "@dougbot/adapters";
+import { and, type Database, eq, isNull, schema } from "@dougbot/db";
+import { clipText } from "@dougbot/ui/widgets/spec";
 
 const MAX = 80;
 

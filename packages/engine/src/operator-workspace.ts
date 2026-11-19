@@ -1,19 +1,5 @@
-import { isObject } from "@agenteschat/adapters";
-import {
-  and,
-  count,
-  type Database,
-  desc,
-  eq,
-  gt,
-  gte,
-  inArray,
-  isNull,
-  lt,
-  type SQL,
-  schema,
-  sql,
-} from "@agenteschat/db";
+import { isObject } from "@dougbot/adapters";
+import { and, count, type Database, desc, eq, gt, gte, inArray, isNull, lt, type SQL, schema, sql } from "@dougbot/db";
 import { AUDIENCE_MODES } from "./audience";
 import { connectorKeyOf } from "./connector-usage";
 import { CUSTOM_PREFIX } from "./connectors/custom";

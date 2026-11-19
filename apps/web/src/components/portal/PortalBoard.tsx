@@ -1,12 +1,6 @@
-import type {
-  PortalBoard as Board,
-  PortalCard,
-  PortalCardReview,
-  PortalCardState,
-  PortalItem,
-} from "@agenteschat/client";
-import { useDeletePortalCard, useMovePortalCardAcross, useMovePortalCardState } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
+import type { PortalBoard as Board, PortalCard, PortalCardReview, PortalCardState, PortalItem } from "@dougbot/client";
+import { useDeletePortalCard, useMovePortalCardAcross, useMovePortalCardState } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
 import {
   PORTAL_BOARD_COLUMNS,
   PORTAL_STATUS_LOOK,
@@ -15,7 +9,7 @@ import {
   portalMovedAcross,
   portalScheduling,
   portalWhen,
-} from "@agenteschat/client/lib/portal";
+} from "@dougbot/client/lib/portal";
 import {
   Button,
   Chip,
@@ -27,7 +21,7 @@ import {
   Menu,
   MenuItem,
   MenuSeparator,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

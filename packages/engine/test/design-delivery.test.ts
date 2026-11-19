@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { ApprovalPortal, PortalJob } from "@agenteschat/adapters";
-import { and, desc, eq, schema } from "@agenteschat/db";
+import type { ApprovalPortal, PortalJob } from "@dougbot/adapters";
+import { and, desc, eq, schema } from "@dougbot/db";
 import {
   afterApproveOf,
   createFileArtifact,

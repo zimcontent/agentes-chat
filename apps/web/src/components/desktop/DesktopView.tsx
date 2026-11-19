@@ -1,4 +1,4 @@
-import type { DesktopMode, DesktopViewState, Edition, Machine } from "@agenteschat/client";
+import type { DesktopMode, DesktopViewState, Edition, Machine } from "@dougbot/client";
 import {
   ApiError,
   askControlWords,
@@ -12,11 +12,11 @@ import {
   handoffWantsWords,
   useBrowserHandoffMutations,
   useDesktopStatus,
-} from "@agenteschat/client";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { quoteExcerpt } from "@agenteschat/client/lib/reply";
-import { useSeat } from "@agenteschat/client/lib/seat-context";
-import { Button, cx, Icon, InfoHint } from "@agenteschat/ui";
+} from "@dougbot/client";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { quoteExcerpt } from "@dougbot/client/lib/reply";
+import { useSeat } from "@dougbot/client/lib/seat-context";
+import { Button, cx, Icon, InfoHint } from "@dougbot/ui";
 import type RFB from "@novnc/novnc";
 import { type ReactNode, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

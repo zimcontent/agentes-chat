@@ -1,5 +1,5 @@
-import { type SectorName, useSectorPills, useShowSectorCard } from "@agenteschat/client";
-import { Button } from "@agenteschat/ui";
+import { type SectorName, useSectorPills, useShowSectorCard } from "@dougbot/client";
+import { Button } from "@dougbot/ui";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";
 import { useToast } from "@/lib/toast";

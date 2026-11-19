@@ -1,6 +1,6 @@
-import { useLegalFacts } from "@agenteschat/client";
-import { headingId, parseMarkdown } from "@agenteschat/client/lib/markdown";
-import { Alert, Logo, Select, Skeleton, SkeletonGroup } from "@agenteschat/ui";
+import { useLegalFacts } from "@dougbot/client";
+import { headingId, parseMarkdown } from "@dougbot/client/lib/markdown";
+import { Alert, Logo, Select, Skeleton, SkeletonGroup } from "@dougbot/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";

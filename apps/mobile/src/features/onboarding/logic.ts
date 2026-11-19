@@ -6,11 +6,11 @@ import {
   type DougTemplateMember,
   type TeamTemplate,
   type WorkspaceMode,
-} from "@agenteschat/client";
-import { knownErrorText } from "@agenteschat/client/lib/errors";
-import type { RailStep } from "@agenteschat/client/lib/onboarding";
-import { platformZoneName } from "@agenteschat/client/lib/routines";
-import { webmailOf } from "@agenteschat/client/lib/text";
+} from "@dougbot/client";
+import { knownErrorText } from "@dougbot/client/lib/errors";
+import type { RailStep } from "@dougbot/client/lib/onboarding";
+import { platformZoneName } from "@dougbot/client/lib/routines";
+import { webmailOf } from "@dougbot/client/lib/text";
 import type { TFunction } from "i18next";
 
 /**
@@ -18,7 +18,7 @@ import type { TFunction } from "i18next";
  * right hand; then its DM (ADR 0137). Pure: no React Native imports.
  */
 
-/** The two answers to "What will you use agentes.chat for?" (ADR 0159), in this order. */
+/** The two answers to "What will you use DougBot for?" (ADR 0159), in this order. */
 export const PURPOSES = ["personal", "team"] as const satisfies readonly WorkspaceMode[];
 
 /**

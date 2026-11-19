@@ -5,8 +5,8 @@ import type {
   LineWidgetSpec,
   ListWidgetSpec,
   TextWidgetSpec,
-} from "@agenteschat/client";
-import { widgetCardStatus } from "@agenteschat/client";
+} from "@dougbot/client";
+import { widgetCardStatus } from "@dougbot/client";
 import { LinearGradient } from "expo-linear-gradient";
 import { createContext, type ReactNode, useContext, useState } from "react";
 import { useTranslation } from "react-i18next";

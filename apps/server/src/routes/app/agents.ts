@@ -98,9 +98,9 @@ import {
   useDougTeam,
   useTeamTemplate,
   ValidationError,
-} from "@agenteschat/engine";
-import { contextWindowOf, nanoUsdToUsd, pricesAt, usdToNanoUsd } from "@agenteschat/providers";
-import { learnedPlanModels } from "@agenteschat/providers/plans";
+} from "@dougbot/engine";
+import { contextWindowOf, nanoUsdToUsd, pricesAt, usdToNanoUsd } from "@dougbot/providers";
+import { learnedPlanModels } from "@dougbot/providers/plans";
 import { createRoute, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
 import { bodyLimit } from "hono/body-limit";
@@ -467,7 +467,7 @@ export function agentRoutes(deps: AppDeps) {
             defaultModel: z.string().openapi({ description: "What a new agent gets when no model is chosen: `auto`." }),
             planModels: z.record(z.string(), z.array(PlanModelOut)).openapi({
               description:
-                "The coding plans whose makers' public lists this server has read, by plan id: their models now. A plan not here goes by the table in `@agenteschat/providers/plans`.",
+                "The coding plans whose makers' public lists this server has read, by plan id: their models now. A plan not here goes by the table in `@dougbot/providers/plans`.",
             }),
           }),
         ),
@@ -2328,7 +2328,7 @@ export function agentRoutes(deps: AppDeps) {
             brain: BrainKind.optional(),
             model: z.string().max(80).nullable().optional().openapi({
               description:
-                "Claude Code: `opus`, `sonnet`, `haiku`, a Claude model id or one of a coding plan's models by id (`@agenteschat/providers/plans`; another account runs `sonnet` for it); Codex: a model name; `auto` (each run picks the tier). Null = the brain's default; omitted = keep (reset when the brain changes).",
+                "Claude Code: `opus`, `sonnet`, `haiku`, a Claude model id or one of a coding plan's models by id (`@dougbot/providers/plans`; another account runs `sonnet` for it); Codex: a model name; `auto` (each run picks the tier). Null = the brain's default; omitted = keep (reset when the brain changes).",
             }),
             fallback: z.boolean().optional(),
             extraUsage: z.boolean().optional().openapi({

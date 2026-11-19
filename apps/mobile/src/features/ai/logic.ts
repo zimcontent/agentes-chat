@@ -7,7 +7,7 @@ import type {
   MachineAccount,
   MachineAccountKind,
   PlanUsage,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   type AccountChoice,
   accountAbout,
@@ -17,16 +17,16 @@ import {
   lendable,
   ownSignInLower,
   signInOf,
-} from "@agenteschat/client/lib/ai-accounts";
-import { thinksWith } from "@agenteschat/client/lib/brain";
-import { type Advanced, advancedDefaults } from "@agenteschat/client/lib/brain-advanced";
-import { type ModelRow, modelInput, modelRows } from "@agenteschat/client/lib/brain-picker";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { aiChoiceOf, gateRechecks, type PlanChoice, type PlanGate, planOfAccount } from "@agenteschat/client/lib/no-ai";
-import { planWord } from "@agenteschat/client/lib/plan-usage";
-import { brainPlan } from "@agenteschat/client/lib/plans";
-import { AUTO, isAuto, keyLine } from "@agenteschat/client/lib/providers";
-import { planState } from "@agenteschat/ui/plan-state";
+} from "@dougbot/client/lib/ai-accounts";
+import { thinksWith } from "@dougbot/client/lib/brain";
+import { type Advanced, advancedDefaults } from "@dougbot/client/lib/brain-advanced";
+import { type ModelRow, modelInput, modelRows } from "@dougbot/client/lib/brain-picker";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { aiChoiceOf, gateRechecks, type PlanChoice, type PlanGate, planOfAccount } from "@dougbot/client/lib/no-ai";
+import { planWord } from "@dougbot/client/lib/plan-usage";
+import { brainPlan } from "@dougbot/client/lib/plans";
+import { AUTO, isAuto, keyLine } from "@dougbot/client/lib/providers";
+import { planState } from "@dougbot/ui/plan-state";
 import type { TFunction } from "i18next";
 
 /*

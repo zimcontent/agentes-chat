@@ -17301,7 +17301,7 @@
   },
   "gallery": {
     "title": "컴포넌트 갤러리",
-    "subtitle": "개발 전용: @agenteschat/ui 컴포넌트예요."
+    "subtitle": "개발 전용: @dougbot/ui 컴포넌트예요."
   },
   "format": {
     "list": "{{names, list}}",

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { RunnerPhone } from "@agenteschat/adapters/machine-protocol";
-import type { ControlIphoneSetup } from "@agenteschat/adapters/runner-control";
+import type { RunnerPhone } from "@dougbot/adapters/machine-protocol";
+import type { ControlIphoneSetup } from "@dougbot/adapters/runner-control";
 import {
   androidStepsUrl,
   deviceServer,

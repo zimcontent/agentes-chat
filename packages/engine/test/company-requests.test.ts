@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { type Database, eq, schema } from "@agenteschat/db";
-import { createTestDatabase } from "@agenteschat/db/testing";
+import { type Database, eq, schema } from "@dougbot/db";
+import { createTestDatabase } from "@dougbot/db/testing";
 import {
   COMPANY_CONFIRM_TTL_MS,
   COMPANY_MAX_SENDS,

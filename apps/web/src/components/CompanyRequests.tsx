@@ -1,4 +1,4 @@
-import type { CompanyRequest, CompanyRequestStatus } from "@agenteschat/client";
+import type { CompanyRequest, CompanyRequestStatus } from "@dougbot/client";
 import {
   COMPANY_REQUEST_STATUSES,
   useCompanyRequests,
@@ -7,9 +7,9 @@ import {
   useSaveCompanyClientCode,
   useSaveCompanyNotes,
   useSetCompanyStatus,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { formatShortDate } from "@agenteschat/client/lib/format";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { formatShortDate } from "@dougbot/client/lib/format";
 import {
   Button,
   Card,
@@ -25,7 +25,7 @@ import {
   Segmented,
   Spinner,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/lib/toast";

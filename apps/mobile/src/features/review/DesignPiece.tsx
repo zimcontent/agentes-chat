@@ -1,6 +1,6 @@
-import { useApi } from "@agenteschat/client";
-import { editorPage, type FrameCommand, type FrameMessage } from "@agenteschat/client/lib/design-bridge";
-import { PAGE_SANDBOX } from "@agenteschat/client/lib/isolated-page";
+import { useApi } from "@dougbot/client";
+import { editorPage, type FrameCommand, type FrameMessage } from "@dougbot/client/lib/design-bridge";
+import { PAGE_SANDBOX } from "@dougbot/client/lib/isolated-page";
 import { useQuery } from "@tanstack/react-query";
 import { createElement, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";

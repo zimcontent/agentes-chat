@@ -1,6 +1,6 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
-import type { KeyWrapper, PubSub, ZimMedia } from "@agenteschat/adapters";
-import { and, type Database, eq, schema } from "@agenteschat/db";
+import type { KeyWrapper, PubSub, ZimMedia } from "@dougbot/adapters";
+import { and, type Database, eq, schema } from "@dougbot/db";
 import { getAgent } from "./agents";
 import { recordAudit } from "./audit";
 import { runPerson } from "./authority";

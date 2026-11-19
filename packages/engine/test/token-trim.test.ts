@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from "bun:test";
-import { MACHINE_PROTOCOL_VERSION, typingTopic } from "@agenteschat/adapters";
-import { asc, eq, schema } from "@agenteschat/db";
-import { createAnthropicProvider, type ModelMessage, type ModelRequest, systemText } from "@agenteschat/providers";
+import { MACHINE_PROTOCOL_VERSION, typingTopic } from "@dougbot/adapters";
+import { asc, eq, schema } from "@dougbot/db";
+import { createAnthropicProvider, type ModelMessage, type ModelRequest, systemText } from "@dougbot/providers";
 import {
   addChannelMember,
   type BrainTurn,

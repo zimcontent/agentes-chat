@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createMemoryRateLimiter } from "@agenteschat/adapters";
-import { and, eq, isNotNull, schema, sql } from "@agenteschat/db";
+import { createMemoryRateLimiter } from "@dougbot/adapters";
+import { and, eq, isNotNull, schema, sql } from "@dougbot/db";
 import {
   acceptInvitation,
   approveJoinRequest,

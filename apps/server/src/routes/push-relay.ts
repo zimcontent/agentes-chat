@@ -1,5 +1,5 @@
-import { PushError, type PushSender, type RateLimiter } from "@agenteschat/adapters";
-import type { Database } from "@agenteschat/db";
+import { PushError, type PushSender, type RateLimiter } from "@dougbot/adapters";
+import type { Database } from "@dougbot/db";
 import {
   authenticateRelayInstance,
   type RelayInstance,
@@ -7,7 +7,7 @@ import {
   registerRelayInstance,
   relaySend,
   ValidationError,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { type Context, Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { requestLimitIp } from "../http/client-ip";

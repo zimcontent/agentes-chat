@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { TaskQueueMove, TeamAgenda, TeamAgendaTask } from "@agenteschat/client";
-import { localDay } from "@agenteschat/client/lib/team-agenda";
+import type { TaskQueueMove, TeamAgenda, TeamAgendaTask } from "@dougbot/client";
+import { localDay } from "@dougbot/client/lib/team-agenda";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { ADA_ID, createFakeApi, ORG_ID, seedState } from "./fake-api";
 import { renderApp, screen, settle } from "./render";

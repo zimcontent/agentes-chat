@@ -1,7 +1,7 @@
-import type { MachineOs } from "@agenteschat/client";
-import { useMachines } from "@agenteschat/client";
-import { computerKind } from "@agenteschat/client/lib/machines";
-import { Button, Chip, ComputerIcon, Icon } from "@agenteschat/ui";
+import type { MachineOs } from "@dougbot/client";
+import { useMachines } from "@dougbot/client";
+import { computerKind } from "@dougbot/client/lib/machines";
+import { Button, Chip, ComputerIcon, Icon } from "@dougbot/ui";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

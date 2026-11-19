@@ -1,11 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import {
-  ACCESS_ALLOW_PROTOCOL,
-  BROWSER_PROFILE_PROTOCOL,
-  channelTopic,
-  type MachineRequest,
-} from "@agenteschat/adapters";
-import { and, eq, schema, sql } from "@agenteschat/db";
+import { ACCESS_ALLOW_PROTOCOL, BROWSER_PROFILE_PROTOCOL, channelTopic, type MachineRequest } from "@dougbot/adapters";
+import { and, eq, schema, sql } from "@dougbot/db";
 import {
   absorbBrowserCall,
   absorbToolData,

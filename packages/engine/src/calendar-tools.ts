@@ -1,4 +1,4 @@
-import { eq, schema } from "@agenteschat/db";
+import { eq, schema } from "@dougbot/db";
 import {
   agentEvents,
   type CalendarDeps,

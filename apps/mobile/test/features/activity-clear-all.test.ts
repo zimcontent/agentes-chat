@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
-import { canClearAll } from "@agenteschat/client/lib/notifications";
-import { soundForEvent } from "@agenteschat/client/lib/sounds";
+import { canClearAll } from "@dougbot/client/lib/notifications";
+import { soundForEvent } from "@dougbot/client/lib/sounds";
 import type { ActivityFilter } from "../../src/features/activity/logic";
 
 const src = (f: string) => readFileSync(new URL(`../../src/${f}`, import.meta.url), "utf8");

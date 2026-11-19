@@ -1,7 +1,7 @@
-import type { EmailSender } from "@agenteschat/adapters";
-import type { Database, Executor } from "@agenteschat/db";
-import { and, asc, desc, eq, inArray, schema, sql } from "@agenteschat/db";
-import { type AppLocale, appLocale, isAppLocale } from "@agenteschat/i18n/locale";
+import type { EmailSender } from "@dougbot/adapters";
+import type { Database, Executor } from "@dougbot/db";
+import { and, asc, desc, eq, inArray, schema, sql } from "@dougbot/db";
+import { type AppLocale, appLocale, isAppLocale } from "@dougbot/i18n/locale";
 import { clientLinkUrl } from "./approval-portal-clients";
 import { queueEmail } from "./email";
 import { can, getMembership } from "./organizations";

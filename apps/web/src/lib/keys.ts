@@ -1,4 +1,4 @@
-import { composes } from "@agenteschat/ui";
+import { composes } from "@dougbot/ui";
 
 /** The letter a shortcut names: the key's own letter, or on a layout without Latin letters its place on a US keyboard (as browsers do). */
 const letterOf = (e: KeyboardEvent) =>
@@ -50,7 +50,7 @@ const NOT_AIMED = /^(Tab|Escape|Shift|Control|Alt|AltGraph|Meta|Fn|CapsLock|NumL
 export const aimsAtScreen = (e: KeyboardEvent, apple: boolean) =>
   pastes(e, apple) || (!e.ctrlKey && !e.metaKey && !e.altKey && !composes(e) && !NOT_AIMED.test(e.key));
 
-export { composes, typingInField } from "@agenteschat/ui";
+export { composes, typingInField } from "@dougbot/ui";
 
 /** Whether the key landed in a text field that has something in it (not a checkbox or the like, which hold no text). */
 export const holdsText = (target: EventTarget | null) => {

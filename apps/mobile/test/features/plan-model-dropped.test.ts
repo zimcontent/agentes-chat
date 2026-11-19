@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { openTarget } from "@agenteschat/client/lib/notifications";
+import { openTarget } from "@dougbot/client/lib/notifications";
 import { notificationHref } from "../../src/features/links/logic";
 import { notification } from "./fixtures";
 

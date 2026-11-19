@@ -1,4 +1,4 @@
-import { PORTAL_FOCI, type PortalFocus } from "@agenteschat/client/lib/portal";
+import { PORTAL_FOCI, type PortalFocus } from "@dougbot/client/lib/portal";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useCallback } from "react";
 

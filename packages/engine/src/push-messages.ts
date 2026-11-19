@@ -9,8 +9,8 @@
  * approved from the notification.
  */
 
-import { type AppLocale, appLocale } from "@agenteschat/i18n/locale";
-import { clipWhole } from "@agenteschat/ui/clip";
+import { type AppLocale, appLocale } from "@dougbot/i18n/locale";
+import { clipWhole } from "@dougbot/ui/clip";
 import { pushStrings } from "./push/messages";
 
 export type PushLocale = AppLocale;

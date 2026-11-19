@@ -1,9 +1,9 @@
 import { afterEach, expect, test } from "bun:test";
-import { MACHINE_PROTOCOL_VERSION } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
-import { systemText } from "@agenteschat/providers";
-import type { FakeReply } from "@agenteschat/providers/testing";
+import { MACHINE_PROTOCOL_VERSION } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
+import { systemText } from "@dougbot/providers";
+import type { FakeReply } from "@dougbot/providers/testing";
 import {
   addChannelMember,
   archiveAgent,

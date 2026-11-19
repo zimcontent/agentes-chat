@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { createFakeEmailSender, EmailError } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { createFakeEmailSender, EmailError } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   createJobHandlers,
   defaultEmailFrom,

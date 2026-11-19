@@ -1,5 +1,5 @@
-import { readCapped } from "@agenteschat/adapters";
-import { CODING_PLANS, type CodingPlan, learnPlanModels, PLAN_IDS, readPlanModels } from "@agenteschat/providers/plans";
+import { readCapped } from "@dougbot/adapters";
+import { CODING_PLANS, type CodingPlan, learnPlanModels, PLAN_IDS, readPlanModels } from "@dougbot/providers/plans";
 
 const LIST_TIMEOUT_MS = 10_000;
 /** OpenCode Go's was 36 KB on 2026-11-06. */

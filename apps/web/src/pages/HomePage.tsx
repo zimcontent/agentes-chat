@@ -1,4 +1,4 @@
-import type { AppNotification, Mission, PortalItem, Routine } from "@agenteschat/client";
+import type { AppNotification, Mission, PortalItem, Routine } from "@dougbot/client";
 import {
   useAiStatus,
   useChannels,
@@ -11,11 +11,11 @@ import {
   useSetChatPrefs,
   useSetStart,
   useWorkingRuns,
-} from "@agenteschat/client";
-import { canTalk, listsAgent } from "@agenteschat/client/lib/audience";
-import { HOME_SECTIONS, type HomeSection } from "@agenteschat/client/lib/chat-look";
-import { firstName, relativeTime, timeLeft, upcomingAt } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
+} from "@dougbot/client";
+import { canTalk, listsAgent } from "@dougbot/client/lib/audience";
+import { HOME_SECTIONS, type HomeSection } from "@dougbot/client/lib/chat-look";
+import { firstName, relativeTime, timeLeft, upcomingAt } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
 import {
   HOME_ROWS,
   homeDone,
@@ -23,17 +23,17 @@ import {
   homeWaiting,
   homeWidgetFailures,
   upcomingRoutines,
-} from "@agenteschat/client/lib/home";
-import { latestText } from "@agenteschat/client/lib/message-body";
-import { waitingParts, waitingText } from "@agenteschat/client/lib/missions";
-import { allItems, waitingCardOf, widgetNoticeOf } from "@agenteschat/client/lib/notifications";
-import { can } from "@agenteschat/client/lib/permissions";
-import { portalClientName } from "@agenteschat/client/lib/portal";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
-import { dayPart } from "@agenteschat/client/lib/welcome";
-import { WORKING_POLL_MS, type WorkItem, workByAgent, workingNow } from "@agenteschat/client/lib/working";
-import { modeKey } from "@agenteschat/client/lib/workspace-mode";
-import { Button, EmptyState, GroupHeading, Icon, Menu, MenuCheckboxItem, PageHeader, Select } from "@agenteschat/ui";
+} from "@dougbot/client/lib/home";
+import { latestText } from "@dougbot/client/lib/message-body";
+import { waitingParts, waitingText } from "@dougbot/client/lib/missions";
+import { allItems, waitingCardOf, widgetNoticeOf } from "@dougbot/client/lib/notifications";
+import { can } from "@dougbot/client/lib/permissions";
+import { portalClientName } from "@dougbot/client/lib/portal";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
+import { dayPart } from "@dougbot/client/lib/welcome";
+import { WORKING_POLL_MS, type WorkItem, workByAgent, workingNow } from "@dougbot/client/lib/working";
+import { modeKey } from "@dougbot/client/lib/workspace-mode";
+import { Button, EmptyState, GroupHeading, Icon, Menu, MenuCheckboxItem, PageHeader, Select } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";

@@ -1,6 +1,6 @@
-import { type ManagedTask, useContinueTasks } from "@agenteschat/client";
-import { type TaskWaitGroup, taskTime, taskWaitGroups, taskWaitGroupText } from "@agenteschat/client/lib/task-manager";
-import type { AgentColorName } from "@agenteschat/ui/agent/engine";
+import { type ManagedTask, useContinueTasks } from "@dougbot/client";
+import { type TaskWaitGroup, taskTime, taskWaitGroups, taskWaitGroupText } from "@dougbot/client/lib/task-manager";
+import type { AgentColorName } from "@dougbot/ui/agent/engine";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react-native";

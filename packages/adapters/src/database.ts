@@ -110,7 +110,7 @@ const ROLLBACK = Symbol("rollback");
 const ONE_STATEMENT: postgres.UnsafeQueryOptions & { simple: boolean } = { simple: false };
 
 /**
- * postgres.js: a small pool per connection (2 sockets, closed after 5 minutes idle), `application_name = agentes.chat`.
+ * postgres.js: a small pool per connection (2 sockets, closed after 5 minutes idle), `application_name = DougBot`.
  * `connect` stands in for postgres.js in tests.
  */
 export function createPostgresDatabaseDriver(

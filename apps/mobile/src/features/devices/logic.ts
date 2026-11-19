@@ -6,9 +6,9 @@ import type {
   DevicesList,
   MachineTool,
   PhoneDevice,
-} from "@agenteschat/client";
-import { firstName, namesText } from "@agenteschat/client/lib/format";
-import { computerKind, toolWords } from "@agenteschat/client/lib/machines";
+} from "@dougbot/client";
+import { firstName, namesText } from "@dougbot/client/lib/format";
+import { computerKind, toolWords } from "@dougbot/client/lib/machines";
 import type { TFunction } from "i18next";
 import type { ComputerState, PortraitKind } from "@/computer/cells";
 import type { IconName } from "@/ui";

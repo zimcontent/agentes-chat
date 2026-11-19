@@ -1,5 +1,5 @@
-import type { PlanUsage } from "@agenteschat/client";
-import { planModelUsage } from "@agenteschat/client/lib/plan-usage";
+import type { PlanUsage } from "@dougbot/client";
+import { planModelUsage } from "@dougbot/client/lib/plan-usage";
 import { useTranslation } from "react-i18next";
 import "./plan-models.css";
 

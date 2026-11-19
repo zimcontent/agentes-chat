@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { RunnerAccountInfo } from "@agenteschat/adapters/machine-protocol";
-import type { ControlRequest } from "@agenteschat/adapters/runner-control";
+import type { RunnerAccountInfo } from "@dougbot/adapters/machine-protocol";
+import type { ControlRequest } from "@dougbot/adapters/runner-control";
 import {
   type AccountsRequest,
   accountsOf,

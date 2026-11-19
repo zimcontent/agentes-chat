@@ -6,19 +6,13 @@ import {
   useMessages,
   useSetAgentStyle,
   useTeamAnswered,
-} from "@agenteschat/client";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { aiStateOf, noAiCardOf } from "@agenteschat/client/lib/no-ai";
-import { can } from "@agenteschat/client/lib/permissions";
-import {
-  introCards,
-  introLeadKey,
-  isRightHand,
-  offersTeamSetup,
-  welcomeOpen,
-} from "@agenteschat/client/lib/right-hand";
-import { modeKey } from "@agenteschat/client/lib/workspace-mode";
-import { WAVE_SECONDS } from "@agenteschat/ui/agent/stickers";
+} from "@dougbot/client";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { aiStateOf, noAiCardOf } from "@dougbot/client/lib/no-ai";
+import { can } from "@dougbot/client/lib/permissions";
+import { introCards, introLeadKey, isRightHand, offersTeamSetup, welcomeOpen } from "@dougbot/client/lib/right-hand";
+import { modeKey } from "@dougbot/client/lib/workspace-mode";
+import { WAVE_SECONDS } from "@dougbot/ui/agent/stickers";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

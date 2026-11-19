@@ -1,19 +1,19 @@
-import { ApiError, type SignInOptions, type SignInProvider } from "@agenteschat/client";
+import { ApiError, type SignInOptions, type SignInProvider } from "@dougbot/client";
 import {
   EARLY_ACCESS_OTHER_EMAIL,
   knownErrorText,
   providerRefusalText,
   type RestrictionFacts,
   restrictionLine,
-} from "@agenteschat/client/lib/errors";
-import { earlyAccessHeaders, earlyAccessState } from "@agenteschat/client/lib/guards";
+} from "@dougbot/client/lib/errors";
+import { earlyAccessHeaders, earlyAccessState } from "@dougbot/client/lib/guards";
 import {
   type createHumanCheck,
   HUMAN_CHECK_BLOCKED,
   type HumanAction,
   isHumanCheckRefusal,
-} from "@agenteschat/client/lib/human-check";
-import { originOf } from "@agenteschat/client/lib/server";
+} from "@dougbot/client/lib/human-check";
+import { originOf } from "@dougbot/client/lib/server";
 import type { TFunction } from "i18next";
 
 /** Where Turnstile's script and its frame come from. */

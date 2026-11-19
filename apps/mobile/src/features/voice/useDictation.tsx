@@ -1,6 +1,6 @@
-import { keys, useApi } from "@agenteschat/client";
-import { VOICE_MAX_MS, VOICE_MIN_MS, voiceClock } from "@agenteschat/client/lib/voice";
-import { gradientOf, mixHex } from "@agenteschat/ui/agent/engine";
+import { keys, useApi } from "@dougbot/client";
+import { VOICE_MAX_MS, VOICE_MIN_MS, voiceClock } from "@dougbot/client/lib/voice";
+import { gradientOf, mixHex } from "@dougbot/ui/agent/engine";
 import { Skia } from "@shopify/react-native-skia";
 import { useQuery } from "@tanstack/react-query";
 import {

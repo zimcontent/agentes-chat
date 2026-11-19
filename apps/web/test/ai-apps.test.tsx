@@ -1,10 +1,10 @@
 import { afterEach, beforeAll, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { AuditRow, Message } from "@agenteschat/client";
-import { ApiError } from "@agenteschat/client";
+import type { AuditRow, Message } from "@dougbot/client";
+import { ApiError } from "@dougbot/client";
 import {
   APP_CLIENTS,
   claudeCodeCommand,
@@ -21,7 +21,7 @@ import {
   vscodeInstallLink,
   warpConfig,
   zedConfig,
-} from "@agenteschat/client/lib/app-clients";
+} from "@dougbot/client/lib/app-clients";
 import {
   appFacts,
   appMark,
@@ -30,11 +30,11 @@ import {
   consentErrorOf,
   consentErrorParam,
   tokenFacts,
-} from "@agenteschat/client/lib/apps";
-import { auditPhrase } from "@agenteschat/client/lib/audit";
-import { signInFor } from "@agenteschat/client/lib/guards";
-import { visibleText } from "@agenteschat/client/lib/text";
-import { appVia } from "@agenteschat/client/lib/via";
+} from "@dougbot/client/lib/apps";
+import { auditPhrase } from "@dougbot/client/lib/audit";
+import { signInFor } from "@dougbot/client/lib/guards";
+import { visibleText } from "@dougbot/client/lib/text";
+import { appVia } from "@dougbot/client/lib/via";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { createI18n } from "@/i18n";
 import { ADA_ID, createFakeApi, ENG_ID, type FakeState, fakeAppsOf, meWithRole, ORG_ID, seedState } from "./fake-api";

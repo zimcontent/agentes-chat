@@ -1,6 +1,6 @@
 import { describe, expect, setSystemTime, test } from "bun:test";
-import type { RunnerPhone } from "@agenteschat/adapters/machine-protocol";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import type { RunnerPhone } from "@dougbot/adapters/machine-protocol";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { EndedTask, ManagedTask } from "@agenteschat/client";
+import type { EndedTask, ManagedTask } from "@dougbot/client";
 import {
   causeWords,
   computerRoomText,
@@ -13,7 +13,7 @@ import {
   taskTitle,
   taskWaitGroups,
   taskWaitGroupText,
-} from "@agenteschat/client/lib/task-manager";
+} from "@dougbot/client/lib/task-manager";
 import {
   agentTasksHref,
   agentTasksOf,

@@ -1,6 +1,6 @@
-import type { PlanCard, PortalBoard, PortalCard, PortalItem, PortalPlan } from "@agenteschat/client";
-import { useMovePortalCardState } from "@agenteschat/client";
-import { portalScheduling, portalWhen } from "@agenteschat/client/lib/portal";
+import type { PlanCard, PortalBoard, PortalCard, PortalItem, PortalPlan } from "@dougbot/client";
+import { useMovePortalCardState } from "@dougbot/client";
+import { portalScheduling, portalWhen } from "@dougbot/client/lib/portal";
 import { type ComponentRef, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";

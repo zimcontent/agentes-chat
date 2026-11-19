@@ -6,14 +6,14 @@ import {
   useMemoryAction,
   useModelLabel,
   useRemoveApprovalRule,
-} from "@agenteschat/client";
-import { approvalRuleServer, approvalRuleWords } from "@agenteschat/client/lib/approval-words";
-import { seesDetails } from "@agenteschat/client/lib/audience";
-import { brainLine } from "@agenteschat/client/lib/brain";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { can } from "@agenteschat/client/lib/permissions";
-import { memoryLine } from "@agenteschat/client/lib/proposals";
-import { isRightHand, rightHandOf } from "@agenteschat/client/lib/right-hand";
+} from "@dougbot/client";
+import { approvalRuleServer, approvalRuleWords } from "@dougbot/client/lib/approval-words";
+import { seesDetails } from "@dougbot/client/lib/audience";
+import { brainLine } from "@dougbot/client/lib/brain";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { can } from "@dougbot/client/lib/permissions";
+import { memoryLine } from "@dougbot/client/lib/proposals";
+import { isRightHand, rightHandOf } from "@dougbot/client/lib/right-hand";
 import { Fragment, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, ScrollView, StyleSheet, View } from "react-native";

@@ -1,4 +1,4 @@
-import type { LiveSession, LiveSessionInput, LiveSessionStart } from "@agenteschat/client";
+import type { LiveSession, LiveSessionInput, LiveSessionStart } from "@dougbot/client";
 import { HouseLeg } from "./leg-house";
 
 /**

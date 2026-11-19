@@ -1,9 +1,9 @@
-import { type ArtifactSharing, useArtifact, useRoles, useSetArtifactSharing } from "@agenteschat/client";
-import { CONVERSATION_ONLY, isPrivateArtifact, toggledSharing } from "@agenteschat/client/lib/drive";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { joinNames } from "@agenteschat/client/lib/format";
-import { filePath } from "@agenteschat/client/lib/message-links";
-import { isEveryone, sortRoles } from "@agenteschat/client/lib/roles";
+import { type ArtifactSharing, useArtifact, useRoles, useSetArtifactSharing } from "@dougbot/client";
+import { CONVERSATION_ONLY, isPrivateArtifact, toggledSharing } from "@dougbot/client/lib/drive";
+import { errorText } from "@dougbot/client/lib/errors";
+import { joinNames } from "@dougbot/client/lib/format";
+import { filePath } from "@dougbot/client/lib/message-links";
+import { isEveryone, sortRoles } from "@dougbot/client/lib/roles";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, StyleSheet, View } from "react-native";

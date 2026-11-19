@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { connectLink, parseConnectLink, readInstance, type ServerCheck } from "@agenteschat/client/lib/server";
-import { LOCALES } from "@agenteschat/i18n/locale";
+import { connectLink, parseConnectLink, readInstance, type ServerCheck } from "@dougbot/client/lib/server";
+import { LOCALES } from "@dougbot/i18n/locale";
 import { menuBarShown } from "../src/control/dock";
 import {
   connectOutcome,

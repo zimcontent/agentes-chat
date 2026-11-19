@@ -1,5 +1,5 @@
-import { type Message, useIssue } from "@agenteschat/client";
-import { type HandedTask, handedTasksOf, type IssueWorkRef, issueTakenOf } from "@agenteschat/client/lib/issues";
+import { type Message, useIssue } from "@dougbot/client";
+import { type HandedTask, handedTasksOf, type IssueWorkRef, issueTakenOf } from "@dougbot/client/lib/issues";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";
 import { EventPill, Icon, Text } from "@/ui";

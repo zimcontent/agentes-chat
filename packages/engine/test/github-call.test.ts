@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { generateKeyPairSync } from "node:crypto";
-import { schema } from "@agenteschat/db";
+import { schema } from "@dougbot/db";
 import {
   appPermissionsFor,
   CONNECTOR_CATALOG,

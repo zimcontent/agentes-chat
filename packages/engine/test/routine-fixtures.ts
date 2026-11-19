@@ -1,4 +1,4 @@
-import { eq, schema } from "@agenteschat/db";
+import { eq, schema } from "@dougbot/db";
 import { createRoutine, executeRoutineRun, queueRoutineRun, type RoutineInput } from "../src";
 import type { Fixture } from "./fixtures";
 

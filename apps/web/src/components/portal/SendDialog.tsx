@@ -1,6 +1,6 @@
-import type { PortalCard, PortalCardFile, PortalJob, PortalType } from "@agenteschat/client";
-import { usePortalJob, useSendForApproval } from "@agenteschat/client";
-import { previewKindOfName } from "@agenteschat/client/lib/files";
+import type { PortalCard, PortalCardFile, PortalJob, PortalType } from "@dougbot/client";
+import { usePortalJob, useSendForApproval } from "@dougbot/client";
+import { previewKindOfName } from "@dougbot/client/lib/files";
 import {
   PORTAL_SEND_FILES,
   PORTAL_TYPES,
@@ -9,7 +9,7 @@ import {
   portalLink,
   portalSendProblem,
   portalSendType,
-} from "@agenteschat/client/lib/portal";
+} from "@dougbot/client/lib/portal";
 import {
   Button,
   Chip,
@@ -23,7 +23,7 @@ import {
   PixelSpinner,
   Select,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

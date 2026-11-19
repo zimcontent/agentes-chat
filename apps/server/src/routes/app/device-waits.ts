@@ -1,4 +1,4 @@
-import { afterDeviceAccessDecided, decideDeviceAccess, deviceWaitAction, firstNames } from "@agenteschat/engine";
+import { afterDeviceAccessDecided, decideDeviceAccess, deviceWaitAction, firstNames } from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { type AppDeps, body, createAppRouter, errors, noContent, OrgParams, requireSession, security } from "./context";
 

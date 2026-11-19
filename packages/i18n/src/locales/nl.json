@@ -17963,7 +17963,7 @@
   },
   "gallery": {
     "title": "Componentengalerij",
-    "subtitle": "Alleen voor ontwikkeling: de componenten van @agenteschat/ui."
+    "subtitle": "Alleen voor ontwikkeling: de componenten van @dougbot/ui."
   },
   "format": {
     "list": "{{names, list}}",

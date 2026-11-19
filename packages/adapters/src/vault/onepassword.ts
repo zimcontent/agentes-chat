@@ -114,7 +114,7 @@ export interface OnePasswordSourceOptions {
   now?: () => number;
   /** Per SDK call; 15 s by default. */
   timeoutMs?: number;
-  /** Reported to 1Password with every call, with the name `agentes.chat`. */
+  /** Reported to 1Password with every call, with the name `DougBot`. */
   integrationVersion?: string;
 }
 

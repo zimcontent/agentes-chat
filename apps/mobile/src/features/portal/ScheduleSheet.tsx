@@ -1,6 +1,6 @@
-import type { PortalItem } from "@agenteschat/client";
-import { useSchedulePortalItem } from "@agenteschat/client";
-import { portalAhead, portalErrorText, portalSendDate, portalWhen } from "@agenteschat/client/lib/portal";
+import type { PortalItem } from "@dougbot/client";
+import { useSchedulePortalItem } from "@dougbot/client";
+import { portalAhead, portalErrorText, portalSendDate, portalWhen } from "@dougbot/client/lib/portal";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

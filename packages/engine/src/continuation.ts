@@ -1,6 +1,6 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, type Database, eq, inArray, schema, sql } from "@agenteschat/db";
-import type { ModelMessage } from "@agenteschat/providers";
+import type { PubSub } from "@dougbot/adapters";
+import { and, type Database, eq, inArray, schema, sql } from "@dougbot/db";
+import type { ModelMessage } from "@dougbot/providers";
 import { type Agent, getAgentCached } from "./agents";
 import { answersOthers, audienceOf } from "./audience";
 import { accountablePerson, runAuthority } from "./authority";

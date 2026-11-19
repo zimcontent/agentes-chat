@@ -7,7 +7,7 @@
  *    role, handle and name, first match wins), its color from `CORES_LIVRES` and its eyes from its handle's hash.
  *    Never green, never a mouth.
  */
-import type { AgentAccessory, AgentAppearance, AgentEyes } from "@agenteschat/tokens/look";
+import type { AgentAccessory, AgentAppearance, AgentEyes } from "@dougbot/tokens/look";
 import { gradientOf } from "../agent/engine.js";
 import DougBot, {
   type DougBotAcessorio,

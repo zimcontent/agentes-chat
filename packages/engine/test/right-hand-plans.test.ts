@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { ACCOUNTS_PROTOCOL, LOCKED_BRAIN_PROTOCOL, MACHINE_PROTOCOL_VERSION } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import { ACCOUNTS_PROTOCOL, LOCKED_BRAIN_PROTOCOL, MACHINE_PROTOCOL_VERSION } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   type Brain,
   BrainFailure,

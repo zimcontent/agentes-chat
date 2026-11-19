@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "bun:test";
-import { currentQueryCount, eq, schema } from "@agenteschat/db";
+import { currentQueryCount, eq, schema } from "@dougbot/db";
 import {
   createChannel,
   createJobHandlers,

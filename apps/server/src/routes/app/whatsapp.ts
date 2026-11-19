@@ -1,4 +1,4 @@
-import { DEFAULT_VOICE_OUT, isVoiceOutId, WhatsAppGatewayError } from "@agenteschat/adapters";
+import { DEFAULT_VOICE_OUT, isVoiceOutId, WhatsAppGatewayError } from "@dougbot/adapters";
 import {
   clearWhatsAppBrain,
   createWhatsAppAccount,
@@ -35,7 +35,7 @@ import {
   whatsappChatPhoto,
   whatsappMessageFile,
   whatsappPortalClients,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
 import { apiError, errorResponse } from "../../http/errors";

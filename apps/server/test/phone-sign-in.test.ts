@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { like, schema } from "@agenteschat/db";
+import { like, schema } from "@dougbot/db";
 import { browser, createTestServer, ORIGIN, signUp, type TestServer } from "./harness";
 
 /**

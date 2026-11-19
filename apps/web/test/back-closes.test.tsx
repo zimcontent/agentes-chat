@@ -1,9 +1,9 @@
 import { afterEach, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { Dialog } from "@agenteschat/ui";
+import { Dialog } from "@dougbot/ui";
 import type { RouterHistory } from "@tanstack/react-router";
 import { act, cleanup, render } from "@testing-library/react";
 import { type ReactNode, useState } from "react";

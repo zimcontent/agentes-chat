@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeWhatsAppGateway } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
-import { WHATSAPP_AGENT_JOB } from "@agenteschat/engine";
+import { createFakeWhatsAppGateway } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
+import { WHATSAPP_AGENT_JOB } from "@dougbot/engine";
 import { type Browser, browser, createTestServer, seedOrg, signUp, type TestServer } from "./harness";
 
 /**

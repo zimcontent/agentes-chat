@@ -8,8 +8,8 @@ import {
   type PortalList,
   type PortalState,
   type PortalType,
-} from "@agenteschat/adapters";
-import { and, type Database, eq, isNull, schema } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, type Database, eq, isNull, schema } from "@dougbot/db";
 import { type PortalColumn, portalColumnOf } from "./approval-portal";
 import type { CardReview } from "./approval-portal-reviews";
 import { ValidationError } from "./errors";

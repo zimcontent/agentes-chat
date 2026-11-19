@@ -1,6 +1,6 @@
-import { useSaveDesign, useVideoReview } from "@agenteschat/client";
-import type { FrameLayer, FrameMessage, LayerInfo, LayerPatch } from "@agenteschat/client/lib/design-bridge";
-import { errorText } from "@agenteschat/client/lib/errors";
+import { useSaveDesign, useVideoReview } from "@dougbot/client";
+import type { FrameLayer, FrameMessage, LayerInfo, LayerPatch } from "@dougbot/client/lib/design-bridge";
+import { errorText } from "@dougbot/client/lib/errors";
 import * as ImagePicker from "expo-image-picker";
 import { usePreventRemove } from "expo-router";
 import { useEffect, useRef, useState } from "react";

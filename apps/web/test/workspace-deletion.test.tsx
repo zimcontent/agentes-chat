@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { domWindow, setupDom } from "@agenteschat/ui/testing/dom";
+import { domWindow, setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
@@ -11,8 +11,8 @@ import {
   type Role,
   useMe,
   useRestoreAccount,
-} from "@agenteschat/client";
-import { CLOUD_SERVER } from "@agenteschat/client/lib/server";
+} from "@dougbot/client";
+import { CLOUD_SERVER } from "@dougbot/client/lib/server";
 import type { QueryClient } from "@tanstack/react-query";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { createFakeApi, ENG_ID, meAsAdmin, ORG_ID, seedState } from "./fake-api";

@@ -7,15 +7,15 @@ import {
   useSettings,
   useSetWorkspaceApprovalsLevel,
   useUndoWhenAsks,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   APPROVALS_LEVELS,
   approvalsLevelOf,
   changesWhenAsks,
   ownApprovalsCount,
-} from "@agenteschat/client/lib/approvals-level";
-import { can } from "@agenteschat/client/lib/permissions";
-import { Button, Checkbox, cx, Dialog, DialogBody, InfoHint, OptionList } from "@agenteschat/ui";
+} from "@dougbot/client/lib/approvals-level";
+import { can } from "@dougbot/client/lib/permissions";
+import { Button, Checkbox, cx, Dialog, DialogBody, InfoHint, OptionList } from "@dougbot/ui";
 import { type ReactNode, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

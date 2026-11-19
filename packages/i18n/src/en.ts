@@ -13512,7 +13512,7 @@ export const en = {
       },
       inUse: "{{provider}} · {{bucket}}",
       inUseAt: "{{bucket}} at {{host}}",
-      /** A failed test step by its code (`stepErrorText` in `@agenteschat/client/lib/storage`). */
+      /** A failed test step by its code (`stepErrorText` in `@dougbot/client/lib/storage`). */
       stepError: {
         auth: "The access key or the secret wasn't accepted.",
         permission: "The key isn't allowed to do this step.",
@@ -18338,7 +18338,7 @@ export const en = {
   },
   gallery: {
     title: "Component gallery",
-    subtitle: "Development only: the @agenteschat/ui components.",
+    subtitle: "Development only: the @dougbot/ui components.",
   },
   format: {
     // i18next's `list` format: Intl.ListFormat in the language ("Ada, Atlas, and Theo", "Ada、Atlas、Theo"). Keep as is.

@@ -1,4 +1,4 @@
-import type { ApiClient } from "@agenteschat/client";
+import type { ApiClient } from "@dougbot/client";
 import { openVoiceLeg, type VoiceLeg } from "./leg";
 
 /**

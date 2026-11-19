@@ -8,8 +8,8 @@
  * expected. A server out of reach offers another one.
  */
 
-import { CLOUD_SERVER, isTailnet, serverHost } from "@agenteschat/client/lib/server";
-import DougBot from "@agenteschat/ui/brand/dougbot-avatar";
+import { CLOUD_SERVER, isTailnet, serverHost } from "@dougbot/client/lib/server";
+import DougBot from "@dougbot/ui/brand/dougbot-avatar";
 import { invoke } from "@tauri-apps/api/core";
 import "@fontsource-variable/onest/index.css";
 import "../fonts.css";
@@ -144,7 +144,7 @@ const w = window as { __coverShown?: () => void; __coverFade?: () => void };
 w.__coverShown = shown;
 w.__coverFade = fade;
 
-/** The server the main window opens (servers.json, through Rust); agentes.chat before one is chosen. */
+/** The server the main window opens (servers.json, through Rust); DougBot before one is chosen. */
 const currentServer = () =>
   invoke<string | null>("cover_server").then(
     (s) => s ?? SITE_URL,

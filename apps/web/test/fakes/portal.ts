@@ -27,8 +27,8 @@ import type {
   PortalState,
   PortalStatus,
   PortalTaskRef,
-} from "@agenteschat/client";
-import { ApiError } from "@agenteschat/client";
+} from "@dougbot/client";
+import { ApiError } from "@dougbot/client";
 import { clone } from "./context";
 
 export interface FakePortal {

@@ -7,15 +7,15 @@ import {
   useLiveVoice,
   useTeam,
   useUsage,
-} from "@agenteschat/client";
-import { listsAgent, seesDetails } from "@agenteschat/client/lib/audience";
-import { formatPercent, lowerFirst } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { agentPlan, aiStateOf } from "@agenteschat/client/lib/no-ai";
-import { planMeterText, usageShown } from "@agenteschat/client/lib/plan-usage";
-import { isRightHand, rightHandOf } from "@agenteschat/client/lib/right-hand";
-import { supervisorOf } from "@agenteschat/client/lib/team-views";
-import { planLine } from "@agenteschat/ui/plan-state";
+} from "@dougbot/client";
+import { listsAgent, seesDetails } from "@dougbot/client/lib/audience";
+import { formatPercent, lowerFirst } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { agentPlan, aiStateOf } from "@dougbot/client/lib/no-ai";
+import { planMeterText, usageShown } from "@dougbot/client/lib/plan-usage";
+import { isRightHand, rightHandOf } from "@dougbot/client/lib/right-hand";
+import { supervisorOf } from "@dougbot/client/lib/team-views";
+import { planLine } from "@dougbot/ui/plan-state";
 import { useTranslation } from "react-i18next";
 import { Alert, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";

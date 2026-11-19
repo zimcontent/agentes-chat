@@ -1,4 +1,4 @@
-import { roleSeesBoard } from "@agenteschat/client";
+import { roleSeesBoard } from "@dougbot/client";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, View } from "react-native";

@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from "bun:test";
-import { MACHINE_PROTOCOL_VERSION, type PlanUsage, type PlanWindowKind, type ServerFrame } from "@agenteschat/adapters";
-import { testConfig } from "@agenteschat/config";
-import { and, eq, schema } from "@agenteschat/db";
+import { MACHINE_PROTOCOL_VERSION, type PlanUsage, type PlanWindowKind, type ServerFrame } from "@dougbot/adapters";
+import { testConfig } from "@dougbot/config";
+import { and, eq, schema } from "@dougbot/db";
 import { applyBootSwitches } from "../src/start";
 import { browser, createTestServer, pairComputer, seedOrg, signUp, type TestServer } from "./harness";
 

@@ -1,7 +1,7 @@
-import { keys, type Me, useUpdateSettings, type WorkspaceMode } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
-import { modeSwitchLines } from "@agenteschat/client/lib/personal-view";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+import { keys, type Me, useUpdateSettings, type WorkspaceMode } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
+import { modeSwitchLines } from "@dougbot/client/lib/personal-view";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

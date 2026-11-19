@@ -1,4 +1,4 @@
-import { errorCode, errorText, isGone, knownErrorText } from "@agenteschat/client/lib/errors";
+import { errorCode, errorText, isGone, knownErrorText } from "@dougbot/client/lib/errors";
 import {
   Button,
   EmptyState,
@@ -9,7 +9,7 @@ import {
   SkeletonList,
   TopProgress,
   useDelayed,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { notifyManager, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";

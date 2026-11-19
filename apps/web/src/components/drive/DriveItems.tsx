@@ -1,8 +1,8 @@
-import type { Artifact, ArtifactKind } from "@agenteschat/client";
-import { KIND_ICON } from "@agenteschat/client/lib/artifacts";
-import { fileIcon } from "@agenteschat/client/lib/files";
-import { relativeTime } from "@agenteschat/client/lib/format";
-import { Checkbox, cx, Icon, type IconName } from "@agenteschat/ui";
+import type { Artifact, ArtifactKind } from "@dougbot/client";
+import { KIND_ICON } from "@dougbot/client/lib/artifacts";
+import { fileIcon } from "@dougbot/client/lib/files";
+import { relativeTime } from "@dougbot/client/lib/format";
+import { Checkbox, cx, Icon, type IconName } from "@dougbot/ui";
 import type { DragEvent, MouseEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { ActorAvatar } from "@/components/AgentAvatar";

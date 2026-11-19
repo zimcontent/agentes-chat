@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { clippedHeight, LONG_MESSAGE } from "@agenteschat/client/lib/message-length";
+import { clippedHeight, LONG_MESSAGE } from "@dougbot/client/lib/message-length";
 import { INLINE_HEIGHT } from "../../src/features/blocks/logic";
 import { keptHeightAfter, PAST_RULE } from "../../src/features/chat/kept-sizes";
 

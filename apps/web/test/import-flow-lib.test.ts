@@ -6,8 +6,8 @@ import type {
   ImportInput,
   ImportItemResult,
   MigrationBundle,
-} from "@agenteschat/client";
-import { ApiError } from "@agenteschat/client";
+} from "@dougbot/client";
+import { ApiError } from "@dougbot/client";
 import type { TFunction } from "i18next";
 import { createI18n } from "@/i18n";
 import { type AgentFile, ImportError } from "@/lib/import";

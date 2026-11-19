@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeLiveActivitySender } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { createFakeLiveActivitySender } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   drainOutbox,
   endLiveActivity,

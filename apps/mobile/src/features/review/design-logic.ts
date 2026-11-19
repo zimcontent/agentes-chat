@@ -1,4 +1,4 @@
-import type { VideoReview, VideoReviewNote } from "@agenteschat/client";
+import type { VideoReview, VideoReviewNote } from "@dougbot/client";
 
 /*
  * A design piece in review on the phone (docs/adr/doug-0010-design-review.md): the rules its screens share, with no

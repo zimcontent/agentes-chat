@@ -262,7 +262,7 @@ jobs:
           etapa install 10m bun install --frozen-lockfile
           etapa typecheck 30m bash -c typecheck_todos
           etapa migracoes 5m bun run check:migrations
-          etapa build-web 10m bun run --filter '@agenteschat/web' build
+          etapa build-web 10m bun run --filter '@dougbot/web' build
           etapa testes 25m bash -c 'testes "$@"' _ "${TESTES[@]}"
 
       - name: Resumo do portão

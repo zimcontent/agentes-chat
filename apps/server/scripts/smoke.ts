@@ -29,9 +29,9 @@ import {
   createPostgresBlobStore,
   createPostgresSearchResolver,
   envPlatformCredentials,
-} from "@agenteschat/adapters";
-import { loadConfig } from "@agenteschat/config";
-import { createDatabase, type Database, ensureMessagePartitions, eq, schema } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { loadConfig } from "@dougbot/config";
+import { createDatabase, type Database, ensureMessagePartitions, eq, schema } from "@dougbot/db";
 import {
   APP_SCOPES,
   addChannelMember,
@@ -43,8 +43,8 @@ import {
   drainOutbox,
   enableCaches,
   postPersonMessage,
-} from "@agenteschat/engine";
-import { createAnthropicProvider } from "@agenteschat/providers";
+} from "@dougbot/engine";
+import { createAnthropicProvider } from "@dougbot/providers";
 import { createAuth } from "../src/auth";
 import { buildEngine } from "../src/engine";
 import { createLogger } from "../src/logger";

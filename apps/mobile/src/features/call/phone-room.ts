@@ -1,6 +1,6 @@
-import type { ApiClient, LiveRoom, LiveRoomLine, RealtimeConnection } from "@agenteschat/client";
-import type { FloorAgent } from "@agenteschat/client/lib/live-floor";
-import { LiveHost, type Who, whoOf } from "@agenteschat/client/lib/live-host";
+import type { ApiClient, LiveRoom, LiveRoomLine, RealtimeConnection } from "@dougbot/client";
+import type { FloorAgent } from "@dougbot/client/lib/live-floor";
+import { LiveHost, type Who, whoOf } from "@dougbot/client/lib/live-host";
 import { type MediaStream, type MediaStreamTrack, mediaDevices, RTCPeerConnection } from "react-native-webrtc";
 import { callActive } from "./active";
 import { PhoneLeg } from "./leg";

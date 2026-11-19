@@ -4,9 +4,9 @@ import type {
   DatabaseConnection,
   DatabasePolicy,
   DatabaseProvider,
-} from "@agenteschat/client";
-import { keys, useAgentDatabases, useAgents, useDatabaseAction, useServerDatabases } from "@agenteschat/client";
-import type { Level } from "@agenteschat/client/lib/access-levels";
+} from "@dougbot/client";
+import { keys, useAgentDatabases, useAgents, useDatabaseAction, useServerDatabases } from "@dougbot/client";
+import type { Level } from "@dougbot/client/lib/access-levels";
 import {
   activeGrantCount,
   DATABASE_PROVIDER_URLS,
@@ -20,8 +20,8 @@ import {
   POSTGRES_MARK,
   readOnlyRoleSql,
   widensDatabaseScope,
-} from "@agenteschat/client/lib/databases";
-import { relativeTime } from "@agenteschat/client/lib/format";
+} from "@dougbot/client/lib/databases";
+import { relativeTime } from "@dougbot/client/lib/format";
 import {
   Alert,
   Button,
@@ -37,7 +37,7 @@ import {
   Segmented,
   Select,
   useUnsavedInDialog,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

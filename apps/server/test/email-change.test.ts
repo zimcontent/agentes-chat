@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { eq, like, schema } from "@agenteschat/db";
-import { undoEmailChange } from "@agenteschat/engine";
+import { eq, like, schema } from "@dougbot/db";
+import { undoEmailChange } from "@dougbot/engine";
 import {
   type Browser,
   browser,

@@ -1,5 +1,5 @@
-import { formatInt } from "@agenteschat/client/lib/format";
-import { LIMIT_NEAR, overLimitText, tooLongText, tooLongToSend } from "@agenteschat/client/lib/message-length";
+import { formatInt } from "@dougbot/client/lib/format";
+import { LIMIT_NEAR, overLimitText, tooLongText, tooLongToSend } from "@dougbot/client/lib/message-length";
 import type { Ref } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, TextInput, type TextInputInstance, type TextInputProps } from "react-native";

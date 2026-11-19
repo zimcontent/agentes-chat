@@ -1,5 +1,5 @@
-import { and, type Database, type Executor, eq, inArray, isNull, schema } from "@agenteschat/db";
-import { type MessagePlace, messagePath, parseMessageLink } from "@agenteschat/tokens/message-links";
+import { and, type Database, type Executor, eq, inArray, isNull, schema } from "@dougbot/db";
+import { type MessagePlace, messagePath, parseMessageLink } from "@dougbot/tokens/message-links";
 import { UUID } from "./authority";
 import { channelCard } from "./channels";
 import { NotFoundError } from "./errors";
@@ -25,7 +25,7 @@ const LOOPBACK = /^(localhost|127(\.\d+){3}|\[::1\])$/;
 
 /**
  * Whether an address or a sentence names our own app: this server's address (`PUBLIC_URL`, unless loopback), or
- * agentes.chat and its subdomains. An email address on those domains (an agent's own mailbox) doesn't count; a URL's
+ * DougBot and its subdomains. An email address on those domains (an agent's own mailbox) doesn't count; a URL's
  * `user@` does not hide its host, nor do width forms or an ideographic full stop (browsers read them as dots).
  */
 export function namesOwnApp(text: string): boolean {

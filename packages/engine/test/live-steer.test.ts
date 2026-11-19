@@ -6,8 +6,8 @@ import {
   MACHINE_PROTOCOL_VERSION,
   type MachineRequest,
   STEER_PROTOCOL,
-} from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   type Brain,
   type BrainEvent,

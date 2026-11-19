@@ -1,4 +1,4 @@
-import type { Database } from "@agenteschat/db";
+import type { Database } from "@dougbot/db";
 import {
   type ConnectorConnection,
   type ConnectorDeps,

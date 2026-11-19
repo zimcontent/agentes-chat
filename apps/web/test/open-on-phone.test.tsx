@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, setSystemTime, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { connectLink } from "@agenteschat/client/lib/server";
+import { connectLink } from "@dougbot/client/lib/server";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { encode } from "uqr";
 import { createFakeApi, ORG_ID, seedState } from "./fake-api";

@@ -1,7 +1,7 @@
 import type { Dirent } from "node:fs";
 import { lstat, mkdir, readdir, readFile, realpath, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { ASK_AGAIN, inBrowserProfile } from "@agenteschat/adapters/command-policy";
+import { ASK_AGAIN, inBrowserProfile } from "@dougbot/adapters/command-policy";
 import {
   type AgentScope,
   browserSetupOf,
@@ -18,8 +18,8 @@ import {
   type RunnerPause,
   type RunnerTools,
   STEER_LIMITS,
-} from "@agenteschat/adapters/machine-protocol";
-import { redactSecrets } from "@agenteschat/adapters/secret-box";
+} from "@dougbot/adapters/machine-protocol";
+import { redactSecrets } from "@dougbot/adapters/secret-box";
 import { realFoldersFor } from "./access";
 import type { AccountBrains } from "./account-brains";
 import type { AccountFolders, AccountGrant, AccountManager } from "./accounts";

@@ -1,6 +1,6 @@
-import { type Artifact, type ArtifactAuthor, type ArtifactFilters, useArtifacts } from "@agenteschat/client";
-import { relativeTime } from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
+import { type Artifact, type ArtifactAuthor, type ArtifactFilters, useArtifacts } from "@dougbot/client";
+import { relativeTime } from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
 import { useCallback, useDeferredValue, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, Text as RNText, ScrollView, StyleSheet, TextInput, View } from "react-native";

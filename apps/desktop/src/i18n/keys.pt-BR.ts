@@ -1,8 +1,8 @@
-import type { LocaleStrings } from "@agenteschat/i18n/plurals";
+import type { LocaleStrings } from "@dougbot/i18n/plurals";
 
 /**
  * The desktop app's own strings (pt-BR; English, `keys.en.ts`, is the source), under `desktop.*`. `./index.ts` merges
- * them into the shared resources (`@agenteschat/i18n`); `keys.en.ts` has exactly the same shape.
+ * them into the shared resources (`@dougbot/i18n`); `keys.en.ts` has exactly the same shape.
  * Never "runner", "MCP" or "protocolo". `{{device}}` is this computer's name (`device.*`), filled in by
  * `./index.ts` for every string. A path to a setting ("Preferências › Servidores") has no-break spaces around
  * its `›` (`\u00a0`), so a line never breaks inside it.

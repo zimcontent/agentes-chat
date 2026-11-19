@@ -9,9 +9,9 @@ import { renderUnicodeCompact } from "uqr";
 
 /** The one-line installer (install.sh at the repository's root, which calls it INSTALL_URL too). */
 export const INSTALL_URL = "https://agentes.chat/install";
-/** Every instance serves its own build's compose file there; agentes.chat's follows main, so it can be ahead of `:latest`. */
+/** Every instance serves its own build's compose file there; DougBot's follows main, so it can be ahead of `:latest`. */
 export const COMPOSE_URL = `${INSTALL_URL}/docker-compose.yml`;
-/** `INSTALL_DOCS_URL` in @agenteschat/i18n, as text: this MIT package bundles none of the AGPL workspace. */
+/** `INSTALL_DOCS_URL` in @dougbot/i18n, as text: this MIT package bundles none of the AGPL workspace. */
 export const GUIDE_URL = "https://agentes.chat/docs/install-on-a-server";
 export const ISSUES_URL = "https://github.com/agentes-chat/agentes-chat/issues";
 export const IMAGE = "ghcr.io/agentes-chat/agentes:latest";
@@ -200,7 +200,7 @@ function isOneOf<T extends string>(value: string, list: readonly T[]): value is 
 export const sentence = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
 /**
- * A command's output line as the line under a wait shows it: no colors, and no mark of the agentes.chat look,
+ * A command's output line as the line under a wait shows it: no colors, and no mark of the DougBot look,
  * in its ASCII form too (where the font lacks the marks, they are followed by two spaces).
  */
 export const outputLine = (line: string) =>
@@ -875,7 +875,7 @@ export interface ThisMachine {
   bpf: boolean;
   /** Whether apt-get is here: the computers' installer installs the screens' and browsers' packages with it. */
   apt: boolean;
-  /** Whether it's already connected to an agentes.chat as a computer (`connectedConfig`). */
+  /** Whether it's already connected to a DougBot as a computer (`connectedConfig`). */
   connected: boolean;
 }
 
@@ -985,7 +985,7 @@ export function computerOf(content: string | null): OnOff | null {
 }
 
 /**
- * Where this machine reaches agentes.chat: the address the compose file publishes it on (`BIND_ADDRESS`,
+ * Where this machine reaches DougBot: the address the compose file publishes it on (`BIND_ADDRESS`,
  * `HOST_PORT`), loopback when that's every address. Root runs the installer that answers there.
  */
 export function appOnThisMachine(content: string | null): string {
@@ -1010,7 +1010,7 @@ export const SIMPLE_MODE_WHY = [
 ];
 
 export interface ComputerInstall {
-  /** Where this machine reaches agentes.chat. */
+  /** Where this machine reaches DougBot. */
   server: string;
   script: string;
   args: string[];
@@ -1019,7 +1019,7 @@ export interface ComputerInstall {
 }
 
 /**
- * The server's own installer for computers, run on this machine once agentes.chat answers, from where
+ * The server's own installer for computers, run on this machine once DougBot answers, from where
  * this machine reaches it (`appOnThisMachine`): it may not reach the address people use (a tailnet name
  * served from a container). On Linux each agent gets a user and a screen; on a Mac agents work as the person.
  */
@@ -1375,7 +1375,7 @@ export function privateStart(p: { domain: string; port: string; ssh: SshTarget }
 // ── The end ─────────────────────────────────────────────────────────────────
 
 /**
- * The link the agentes.chat phone and desktop apps open on this server (the phone from the QR code). The web
+ * The link the DougBot phone and desktop apps open on this server (the phone from the QR code). The web
  * app's "Abrir no celular" adds `&token=` for a one-time sign-in. SELF_HOSTING.md, "Your phone".
  */
 export const appLink = (origin: string) => `agenteschat://connect?${new URLSearchParams({ server: origin })}`;
@@ -1409,7 +1409,7 @@ export function theEnd(p: {
     link,
     steps,
     result: {
-      // agentes.chat is up either way, so its address and links still follow a failure of its computer.
+      // DougBot is up either way, so its address and links still follow a failure of its computer.
       ok: p.failed === null,
       ...p.failed,
       network: p.network,

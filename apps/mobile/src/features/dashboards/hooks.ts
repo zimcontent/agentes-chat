@@ -8,11 +8,11 @@ import {
   widgetFailureText,
   widgetWaiting,
   widgetWaitText,
-} from "@agenteschat/client";
-import { relativeTime } from "@agenteschat/client/lib/format";
-import { maySetAgentAi, noAiLockedLine, planKeyIntent } from "@agenteschat/client/lib/no-ai";
-import { isEveryone, sortRoles } from "@agenteschat/client/lib/roles";
-import type { AgentColorName } from "@agenteschat/ui/agent/engine";
+} from "@dougbot/client";
+import { relativeTime } from "@dougbot/client/lib/format";
+import { maySetAgentAi, noAiLockedLine, planKeyIntent } from "@dougbot/client/lib/no-ai";
+import { isEveryone, sortRoles } from "@dougbot/client/lib/roles";
+import type { AgentColorName } from "@dougbot/ui/agent/engine";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/providers/org";

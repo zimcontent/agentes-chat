@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { createFakeEmailSender, createFakeWhatsAppGateway, createMemoryBlobStore } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import { createFakeEmailSender, createFakeWhatsAppGateway, createMemoryBlobStore } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import type { ArtifactDeps, ToolContext } from "../src";
 import {
   addChannelMember,

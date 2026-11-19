@@ -1,12 +1,6 @@
-import type { PlanCard, PortalLabel, PortalList, PortalListKind, PortalPlan } from "@agenteschat/client";
-import { keys, useMovePortalCard, usePortalLists, useSavePortalCard } from "@agenteschat/client";
-import {
-  portalClientName,
-  portalDayOf,
-  portalOrderAt,
-  portalPlaceAt,
-  portalWhen,
-} from "@agenteschat/client/lib/portal";
+import type { PlanCard, PortalLabel, PortalList, PortalListKind, PortalPlan } from "@dougbot/client";
+import { keys, useMovePortalCard, usePortalLists, useSavePortalCard } from "@dougbot/client";
+import { portalClientName, portalDayOf, portalOrderAt, portalPlaceAt, portalWhen } from "@dougbot/client/lib/portal";
 import { useQueryClient } from "@tanstack/react-query";
 import { type ComponentRef, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,4 +1,4 @@
-import { CHAT_RHYTHM } from "@agenteschat/client/lib/chat-look";
+import { CHAT_RHYTHM } from "@dougbot/client/lib/chat-look";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

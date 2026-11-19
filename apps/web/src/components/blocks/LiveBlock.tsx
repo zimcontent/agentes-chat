@@ -5,18 +5,12 @@ import {
   useBlockReply,
   useKeepBlock,
   useSharedBlock,
-} from "@agenteschat/client";
-import {
-  type BlockEvent,
-  type BlockHost,
-  blockEvent,
-  blockPage,
-  DRAFT_SETTLE_MS,
-} from "@agenteschat/client/lib/blocks";
-import { formatTime } from "@agenteschat/client/lib/format";
-import { PAGE_SANDBOX } from "@agenteschat/client/lib/isolated-page";
-import { Button, Menu, MenuItem, Spinner } from "@agenteschat/ui";
-import { chartRamp } from "@agenteschat/ui/sky/chart";
+} from "@dougbot/client";
+import { type BlockEvent, type BlockHost, blockEvent, blockPage, DRAFT_SETTLE_MS } from "@dougbot/client/lib/blocks";
+import { formatTime } from "@dougbot/client/lib/format";
+import { PAGE_SANDBOX } from "@dougbot/client/lib/isolated-page";
+import { Button, Menu, MenuItem, Spinner } from "@dougbot/ui";
+import { chartRamp } from "@dougbot/ui/sky/chart";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useArtifactViewer } from "@/components/artifacts/ArtifactViewer";

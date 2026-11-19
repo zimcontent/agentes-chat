@@ -1,7 +1,7 @@
-import type { Actor, CalendarEvent, CalendarEventPatch } from "@agenteschat/client";
-import { FIELD_LIMITS } from "@agenteschat/client/lib/field-limits";
-import { toYmd } from "@agenteschat/client/lib/format";
-import { browserTimezone } from "@agenteschat/client/lib/routines";
+import type { Actor, CalendarEvent, CalendarEventPatch } from "@dougbot/client";
+import { FIELD_LIMITS } from "@dougbot/client/lib/field-limits";
+import { toYmd } from "@dougbot/client/lib/format";
+import { browserTimezone } from "@dougbot/client/lib/routines";
 import {
   Button,
   DatePicker,
@@ -18,7 +18,7 @@ import {
   Textarea,
   TimeSelect,
   weekdayOfYmd,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useActors } from "@/components/actors";

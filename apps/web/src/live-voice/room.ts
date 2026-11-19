@@ -1,4 +1,4 @@
-import type { ApiClient, LiveRoom, LiveRoomLine, RealtimeConnection } from "@agenteschat/client";
+import type { ApiClient, LiveRoom, LiveRoomLine, RealtimeConnection } from "@dougbot/client";
 import {
   addressed,
   afterAgent,
@@ -11,7 +11,7 @@ import {
   initialFloor,
   mayBringIn,
   namedAgent,
-} from "@agenteschat/client/lib/live-floor";
+} from "@dougbot/client/lib/live-floor";
 import { openVoiceLeg, type VoiceLeg } from "./leg";
 
 /**

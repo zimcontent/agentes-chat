@@ -1,9 +1,9 @@
-import type { ReviewWho } from "@agenteschat/client";
+import type { ReviewWho } from "@dougbot/client";
 
 /*
  * Revisão by who made the work, on the phone (docs/adr/doug-0015-team-work-review.md): the row of filters under the
  * tabs, and the rules of "Mandar para revisão" (which files go, under what name, where). Pure rules: no React here.
- * The tabs themselves are the shared ones (`reviewTabsByWho`, `filterReviews` in `@agenteschat/client`).
+ * The tabs themselves are the shared ones (`reviewTabsByWho`, `filterReviews` in `@dougbot/client`).
  */
 
 /** What the row of filters holds besides the tab: whose work (Equipe), which kind, and open or all. */

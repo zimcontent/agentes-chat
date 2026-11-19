@@ -1,5 +1,5 @@
-import { usePortalOverview, useVideoReviews, type VideoReviewSummary } from "@agenteschat/client";
-import { portalClientName } from "@agenteschat/client/lib/portal";
+import { usePortalOverview, useVideoReviews, type VideoReviewSummary } from "@dougbot/client";
+import { portalClientName } from "@dougbot/client/lib/portal";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";
 import { Icon, type IconName, Text, useTheme } from "@/ui";

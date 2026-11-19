@@ -1,5 +1,5 @@
-import { and, asc, type Executor, eq, inArray, isNull, ne, schema } from "@agenteschat/db";
-import { ensureOpenRouterModels, isAutoModel, routerModelOf } from "@agenteschat/providers";
+import { and, asc, type Executor, eq, inArray, isNull, ne, schema } from "@dougbot/db";
+import { ensureOpenRouterModels, isAutoModel, routerModelOf } from "@dougbot/providers";
 import type { Agent } from "./agents";
 import { type AutoLine, autoLine, autoModelFor, autoProvider } from "./auto-model";
 import { brainOf } from "./brain-settings";

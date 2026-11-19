@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { domWindow, setupDom } from "@agenteschat/ui/testing/dom";
+import { domWindow, setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { basename, join, relative } from "node:path";
-import type { ApiClient, ImportFileInput, ImportInput, ImportItemResult, ImportPlan } from "@agenteschat/client";
-import { ApiError } from "@agenteschat/client";
+import type { ApiClient, ImportFileInput, ImportInput, ImportItemResult, ImportPlan } from "@dougbot/client";
+import { ApiError } from "@dougbot/client";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { fileSaver } from "@/components/artifacts/fileSaver";
 import { ImportFlow, useImportFlow } from "@/components/ImportFlow";

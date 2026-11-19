@@ -1,6 +1,6 @@
-import type { ApiClient, OrgSummary } from "@agenteschat/client";
-import { ApiProvider } from "@agenteschat/client";
-import { localDay } from "@agenteschat/client/lib/team-agenda";
+import type { ApiClient, OrgSummary } from "@dougbot/client";
+import { ApiProvider } from "@dougbot/client";
+import { localDay } from "@dougbot/client/lib/team-agenda";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { HeaderHeightContext } from "expo-router/react-navigation";
 import { type ReactNode, useState } from "react";

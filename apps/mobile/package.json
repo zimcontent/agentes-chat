@@ -1,5 +1,5 @@
 {
-  "name": "@agenteschat/mobile",
+  "name": "@dougbot/mobile",
   "version": "0.0.0",
   "private": true,
   "main": "expo-router/entry",
@@ -11,11 +11,11 @@
   },
   "license": "AGPL-3.0-only",
   "dependencies": {
-    "@agenteschat/adapters": "workspace:*",
-    "@agenteschat/client": "workspace:*",
-    "@agenteschat/i18n": "workspace:*",
-    "@agenteschat/tokens": "workspace:*",
-    "@agenteschat/ui": "workspace:*",
+    "@dougbot/adapters": "workspace:*",
+    "@dougbot/client": "workspace:*",
+    "@dougbot/i18n": "workspace:*",
+    "@dougbot/tokens": "workspace:*",
+    "@dougbot/ui": "workspace:*",
     "@bacons/apple-targets": "5.0.0",
     "@better-auth/expo": "^1.7.10",
     "@config-plugins/react-native-webrtc": "15.0.2",

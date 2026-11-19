@@ -3,8 +3,8 @@ import {
   type ErrorReporter,
   type ErrorTags,
   noErrorReports,
-} from "@agenteschat/adapters/error-reports";
-import type { ErrorReportsConfig } from "@agenteschat/client";
+} from "@dougbot/adapters/error-reports";
+import type { ErrorReportsConfig } from "@dougbot/client";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
 

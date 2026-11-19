@@ -1,5 +1,5 @@
-import { type LegalBlock, type LegalKind, legalDocument, legalInline } from "@agenteschat/i18n/legal";
-import { Logo, Select } from "@agenteschat/ui";
+import { type LegalBlock, type LegalKind, legalDocument, legalInline } from "@dougbot/i18n/legal";
+import { Logo, Select } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { Fragment, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,7 +10,7 @@ import "./legal.css";
 
 /**
  * agentes.chat Cloud's Terms of Use and Privacy Policy (`/terms`, `/privacy` on the Cloud, never DougBot's own: that is `LegalPage`): public pages, the same
- * text as the landing page's (`@agenteschat/i18n/legal`). They open in English wherever the reader is, and the
+ * text as the landing page's (`@dougbot/i18n/legal`). They open in English wherever the reader is, and the
  * switch shows Portuguese here only.
  */
 export function CloudLegalPage({ kind }: { kind: LegalKind }) {

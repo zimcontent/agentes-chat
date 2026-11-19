@@ -1,5 +1,5 @@
-import { MESSAGE_HAS, type MessageHas } from "@agenteschat/adapters";
-import { and, desc, eq, inArray, schema } from "@agenteschat/db";
+import { MESSAGE_HAS, type MessageHas } from "@dougbot/adapters";
+import { and, desc, eq, inArray, schema } from "@dougbot/db";
 import {
   addContextItemByPerson,
   addReaction,
@@ -19,7 +19,7 @@ import {
   removeReaction,
   requirePermission,
   searchForUser,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import {
   type AppDeps,

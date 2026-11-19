@@ -48,8 +48,8 @@ import {
   Toolbar,
   UsageRing,
   WidgetCard,
-} from "@agenteschat/ui";
-import type { WidgetSpec, WidgetStatus } from "@agenteschat/ui/widgets/spec";
+} from "@dougbot/ui";
+import type { WidgetSpec, WidgetStatus } from "@dougbot/ui/widgets/spec";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";

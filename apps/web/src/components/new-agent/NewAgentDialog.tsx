@@ -1,4 +1,4 @@
-import type { ConnectorDef } from "@agenteschat/client";
+import type { ConnectorDef } from "@dougbot/client";
 import {
   keys,
   useAgents,
@@ -9,16 +9,16 @@ import {
   useMembers,
   useSkill,
   useSkills,
-} from "@agenteschat/client";
-import { type Level, saveLevels } from "@agenteschat/client/lib/access-levels";
-import { errorText as failureText } from "@agenteschat/client/lib/errors";
-import { FIELD_LIMITS } from "@agenteschat/client/lib/field-limits";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { useHeldWhile } from "@agenteschat/client/lib/hold";
-import { addsAgentsTo, can } from "@agenteschat/client/lib/permissions";
-import { connectorName, scopeText } from "@agenteschat/client/lib/scopes";
-import { skillsToGive } from "@agenteschat/client/lib/skills";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client";
+import { type Level, saveLevels } from "@dougbot/client/lib/access-levels";
+import { errorText as failureText } from "@dougbot/client/lib/errors";
+import { FIELD_LIMITS } from "@dougbot/client/lib/field-limits";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { useHeldWhile } from "@dougbot/client/lib/hold";
+import { addsAgentsTo, can } from "@dougbot/client/lib/permissions";
+import { connectorName, scopeText } from "@dougbot/client/lib/scopes";
+import { skillsToGive } from "@dougbot/client/lib/skills";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import {
   type AgentColor,
   type AgentFullLook,
@@ -40,7 +40,7 @@ import {
   randomAppearance,
   setGaze,
   spriteTone,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import {

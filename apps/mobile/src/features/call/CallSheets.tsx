@@ -1,5 +1,5 @@
-import { useLiveVoice, useRoster } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+import { useLiveVoice, useRoster } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

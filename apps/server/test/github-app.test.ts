@@ -1,7 +1,7 @@
 import { afterEach, expect, test } from "bun:test";
 import { createHmac, generateKeyPairSync } from "node:crypto";
-import { createFakeErrorReporter } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+import { createFakeErrorReporter } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import { browser, createTestServer, joinByInvitation, seedOrg, signUp, type TestServer } from "./harness";
 
 let t: TestServer;

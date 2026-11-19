@@ -1,4 +1,4 @@
-import { voiceSpeedOf } from "@agenteschat/client/lib/voice";
+import { voiceSpeedOf } from "@dougbot/client/lib/voice";
 import { useSyncExternalStore } from "react";
 import { STORAGE_KEYS, storage } from "./storage";
 

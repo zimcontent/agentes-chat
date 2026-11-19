@@ -7,7 +7,7 @@ import {
   SANDBOX_LIMITS,
   setAgentBrowserDomains,
   updateSandboxSettings,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { ComputerTarget } from "../machines";
 import { type AppDeps, body, createAppRouter, errors, json, OrgParams, requireSession, security } from "./context";

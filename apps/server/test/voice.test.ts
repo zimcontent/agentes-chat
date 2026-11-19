@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
-import { VOICE_MAX_BYTES } from "@agenteschat/engine";
+import { eq, schema } from "@dougbot/db";
+import { VOICE_MAX_BYTES } from "@dougbot/engine";
 import { type Browser, browser, createTestServer, signUp, type TestServer } from "./harness";
 
 /** Voice messages over HTTP (ADR 0100): sending, playing, expiry, the switch and the owner's provider. */

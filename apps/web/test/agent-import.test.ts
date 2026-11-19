@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import type { MigrationBundle } from "@agenteschat/client";
-import { cronOf, everyMinutes, sha256, splitNote } from "@agenteschat/client/lib/import/shared";
+import type { MigrationBundle } from "@dougbot/client";
+import { cronOf, everyMinutes, sha256, splitNote } from "@dougbot/client/lib/import/shared";
 import {
   detectSource,
   EXPORT_PROMPT,

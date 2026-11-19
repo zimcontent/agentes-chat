@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { linkPill } from "@agenteschat/client/lib/link-pills";
-import { messagePath, parseMessageLink } from "@agenteschat/client/lib/message-links";
+import { linkPill } from "@dougbot/client/lib/link-pills";
+import { messagePath, parseMessageLink } from "@dougbot/client/lib/message-links";
 import { messageRefWords, parseInline } from "../../src/features/chat/logic";
 import { messageRefHref } from "../../src/features/links/app-links";
 import { chatHref } from "../../src/features/links/logic";

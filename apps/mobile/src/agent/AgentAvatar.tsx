@@ -1,12 +1,5 @@
-import {
-  bodyTones,
-  drawAccessory,
-  drawAgent,
-  drawSleep,
-  type Expression,
-  EYE_COLOR,
-} from "@agenteschat/ui/agent/engine";
-import { avatarSkyCell, avatarSkyCells, avatarSkyTones } from "@agenteschat/ui/sky/avatar";
+import { bodyTones, drawAccessory, drawAgent, drawSleep, type Expression, EYE_COLOR } from "@dougbot/ui/agent/engine";
+import { avatarSkyCell, avatarSkyCells, avatarSkyTones } from "@dougbot/ui/sky/avatar";
 import { memo, useEffect, useId, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Image, StyleSheet, View } from "react-native";
@@ -73,7 +66,7 @@ export function agentFrame(
   const box = frame ? framedLayout(size, Boolean(accessory)) : agentLayout(size, Boolean(accessory));
   const rec = new RecordingContext();
   if (frame) {
-    // The tile's sky (`@agenteschat/ui/sky/avatar`): a Bayer dither from the top tone to the bottom one.
+    // The tile's sky (`@dougbot/ui/sky/avatar`): a Bayer dither from the top tone to the bottom one.
     const [top, bottom] = avatarSkyTones(agent.color, frame.dark);
     const n = avatarSkyCells(size * 2);
     const cell = size / n;

@@ -5,8 +5,8 @@ import {
   chatLookOf,
   facesShown,
   textSizeOf,
-} from "@agenteschat/client/lib/chat-look";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/chat-look";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 import { type LayoutChangeEvent, StyleSheet, useWindowDimensions } from "react-native";
 import { useOrg } from "@/providers/org";

@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { AccessInput } from "@agenteschat/client";
+import type { AccessInput } from "@dougbot/client";
 import {
   asksAt,
   inputWithLevels,
@@ -13,7 +13,7 @@ import {
   nextLevel,
   resourcesOf,
   toolsAt,
-} from "@agenteschat/client/lib/access-levels";
+} from "@dougbot/client/lib/access-levels";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { ADA_ID, ATLAS_ID, createFakeApi, ORG_ID, seedState } from "./fake-api";
 import { fakeAccessTree } from "./fakes/access";

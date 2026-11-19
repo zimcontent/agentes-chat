@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { AgentBrain, AiStatus, MachineAccount, MachineAccountKind, Message } from "@agenteschat/client";
-import { ApiError } from "@agenteschat/client";
+import type { AgentBrain, AiStatus, MachineAccount, MachineAccountKind, Message } from "@dougbot/client";
+import { ApiError } from "@dougbot/client";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { loadLocale } from "@/i18n";
 import { aiSelect, chooseAi, payWith } from "./ai-picker";

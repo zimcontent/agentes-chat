@@ -5,7 +5,7 @@ import type {
   WhatsAppAgentStyle,
   WhatsAppBrain,
   WhatsAppPace,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 
 /*
  * A number's settings on the phone (docs/adr/doug-0004-whatsapp-bridge.md, addendum 2026-11-17), as pure rules: the

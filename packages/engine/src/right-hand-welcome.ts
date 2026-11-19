@@ -1,6 +1,6 @@
-import { and, type Database, type Executor, eq, gt, ne, schema, sql } from "@agenteschat/db";
-import { serverText } from "@agenteschat/i18n";
-import { en } from "@agenteschat/i18n/en";
+import { and, type Database, type Executor, eq, gt, ne, schema, sql } from "@dougbot/db";
+import { serverText } from "@dougbot/i18n";
+import { en } from "@dougbot/i18n/en";
 import { personAgentDmKey } from "./dms";
 import type { JobDeps } from "./jobs";
 import { enqueue } from "./outbox";

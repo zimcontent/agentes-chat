@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { ZimMedia } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+import type { ZimMedia } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   createPhoneToolSource,
   handlePhoneCallReport,

@@ -1,5 +1,5 @@
-import type { Database } from "@agenteschat/db";
-import type { AgendaTone } from "@agenteschat/ui/blocks/spec";
+import type { Database } from "@dougbot/db";
+import type { AgendaTone } from "@dougbot/ui/blocks/spec";
 import type { ConnectorTriggerDeps } from "../connector-triggers";
 import { activeConnections, connectionHeaders } from "../connectors/connections";
 import { customScope } from "../connectors/custom";

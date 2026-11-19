@@ -11,22 +11,22 @@ import {
   useMembers,
   useSkillAction,
   useSkills,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   actionCardOf,
   connectAppDone,
   installSkillDone,
   inviteDone,
   skillUpdateState,
-} from "@agenteschat/client/lib/action-cards";
-import { APP_PAGES, appPagePath } from "@agenteschat/client/lib/app-pages";
-import { slotText } from "@agenteschat/client/lib/calendar";
-import { connectedItems } from "@agenteschat/client/lib/connected";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { joinNames } from "@agenteschat/client/lib/format";
-import { hostOf } from "@agenteschat/client/lib/import/shared";
-import { can } from "@agenteschat/client/lib/permissions";
-import { connectorName } from "@agenteschat/client/lib/scopes";
+} from "@dougbot/client/lib/action-cards";
+import { APP_PAGES, appPagePath } from "@dougbot/client/lib/app-pages";
+import { slotText } from "@dougbot/client/lib/calendar";
+import { connectedItems } from "@dougbot/client/lib/connected";
+import { errorText } from "@dougbot/client/lib/errors";
+import { joinNames } from "@dougbot/client/lib/format";
+import { hostOf } from "@dougbot/client/lib/import/shared";
+import { can } from "@dougbot/client/lib/permissions";
+import { connectorName } from "@dougbot/client/lib/scopes";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { useOrg } from "@/providers/org";

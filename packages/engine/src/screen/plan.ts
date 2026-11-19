@@ -1,4 +1,4 @@
-import type { ScreenKind } from "@agenteschat/adapters";
+import type { ScreenKind } from "@dougbot/adapters";
 import type { Judge } from "../judge";
 import { type ConditionResult, checkCondition, findDismiss, findInPage } from "./checks";
 import {

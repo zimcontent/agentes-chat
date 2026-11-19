@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeApprovalPortal, type PortalItem } from "@agenteschat/adapters";
-import { and, eq, schema, sql } from "@agenteschat/db";
+import { createFakeApprovalPortal, type PortalItem } from "@dougbot/adapters";
+import { and, eq, schema, sql } from "@dougbot/db";
 import {
   announcePortalStages,
   cancelPortalTask,

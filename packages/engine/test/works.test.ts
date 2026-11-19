@@ -1,7 +1,7 @@
 import { afterEach, expect, setDefaultTimeout, test } from "bun:test";
-import { channelTopic } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import { type ModelRequest, systemText } from "@agenteschat/providers";
+import { channelTopic } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import { type ModelRequest, systemText } from "@dougbot/providers";
 import {
   type AgentProposalCard,
   type AgentRun,

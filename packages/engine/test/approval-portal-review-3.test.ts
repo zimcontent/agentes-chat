@@ -4,8 +4,8 @@ import {
   createFakeWhatsAppGateway,
   createMemoryBlobStore,
   StorageError,
-} from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   announcePortalPost,
   createEmbeddedApprovalPortal,

@@ -26,10 +26,10 @@ import {
   type WebPushSender,
   type WhatsAppGateway,
   type ZimMedia,
-} from "@agenteschat/adapters";
-import { testConfig } from "@agenteschat/config";
-import { eq, isNotNull, like, rowsOf, schema, sql, tracingLogger } from "@agenteschat/db";
-import { createTestDatabase } from "@agenteschat/db/testing";
+} from "@dougbot/adapters";
+import { testConfig } from "@dougbot/config";
+import { eq, isNotNull, like, rowsOf, schema, sql, tracingLogger } from "@dougbot/db";
+import { createTestDatabase } from "@dougbot/db/testing";
 import {
   createEmbeddedApprovalPortal,
   createFakeJudge,
@@ -43,10 +43,10 @@ import {
   type McpConnect,
   type ResolveHost,
   type ToolSource,
-} from "@agenteschat/engine";
-import type { ClientOverrides } from "@agenteschat/modules";
-import { PROVIDER_IDS } from "@agenteschat/providers";
-import { createFakeEmbeddings, createFakeProvider } from "@agenteschat/providers/testing";
+} from "@dougbot/engine";
+import type { ClientOverrides } from "@dougbot/modules";
+import { PROVIDER_IDS } from "@dougbot/providers";
+import { createFakeEmbeddings, createFakeProvider } from "@dougbot/providers/testing";
 import { createApp } from "../src/app";
 import { type AppleTokenRevoker, createAuth } from "../src/auth";
 import { buildEngine } from "../src/engine";
@@ -128,7 +128,7 @@ export async function createTestServer(
     /** GIF search (ADR 0091); absent = the fake provider (`createFakeGifs`), null = none, as without its key. */
     gifs?: GifProvider | null;
     /**
-     * A fake GIPHY: GIFs then come, as on a server that isn't agentes.chat's own, from the provider that follows the
+     * A fake GIPHY: GIFs then come, as on a server that isn't DougBot's own, from the provider that follows the
      * installation's key (`GIPHY_API_KEY` or the one saved in Settings), and it answers a key's check before a save.
      * Absent: `gifs` serves them, and a saved key is kept unchecked (tests never reach the network).
      */
@@ -157,7 +157,7 @@ export async function createTestServer(
   const config = testConfig({
     PUBLIC_URL: ORIGIN,
     AGENT_MAX_OUTPUT_TOKENS: "1000",
-    // Off unless a test asks: feedback would otherwise go to the agentes.chat team's inbox, over the network.
+    // Off unless a test asks: feedback would otherwise go to the DougBot team's inbox, over the network.
     FEEDBACK_RELAY: "false",
     ...options.env,
   });
@@ -168,7 +168,7 @@ export async function createTestServer(
   const platformBlobs = createMemoryBlobStore({ kind: options.platformKind, sign: options.signedBlobs });
   const keyWrapper = createLocalKeyWrapper(config.AGENTES_SECRET);
   const { giphyFetch } = options;
-  // The installation's GIPHY key, as `start.ts` makes it off agentes.chat (ADR 0091, amended 2026-10-31).
+  // The installation's GIPHY key, as `start.ts` makes it off DougBot (ADR 0091, amended 2026-10-31).
   const gifKey = createGifKey({
     db,
     keyWrapper,

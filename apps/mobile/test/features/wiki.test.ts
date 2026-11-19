@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { WikiPageSummary } from "@agenteschat/client";
+import type { WikiPageSummary } from "@dougbot/client";
 import {
   continueReading,
   docBlocks,

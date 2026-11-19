@@ -1,8 +1,8 @@
-import { instanceQuery } from "@agenteschat/client";
-import { LICENSE_URL, PUBLIC_SOURCE_URL } from "@agenteschat/client/lib/about";
-import { shownAddress } from "@agenteschat/client/lib/sites";
-import { DOCS_SITE } from "@agenteschat/i18n/docs";
-import { Card, CardHeader, Icon } from "@agenteschat/ui";
+import { instanceQuery } from "@dougbot/client";
+import { LICENSE_URL, PUBLIC_SOURCE_URL } from "@dougbot/client/lib/about";
+import { shownAddress } from "@dougbot/client/lib/sites";
+import { DOCS_SITE } from "@dougbot/i18n/docs";
+import { Card, CardHeader, Icon } from "@dougbot/ui";
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { Trans, useTranslation } from "react-i18next";

@@ -1,6 +1,6 @@
-import { useArtifact, usePoll, useVote } from "@agenteschat/client";
-import { pollAnswered, pollIsOpen, pollTally, pollToggle } from "@agenteschat/client/lib/blocks";
-import { joinNames } from "@agenteschat/client/lib/format";
+import { useArtifact, usePoll, useVote } from "@dougbot/client";
+import { pollAnswered, pollIsOpen, pollTally, pollToggle } from "@dougbot/client/lib/blocks";
+import { joinNames } from "@dougbot/client/lib/format";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";

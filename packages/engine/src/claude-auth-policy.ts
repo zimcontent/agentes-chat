@@ -1,10 +1,5 @@
-import {
-  type AuthMethod,
-  CLAUDE_AUTH_PROTOCOL,
-  type ClaudeLoginMethod,
-  claudeLoginMethodsOf,
-} from "@agenteschat/adapters";
-import { and, asc, count, type Database, type Executor, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+import { type AuthMethod, CLAUDE_AUTH_PROTOCOL, type ClaudeLoginMethod, claudeLoginMethodsOf } from "@dougbot/adapters";
+import { and, asc, count, type Database, type Executor, eq, inArray, isNull, schema, sql } from "@dougbot/db";
 import { z } from "zod";
 import { ValidationError } from "./errors";
 

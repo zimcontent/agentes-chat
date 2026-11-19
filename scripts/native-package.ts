@@ -1,5 +1,5 @@
 /**
- * Builds agentes.chat to run without Docker (native mode, ADR 0060 §2):
+ * Builds DougBot to run without Docker (native mode, ADR 0060 §2):
  *
  *   bun scripts/native-package.ts folders [--out <dir>]
  *       <out>/agentes/<version>/: server/ (the bundled server, PGlite and the other packages with
@@ -145,7 +145,7 @@ export async function buildFolders(out: string, version: string) {
   rmSync(base, { recursive: true, force: true });
   mkdirSync(base, { recursive: true });
 
-  sh(["bun", "run", "--filter", "@agenteschat/web", "build"]);
+  sh(["bun", "run", "--filter", "@dougbot/web", "build"]);
   cpSync(join(ROOT, "apps/web/dist"), join(base, "web"), runtimeOnly);
   // The program that connects a computer, which every server offers for download (as the image does).
   const runner = await Bun.build({

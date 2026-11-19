@@ -1,7 +1,7 @@
-import type { Machine } from "@agenteschat/client";
-import { formatTime } from "@agenteschat/client/lib/format";
-import { Icon } from "@agenteschat/ui";
-import { countryFlagUrl } from "@agenteschat/ui/brand/flags";
+import type { Machine } from "@dougbot/client";
+import { formatTime } from "@dougbot/client/lib/format";
+import { Icon } from "@dougbot/ui";
+import { countryFlagUrl } from "@dougbot/ui/brand/flags";
 import { useTranslation } from "react-i18next";
 
 /** Only a recent observation from an online computer; a country is never inferred from an assigned address. */

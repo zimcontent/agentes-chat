@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { type DashboardList, type DashboardSummary, frozenBoard } from "@agenteschat/client";
-import { type OpenTarget, targetPath } from "@agenteschat/client/lib/notifications";
-import { chartAreaTones, chartInk } from "@agenteschat/ui/sky/chart";
+import { type DashboardList, type DashboardSummary, frozenBoard } from "@dougbot/client";
+import { type OpenTarget, targetPath } from "@dougbot/client/lib/notifications";
+import { chartAreaTones, chartInk } from "@dougbot/ui/sky/chart";
 import { agentPickNow, chooseAgent, closeAgentPick, openAgentPick } from "../../src/features/dashboards/agent-pick";
 import {
   AGENT_SEARCH_FROM,

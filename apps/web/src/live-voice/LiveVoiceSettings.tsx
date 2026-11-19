@@ -1,4 +1,4 @@
-import type { Agent, LiveVoiceEngine } from "@agenteschat/client";
+import type { Agent, LiveVoiceEngine } from "@dougbot/client";
 import {
   useAgents,
   useLiveVoice,
@@ -8,8 +8,8 @@ import {
   useSetLiveVoiceEngine,
   useSetLiveVoiceLimit,
   useUpdateAgent,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
+} from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
 import {
   DEFAULT_HOUSE_VOICE,
   HOUSE_VOICE_CATALOG,
@@ -18,8 +18,8 @@ import {
   type LiveVoiceInfo,
   liveVoiceInfo,
   liveVoiceLabel,
-} from "@agenteschat/client/lib/live-voices";
-import { can } from "@agenteschat/client/lib/permissions";
+} from "@dougbot/client/lib/live-voices";
+import { can } from "@dougbot/client/lib/permissions";
 import {
   Button,
   Card,
@@ -34,7 +34,7 @@ import {
   Locked,
   Segmented,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useId, useMemo, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";

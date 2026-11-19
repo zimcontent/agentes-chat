@@ -1,19 +1,9 @@
-import type { ComputerDevice, DeviceStatus, PhoneDevice } from "@agenteschat/client";
-import { useDesktopLatest } from "@agenteschat/client";
-import { type AudienceIcon, audienceWords, portraitOf, statusLook, statusPill } from "@agenteschat/client/lib/devices";
-import { downloadHref } from "@agenteschat/client/lib/machines";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
-import {
-  Avatar,
-  Button,
-  Chip,
-  ComputerPortrait,
-  Icon,
-  Menu,
-  MenuItem,
-  PixelSpinner,
-  ProviderLogo,
-} from "@agenteschat/ui";
+import type { ComputerDevice, DeviceStatus, PhoneDevice } from "@dougbot/client";
+import { useDesktopLatest } from "@dougbot/client";
+import { type AudienceIcon, audienceWords, portraitOf, statusLook, statusPill } from "@dougbot/client/lib/devices";
+import { downloadHref } from "@dougbot/client/lib/machines";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
+import { Avatar, Button, Chip, ComputerPortrait, Icon, Menu, MenuItem, PixelSpinner, ProviderLogo } from "@dougbot/ui";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";

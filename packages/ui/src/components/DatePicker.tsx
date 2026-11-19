@@ -1,4 +1,4 @@
-import { appLocale, localeInfo } from "@agenteschat/i18n/locale";
+import { appLocale, localeInfo } from "@dougbot/i18n/locale";
 import { Popover as RPopover } from "radix-ui";
 import { type KeyboardEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { cx } from "../cx";

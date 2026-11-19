@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { VideoReviewNote } from "@agenteschat/client";
+import type { VideoReviewNote } from "@dougbot/client";
 import {
   clampStep,
   designNotesOf,

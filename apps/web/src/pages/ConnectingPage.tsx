@@ -1,5 +1,5 @@
-import type { MachineAccountKind } from "@agenteschat/client";
-import { Button } from "@agenteschat/ui";
+import type { MachineAccountKind } from "@dougbot/client";
+import { Button } from "@dougbot/ui";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { AuthShell } from "@/components/AuthLayout";

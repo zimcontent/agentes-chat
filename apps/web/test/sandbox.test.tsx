@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import type { AgentAccess } from "@agenteschat/client";
-import { inputWithLevels, levelsOf, resourcesOf } from "@agenteschat/client/lib/access-levels";
-import { activityText, toolActivity } from "@agenteschat/client/lib/activity";
+import type { AgentAccess } from "@dougbot/client";
+import { inputWithLevels, levelsOf, resourcesOf } from "@dougbot/client/lib/access-levels";
+import { activityText, toolActivity } from "@dougbot/client/lib/activity";
 import { createI18n } from "@/i18n";
 
 describe("Rodar código is not covered by 'Todas as ferramentas'", () => {

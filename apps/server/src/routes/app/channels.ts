@@ -24,7 +24,7 @@ import {
   unarchiveChannel,
   unpinMessage,
   updateChannel,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { apiError, errorResponse } from "../../http/errors";
 import { imageFile } from "../../http/image-file";

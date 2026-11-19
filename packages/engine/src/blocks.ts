@@ -1,6 +1,6 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, count, type Database, eq, inArray, isNotNull, isNull, lt, schema } from "@agenteschat/db";
-import { type BlockSpec, parseBlockSpec, specActs } from "@agenteschat/ui/blocks/spec";
+import type { PubSub } from "@dougbot/adapters";
+import { and, count, type Database, eq, inArray, isNotNull, isNull, lt, schema } from "@dougbot/db";
+import { type BlockSpec, parseBlockSpec, specActs } from "@dougbot/ui/blocks/spec";
 import {
   type ArtifactContent,
   type ArtifactDeps,
@@ -47,7 +47,7 @@ const MAX_POLL_HOURS = 7 * 24;
 export const BLOCK_REPLY_CHARS = 2000;
 
 /**
- * The manual an agent writes blocks from: the parts and the formula language of `@agenteschat/ui/blocks/spec` and
+ * The manual an agent writes blocks from: the parts and the formula language of `@dougbot/ui/blocks/spec` and
  * `expr`, which the apps draw with their own components. The agent's own page (`html`, over the kit in
  * `packages/client/src/lib/block-kit.ts`) is the way out for what no part shows, and runs only when a person asks.
  */

@@ -1,5 +1,5 @@
-import { splitAtNames } from "@agenteschat/client/lib/text";
-import { type AgentAppearance, Icon } from "@agenteschat/ui";
+import { splitAtNames } from "@dougbot/client/lib/text";
+import { type AgentAppearance, Icon } from "@dougbot/ui";
 import {
   createContext,
   type ReactNode,

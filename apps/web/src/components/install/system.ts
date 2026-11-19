@@ -1,4 +1,4 @@
-import type { Platform } from "@agenteschat/client/lib/machines";
+import type { Platform } from "@dougbot/client/lib/machines";
 
 // Doug: apart from guide.tsx, so the `/download` route's search check doesn't load the guide and its drawings with the
 // first screen (guide.tsx re-exports these).

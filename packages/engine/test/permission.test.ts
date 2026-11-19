@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { and, eq, schema } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
+import { and, eq, schema } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
 import {
   actionHash,
   approverIds,

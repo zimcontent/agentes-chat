@@ -1,5 +1,5 @@
-import type { ModelTier } from "@agenteschat/providers";
-import { planState } from "@agenteschat/ui/plan-state";
+import type { ModelTier } from "@dougbot/providers";
+import { planState } from "@dougbot/ui/plan-state";
 import type { TFunction } from "i18next";
 import type { AgentBrain, AiAccounts, MachineAccount, Model, PlanUsage, PlanWindow } from "../api/types";
 import { type EffortLevel, effortOf } from "./brain-advanced";

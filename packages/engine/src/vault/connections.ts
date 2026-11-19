@@ -5,8 +5,8 @@
  * by default (`access_from_connection`). A source's refusal comes out as its `VaultSourceError`, for the route to say
  * in the person's language.
  */
-import { VaultSourceError } from "@agenteschat/adapters";
-import { and, count, type Executor, eq, schema } from "@agenteschat/db";
+import { VaultSourceError } from "@dougbot/adapters";
+import { and, count, type Executor, eq, schema } from "@dougbot/db";
 import { recordAudit } from "../audit";
 import { UUID } from "../authority";
 import { NotFoundError, ValidationError } from "../errors";

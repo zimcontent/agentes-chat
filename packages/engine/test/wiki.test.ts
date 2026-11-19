@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { schema } from "@agenteschat/db";
-import { type ModelRequest, systemText } from "@agenteschat/providers";
+import { schema } from "@dougbot/db";
+import { type ModelRequest, systemText } from "@dougbot/providers";
 import {
   appendSourceToWiki,
   appendToSection,

@@ -17367,7 +17367,7 @@
   },
   "gallery": {
     "title": "组件库",
-    "subtitle": "仅用于开发：@agenteschat/ui 的组件。"
+    "subtitle": "仅用于开发：@dougbot/ui 的组件。"
   },
   "format": {
     "list": "{{names, list}}",

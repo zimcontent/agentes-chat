@@ -1,5 +1,5 @@
-import type { MergeDone } from "@agenteschat/adapters";
-import { and, asc, type Database, type Executor, eq, schema } from "@agenteschat/db";
+import type { MergeDone } from "@dougbot/adapters";
+import { and, asc, type Database, type Executor, eq, schema } from "@dougbot/db";
 import { recordAgentActions } from "../agent-actions";
 import { getAgent } from "../agents";
 import { recordAudit } from "../audit";

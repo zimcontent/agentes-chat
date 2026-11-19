@@ -12,7 +12,7 @@ import {
 } from "node:fs";
 import os from "node:os";
 import { join } from "node:path";
-import { FOLDER_FILE, PG_MAJOR, PGLITE_VERSION } from "@agenteschat/db";
+import { FOLDER_FILE, PG_MAJOR, PGLITE_VERSION } from "@dougbot/db";
 import { launchdPlistText, systemdUnitText } from "../runner/service";
 import { serviceDefinition } from "../src/native";
 

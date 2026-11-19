@@ -1,4 +1,4 @@
-import { type ModelBrand, modelBrand } from "@agenteschat/client";
+import { type ModelBrand, modelBrand } from "@dougbot/client";
 
 /**
  * The maker's logo beside a model's name, as the Zim Studio's picker shows it. The files are in

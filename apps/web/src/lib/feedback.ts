@@ -1,4 +1,4 @@
-import type { FeedbackAbout } from "@agenteschat/client";
+import type { FeedbackAbout } from "@dougbot/client";
 import { loadedEntry } from "./app-version";
 import { desktopPlatform } from "./desktop";
 

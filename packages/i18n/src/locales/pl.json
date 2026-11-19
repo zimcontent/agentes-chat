@@ -19029,7 +19029,7 @@
   },
   "gallery": {
     "title": "Galeria komponentów",
-    "subtitle": "Tylko do developmentu: komponenty @agenteschat/ui."
+    "subtitle": "Tylko do developmentu: komponenty @dougbot/ui."
   },
   "format": {
     "list": "{{names, list}}",

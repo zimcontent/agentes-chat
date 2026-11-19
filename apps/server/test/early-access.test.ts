@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { eq, schema, sql } from "@agenteschat/db";
-import { setSignupMode } from "@agenteschat/engine";
+import { eq, schema, sql } from "@dougbot/db";
+import { setSignupMode } from "@dougbot/engine";
 import { createLogger } from "../src/logger";
 import { createOperatorApp } from "../src/operator/app";
 import {

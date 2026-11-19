@@ -1,4 +1,4 @@
-import { and, type Database, eq, inArray, isNull, lte, or, schema, sql } from "@agenteschat/db";
+import { and, type Database, eq, inArray, isNull, lte, or, schema, sql } from "@dougbot/db";
 import { ForbiddenError, ValidationError } from "./errors";
 import { can, requireActiveMembership } from "./organizations";
 import { queueOrder } from "./task-queue";

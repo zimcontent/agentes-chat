@@ -1,7 +1,7 @@
 import { type ChildProcess, spawn } from "node:child_process";
 import type { EventEmitter } from "node:events";
-import type { CommandProfile } from "@agenteschat/adapters/command-policy";
-import type { BrainSteerReply } from "@agenteschat/adapters/machine-protocol";
+import type { CommandProfile } from "@dougbot/adapters/command-policy";
+import type { BrainSteerReply } from "@dougbot/adapters/machine-protocol";
 import { ACP_METHOD_NOT_FOUND, ACP_PROTOCOL_VERSION, AcpConnection, AcpError } from "./acp";
 import { AGY_NETWORK_COMMANDS } from "./agy-home";
 import {

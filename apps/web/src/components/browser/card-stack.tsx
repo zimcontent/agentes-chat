@@ -1,5 +1,5 @@
-import { formatTime } from "@agenteschat/client/lib/format";
-import { agentGradient, Icon } from "@agenteschat/ui";
+import { formatTime } from "@dougbot/client/lib/format";
+import { agentGradient, Icon } from "@dougbot/ui";
 import {
   type CSSProperties,
   createContext,

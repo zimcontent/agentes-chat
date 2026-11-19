@@ -1,6 +1,6 @@
-import type { ApprovalPortal } from "@agenteschat/adapters";
-import { and, type Database, desc, eq, gt, inArray, lte, schema, sql } from "@agenteschat/db";
-import type { AgendaTone } from "@agenteschat/ui/blocks/spec";
+import type { ApprovalPortal } from "@dougbot/adapters";
+import { and, type Database, desc, eq, gt, inArray, lte, schema, sql } from "@dougbot/db";
+import type { AgendaTone } from "@dougbot/ui/blocks/spec";
 import { portalColumnOf, portalToSchedule } from "../approval-portal";
 import { listApprovals } from "../approvals";
 import { listProposals } from "../context/proposals";

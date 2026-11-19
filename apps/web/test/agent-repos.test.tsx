@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { GitHubRepositories, Run } from "@agenteschat/client";
+import type { GitHubRepositories, Run } from "@dougbot/client";
 import {
   ALL_REPOS,
   applyPick,
@@ -14,7 +14,7 @@ import {
   repoListOf,
   sameRepoChoice,
   toggleRepo,
-} from "@agenteschat/client/lib/repos";
+} from "@dougbot/client/lib/repos";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { ADA_ID, createFakeApi, ENG_ID, ORG_ID, seedState } from "./fake-api";
 import { renderApp, screen, settle } from "./render";

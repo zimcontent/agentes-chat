@@ -1,4 +1,4 @@
-import type { PubSub } from "@agenteschat/adapters";
+import type { PubSub } from "@dougbot/adapters";
 import {
   and,
   arrayContained,
@@ -12,8 +12,8 @@ import {
   type SQL,
   schema,
   sql,
-} from "@agenteschat/db";
-import { modelForTier, modelInfo } from "@agenteschat/providers";
+} from "@dougbot/db";
+import { modelForTier, modelInfo } from "@dougbot/providers";
 import { listApprovals } from "./approvals";
 import { DIGEST_FROM, digestWaitingOn } from "./approvals-digest";
 import { editContextItem, howToSql } from "./context/items";

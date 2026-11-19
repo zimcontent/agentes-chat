@@ -1,5 +1,5 @@
-import type { OrgSummary } from "@agenteschat/client";
-import { CLOUD_SERVER, serverHost } from "@agenteschat/client/lib/server";
+import type { OrgSummary } from "@dougbot/client";
+import { CLOUD_SERVER, serverHost } from "@dougbot/client/lib/server";
 
 /** A server's workspaces in Workspaces (ADR 0154), or one of its accounts' (ADR 0183), each with its unread count. */
 export interface ServerWorkspaces {

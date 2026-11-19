@@ -5,18 +5,18 @@ import {
   useSaveSecretToVault,
   type VaultAccess,
   type VaultScope,
-} from "@agenteschat/client";
-import { formatTime } from "@agenteschat/client/lib/format";
-import { can } from "@agenteschat/client/lib/permissions";
-import { secretAad } from "@agenteschat/client/lib/secret-box";
+} from "@dougbot/client";
+import { formatTime } from "@dougbot/client/lib/format";
+import { can } from "@dougbot/client/lib/permissions";
+import { secretAad } from "@dougbot/client/lib/secret-box";
 import {
   secretClosedBy,
   secretLabel,
   secretRefusalKey,
   secretValueProblem,
   secretWhere,
-} from "@agenteschat/client/lib/secret-requests";
-import { secretEndedAt, secretOutcome } from "@agenteschat/client/lib/secret-words";
+} from "@dougbot/client/lib/secret-requests";
+import { secretEndedAt, secretOutcome } from "@dougbot/client/lib/secret-words";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";

@@ -1,6 +1,6 @@
-import { mixHex } from "@agenteschat/ui/agent/engine";
-import { sourceMarkOf } from "@agenteschat/ui/blocks/source-marks";
-import type { AgendaTone, BlockOpen, BlockViewPart } from "@agenteschat/ui/blocks/spec";
+import { mixHex } from "@dougbot/ui/agent/engine";
+import { sourceMarkOf } from "@dougbot/ui/blocks/source-marks";
+import type { AgendaTone, BlockOpen, BlockViewPart } from "@dougbot/ui/blocks/spec";
 import { StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 import { Icon, type IconName, Text, useTheme } from "@/ui";

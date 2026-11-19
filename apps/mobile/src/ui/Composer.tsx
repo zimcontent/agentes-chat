@@ -1,5 +1,5 @@
-import { joinDrafts, tooLongText, tooLongToSend } from "@agenteschat/client/lib/message-length";
-import { applyFormat, FORMAT_KINDS, type FormatKind } from "@agenteschat/ui/format";
+import { joinDrafts, tooLongText, tooLongToSend } from "@dougbot/client/lib/message-length";
+import { applyFormat, FORMAT_KINDS, type FormatKind } from "@dougbot/ui/format";
 import { Canvas, Group, Path, Skia, vec } from "@shopify/react-native-skia";
 import { type ReactNode, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";

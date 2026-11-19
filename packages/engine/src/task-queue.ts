@@ -1,5 +1,5 @@
-import type { PubSub } from "@agenteschat/adapters";
-import { and, asc, type Database, eq, inArray, rowsOf, type SQL, schema, sql } from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import { and, asc, type Database, eq, inArray, rowsOf, type SQL, schema, sql } from "@dougbot/db";
 import { recordAudit } from "./audit";
 import { ForbiddenError, NotFoundError, ValidationError } from "./errors";
 import { publishUserEvent } from "./events";

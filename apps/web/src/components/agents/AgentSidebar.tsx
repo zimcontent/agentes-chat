@@ -1,4 +1,4 @@
-import type { Agent, Issue, Routine } from "@agenteschat/client";
+import type { Agent, Issue, Routine } from "@dougbot/client";
 import {
   agentStateIn,
   asksPicture,
@@ -9,7 +9,7 @@ import {
   useIssues,
   useRoutines,
   useUsage,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   entryButton,
   entryKind,
@@ -18,20 +18,20 @@ import {
   entryState,
   pictureWhen,
   surfaceOf,
-} from "@agenteschat/client/lib/agent-computer";
-import { seesDetails } from "@agenteschat/client/lib/audience";
-import { computerName } from "@agenteschat/client/lib/computer";
-import { ErrorBoundary } from "@agenteschat/client/lib/error-boundary";
-import { formatPercent, formatUsd, relativeTime } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { STATUS_ICON } from "@agenteschat/client/lib/issues";
-import { can } from "@agenteschat/client/lib/permissions";
-import { usageShown } from "@agenteschat/client/lib/plan-usage";
-import { agentFaceWord } from "@agenteschat/client/lib/presence";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
-import { siteHost } from "@agenteschat/client/lib/secret-requests";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
-import { Button, ComputerPortrait, GroupHeading, Icon, InfoHint, PresenceBadge, Switch } from "@agenteschat/ui";
+} from "@dougbot/client/lib/agent-computer";
+import { seesDetails } from "@dougbot/client/lib/audience";
+import { computerName } from "@dougbot/client/lib/computer";
+import { ErrorBoundary } from "@dougbot/client/lib/error-boundary";
+import { formatPercent, formatUsd, relativeTime } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { STATUS_ICON } from "@dougbot/client/lib/issues";
+import { can } from "@dougbot/client/lib/permissions";
+import { usageShown } from "@dougbot/client/lib/plan-usage";
+import { agentFaceWord } from "@dougbot/client/lib/presence";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
+import { siteHost } from "@dougbot/client/lib/secret-requests";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
+import { Button, ComputerPortrait, GroupHeading, Icon, InfoHint, PresenceBadge, Switch } from "@dougbot/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";

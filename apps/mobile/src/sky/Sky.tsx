@@ -1,4 +1,4 @@
-import type { AgentColorName } from "@agenteschat/ui/agent/engine";
+import type { AgentColorName } from "@dougbot/ui/agent/engine";
 import { type StyleProp, View, type ViewStyle } from "react-native";
 
 export interface SkyProps {

@@ -1,7 +1,7 @@
-import type { ApprovalPortal, BlobStore, PortalCard, PortalItem, PortalJob, PortalState } from "@agenteschat/adapters";
-import { ApprovalPortalError, PORTAL_FILE_BYTES } from "@agenteschat/adapters";
-import type { Database, Executor } from "@agenteschat/db";
-import { and, asc, desc, eq, inArray, schema, sql } from "@agenteschat/db";
+import type { ApprovalPortal, BlobStore, PortalCard, PortalItem, PortalJob, PortalState } from "@dougbot/adapters";
+import { ApprovalPortalError, PORTAL_FILE_BYTES } from "@dougbot/adapters";
+import type { Database, Executor } from "@dougbot/db";
+import { and, asc, desc, eq, inArray, schema, sql } from "@dougbot/db";
 import { portalWorkspaceOf } from "./approval-portal-clients";
 import { ConflictError } from "./errors";
 import { assertStorageRoom } from "./limits";

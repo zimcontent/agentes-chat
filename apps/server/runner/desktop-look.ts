@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { type AgentScope, DESKTOP_SIZE } from "@agenteschat/adapters/machine-protocol";
+import { type AgentScope, DESKTOP_SIZE } from "@dougbot/adapters/machine-protocol";
 import BROWSER_BASE64 from "./assets/desktop-browser.png.b64" with { type: "text" };
 import FILES_BASE64 from "./assets/desktop-files.png.b64" with { type: "text" };
 import MARK_BASE64 from "./assets/desktop-mark.png.b64" with { type: "text" };

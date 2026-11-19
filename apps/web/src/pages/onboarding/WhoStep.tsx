@@ -1,6 +1,6 @@
-import type { DougTemplateMember } from "@agenteschat/client";
-import { dougCounts, dougHandles, dougOrder, isRightHandMember, qgOf } from "@agenteschat/client/lib/doug-team";
-import { Button, Checkbox, Chip, Icon, Locked } from "@agenteschat/ui";
+import type { DougTemplateMember } from "@dougbot/client";
+import { dougCounts, dougHandles, dougOrder, isRightHandMember, qgOf } from "@dougbot/client/lib/doug-team";
+import { Button, Checkbox, Chip, Icon, Locked } from "@dougbot/ui";
 import { useId } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";

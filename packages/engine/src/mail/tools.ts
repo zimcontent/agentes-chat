@@ -5,8 +5,8 @@ import {
   type MailProvider,
   type MailSummary,
   type OutgoingMail,
-} from "@agenteschat/adapters";
-import { and, type Database, eq, gte, schema, sql } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, type Database, eq, gte, schema, sql } from "@dougbot/db";
 import { getAgent } from "../agents";
 import { namesLabel, namesOf } from "../approvals";
 import { type ArtifactDeps, createFileArtifact, fileForModel, fileReach } from "../artifacts";

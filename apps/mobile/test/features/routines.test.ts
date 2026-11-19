@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { Routine, RoutineRun } from "@agenteschat/client";
+import type { Routine, RoutineRun } from "@dougbot/client";
 import {
   cleanFilter,
   draftChanges,

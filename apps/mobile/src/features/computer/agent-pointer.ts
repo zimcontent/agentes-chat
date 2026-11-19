@@ -7,7 +7,7 @@ import {
   pointerAtRest,
   pointerInView,
   pointerShare,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import { fitScale, type Size } from "./screen-view";
 
 /** How a box shows the picture, and the box's size: the edges that would cut the arrow's name. */

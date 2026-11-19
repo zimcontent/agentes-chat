@@ -1,4 +1,4 @@
-import { voiceSpeedOf } from "@agenteschat/client/lib/voice";
+import { voiceSpeedOf } from "@dougbot/client/lib/voice";
 import { readValueSync, STORED, writeValue } from "@/lib/storage";
 
 /** The speed voice messages play at, picked on any of them, for all of them, kept on this phone. */

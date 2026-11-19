@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
-import { STREAM_CLOSE } from "@agenteschat/adapters";
-import { and, type Database, eq, isNull, schema } from "@agenteschat/db";
-import { computerDrivers } from "@agenteschat/engine";
+import { STREAM_CLOSE } from "@dougbot/adapters";
+import { and, type Database, eq, isNull, schema } from "@dougbot/db";
+import { computerDrivers } from "@dougbot/engine";
 import { ByteReader } from "../runner/rfb";
 import type { Auth } from "../src/auth";
 import { desktopChallenge, HANDOFF_PREFIX } from "../src/desktop-sign-in";

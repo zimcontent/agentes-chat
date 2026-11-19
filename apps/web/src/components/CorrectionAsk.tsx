@@ -1,5 +1,5 @@
-import type { Message } from "@agenteschat/client";
-import { Button, Input } from "@agenteschat/ui";
+import type { Message } from "@dougbot/client";
+import { Button, Input } from "@dougbot/ui";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

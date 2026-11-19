@@ -1,4 +1,4 @@
-import { plural } from "@agenteschat/i18n/format";
+import { plural } from "@dougbot/i18n/format";
 import type { Inline, Text } from "../layout";
 
 /**

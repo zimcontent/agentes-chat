@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { ApiError, type ArtifactDetail } from "@agenteschat/client";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { ApiError, type ArtifactDetail } from "@dougbot/client";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 

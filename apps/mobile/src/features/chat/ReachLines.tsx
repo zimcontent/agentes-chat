@@ -7,7 +7,7 @@ import {
   useChannels,
   useRoles,
   useWidenAudience,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import {
   type AgentUnavailableEvent,
   audienceNotice,
@@ -18,11 +18,11 @@ import {
   opensOthersPlan,
   unavailableNotice,
   widenQuestion,
-} from "@agenteschat/client/lib/audience";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { can } from "@agenteschat/client/lib/permissions";
-import { type ReachEntry, reachKey, reachOf, reachOpens } from "@agenteschat/client/lib/reach";
+} from "@dougbot/client/lib/audience";
+import { errorText } from "@dougbot/client/lib/errors";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { can } from "@dougbot/client/lib/permissions";
+import { type ReachEntry, reachKey, reachOf, reachOpens } from "@dougbot/client/lib/reach";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { Alert, StyleSheet, View } from "react-native";

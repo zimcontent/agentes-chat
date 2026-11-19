@@ -8,7 +8,7 @@ import {
   type MachineRequest,
   type RunnerInfo,
   type ServerFrame,
-} from "@agenteschat/adapters/machine-protocol";
+} from "@dougbot/adapters/machine-protocol";
 import { connectUrl } from "../../runner/config";
 import {
   backoffDelay,

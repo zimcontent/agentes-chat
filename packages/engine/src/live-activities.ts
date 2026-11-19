@@ -1,5 +1,5 @@
-import type { LiveActivityMessage, LiveActivitySender } from "@agenteschat/adapters";
-import { and, asc, type Database, eq, inArray, isNull, lt, ne, rowsOf, schema, sql } from "@agenteschat/db";
+import type { LiveActivityMessage, LiveActivitySender } from "@dougbot/adapters";
+import { and, asc, type Database, eq, inArray, isNull, lt, ne, rowsOf, schema, sql } from "@dougbot/db";
 import { ForbiddenError, NotFoundError } from "./errors";
 import { getMembership } from "./organizations";
 import { pushLocale, pushStrings } from "./push-messages";

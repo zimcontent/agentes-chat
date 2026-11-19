@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { resources } from "@agenteschat/i18n";
+import { resources } from "@dougbot/i18n";
 import i18next, { type TFunction } from "i18next";
 import { toolName } from "../src/lib/tool-review";
 

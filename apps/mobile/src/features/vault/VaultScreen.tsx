@@ -1,7 +1,7 @@
-import { useVault, type VaultConnection, type VaultItem, type VaultOverview } from "@agenteschat/client";
-import { joinNames } from "@agenteschat/client/lib/format";
-import { webSettingsUrl } from "@agenteschat/client/lib/server";
-import { vaultNoAgents } from "@agenteschat/client/lib/vault";
+import { useVault, type VaultConnection, type VaultItem, type VaultOverview } from "@dougbot/client";
+import { joinNames } from "@dougbot/client/lib/format";
+import { webSettingsUrl } from "@dougbot/client/lib/server";
+import { vaultNoAgents } from "@dougbot/client/lib/vault";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {

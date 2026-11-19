@@ -1,4 +1,4 @@
-import { and, type Executor, eq, inArray, notInArray, schema, sql } from "@agenteschat/db";
+import { and, type Executor, eq, inArray, notInArray, schema, sql } from "@dougbot/db";
 import type { PortalColumn } from "./approval-portal";
 
 const { agents, issues, organizationMembers, organizationSettings, users } = schema;

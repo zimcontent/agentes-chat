@@ -1,8 +1,8 @@
-import type { Agent, AgentMediaLevel, GifRating, OrgSettings } from "@agenteschat/client";
-import { useAgents, useSettings, useUpdateAgent, useUpdateSettings } from "@agenteschat/client";
-import { shownMediaSettings } from "@agenteschat/client/lib/media";
-import { can } from "@agenteschat/client/lib/permissions";
-import { Card, CardFooter, CardHeader, Segmented, Switch } from "@agenteschat/ui";
+import type { Agent, AgentMediaLevel, GifRating, OrgSettings } from "@dougbot/client";
+import { useAgents, useSettings, useUpdateAgent, useUpdateSettings } from "@dougbot/client";
+import { shownMediaSettings } from "@dougbot/client/lib/media";
+import { can } from "@dougbot/client/lib/permissions";
+import { Card, CardFooter, CardHeader, Segmented, Switch } from "@dougbot/ui";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { GifKeyCard } from "@/components/GifKeyCard";

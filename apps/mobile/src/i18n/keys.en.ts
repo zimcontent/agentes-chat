@@ -1,4 +1,4 @@
-import type { Widen } from "@agenteschat/i18n/widen";
+import type { Widen } from "@dougbot/i18n/widen";
 
 /** The app's own strings in English, the source: every other language follows this shape. */
 export const mobileEn = {

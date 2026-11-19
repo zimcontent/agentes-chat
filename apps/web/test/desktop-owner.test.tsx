@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { SignInOptions } from "@agenteschat/client";
+import type { SignInOptions } from "@dougbot/client";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import type { ThisMacStatus } from "@/lib/desktop";
 import { createFakeApi, ORG_ID, seedState } from "./fake-api";

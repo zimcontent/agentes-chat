@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { reviewLinksIn, type VideoReviewNote } from "@agenteschat/client";
+import { reviewLinksIn, type VideoReviewNote } from "@dougbot/client";
 import {
   FILE_PART_MAX_BYTES,
   fitsFilePart,

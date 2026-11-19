@@ -9,8 +9,8 @@ import {
   type RunnerPhone,
   STREAM_CLOSE,
   XCODE_FIX_PROTOCOL,
-} from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
 import {
   authorizePhoneStream,
   cancelWifiPairing,

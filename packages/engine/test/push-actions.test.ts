@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { APNS_CATEGORY, createFakePushSender } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
-import type { BlockSpec } from "@agenteschat/ui/blocks/spec";
+import { APNS_CATEGORY, createFakePushSender } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
+import type { BlockSpec } from "@dougbot/ui/blocks/spec";
 import {
   BLOCK_ACTION_PREFIX,
   blockPushActions,

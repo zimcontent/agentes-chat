@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { readZip, ZipError } from "@agenteschat/client/lib/zip";
+import { readZip, ZipError } from "@dougbot/client/lib/zip";
 import { zip } from "./archives";
 
 const blob = (bytes: Uint8Array) => new Blob([bytes.slice()]);

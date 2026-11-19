@@ -1,5 +1,5 @@
 import { expect } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
+import { eq, schema } from "@dougbot/db";
 import {
   addChannelMember,
   answerQuestion,

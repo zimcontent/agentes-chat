@@ -1,4 +1,4 @@
-import { normalizeAppearance } from "@agenteschat/tokens/look";
+import { normalizeAppearance } from "@dougbot/tokens/look";
 import type { ApiRule, BundleNote, BundleTodo } from "../../api/types";
 import {
   cleanUrl,

@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
-import { monthStartUtc, sealSecret } from "@agenteschat/engine";
+import { eq, schema } from "@dougbot/db";
+import { monthStartUtc, sealSecret } from "@dougbot/engine";
 import {
   type Browser,
   browser,

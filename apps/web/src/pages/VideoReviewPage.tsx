@@ -16,8 +16,8 @@ import {
   type VideoReviewNote,
   type VideoReviewNoteKind,
   type VideoReviewSummary,
-} from "@agenteschat/client";
-import { relativeTime } from "@agenteschat/client/lib/format";
+} from "@dougbot/client";
+import { relativeTime } from "@dougbot/client/lib/format";
 import {
   Button,
   Chip,
@@ -31,7 +31,7 @@ import {
   Tabs,
   Textarea,
   Toolbar,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { type PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

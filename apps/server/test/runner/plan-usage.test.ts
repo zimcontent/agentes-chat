@@ -8,8 +8,8 @@ import {
   type PlanUsage,
   parsePlanUsage,
   parseRunnerFrame,
-} from "@agenteschat/adapters/machine-protocol";
-import { planState } from "@agenteschat/ui/plan-state";
+} from "@dougbot/adapters/machine-protocol";
+import { planState } from "@dougbot/ui/plan-state";
 import { AccountManager, type AccountManagerOptions } from "../../runner/accounts";
 import {
   antigravityUsage,

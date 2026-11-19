@@ -1,4 +1,4 @@
-import { and, count, type Database, type Executor, eq, gte, schema, sql } from "@agenteschat/db";
+import { and, count, type Database, type Executor, eq, gte, schema, sql } from "@dougbot/db";
 import { caches } from "./cache";
 
 /**

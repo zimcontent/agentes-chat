@@ -1,4 +1,4 @@
-import { BRAND_NAME } from "@agenteschat/i18n/brand";
+import { BRAND_NAME } from "@dougbot/i18n/brand";
 import {
   type HelpBlock,
   type HelpDocument,
@@ -7,10 +7,10 @@ import {
   helpDocument,
   helpInline,
   isHelpSlug,
-} from "@agenteschat/i18n/help";
+} from "@dougbot/i18n/help";
 
 /**
- * DougBot's own docs (`/docs`): the help pages this repository already holds (`@agenteschat/i18n/help`), shown under
+ * DougBot's own docs (`/docs`): the help pages this repository already holds (`@dougbot/i18n/help`), shown under
  * DougBot's name. The pages' text stays as the original project wrote it, in every language, so its updates keep
  * arriving: the name is swapped as a page is read (`brandProse`), and the one page that says where the work comes
  * from (`open-source`, the attribution the NOTICE asks for) is written here.
@@ -50,7 +50,7 @@ const INSTALL = /https:\/\/agentes\.chat\/install/g;
  * The other project's own package and image (`npx @agenteschat/setup`, its container registry): a second way to run
  * the same setup as the installer. DougBot publishes neither under its name, so those blocks stay out.
  */
-const THEIRS = /@agenteschat\/|ghcr\.io\/agentes-chat\//;
+const THEIRS = /@dougbot\/|ghcr\.io\/agentes-chat\//;
 const ours = (block: HelpBlock) => !THEIRS.test(typeof block === "string" ? block : "code" in block ? block.code : "");
 
 /** Words a person reads: the product's name becomes DougBot. */

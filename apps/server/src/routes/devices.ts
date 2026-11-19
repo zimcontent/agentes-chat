@@ -1,4 +1,4 @@
-import { pairAddress } from "@agenteschat/adapters";
+import { pairAddress } from "@dougbot/adapters";
 import {
   approveDeviceJoin,
   cancelWifiPairing,
@@ -22,7 +22,7 @@ import {
   wifiIphones,
   wifiPairingState,
   xcodeFix,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
 import {

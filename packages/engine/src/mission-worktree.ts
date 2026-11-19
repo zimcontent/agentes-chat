@@ -1,5 +1,5 @@
-import { MISSION_WORKTREE_PROTOCOL, parseMissionWorktreeEnsured } from "@agenteschat/adapters";
-import { and, desc, type Executor, eq, inArray, schema, sql } from "@agenteschat/db";
+import { MISSION_WORKTREE_PROTOCOL, parseMissionWorktreeEnsured } from "@dougbot/adapters";
+import { and, desc, type Executor, eq, inArray, schema, sql } from "@dougbot/db";
 import { getAgentCached } from "./agents";
 import { recordAudit } from "./audit";
 import { ConflictError } from "./errors";

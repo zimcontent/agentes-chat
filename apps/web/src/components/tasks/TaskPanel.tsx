@@ -1,8 +1,8 @@
-import type { EndedTask, ManagedTask } from "@agenteschat/client";
-import { TASK_MANAGER_POLL_MS, useTaskSteps } from "@agenteschat/client";
-import { type Activity, activityVerb, toolActivity } from "@agenteschat/client/lib/activity";
-import { capitalize } from "@agenteschat/client/lib/format";
-import { stopLine, stopperOf } from "@agenteschat/client/lib/notices";
+import type { EndedTask, ManagedTask } from "@dougbot/client";
+import { TASK_MANAGER_POLL_MS, useTaskSteps } from "@dougbot/client";
+import { type Activity, activityVerb, toolActivity } from "@dougbot/client/lib/activity";
+import { capitalize } from "@dougbot/client/lib/format";
+import { stopLine, stopperOf } from "@dougbot/client/lib/notices";
 import {
   delegationText,
   endedState,
@@ -10,9 +10,9 @@ import {
   taskState,
   taskTime,
   taskTitle,
-} from "@agenteschat/client/lib/task-manager";
-import { formatDuration } from "@agenteschat/client/lib/work";
-import { Button, Chip, GroupHeading, PixelStop } from "@agenteschat/ui";
+} from "@dougbot/client/lib/task-manager";
+import { formatDuration } from "@dougbot/client/lib/work";
+import { Button, Chip, GroupHeading, PixelStop } from "@dougbot/ui";
 import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar, AgentSpinner } from "@/components/AgentAvatar";

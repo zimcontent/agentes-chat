@@ -10,13 +10,13 @@ import {
   useMe,
   useRoles,
   useTurnOffInviteLink,
-} from "@agenteschat/client";
-import { settingsFrozen } from "@agenteschat/client/lib/deletion";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { formatInt } from "@agenteschat/client/lib/format";
-import { linkNeedsAttention } from "@agenteschat/client/lib/invite-start";
-import { can } from "@agenteschat/client/lib/permissions";
-import { everyoneOf, sortRoles } from "@agenteschat/client/lib/roles";
+} from "@dougbot/client";
+import { settingsFrozen } from "@dougbot/client/lib/deletion";
+import { errorText } from "@dougbot/client/lib/errors";
+import { formatInt } from "@dougbot/client/lib/format";
+import { linkNeedsAttention } from "@dougbot/client/lib/invite-start";
+import { can } from "@dougbot/client/lib/permissions";
+import { everyoneOf, sortRoles } from "@dougbot/client/lib/roles";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Share, StyleSheet, View } from "react-native";

@@ -8,8 +8,8 @@ import {
   glidePoint,
   glideStart,
   pointerAtRest,
-} from "@agenteschat/client";
-import { gradientOf } from "@agenteschat/ui";
+} from "@dougbot/client";
+import { gradientOf } from "@dougbot/ui";
 import { type CSSProperties, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { AgentAvatar } from "@/components/AgentAvatar";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";

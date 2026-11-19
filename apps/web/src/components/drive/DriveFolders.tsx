@@ -1,7 +1,7 @@
-import type { DriveFolder } from "@agenteschat/client";
-import { useDriveOrganize } from "@agenteschat/client";
-import { folderAndBelow, folderChain, folderRows } from "@agenteschat/client/lib/drive-folders";
-import { errorText } from "@agenteschat/client/lib/errors";
+import type { DriveFolder } from "@dougbot/client";
+import { useDriveOrganize } from "@dougbot/client";
+import { folderAndBelow, folderChain, folderRows } from "@dougbot/client/lib/drive-folders";
+import { errorText } from "@dougbot/client/lib/errors";
 import {
   Button,
   cx,
@@ -15,7 +15,7 @@ import {
   Locked,
   Menu,
   OptionList,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { type DragEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { MenuEntries } from "@/components/DesktopMenus";

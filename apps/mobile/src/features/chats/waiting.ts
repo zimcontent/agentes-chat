@@ -1,4 +1,4 @@
-import type { AgentStatus, AgentWork, AppNotification, Approval, Mission } from "@agenteschat/client";
+import type { AgentStatus, AgentWork, AppNotification, Approval, Mission } from "@dougbot/client";
 import { type AppHref, chatHref, notificationHref } from "../links/logic";
 import { minutesLeft } from "../shared/logic";
 import { missionWaitingItems } from "./logic";

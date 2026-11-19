@@ -1,4 +1,4 @@
-import { and, eq, isNull, schema } from "@agenteschat/db";
+import { and, eq, isNull, schema } from "@dougbot/db";
 import { type AgentDeletionDeps, deleteAgent } from "./agent-deletion";
 import { invalidateOrg } from "./cache";
 import { NotFoundError } from "./errors";

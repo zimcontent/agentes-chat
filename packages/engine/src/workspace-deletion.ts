@@ -1,4 +1,4 @@
-import { ACCOUNTS_PROTOCOL, type MailAdapters, type PubSub, type RateLimiter } from "@agenteschat/adapters";
+import { ACCOUNTS_PROTOCOL, type MailAdapters, type PubSub, type RateLimiter } from "@dougbot/adapters";
 import {
   and,
   asc,
@@ -14,7 +14,7 @@ import {
   ne,
   schema,
   sql,
-} from "@agenteschat/db";
+} from "@dougbot/db";
 import { enqueueAccountContact } from "./account-contacts";
 import { recordAudit } from "./audit";
 import { orgMessageCount } from "./billing-link";

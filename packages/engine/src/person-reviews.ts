@@ -1,4 +1,4 @@
-import { and, type Database, eq, isNull, schema } from "@agenteschat/db";
+import { and, type Database, eq, isNull, schema } from "@dougbot/db";
 import { storedFileOfArtifact } from "./artifacts";
 import { requireChannelAccess } from "./channels";
 import { line, submitEditorVideo } from "./editor-delivery";

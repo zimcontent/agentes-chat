@@ -17,6 +17,6 @@ export const selfHosted = (server: AuthConfig | undefined) => server !== undefin
 
 /**
  * Whether the About screen shows: on every self-hosted server, for everyone; never on agentes.chat Cloud, which is
- * agentes.chat itself.
+ * DougBot itself.
  */
 export const showsAbout = selfHosted;

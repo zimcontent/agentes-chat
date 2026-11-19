@@ -50,7 +50,7 @@ export interface LegalFacts {
   backup: boolean;
   /** Where files are kept: an S3 bucket, a folder on the server's disk, or the database itself. */
   storage: "s3" | "disk" | "database";
-  /** This server is one of agentes.chat's own, where the usage report cannot be switched off. */
+  /** This server is one of DougBot's own, where the usage report cannot be switched off. */
   telemetryForced: boolean;
   /**
    * Days a company's request to the waiting list is kept (`COMPANY_REQUESTS_RETENTION_DAYS`); null: no such form

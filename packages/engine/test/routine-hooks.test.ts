@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { createHmac } from "node:crypto";
-import { createMemoryRateLimiter } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import { systemText } from "@agenteschat/providers";
+import { createMemoryRateLimiter } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import { systemText } from "@dougbot/providers";
 import {
   buildRunContext,
   createRoutine,

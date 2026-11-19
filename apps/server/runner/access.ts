@@ -10,8 +10,8 @@ import {
   type RunnerAccess,
   type RunnerFolderGrant,
   type RunnerTools,
-} from "@agenteschat/adapters/machine-protocol";
-import type { ControlAccessRequest, ControlErrorCode } from "@agenteschat/adapters/runner-control";
+} from "@dougbot/adapters/machine-protocol";
+import type { ControlAccessRequest, ControlErrorCode } from "@dougbot/adapters/runner-control";
 import { expandHome } from "./config";
 import { isInside } from "./paths";
 

@@ -6,9 +6,9 @@ import {
   type WhatsAppMessage,
   whatsappFileKind,
   whatsappFileMessage,
-} from "@agenteschat/adapters";
-import { and, desc, eq, gt, inArray, isNull, schema } from "@agenteschat/db";
-import { isAutoModel, type ModelMessage, type ToolImage, type ToolSpec } from "@agenteschat/providers";
+} from "@dougbot/adapters";
+import { and, desc, eq, gt, inArray, isNull, schema } from "@dougbot/db";
+import { isAutoModel, type ModelMessage, type ToolImage, type ToolSpec } from "@dougbot/providers";
 import type { Agent } from "../agents";
 import { type ArtifactActor, type ArtifactDeps, artifactFileAs, createFileArtifact } from "../artifacts";
 import { autoModelFor, autoProvider, orgAutoModels } from "../auto-model";

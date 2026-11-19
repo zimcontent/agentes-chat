@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
-import type { DirectMessage } from "@agenteschat/client";
-import { canTalk } from "@agenteschat/client/lib/audience";
+import type { DirectMessage } from "@dougbot/client";
+import { canTalk } from "@dougbot/client/lib/audience";
 import {
   firstVisitOf,
   introCards,
@@ -12,8 +12,8 @@ import {
   tellsNameStory,
   welcomeOpen,
   welcomesMember,
-} from "@agenteschat/client/lib/right-hand";
-import { STICKER_STILL_T, WAVE_SECONDS } from "@agenteschat/ui/agent/stickers";
+} from "@dougbot/client/lib/right-hand";
+import { STICKER_STILL_T, WAVE_SECONDS } from "@dougbot/ui/agent/stickers";
 import { stickerFrame } from "../../src/agent/sticker";
 import { agentStarters, buildConversations, homeLayout, withRightHand } from "../../src/features/chats/logic";
 import { SETTINGS_SECTIONS } from "../../src/features/settings/logic";

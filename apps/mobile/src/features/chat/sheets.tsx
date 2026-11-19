@@ -22,13 +22,13 @@ import {
   useThreadInfo,
   useThreadMutation,
   useToggleReaction,
-} from "@agenteschat/client";
-import { textOrMedia } from "@agenteschat/client/lib/media";
-import { messagePath } from "@agenteschat/client/lib/message-links";
-import { summaryParts } from "@agenteschat/client/lib/missions";
-import { listedText } from "@agenteschat/client/lib/voice";
-import { modeKey } from "@agenteschat/client/lib/workspace-mode";
-import { chartBlocksOf } from "@agenteschat/ui/widgets/spec";
+} from "@dougbot/client";
+import { textOrMedia } from "@dougbot/client/lib/media";
+import { messagePath } from "@dougbot/client/lib/message-links";
+import { summaryParts } from "@dougbot/client/lib/missions";
+import { listedText } from "@dougbot/client/lib/voice";
+import { modeKey } from "@dougbot/client/lib/workspace-mode";
+import { chartBlocksOf } from "@dougbot/ui/widgets/spec";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
 import { type ReactNode, useState } from "react";

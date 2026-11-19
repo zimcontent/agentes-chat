@@ -1,4 +1,4 @@
-import { grantedTo, SHARED_COMPUTER_PROTOCOL, sharedFolderOf } from "@agenteschat/adapters";
+import { grantedTo, SHARED_COMPUTER_PROTOCOL, sharedFolderOf } from "@dougbot/adapters";
 import {
   and,
   asc,
@@ -13,10 +13,10 @@ import {
   rowsOf,
   schema,
   sql,
-} from "@agenteschat/db";
-import { BRAND_NAME } from "@agenteschat/i18n/brand";
-import { isAppLocale, localeInfo } from "@agenteschat/i18n/locale";
-import type { ModelMessage, SystemBlock } from "@agenteschat/providers";
+} from "@dougbot/db";
+import { BRAND_NAME } from "@dougbot/i18n/brand";
+import { isAppLocale, localeInfo } from "@dougbot/i18n/locale";
+import type { ModelMessage, SystemBlock } from "@dougbot/providers";
 import { agentStyleLine, agentStyleOf, isAgentStyle } from "./agent-style";
 import type { Agent } from "./agents";
 import { readerOf, readerOfMessage } from "./agents-dm-reads";
@@ -2372,7 +2372,7 @@ export function taskNotice(m: Pick<Message, "body" | "meta">, current = false, p
 
 /**
  * A person's message sent from an AI app (ADR 0119, `meta.via`): the agent learns the person reads the reply there,
- * maybe not in agentes.chat. "" for anything else.
+ * maybe not in DougBot. "" for anything else.
  */
 function viaLine(m: Message, who: string): string {
   // Written on WhatsApp and relayed here (docs/adr/doug-0034-whatsapp-files.md): the reply goes back there, files too.

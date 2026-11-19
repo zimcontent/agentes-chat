@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { type Agent, ApiError } from "@agenteschat/client";
+import { type Agent, ApiError } from "@dougbot/client";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { changedKeys, type Saved } from "@/lib/agent-edit";
 import { handleAfterRename } from "@/lib/new-agent";

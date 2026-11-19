@@ -18,9 +18,9 @@ import {
   type WhatsAppMessage,
   whatsappFileUrl,
   whatsappPhotoUrl,
-} from "@agenteschat/client";
-import { formatBytes } from "@agenteschat/client/lib/files";
-import { clockAt, dayLabel, formatTime } from "@agenteschat/client/lib/format";
+} from "@dougbot/client";
+import { formatBytes } from "@dougbot/client/lib/files";
+import { clockAt, dayLabel, formatTime } from "@dougbot/client/lib/format";
 import {
   Avatar,
   Button,
@@ -42,7 +42,7 @@ import {
   Spinner,
   Switch,
   type VoiceNotice,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { type DragEvent, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorState } from "@/components/Loading";

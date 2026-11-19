@@ -4,7 +4,7 @@ import {
   type PubSub,
   SCREEN_KINDS,
   type ScreenKind,
-} from "@agenteschat/adapters";
+} from "@dougbot/adapters";
 import {
   and,
   type Database,
@@ -19,7 +19,7 @@ import {
   lte,
   schema,
   sql,
-} from "@agenteschat/db";
+} from "@dougbot/db";
 import { getAgentCached, workspaceHomeId } from "../agents";
 import { recordAudit } from "../audit";
 import { isChannelMember } from "../channels";

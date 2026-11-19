@@ -1,4 +1,4 @@
-import { SPEECH_PROVIDERS } from "@agenteschat/adapters";
+import { SPEECH_PROVIDERS } from "@dougbot/adapters";
 import {
   acceptVoiceClip,
   dictateVoice,
@@ -14,7 +14,7 @@ import {
   voiceAllowed,
   voiceClipAudio,
   voiceOn,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import type { Context } from "hono";
 import { bodyLimit } from "hono/body-limit";
@@ -315,7 +315,7 @@ const SaveKey = z.object({
 
 const notFound = "404 for everyone but the installation's pinned owner (ADR 0073), and on agentes.chat itself.";
 
-/** Who turns voice into text on this server (ADR 0100): only its pinned owner, and never on agentes.chat's servers. */
+/** Who turns voice into text on this server (ADR 0100): only its pinned owner, and never on DougBot's servers. */
 export function speechKeyRoutes(deps: AppDeps) {
   const { db, config } = deps;
   const app = createAppRouter(deps);

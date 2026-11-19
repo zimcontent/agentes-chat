@@ -1,7 +1,7 @@
-import type { Message, ThreadInfo } from "@agenteschat/client";
-import { useThreadMutation } from "@agenteschat/client";
-import { errorCode, errorText } from "@agenteschat/client/lib/errors";
-import { formatTime, joinNames } from "@agenteschat/client/lib/format";
+import type { Message, ThreadInfo } from "@dougbot/client";
+import { useThreadMutation } from "@dougbot/client";
+import { errorCode, errorText } from "@dougbot/client/lib/errors";
+import { formatTime, joinNames } from "@dougbot/client/lib/format";
 import {
   excludedRuns,
   moveEdge,
@@ -12,8 +12,8 @@ import {
   stepEdge,
   threadTitle,
   timeSpan,
-} from "@agenteschat/client/lib/threads";
-import { Button, Checkbox, Chip, cx, Icon, Locked } from "@agenteschat/ui";
+} from "@dougbot/client/lib/threads";
+import { Button, Checkbox, Chip, cx, Icon, Locked } from "@dougbot/ui";
 import {
   type KeyboardEvent,
   type PointerEvent,

@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { AiStatus, Message, OrgStanding, TeamProposalCard } from "@agenteschat/client";
-import { ApiError } from "@agenteschat/client";
-import { setDraftFor } from "@agenteschat/client/lib/drafts";
+import type { AiStatus, Message, OrgStanding, TeamProposalCard } from "@dougbot/client";
+import { ApiError } from "@dougbot/client";
+import { setDraftFor } from "@dougbot/client/lib/drafts";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import {
   ADA_ID,

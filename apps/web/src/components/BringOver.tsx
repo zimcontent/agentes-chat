@@ -1,8 +1,8 @@
-import type { CarrySource, CarrySourceConnection, ConnectorDef } from "@agenteschat/client";
-import { useCarry, useCarrySources, useCatalog } from "@agenteschat/client";
-import { sameServer } from "@agenteschat/client/lib/custom-tools";
-import { joinNames } from "@agenteschat/client/lib/format";
-import { providerLabel } from "@agenteschat/client/lib/providers";
+import type { CarrySource, CarrySourceConnection, ConnectorDef } from "@dougbot/client";
+import { useCarry, useCarrySources, useCatalog } from "@dougbot/client";
+import { sameServer } from "@dougbot/client/lib/custom-tools";
+import { joinNames } from "@dougbot/client/lib/format";
+import { providerLabel } from "@dougbot/client/lib/providers";
 import {
   Button,
   type ButtonProps,
@@ -14,7 +14,7 @@ import {
   GroupHeading,
   Locked,
   ProviderLogo,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar } from "@/components/AgentAvatar";

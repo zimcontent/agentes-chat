@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { ApiError } from "@agenteschat/client";
+import { ApiError } from "@dougbot/client";
 import { readDeleteResponse } from "../src/features/account/result";
 import { preflightMissing } from "../src/features/me/logic";
 import {

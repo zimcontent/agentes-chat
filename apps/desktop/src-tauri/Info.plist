@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <!-- The ready languages of @agenteschat/i18n/locale (the Mac App Store lists them): the system's own menus (text fields, sharing, dialogs) follow
+  <!-- The ready languages of @dougbot/i18n/locale (the Mac App Store lists them): the system's own menus (text fields, sharing, dialogs) follow
        the Mac's language instead of staying in English. -->
   <key>CFBundleDevelopmentRegion</key>
   <string>en</string>

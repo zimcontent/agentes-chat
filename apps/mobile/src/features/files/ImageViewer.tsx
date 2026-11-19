@@ -1,5 +1,5 @@
-import { useArtifact } from "@agenteschat/client";
-import { keepWhole } from "@agenteschat/client/lib/format";
+import { useArtifact } from "@dougbot/client";
+import { keepWhole } from "@dougbot/client/lib/format";
 import { StatusBar } from "expo-status-bar";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

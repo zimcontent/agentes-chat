@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { zoneDisplayName } from "@agenteschat/client/lib/routines";
-import { TimezoneSelect } from "@agenteschat/ui";
+import { zoneDisplayName } from "@dougbot/client/lib/routines";
+import { TimezoneSelect } from "@dougbot/ui";
 import { act, cleanup, fireEvent, render, within } from "@testing-library/react";
 import { useState } from "react";
 

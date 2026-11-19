@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { type OutageTargetLike, targetOptions, waitingComputerByAgent } from "@agenteschat/client/lib/machine-outages";
+import { type OutageTargetLike, targetOptions, waitingComputerByAgent } from "@dougbot/client/lib/machine-outages";
 import type { WorkItem } from "../../src/features/agents/logic";
 import { agentRowState } from "../../src/features/chats/now";
 import {

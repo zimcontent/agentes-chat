@@ -1,4 +1,4 @@
-import { useSendWhatsAppSticker, useWhatsAppStickers, whatsappFileUrl } from "@agenteschat/client";
+import { useSendWhatsAppSticker, useWhatsAppStickers, whatsappFileUrl } from "@dougbot/client";
 import { Image } from "expo-image";
 import { ActivityIndicator, Pressable, Text as RNText, ScrollView, StyleSheet, View } from "react-native";
 import { useToast } from "@/ui";

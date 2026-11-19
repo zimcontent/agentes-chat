@@ -31,9 +31,9 @@ import {
   type RunnerAccess,
   type RunnerFrame,
   usesChromium,
-} from "@agenteschat/adapters/machine-protocol";
-import { sealSecret, secretAad, vaultAad } from "@agenteschat/adapters/secret-box";
-import { browserErrorText, formatPlanReport, runPlan } from "@agenteschat/engine";
+} from "@dougbot/adapters/machine-protocol";
+import { sealSecret, secretAad, vaultAad } from "@dougbot/adapters/secret-box";
+import { browserErrorText, formatPlanReport, runPlan } from "@dougbot/engine";
 import { type BrowserLink, type BrowserReply, browserSurface } from "../../../../packages/engine/src/browser/surface";
 import { reduceAccess, setTool, TOOL_NAMES, widens } from "../../runner/access";
 import {

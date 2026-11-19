@@ -10,8 +10,8 @@ import {
   writeFileSync,
 } from "node:fs";
 import path from "node:path";
-import { AGENT_WORKER_HOMES, GROK_ACCOUNT_HOMES } from "@agenteschat/adapters/command-policy";
-import { type AgentScope, isAccountId } from "@agenteschat/adapters/machine-protocol";
+import { AGENT_WORKER_HOMES, GROK_ACCOUNT_HOMES } from "@dougbot/adapters/command-policy";
+import { type AgentScope, isAccountId } from "@dougbot/adapters/machine-protocol";
 import { agentTmpOnDisk, isAgentUid } from "./config";
 import { RunnerError } from "./errors";
 import { readJson, writeJson } from "./json-file";

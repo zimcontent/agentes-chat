@@ -1,6 +1,6 @@
-import type { ComputerDevice, DeviceJoinRequest, PhoneDevice } from "@agenteschat/client";
-import { useComputerSetup } from "@agenteschat/client";
-import { setupView } from "@agenteschat/client/lib/computer";
+import type { ComputerDevice, DeviceJoinRequest, PhoneDevice } from "@dougbot/client";
+import { useComputerSetup } from "@dougbot/client";
+import { setupView } from "@dougbot/client/lib/computer";
 import {
   computerLine,
   type DeviceFilter,
@@ -13,10 +13,10 @@ import {
   joinFacts,
   phoneLine,
   statusDetail,
-} from "@agenteschat/client/lib/devices";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { computerKind } from "@agenteschat/client/lib/machines";
-import { can } from "@agenteschat/client/lib/permissions";
+} from "@dougbot/client/lib/devices";
+import { errorText } from "@dougbot/client/lib/errors";
+import { computerKind } from "@dougbot/client/lib/machines";
+import { can } from "@dougbot/client/lib/permissions";
 import {
   Button,
   ComputerPortrait,
@@ -28,7 +28,7 @@ import {
   SearchField,
   Segmented,
   Toolbar,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

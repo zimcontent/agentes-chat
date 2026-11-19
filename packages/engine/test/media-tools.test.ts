@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeGifs, type GifProvider, GifProviderError } from "@agenteschat/adapters";
-import { asc, eq, schema } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
+import { createFakeGifs, type GifProvider, GifProviderError } from "@dougbot/adapters";
+import { asc, eq, schema } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
 import {
   addChannelMember,
   createAgent,

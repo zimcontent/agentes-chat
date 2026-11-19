@@ -1,6 +1,6 @@
-import type { PortalCardFile, PortalClientColor, PortalColumn, PortalState, PortalStatus } from "@agenteschat/client";
-import { useApi } from "@agenteschat/client";
-import { portalClientHue, portalClientInitials } from "@agenteschat/client/lib/portal";
+import type { PortalCardFile, PortalClientColor, PortalColumn, PortalState, PortalStatus } from "@dougbot/client";
+import { useApi } from "@dougbot/client";
+import { portalClientHue, portalClientInitials } from "@dougbot/client/lib/portal";
 import { Image } from "expo-image";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";

@@ -1,4 +1,4 @@
-import type { Agent } from "@agenteschat/client";
+import type { Agent } from "@dougbot/client";
 import {
   useAgentBrain,
   useAiStatus,
@@ -12,17 +12,17 @@ import {
   useModels,
   useSettings,
   useUpdateSettings,
-} from "@agenteschat/client";
-import { brainLine } from "@agenteschat/client/lib/brain";
-import { emailName, firstName, joinNames } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { stepPermissions } from "@agenteschat/client/lib/home";
-import { aiStateOf, planHoldPhoneLine } from "@agenteschat/client/lib/no-ai";
-import { can } from "@agenteschat/client/lib/permissions";
-import { apiProviderOf, isAuto } from "@agenteschat/client/lib/providers";
-import type { FirstRunState } from "@agenteschat/client/lib/right-hand";
-import { isRightHand } from "@agenteschat/client/lib/right-hand";
-import { connectorName } from "@agenteschat/client/lib/scopes";
+} from "@dougbot/client";
+import { brainLine } from "@dougbot/client/lib/brain";
+import { emailName, firstName, joinNames } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { stepPermissions } from "@dougbot/client/lib/home";
+import { aiStateOf, planHoldPhoneLine } from "@dougbot/client/lib/no-ai";
+import { can } from "@dougbot/client/lib/permissions";
+import { apiProviderOf, isAuto } from "@dougbot/client/lib/providers";
+import type { FirstRunState } from "@dougbot/client/lib/right-hand";
+import { isRightHand } from "@dougbot/client/lib/right-hand";
+import { connectorName } from "@dougbot/client/lib/scopes";
 import {
   beatRow,
   type FirstRunFacts,
@@ -36,15 +36,15 @@ import {
   firstRunRowState,
   firstRunSayKey,
   firstRunSteps,
-} from "@agenteschat/client/lib/setup-checklist";
+} from "@dougbot/client/lib/setup-checklist";
 import {
   aboutYouContext,
   answerAfter,
   LIFE_AREAS,
   type LifeArea,
   lifeAreaTemplate,
-} from "@agenteschat/client/lib/team-plan";
-import { isPersonal, modeKey } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/team-plan";
+import { isPersonal, modeKey } from "@dougbot/client/lib/workspace-mode";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

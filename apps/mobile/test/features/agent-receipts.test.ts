@@ -8,8 +8,8 @@ import {
   type ReceiptsState,
   receiptView,
   seedReceipt,
-} from "@agenteschat/client";
-import { deciderOf } from "@agenteschat/client/lib/routing";
+} from "@dougbot/client";
+import { deciderOf } from "@dougbot/client/lib/routing";
 import {
   keepsLine,
   keptLine,

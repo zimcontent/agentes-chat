@@ -1,6 +1,6 @@
-import type { TeamAgendaTask } from "@agenteschat/client";
-import { useMoveInQueue, useTeamAgenda } from "@agenteschat/client";
-import { can } from "@agenteschat/client/lib/permissions";
+import type { TeamAgendaTask } from "@dougbot/client";
+import { useMoveInQueue, useTeamAgenda } from "@dougbot/client";
+import { can } from "@dougbot/client/lib/permissions";
 import {
   type AgendaItem,
   type AgendaPerson,
@@ -12,8 +12,8 @@ import {
   queueMoveFor,
   TEAM_AGENDA_DAYS,
   tasksByDay,
-} from "@agenteschat/client/lib/team-agenda";
-import { Button, Chip, GroupHeading, Segmented, Select } from "@agenteschat/ui";
+} from "@dougbot/client/lib/team-agenda";
+import { Button, Chip, GroupHeading, Segmented, Select } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import type { TFunction } from "i18next";
 import { type KeyboardEvent, useRef, useState } from "react";

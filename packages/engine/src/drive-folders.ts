@@ -1,4 +1,4 @@
-import { and, type Database, type Executor, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+import { and, type Database, type Executor, eq, inArray, isNull, schema, sql } from "@dougbot/db";
 import type { ArtifactActor, ArtifactAuthor, ArtifactDeps } from "./artifacts";
 import { recordAudit } from "./audit";
 import { UUID } from "./authority";

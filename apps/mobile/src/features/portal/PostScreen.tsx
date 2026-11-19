@@ -1,5 +1,5 @@
-import { usePortalBoard } from "@agenteschat/client";
-import { portalClientName } from "@agenteschat/client/lib/portal";
+import { usePortalBoard } from "@dougbot/client";
+import { portalClientName } from "@dougbot/client/lib/portal";
 import { ActivityIndicator, RefreshControl, StyleSheet, View } from "react-native";
 import { Text } from "@/ui";
 import { useColors, useOrgId, usePullRefresh } from "../shared/hooks";

@@ -1,4 +1,4 @@
-import { Button, Icon, Kbd, modKey } from "@agenteschat/ui";
+import { Button, Icon, Kbd, modKey } from "@dougbot/ui";
 import { useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";

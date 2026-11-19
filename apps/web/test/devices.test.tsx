@@ -1,15 +1,10 @@
 import { afterEach, describe, expect, setSystemTime, test } from "bun:test";
-import { domWindow, setupDom } from "@agenteschat/ui/testing/dom";
+import { domWindow, setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { ComputerDevice, PhoneDevice } from "@agenteschat/client";
-import {
-  ANDROID_SLOW_MS,
-  ANDROID_USB_DRIVERS,
-  IPHONE_RESTART_MS,
-  SETUP_STALL_MS,
-} from "@agenteschat/client/lib/devices";
+import type { ComputerDevice, PhoneDevice } from "@dougbot/client";
+import { ANDROID_SLOW_MS, ANDROID_USB_DRIVERS, IPHONE_RESTART_MS, SETUP_STALL_MS } from "@dougbot/client/lib/devices";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { createFakeApi, ENG_ID, fakeDevicesOf, fakeMachinesOf } from "./fake-api";
 import { notification } from "./fakes/notifications";

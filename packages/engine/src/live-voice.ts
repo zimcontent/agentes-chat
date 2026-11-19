@@ -1,5 +1,5 @@
-import type { KeyWrapper, PubSub, ZimMedia } from "@agenteschat/adapters";
-import { and, asc, type Database, desc, eq, inArray, isNull, lt, or, schema, sql } from "@agenteschat/db";
+import type { KeyWrapper, PubSub, ZimMedia } from "@dougbot/adapters";
+import { and, asc, type Database, desc, eq, inArray, isNull, lt, or, schema, sql } from "@dougbot/db";
 import {
   CREDIT_NANO_USD,
   DEFAULT_HOUSE_VOICE,
@@ -18,7 +18,7 @@ import {
   liveVoiceChoices,
   liveVoiceCost,
   liveVoiceFor,
-} from "@agenteschat/providers/live-voice";
+} from "@dougbot/providers/live-voice";
 import { type Agent, getAgent } from "./agents";
 import { audienceSql } from "./audience";
 import { recordAudit } from "./audit";

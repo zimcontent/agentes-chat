@@ -1,4 +1,4 @@
-import { isUuid } from "@agenteschat/client/lib/format";
+import { isUuid } from "@dougbot/client/lib/format";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { WhatsAppPage } from "@/pages/WhatsAppPage";
 

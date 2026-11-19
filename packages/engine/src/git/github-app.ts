@@ -1,12 +1,12 @@
 import { createSign } from "node:crypto";
-import { and, type Database, eq, isNull, schema } from "@agenteschat/db";
+import { and, type Database, eq, isNull, schema } from "@dougbot/db";
 
 const { githubAppInstallations } = schema;
 
 /**
  * Our GitHub App (ADR 0033, 0156): `GITHUB_APP_*`, else the one the server's owner made from Settings
  * (`github-app-settings.ts`). Short tokens scoped to one repo. The app is public; installations count only for the
- * organization that installed it from agentes.chat (`github_app_installations`, see `github-app-installs.ts`).
+ * organization that installed it from DougBot (`github_app_installations`, see `github-app-installs.ts`).
  */
 export interface GitHubAppConfig {
   appId: string;

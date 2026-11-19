@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto";
-import { escapeHtml } from "@agenteschat/client/lib/text";
-import { connectorOAuthApps, githubAppConfig } from "@agenteschat/config";
-import { eq, schema } from "@agenteschat/db";
+import { escapeHtml } from "@dougbot/client/lib/text";
+import { connectorOAuthApps, githubAppConfig } from "@dougbot/config";
+import { eq, schema } from "@dougbot/db";
 import {
   answerGitHubNotice,
   appOAuthRedirect,
@@ -34,8 +34,8 @@ import {
   requirePermission,
   startGitHubAppInstall,
   validGitHubAppSignature,
-} from "@agenteschat/engine";
-import { serverText } from "@agenteschat/i18n";
+} from "@dougbot/engine";
+import { serverText } from "@dougbot/i18n";
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
 import { sessionUser } from "../auth";
 import { apiError, errorResponse, isExpectedError } from "../http/errors";
@@ -152,7 +152,7 @@ export function githubAppRoutes(deps: AppDeps) {
   const base = deps.config.PUBLIC_URL.replace(/\/$/, "");
   const settings = deps.extras?.githubApp;
 
-  /** The holder for the server's owner, off agentes.chat; null for anyone else. */
+  /** The holder for the server's owner, off DougBot; null for anyone else. */
   const ownerSettings = async (userId: string): Promise<GitHubAppSettings | null> =>
     settings && !isAgentesCloud(deps.config.PUBLIC_URL) && (await pinnedOwner(deps.db)) === userId ? settings : null;
   const setupOf = async (holder: GitHubAppSettings) => {

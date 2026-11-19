@@ -1,5 +1,5 @@
-import type { ApprovalPortal, PortalCard, PortalItem, PubSub } from "@agenteschat/adapters";
-import { and, asc, type Database, eq, isNull, schema, sql } from "@agenteschat/db";
+import type { ApprovalPortal, PortalCard, PortalItem, PubSub } from "@dougbot/adapters";
+import { and, asc, type Database, eq, isNull, schema, sql } from "@dougbot/db";
 import { type PortalColumn, portalColumnOf } from "./approval-portal";
 import { planCard, schedulePlace } from "./approval-portal-plan";
 import { type CardReviewStatus, cardReviews, tieSentCards } from "./approval-portal-reviews";

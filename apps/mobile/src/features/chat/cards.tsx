@@ -8,15 +8,15 @@ import {
   useCardApprovals,
   useDecideApproval,
   useDecideApprovals,
-} from "@agenteschat/client";
-import { questionWaitsOn } from "@agenteschat/client/lib/agent-questions";
+} from "@dougbot/client";
+import { questionWaitsOn } from "@dougbot/client/lib/agent-questions";
 import {
   threadWorkState,
   threadWorkTone,
   threadWorkWord,
   WORK_TICK_MS,
   workTime,
-} from "@agenteschat/client/lib/agent-work";
+} from "@dougbot/client/lib/agent-work";
 import {
   approvalCardItems,
   approvalLine,
@@ -29,9 +29,9 @@ import {
   itemOwnWords,
   type LinePlace,
   runKeys,
-} from "@agenteschat/client/lib/approval-card";
-import { aheadPhase } from "@agenteschat/client/lib/approval-kind";
-import { approvalWhy } from "@agenteschat/client/lib/approval-origin";
+} from "@dougbot/client/lib/approval-card";
+import { aheadPhase } from "@dougbot/client/lib/approval-kind";
+import { approvalWhy } from "@dougbot/client/lib/approval-origin";
 import {
   alwaysRoutineName,
   approvalAskLine,
@@ -42,11 +42,11 @@ import {
   approvalWaitsFor,
   decisionOutcome,
   requesterDecidesLine,
-} from "@agenteschat/client/lib/approval-words";
-import { formatTime, nextLabel, whenAt } from "@agenteschat/client/lib/format";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import { MAX_MESSAGE_LENGTH } from "@agenteschat/client/lib/message-length";
-import { modeKey } from "@agenteschat/client/lib/workspace-mode";
+} from "@dougbot/client/lib/approval-words";
+import { formatTime, nextLabel, whenAt } from "@dougbot/client/lib/format";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import { MAX_MESSAGE_LENGTH } from "@dougbot/client/lib/message-length";
+import { modeKey } from "@dougbot/client/lib/workspace-mode";
 import { type ReactNode, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";

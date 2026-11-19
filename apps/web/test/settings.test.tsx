@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { Credential } from "@agenteschat/client";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import type { Credential } from "@dougbot/client";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import { localeInfo } from "@agenteschat/i18n/locale";
+import { localeInfo } from "@dougbot/i18n/locale";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { detectedLocale } from "@/i18n";
 import { setNavigateAway } from "@/lib/navigate";

@@ -1,9 +1,9 @@
-import { useRoles } from "@agenteschat/client";
-import { agentsByAnyHandle } from "@agenteschat/client/lib/directory";
-import { everyoneWord, isEveryoneWord } from "@agenteschat/client/lib/everyone";
-import { linkPill } from "@agenteschat/client/lib/link-pills";
-import { memberRoleColor } from "@agenteschat/client/lib/member-groups";
-import { parseFileLink, parseMessageLink } from "@agenteschat/client/lib/message-links";
+import { useRoles } from "@dougbot/client";
+import { agentsByAnyHandle } from "@dougbot/client/lib/directory";
+import { everyoneWord, isEveryoneWord } from "@dougbot/client/lib/everyone";
+import { linkPill } from "@dougbot/client/lib/link-pills";
+import { memberRoleColor } from "@dougbot/client/lib/member-groups";
+import { parseFileLink, parseMessageLink } from "@dougbot/client/lib/message-links";
 import { LinearGradient } from "expo-linear-gradient";
 import { type ComponentRef, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,4 +1,4 @@
-import { schema } from "@agenteschat/db";
+import { schema } from "@dougbot/db";
 import {
   OPERATOR_JOB_COUNTS,
   OPERATOR_JOB_STUCK_MS,
@@ -9,7 +9,7 @@ import {
   operatorJobSummary,
   operatorJobs,
   operatorUsage,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
 import { apiError, errorResponse } from "../http/errors";
 import { iso, json } from "../routes/app/context";

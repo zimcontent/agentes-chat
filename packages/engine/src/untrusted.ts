@@ -1,4 +1,4 @@
-import { cleanOutside, replaceDisguised } from "@agenteschat/adapters";
+import { cleanOutside, replaceDisguised } from "@dougbot/adapters";
 import { cutText } from "./format";
 
 export { cleanOutside };

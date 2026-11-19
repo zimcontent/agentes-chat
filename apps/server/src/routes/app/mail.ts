@@ -14,7 +14,7 @@ import {
   suggestMailAddresses,
   updateMailAccount,
   ValidationError,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { requestLimitIp } from "../../http/client-ip";
 import { apiError, errorResponse } from "../../http/errors";

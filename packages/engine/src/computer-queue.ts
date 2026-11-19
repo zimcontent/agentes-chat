@@ -1,17 +1,5 @@
-import type { PubSub } from "@agenteschat/adapters";
-import {
-  and,
-  type Database,
-  type Executor,
-  eq,
-  inArray,
-  isNull,
-  or,
-  rowsOf,
-  type SQL,
-  schema,
-  sql,
-} from "@agenteschat/db";
+import type { PubSub } from "@dougbot/adapters";
+import { and, type Database, type Executor, eq, inArray, isNull, or, rowsOf, type SQL, schema, sql } from "@dougbot/db";
 import { TtlCache } from "./cache";
 import { NotFoundError } from "./errors";
 import { publishOrgEvent } from "./events";

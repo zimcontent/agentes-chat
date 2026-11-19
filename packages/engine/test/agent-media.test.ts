@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import type { Gif, GifProvider } from "@agenteschat/adapters";
-import { asc, eq, schema } from "@agenteschat/db";
+import type { Gif, GifProvider } from "@dougbot/adapters";
+import { asc, eq, schema } from "@dougbot/db";
 import {
   addChannelMember,
   createAgent,

@@ -1,5 +1,5 @@
-import { BLANK_LOOK } from "@agenteschat/client/lib/new-agent";
-import { type AgentAppearance, type AgentFullLook, normalizeAppearance, type RunWho } from "@agenteschat/ui";
+import { BLANK_LOOK } from "@dougbot/client/lib/new-agent";
+import { type AgentAppearance, type AgentFullLook, normalizeAppearance, type RunWho } from "@dougbot/ui";
 
 /** An agent's look for `<Avatar appearance>` (unknown values fall back to the default). */
 export const lookOf = (agent: { appearance?: unknown } | undefined | null): AgentAppearance | undefined =>

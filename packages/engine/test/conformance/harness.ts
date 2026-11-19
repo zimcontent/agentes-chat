@@ -1,7 +1,7 @@
-import { MACHINE_PROTOCOL_VERSION, type RealtimeEvent } from "@agenteschat/adapters";
-import { eq, schema } from "@agenteschat/db";
-import { type ModelRequest, ProviderError } from "@agenteschat/providers";
-import type { FakeReply } from "@agenteschat/providers/testing";
+import { MACHINE_PROTOCOL_VERSION, type RealtimeEvent } from "@dougbot/adapters";
+import { eq, schema } from "@dougbot/db";
+import { type ModelRequest, ProviderError } from "@dougbot/providers";
+import type { FakeReply } from "@dougbot/providers/testing";
 import {
   type BrainEvent,
   type BrainFactory,

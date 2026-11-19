@@ -1,4 +1,4 @@
-import { and, type Database, eq, inArray, schema, sql } from "@agenteschat/db";
+import { and, type Database, eq, inArray, schema, sql } from "@dougbot/db";
 import {
   announceMessageMemories,
   askProposal,
@@ -32,7 +32,7 @@ import {
   twinReachOf,
   userVisibleChannels,
   WAITING_GROUP,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { type AppDeps, body, createAppRouter, errors, json, OrgParams, requireSession, security } from "./context";
 

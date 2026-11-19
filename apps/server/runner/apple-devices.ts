@@ -1,5 +1,5 @@
 import net from "node:net";
-import type { PhoneReason, RunnerPhone, WifiIphone } from "@agenteschat/adapters/machine-protocol";
+import type { PhoneReason, RunnerPhone, WifiIphone } from "@dougbot/adapters/machine-protocol";
 import { udidKey } from "./usbmux";
 
 /**

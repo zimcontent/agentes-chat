@@ -15,10 +15,10 @@ import {
   type WidgetFormat,
   type WidgetKind,
   type WidgetSpec,
-} from "@agenteschat/client";
-import type { AgentColorName } from "@agenteschat/ui/agent/engine";
-import { chartAreaTones, chartInk } from "@agenteschat/ui/sky/chart";
-import { bayerAt } from "@agenteschat/ui/sky/math";
+} from "@dougbot/client";
+import type { AgentColorName } from "@dougbot/ui/agent/engine";
+import { chartAreaTones, chartInk } from "@dougbot/ui/sky/chart";
+import { bayerAt } from "@dougbot/ui/sky/math";
 import {
   defaultSize,
   type ExampleWords,
@@ -26,7 +26,7 @@ import {
   phoneSpan,
   sizeToLayout,
   type WidgetSize,
-} from "@agenteschat/ui/widgets/spec";
+} from "@dougbot/ui/widgets/spec";
 
 /**
  * Dashboards and widgets on the phone (ADR 0135), without React: the agent's tones and the dither the widgets are

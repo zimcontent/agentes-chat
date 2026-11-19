@@ -6,8 +6,8 @@ import {
   type WebPushKeys,
   type WebPushResult,
   type WebPushSender,
-} from "@agenteschat/adapters";
-import { and, asc, type Database, eq, gt, inArray, isNull, lte, notInArray, or, schema } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, asc, type Database, eq, gt, inArray, isNull, lte, notInArray, or, schema } from "@dougbot/db";
 import type { ArtifactDeps } from "./artifacts";
 import { errorNumber } from "./errors";
 import { mediaOf } from "./media";
@@ -92,7 +92,7 @@ export {
   APNS_PUSH_TOKEN,
   apnsAppIdValid,
   FCM_PUSH_TOKEN,
-} from "@agenteschat/adapters";
+} from "@dougbot/adapters";
 
 type NotificationRow = typeof notifications.$inferSelect;
 

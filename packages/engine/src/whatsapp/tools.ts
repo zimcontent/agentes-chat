@@ -1,5 +1,5 @@
-import { bareJid, type WhatsAppMessage } from "@agenteschat/adapters";
-import { and, desc, eq, inArray, isNotNull, lt, or, schema, sql } from "@agenteschat/db";
+import { bareJid, type WhatsAppMessage } from "@dougbot/adapters";
+import { and, desc, eq, inArray, isNotNull, lt, or, schema, sql } from "@dougbot/db";
 import { type ArtifactDeps, createFileArtifact, fileForModel } from "../artifacts";
 import { runPerson } from "../authority";
 import type { ToolContext, ToolDefinition, ToolOutput, ToolSource } from "../tools/types";

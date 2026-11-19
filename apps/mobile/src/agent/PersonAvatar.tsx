@@ -1,4 +1,4 @@
-import { initialsOf } from "@agenteschat/tokens/names";
+import { initialsOf } from "@dougbot/tokens/names";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";

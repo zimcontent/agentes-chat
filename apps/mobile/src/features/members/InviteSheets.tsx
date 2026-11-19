@@ -1,12 +1,7 @@
-import {
-  type InvitationWithStatus,
-  useAuthConfig,
-  useResendInvitation,
-  useRevokeInvitation,
-} from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { formatShortDate } from "@agenteschat/client/lib/format";
-import { sendsEmail } from "@agenteschat/client/lib/join-requests";
+import { type InvitationWithStatus, useAuthConfig, useResendInvitation, useRevokeInvitation } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { formatShortDate } from "@dougbot/client/lib/format";
+import { sendsEmail } from "@dougbot/client/lib/join-requests";
 import { useTranslation } from "react-i18next";
 import { Alert, Share } from "react-native";
 import { useOrg } from "@/providers/org";

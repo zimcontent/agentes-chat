@@ -1,6 +1,6 @@
 import { afterEach, expect, test } from "bun:test";
-import { and, eq, schema, sql } from "@agenteschat/db";
-import { costNanoUsd } from "@agenteschat/providers";
+import { and, eq, schema, sql } from "@dougbot/db";
+import { costNanoUsd } from "@dougbot/providers";
 import {
   addChannelMember,
   drainOutbox,

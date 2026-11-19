@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { asc, eq, schema } from "@agenteschat/db";
-import { textOf } from "@agenteschat/providers";
+import { asc, eq, schema } from "@dougbot/db";
+import { textOf } from "@dougbot/providers";
 import {
   actionHash,
   canonicalJson,

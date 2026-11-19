@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
-import { LOCALE_CODES } from "@agenteschat/i18n/locale";
+import { eq, schema } from "@dougbot/db";
+import { LOCALE_CODES } from "@dougbot/i18n/locale";
 import { type EmailTemplate, queueBudgetEmail, renderEmail } from "../src";
 import { EMAIL_SAMPLES, PERSONAL_EMAIL_SAMPLES } from "./email-samples";
 import { type Fixture, setup } from "./fixtures";

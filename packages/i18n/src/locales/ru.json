@@ -18978,7 +18978,7 @@
   },
   "gallery": {
     "title": "Галерея компонентов",
-    "subtitle": "Только для разработки: компоненты @agenteschat/ui."
+    "subtitle": "Только для разработки: компоненты @dougbot/ui."
   },
   "format": {
     "list": "{{names, list}}",

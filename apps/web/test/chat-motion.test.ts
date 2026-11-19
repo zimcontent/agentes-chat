@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import type { LiveWork, Message } from "@agenteschat/client";
-import { applyChannelEvent, emptyStreams, runsInChannel } from "@agenteschat/client";
+import type { LiveWork, Message } from "@dougbot/client";
+import { applyChannelEvent, emptyStreams, runsInChannel } from "@dougbot/client";
 import {
   type ActivityEntry,
   activityText,
@@ -11,7 +11,7 @@ import {
   runElapsed,
   toolActivity,
   waitsForWords,
-} from "@agenteschat/client/lib/activity";
+} from "@dougbot/client/lib/activity";
 import {
   entersWithMotion,
   greetingSuggestions,
@@ -19,10 +19,10 @@ import {
   nearBottom,
   suggestionTopic,
   usageLine,
-} from "@agenteschat/client/lib/chat";
-import { dayLabel, shortTarget } from "@agenteschat/client/lib/format";
-import { buildTimeline, groupsWith, messageKey } from "@agenteschat/client/lib/timeline";
-import { barStep, stepLabel, stepPhrase, toolPhrase, toolWhy, waitStep } from "@agenteschat/client/lib/work";
+} from "@dougbot/client/lib/chat";
+import { dayLabel, shortTarget } from "@dougbot/client/lib/format";
+import { buildTimeline, groupsWith, messageKey } from "@dougbot/client/lib/timeline";
+import { barStep, stepLabel, stepPhrase, toolPhrase, toolWhy, waitStep } from "@dougbot/client/lib/work";
 import type { TFunction } from "i18next";
 import { createI18n } from "@/i18n";
 

@@ -1,8 +1,8 @@
-import { ApiError, newClientId, useAiStatus, useApi, useAuthConfig } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { formatBytes } from "@agenteschat/client/lib/files";
-import { aiStateOf } from "@agenteschat/client/lib/no-ai";
-import { rightHandOf } from "@agenteschat/client/lib/right-hand";
+import { ApiError, newClientId, useAiStatus, useApi, useAuthConfig } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { formatBytes } from "@dougbot/client/lib/files";
+import { aiStateOf } from "@dougbot/client/lib/no-ai";
+import { rightHandOf } from "@dougbot/client/lib/right-hand";
 import {
   Button,
   Checkbox,
@@ -17,7 +17,7 @@ import {
   overLimit,
   PixelSpinner,
   Textarea,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useMutation } from "@tanstack/react-query";
 import { useRouterState } from "@tanstack/react-router";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
@@ -112,7 +112,7 @@ export function FeedbackDialog({ reported, onClose }: { reported: Reported | nul
   const status = useAiStatus(org.id);
   const connection = useConnectionStatus();
   const config = useAuthConfig().data;
-  // Read by the agentes.chat team: on its own servers, and from one whose operator gave no address (pictures only).
+  // Read by the DougBot team: on its own servers, and from one whose operator gave no address (pictures only).
   const relay = config?.feedbackRelay === true;
   const team = config?.cloud === true || relay;
   const where = useRouterState({ select: (s) => s.location.pathname });

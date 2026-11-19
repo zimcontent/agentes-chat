@@ -1,4 +1,4 @@
-import { type AgentAppearance, botDoAgente, DougBot } from "@agenteschat/ui";
+import { type AgentAppearance, botDoAgente, DougBot } from "@dougbot/ui";
 
 /**
  * A workspace's agent as the app icon (ADR 0179, redrawn for DougBot in doug-0010): the agent's own DougBot (the

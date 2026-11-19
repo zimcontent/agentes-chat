@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
 import { readFileSync } from "node:fs";
-import type { SecretBox, SecretRequest, SecretTarget } from "@agenteschat/client";
-import { ApiError } from "@agenteschat/client";
-import { secretAad } from "@agenteschat/client/lib/secret-box";
+import type { SecretBox, SecretRequest, SecretTarget } from "@dougbot/client";
+import { ApiError } from "@dougbot/client";
+import { secretAad } from "@dougbot/client/lib/secret-box";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 // The computer's side, from the server code: what the card seals must open there.
 import { generateSecretKeyPair, openSecret } from "../../../packages/adapters/src/secret-box";

@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { LOCALE_CODES } from "@agenteschat/i18n/locale";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { LOCALE_CODES } from "@dougbot/i18n/locale";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 

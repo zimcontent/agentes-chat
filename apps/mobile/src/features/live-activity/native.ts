@@ -1,4 +1,4 @@
-import type { LiveActivityState } from "@agenteschat/client";
+import type { LiveActivityState } from "@dougbot/client";
 import { type EventSubscription, requireOptionalNativeModule } from "expo";
 import { Platform } from "react-native";
 

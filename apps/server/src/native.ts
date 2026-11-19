@@ -1,5 +1,5 @@
 /**
- * `agentes-server`: agentes.chat with nothing else to install (native mode, ADR 0060 §2). One program
+ * `agentes-server`: DougBot with nothing else to install (native mode, ADR 0060 §2). One program
  * whose database is built in (PGlite: `DATABASE_URL=pglite:///<folder>`), keeping everything in one
  * folder, `--data` (`~/.agentes` by default):
  *
@@ -19,7 +19,7 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, wri
 import os from "node:os";
 import { join, resolve } from "node:path";
 import { format, parseArgs } from "node:util";
-import { loadConfig } from "@agenteschat/config";
+import { loadConfig } from "@dougbot/config";
 import {
   createDatabase,
   DatabaseInUseError,
@@ -33,10 +33,10 @@ import {
   PgMajorMismatchError,
   pgliteUrl,
   restorePglite,
-} from "@agenteschat/db";
-import { passwordLinkByEmail } from "@agenteschat/engine";
-import { INSTALL_DOCS_URL } from "@agenteschat/i18n/help";
-import { envEntries, upsertEnv } from "@agenteschat/setup/src/lib";
+} from "@dougbot/db";
+import { passwordLinkByEmail } from "@dougbot/engine";
+import { INSTALL_DOCS_URL } from "@dougbot/i18n/help";
+import { envEntries, upsertEnv } from "@dougbot/setup/src/lib";
 import { expandHome } from "../runner/config";
 import { acquireLock, type LockResult } from "../runner/lock";
 import { RotatingFile } from "../runner/logfile";

@@ -1,5 +1,5 @@
-import { useNotificationCount, useOverview } from "@agenteschat/client";
-import { Tabs } from "@agenteschat/ui";
+import { useNotificationCount, useOverview } from "@dougbot/client";
+import { Tabs } from "@dougbot/ui";
 import { useNavigate } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";

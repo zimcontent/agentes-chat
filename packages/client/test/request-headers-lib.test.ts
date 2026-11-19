@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { resources } from "@agenteschat/i18n";
+import { resources } from "@dougbot/i18n";
 import i18next from "i18next";
 import { ApiError } from "../src/api/http";
 import { errorText } from "../src/lib/errors";

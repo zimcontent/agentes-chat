@@ -1,5 +1,5 @@
-import { PLAN_WINDOW_KINDS } from "@agenteschat/adapters";
-import { schema } from "@agenteschat/db";
+import { PLAN_WINDOW_KINDS } from "@dougbot/adapters";
+import { schema } from "@dougbot/db";
 import {
   BILLING_HOLDS,
   NO_AI_CARD_REASONS,
@@ -34,7 +34,7 @@ import {
   RELEASE_REASONS,
   STOPPED_BY,
   SYSTEM_STOP_REASONS,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, type OpenAPIHono, z } from "@hono/zod-openapi";
 import { apiError, errorResponse } from "../http/errors";
 import { iso, json, OrgParams } from "../routes/app/context";

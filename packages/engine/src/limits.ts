@@ -1,5 +1,5 @@
-import type { PlatformCredentials } from "@agenteschat/adapters";
-import { and, count, type Database, type Executor, eq, gt, gte, isNotNull, isNull, schema, sql } from "@agenteschat/db";
+import type { PlatformCredentials } from "@dougbot/adapters";
+import { and, count, type Database, type Executor, eq, gt, gte, isNotNull, isNull, schema, sql } from "@dougbot/db";
 import { caches } from "./cache";
 import { ConflictError } from "./errors";
 import { formatBytes } from "./format";

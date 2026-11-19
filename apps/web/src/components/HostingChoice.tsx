@@ -6,8 +6,8 @@ import {
   helpUrl,
   normalizeServer,
   serverHost,
-} from "@agenteschat/client/lib/server";
-import { DOWNLOAD_URL } from "@agenteschat/i18n/docs";
+} from "@dougbot/client/lib/server";
+import { DOWNLOAD_URL } from "@dougbot/i18n/docs";
 import {
   Button,
   Chip,
@@ -20,7 +20,7 @@ import {
   Icon,
   Input,
   OptionList,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import "./hosting.css";

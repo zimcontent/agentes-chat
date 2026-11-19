@@ -132,7 +132,7 @@ Além dos provedores de modelo, a instalação pode usar serviços externos. Cad
 {{/if}}
 - **Hospedagem**: o servidor onde a instalação roda, contratado pelo Prestador ou pela empresa cliente, em {{serverLocation}}.
 {{#if svc.telemetry}}
-- **Relatório de uso anônimo** ao projeto agentes.chat, descrito no item 11.
+- **Relatório de uso anônimo** ao projeto DougBot, descrito no item 11.
 {{/if}}
 
 Os suboperadores que tratam dados em nome do Cliente estão no Anexo II, com o serviço, a finalidade e o estado de cada um.
@@ -180,11 +180,11 @@ A instalação fica em {{serverLocation}}. Os provedores de modelo e os serviço
 ## 11. Relatório de uso anônimo
 
 {{#if svc.telemetry}}
-A instalação envia uma vez por dia um relatório de uso anônimo para o endereço de telemetria do projeto agentes.chat, do qual o DougBot deriva. O relatório leva contagens e tamanhos: quantas pessoas, agentes e computadores existem, quais modelos foram usados e quantos tokens, o tamanho das máquinas e o quanto os navegadores dos agentes trafegaram. Ele nunca leva mensagens, arquivos, nomes, e-mails, endereços, caminhos ou identificadores de pessoas, de workspaces ou de computadores. O único identificador é um número aleatório criado na primeira inicialização da instalação.
+A instalação envia uma vez por dia um relatório de uso anônimo para o endereço de telemetria do projeto DougBot, do qual o DougBot deriva. O relatório leva contagens e tamanhos: quantas pessoas, agentes e computadores existem, quais modelos foram usados e quantos tokens, o tamanho das máquinas e o quanto os navegadores dos agentes trafegaram. Ele nunca leva mensagens, arquivos, nomes, e-mails, endereços, caminhos ou identificadores de pessoas, de workspaces ou de computadores. O único identificador é um número aleatório criado na primeira inicialização da instalação.
 
 O envio vem **ligado por padrão** (é uma opção de saída, e não depende de consentimento), e a base legal é o legítimo interesse do art. 7º, IX, da LGPD: o do projeto em saber como o software funciona para mantê-lo e corrigi-lo, com dados que não identificam ninguém.
 {{#if telemetryForced}}
-Nos servidores do próprio agentes.chat o relatório não pode ser desligado.
+Nos servidores do próprio DougBot o relatório não pode ser desligado.
 {{else}}
 Para desligá-lo, o proprietário da instalação define `TELEMETRY=off` na configuração do servidor ou usa o interruptor em Configurações › Geral. Desligado, nada é enviado. O comando `agentes telemetry` mostra exatamente o que seria enviado.
 {{/if}}
@@ -289,7 +289,7 @@ A tabela mostra, para cada serviço, se ele está ligado nesta instalação, con
 | Voz ao vivo | Falar em uma chamada | O áudio da chamada | Conforme a chave do workspace |
 | Voz da casa (Empirio Labs) | Falar em uma chamada | O áudio da chamada | {{on:svc.houseVoice}} |
 | Firebase e Apple (notificações) | Entregar o aviso no aparelho | O texto do aviso e o token do aparelho | {{on:svc.pushDirect}} |
-| Relay de notificações do agentes.chat | Entregar o aviso no aparelho | O texto do aviso e o token do aparelho | {{on:svc.pushRelay}} |
+| Relay de notificações do DougBot | Entregar o aviso no aparelho | O texto do aviso e o token do aparelho | {{on:svc.pushRelay}} |
 | Notificações no navegador | Entregar o aviso no navegador | O aviso, cifrado | Sempre |
 | Integrador de serviços (Composio) | Conectar e-mail e outros aplicativos | O que a chamada do conector precisa | {{on:svc.composio}} |
 | Busca por significado | Encontrar textos por sentido | Os trechos indexados | {{on:svc.embeddings}} |

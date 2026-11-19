@@ -1,6 +1,6 @@
-import { keys, type LiveRoom, useApi, useMe } from "@agenteschat/client";
-import type { FloorAgent } from "@agenteschat/client/lib/live-floor";
-import { playSound } from "@agenteschat/client/lib/sounds";
+import { keys, type LiveRoom, useApi, useMe } from "@dougbot/client";
+import type { FloorAgent } from "@dougbot/client/lib/live-floor";
+import { playSound } from "@dougbot/client/lib/sounds";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   createContext,

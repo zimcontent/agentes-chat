@@ -1,5 +1,5 @@
-import type { PortalItem } from "@agenteschat/client";
-import { useSchedulePortalItem } from "@agenteschat/client";
+import type { PortalItem } from "@dougbot/client";
+import { useSchedulePortalItem } from "@dougbot/client";
 import {
   portalAhead,
   portalDayOf,
@@ -7,8 +7,8 @@ import {
   portalSendDate,
   portalTimeOf,
   portalWhen,
-} from "@agenteschat/client/lib/portal";
-import { Button, DatePicker, Dialog, DialogBody, DialogFooter, Field, Locked, TimeSelect, ymd } from "@agenteschat/ui";
+} from "@dougbot/client/lib/portal";
+import { Button, DatePicker, Dialog, DialogBody, DialogFooter, Field, Locked, TimeSelect, ymd } from "@dougbot/ui";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/components/org-context";

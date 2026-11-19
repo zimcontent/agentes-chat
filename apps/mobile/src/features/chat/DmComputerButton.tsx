@@ -1,6 +1,6 @@
-import { entryLine, entryState } from "@agenteschat/client/lib/agent-computer";
-import { computerName } from "@agenteschat/client/lib/computer";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+import { entryLine, entryState } from "@dougbot/client/lib/agent-computer";
+import { computerName } from "@dougbot/client/lib/computer";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useOrg } from "@/providers/org";

@@ -9,8 +9,8 @@ import {
   type ErrorReporter,
   type MachineRequest,
   SECRET_ACTIVATE_PROTOCOL,
-} from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
 import {
   ARTIFACT_LIMITS,
   absorbToolData,

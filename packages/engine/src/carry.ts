@@ -1,5 +1,5 @@
-import type { KeyWrapper, PubSub } from "@agenteschat/adapters";
-import { and, asc, type Database, eq, inArray, isNotNull, isNull, rowsOf, schema, sql } from "@agenteschat/db";
+import type { KeyWrapper, PubSub } from "@dougbot/adapters";
+import { and, asc, type Database, eq, inArray, isNotNull, isNull, rowsOf, schema, sql } from "@dougbot/db";
 import { linkTwins } from "./agent-twins";
 import { type Agent, createAgent, NEW_AGENT_DEFAULTS, takenHandles } from "./agents";
 import { recordAudit } from "./audit";

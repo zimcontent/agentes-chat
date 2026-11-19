@@ -1,5 +1,5 @@
-import type { HelpBlock } from "@agenteschat/i18n/help";
-import { Logo, Select } from "@agenteschat/ui";
+import type { HelpBlock } from "@dougbot/i18n/help";
+import { Logo, Select } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { Fragment, type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";

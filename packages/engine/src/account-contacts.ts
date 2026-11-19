@@ -1,5 +1,5 @@
-import type { EmailSender } from "@agenteschat/adapters";
-import { type Database, type Executor, eq, schema } from "@agenteschat/db";
+import type { EmailSender } from "@dougbot/adapters";
+import { type Database, type Executor, eq, schema } from "@dougbot/db";
 import { rethrowEmailError } from "./email";
 import { enqueue } from "./outbox";
 import { isAgentesCloud } from "./telemetry";

@@ -1,4 +1,4 @@
-import type { InvitationWithStatus, InviteLink, JoinRequest } from "@agenteschat/client";
+import type { InvitationWithStatus, InviteLink, JoinRequest } from "@dougbot/client";
 import {
   useAllInvitations,
   useApproveJoinRequest,
@@ -13,13 +13,13 @@ import {
   useRoles,
   useTurnOffInviteLink,
   useWorkspaceLimits,
-} from "@agenteschat/client";
-import { errorCode } from "@agenteschat/client/lib/errors";
-import { formatShortDate, joinNames, relativeTime, timeLeft } from "@agenteschat/client/lib/format";
-import { approvalCargos, linkNeedsAttention } from "@agenteschat/client/lib/invite-start";
-import { approvalNews, JOIN_REASON_MAX, sendsEmail } from "@agenteschat/client/lib/join-requests";
-import { membersFull } from "@agenteschat/client/lib/limits";
-import { sortRoles } from "@agenteschat/client/lib/roles";
+} from "@dougbot/client";
+import { errorCode } from "@dougbot/client/lib/errors";
+import { formatShortDate, joinNames, relativeTime, timeLeft } from "@dougbot/client/lib/format";
+import { approvalCargos, linkNeedsAttention } from "@dougbot/client/lib/invite-start";
+import { approvalNews, JOIN_REASON_MAX, sendsEmail } from "@dougbot/client/lib/join-requests";
+import { membersFull } from "@dougbot/client/lib/limits";
+import { sortRoles } from "@dougbot/client/lib/roles";
 import {
   Alert,
   Avatar,
@@ -44,7 +44,7 @@ import {
   SwapLabel,
   Textarea,
   Toolbar,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useSearch } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

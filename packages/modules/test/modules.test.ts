@@ -7,11 +7,11 @@ import {
   createMemoryPubSub,
   createMemoryRateLimiter,
   noPlatformCredentials,
-} from "@agenteschat/adapters";
-import { testConfig } from "@agenteschat/config";
-import type { Database } from "@agenteschat/db";
-import { createFakeProvider } from "@agenteschat/providers/testing";
-import { type AgentesModule, resolveAdapters } from "../src";
+} from "@dougbot/adapters";
+import { testConfig } from "@dougbot/config";
+import type { Database } from "@dougbot/db";
+import { createFakeProvider } from "@dougbot/providers/testing";
+import { type DougBotModule, resolveAdapters } from "../src";
 
 const defaults: Adapters = {
   search: {
@@ -39,7 +39,7 @@ test("modules override adapters in order; later modules win", async () => {
   const fake = createFakeProvider();
   const aPubSub = createMemoryPubSub();
   let seenByB: unknown;
-  const modules: AgentesModule[] = [
+  const modules: DougBotModule[] = [
     { name: "a", adapters: () => ({ pubsub: aPubSub }) },
     {
       name: "b",
@@ -70,7 +70,7 @@ test("no modules: defaults unchanged", async () => {
 });
 
 test("vault sources merge by kind; null turns them off (ADR 0144)", async () => {
-  const s = (kind: string) => ({ kind }) as unknown as import("@agenteschat/adapters").VaultSource;
+  const s = (kind: string) => ({ kind }) as unknown as import("@dougbot/adapters").VaultSource;
   const base = { ...defaults, vaultSources: { a: s("a"), b: s("b") } };
   const r = await resolveAdapters(
     [{ name: "m", adapters: () => ({ vaultSources: { b: s("b2"), c: s("c") } }) }],

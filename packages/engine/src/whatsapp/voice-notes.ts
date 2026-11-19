@@ -1,5 +1,5 @@
-import { bareJid, DEFAULT_VOICE_OUT, VOICE_OUT_MAX_CHARS, type WhatsAppMessage } from "@agenteschat/adapters";
-import { and, desc, eq, schema } from "@agenteschat/db";
+import { bareJid, DEFAULT_VOICE_OUT, VOICE_OUT_MAX_CHARS, type WhatsAppMessage } from "@dougbot/adapters";
+import { and, desc, eq, schema } from "@dougbot/db";
 import { accountToken, type WhatsAppAccountRow, type WhatsAppDeps, whatsappGateway } from "./accounts";
 import { storeWhatsAppMessage } from "./inbound";
 

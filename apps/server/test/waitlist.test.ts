@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
-import { schema } from "@agenteschat/db";
-import { enqueueWaitlistContacts, joinWaitlist, WAITLIST_MAX_SENDS } from "@agenteschat/engine";
+import { schema } from "@dougbot/db";
+import { enqueueWaitlistContacts, joinWaitlist, WAITLIST_MAX_SENDS } from "@dougbot/engine";
 import { browser, createTestServer, ORIGIN, type TestServer } from "./harness";
 
 /** The landing page's own site. */

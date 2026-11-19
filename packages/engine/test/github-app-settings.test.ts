@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { generateKeyPairSync } from "node:crypto";
-import { eq, schema } from "@agenteschat/db";
+import { eq, schema } from "@dougbot/db";
 import {
   appTokenForRepo,
   completeGitHubAppInstall,
@@ -159,7 +159,7 @@ describe("GitHub's manifest flow", () => {
       public: true,
       hook_attributes: { url: "https://chat.example.com/api/github-app/webhook", active: true },
     });
-    // Exactly agentes.chat's own app, by GitHub's manifest names: write on the repository permissions agents use,
+    // Exactly DougBot's own app, by GitHub's manifest names: write on the repository permissions agents use,
     // metadata read; an organization's members read and Projects write. Never Codespaces, nor an organization's
     // administration, secrets, variables, runners or webhooks.
     expect(manifest.default_permissions).toEqual({

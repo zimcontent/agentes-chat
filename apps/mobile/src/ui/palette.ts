@@ -1,4 +1,4 @@
-import { type ShadowLayer, type ShadowName, type ThemeColors, shadows as tokenShadows } from "@agenteschat/tokens";
+import { type ShadowLayer, type ShadowName, type ThemeColors, shadows as tokenShadows } from "@dougbot/tokens";
 import { CORES_BOTS, dbTokens } from "../brand/tokens";
 
 /**

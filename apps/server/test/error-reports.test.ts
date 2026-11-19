@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeErrorReporter } from "@agenteschat/adapters";
-import { schema, sql } from "@agenteschat/db";
-import { createTestDatabase } from "@agenteschat/db/testing";
-import { createOutboxPump, enqueue, NotFoundError } from "@agenteschat/engine";
-import type { AgentesModule, ModuleContext } from "@agenteschat/modules";
+import { createFakeErrorReporter } from "@dougbot/adapters";
+import { schema, sql } from "@dougbot/db";
+import { createTestDatabase } from "@dougbot/db/testing";
+import { createOutboxPump, enqueue, NotFoundError } from "@dougbot/engine";
+import type { DougBotModule, ModuleContext } from "@dougbot/modules";
 import { validator } from "hono/validator";
 import { createApp } from "../src/app";
 import { createLogger } from "../src/logger";
@@ -24,7 +24,7 @@ afterEach(async () => {
 describe("error reports (ADR 0104)", () => {
   test("a 500 is reported with its route pattern, method, status, request id and whose request it was; a 4xx is not, a malformed body included", async () => {
     const errors = createFakeErrorReporter();
-    const failing: AgentesModule = {
+    const failing: DougBotModule = {
       name: "failing",
       registerRoutes(api) {
         api.use("/failing/*", async (c, next) => {

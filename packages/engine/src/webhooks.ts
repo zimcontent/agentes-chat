@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import type { KeyWrapper } from "@agenteschat/adapters";
-import { and, type Database, desc, eq, isNull, schema } from "@agenteschat/db";
+import type { KeyWrapper } from "@dougbot/adapters";
+import { and, type Database, desc, eq, isNull, schema } from "@dougbot/db";
 import { recordAudit } from "./audit";
 import { activeConnections, type ConnectorDeps } from "./connectors/connections";
 import { openSecret, randomToken, sealSecret } from "./crypto";

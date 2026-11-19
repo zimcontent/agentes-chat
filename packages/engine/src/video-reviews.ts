@@ -10,8 +10,8 @@ import {
   type PubSub,
   type SpeechEngine,
   type VideoCopies,
-} from "@agenteschat/adapters";
-import { and, asc, type Database, desc, eq, inArray, isNull, schema, sql } from "@agenteschat/db";
+} from "@dougbot/adapters";
+import { and, asc, type Database, desc, eq, inArray, isNull, schema, sql } from "@dougbot/db";
 import { type ArtifactActor, type ArtifactDeps, storedFileOfArtifact } from "./artifacts";
 import { requireChannelAccess } from "./channels";
 import { afterApproveOf, cardCaptionOf, queueDesignDelivery } from "./design-delivery";

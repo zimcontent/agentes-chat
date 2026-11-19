@@ -16,9 +16,9 @@ import { chmod, mkdir, readFile, readlink, rename, rm, writeFile } from "node:fs
 import os from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { isStartPage, NEW_TAB_URL, START_FILE } from "@agenteschat/adapters/browser-start";
-import { AGENT_BROWSER_PROFILE } from "@agenteschat/adapters/command-policy";
-import { cgroupCounters } from "@agenteschat/adapters/host-stats";
+import { isStartPage, NEW_TAB_URL, START_FILE } from "@dougbot/adapters/browser-start";
+import { AGENT_BROWSER_PROFILE } from "@dougbot/adapters/command-policy";
+import { cgroupCounters } from "@dougbot/adapters/host-stats";
 import {
   AGENT_BROWSER_SHA256,
   AGENT_BROWSER_VERSION,
@@ -51,10 +51,10 @@ import {
   SITE_SECRET_TTL_MS,
   usesChromium,
   type VaultTypeRefusal,
-} from "@agenteschat/adapters/machine-protocol";
-import type { ControlBrowser, ControlBrowserDoing } from "@agenteschat/adapters/runner-control";
-import { SECRET_NAME } from "@agenteschat/adapters/secret-box";
-import { vaultRuleLabel, vaultRuleMatches } from "@agenteschat/adapters/vault/site";
+} from "@dougbot/adapters/machine-protocol";
+import type { ControlBrowser, ControlBrowserDoing } from "@dougbot/adapters/runner-control";
+import { SECRET_NAME } from "@dougbot/adapters/secret-box";
+import { vaultRuleLabel, vaultRuleMatches } from "@dougbot/adapters/vault/site";
 import type { BrowserPorts } from "./browser-ports";
 import { type CrashedPage, countChromeTraffic, emulationCommands, type TrafficCounter } from "./browser-traffic";
 import { BROWSER_WM_CLASS } from "./desktop-look";

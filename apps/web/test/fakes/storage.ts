@@ -23,7 +23,7 @@ import type {
   StorageStep,
   StorageTestResult,
   StorageUsage,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import { clone } from "./context";
 
 const STEPS: StorageStep[] = ["write", "read", "list", "delete"];

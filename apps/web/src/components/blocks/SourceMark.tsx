@@ -1,5 +1,5 @@
-import { Icon, type IconName } from "@agenteschat/ui";
-import { sourceMarkOf } from "@agenteschat/ui/blocks/source-marks";
+import { Icon, type IconName } from "@dougbot/ui";
+import { sourceMarkOf } from "@dougbot/ui/blocks/source-marks";
 
 /** The app's own sectors take a kit icon; a service its official mark, in its colour. */
 const SOURCE_ICONS: Record<string, IconName> = {

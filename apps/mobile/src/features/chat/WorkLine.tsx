@@ -1,8 +1,8 @@
-import { type Issue, type Message, useApi, useApprovals, useChannels, type WorkView } from "@agenteschat/client";
-import { workApproval } from "@agenteschat/client/lib/approval-card";
-import { heldBack } from "@agenteschat/client/lib/issues";
-import { blockedText, workLine, workPlanProgress, workWaitsOnPerson } from "@agenteschat/client/lib/long-work";
-import { can } from "@agenteschat/client/lib/permissions";
+import { type Issue, type Message, useApi, useApprovals, useChannels, type WorkView } from "@dougbot/client";
+import { workApproval } from "@dougbot/client/lib/approval-card";
+import { heldBack } from "@dougbot/client/lib/issues";
+import { blockedText, workLine, workPlanProgress, workWaitsOnPerson } from "@dougbot/client/lib/long-work";
+import { can } from "@dougbot/client/lib/permissions";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams } from "expo-router";
 import { createContext, type ReactNode, useContext, useEffect, useState } from "react";

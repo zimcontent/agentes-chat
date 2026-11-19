@@ -1,4 +1,4 @@
-import type { PubSub } from "@agenteschat/adapters";
+import type { PubSub } from "@dougbot/adapters";
 import {
   and,
   asc,
@@ -14,8 +14,8 @@ import {
   type SQL,
   schema,
   sql,
-} from "@agenteschat/db";
-import { type AppLocale, appLocale } from "@agenteschat/i18n/locale";
+} from "@dougbot/db";
+import { type AppLocale, appLocale } from "@dougbot/i18n/locale";
 import { z } from "zod";
 import { randomToken, sha256 } from "./crypto";
 import { decodeCursor, encodeCursor } from "./cursor";

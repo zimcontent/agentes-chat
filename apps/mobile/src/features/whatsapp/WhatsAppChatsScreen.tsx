@@ -1,4 +1,4 @@
-import { keys, useWhatsApp, useWhatsAppChats, type WhatsAppChat, whatsappPhotoUrl } from "@agenteschat/client";
+import { keys, useWhatsApp, useWhatsAppChats, type WhatsAppChat, whatsappPhotoUrl } from "@dougbot/client";
 import { Stack } from "expo-router";
 import { memo, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

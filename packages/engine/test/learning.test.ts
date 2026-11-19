@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeErrorReporter } from "@agenteschat/adapters";
-import { and, eq, schema } from "@agenteschat/db";
-import { ProviderError, systemText } from "@agenteschat/providers";
+import { createFakeErrorReporter } from "@dougbot/adapters";
+import { and, eq, schema } from "@dougbot/db";
+import { ProviderError, systemText } from "@dougbot/providers";
 import {
   addChannelMember,
   addRunStep,

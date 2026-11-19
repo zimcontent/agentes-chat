@@ -1,4 +1,4 @@
-import { useWhatsApp, type WhatsAppAccount } from "@agenteschat/client";
+import { useWhatsApp, type WhatsAppAccount } from "@dougbot/client";
 import { Redirect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { RefreshControl, StyleSheet, View } from "react-native";

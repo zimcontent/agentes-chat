@@ -17836,7 +17836,7 @@
   },
   "gallery": {
     "title": "Bileşen galerisi",
-    "subtitle": "Yalnızca geliştirme için: @agenteschat/ui bileşenleri."
+    "subtitle": "Yalnızca geliştirme için: @dougbot/ui bileşenleri."
   },
   "format": {
     "list": "{{names, list}}",

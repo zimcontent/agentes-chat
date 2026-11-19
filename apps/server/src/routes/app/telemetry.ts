@@ -5,7 +5,7 @@ import {
   pinnedOwner,
   setTelemetryEnabled,
   telemetryState,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { telemetryFacts } from "../../telemetry";
 import { type AppDeps, body, createAppRouter, errors, json, requireSession, security } from "./context";
@@ -103,7 +103,7 @@ const Telemetry = z
   })
   .openapi("ServerTelemetry");
 
-/** The usage report's switch (ADR 0060 §5): only the installation's pinned owner, never on agentes.chat itself. */
+/** The usage report's switch (ADR 0060 §5): only the installation's pinned owner, never on DougBot itself. */
 export function telemetryRoutes(deps: AppDeps) {
   const { db, config } = deps;
   const app = createAppRouter(deps);

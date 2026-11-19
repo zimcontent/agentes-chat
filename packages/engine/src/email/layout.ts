@@ -1,5 +1,5 @@
-import type { InlinePart } from "@agenteschat/adapters";
-import type { AppLocale } from "@agenteschat/i18n/locale";
+import type { InlinePart } from "@dougbot/adapters";
+import type { AppLocale } from "@dougbot/i18n/locale";
 import {
   botDoAgente,
   CORES_LIVRES,
@@ -7,10 +7,10 @@ import {
   type DougBotOpcoes,
   FORMAS_LIVRES,
   OLHOS_LIVRES,
-} from "@agenteschat/ui/brand/dougbot-time";
-import { initialsOf } from "@agenteschat/ui/names";
+} from "@dougbot/ui/brand/dougbot-time";
+import { initialsOf } from "@dougbot/ui/names";
 
-/** The recipient's language: every language of the app (`@agenteschat/i18n/locale`). */
+/** The recipient's language: every language of the app (`@dougbot/i18n/locale`). */
 export type EmailLocale = AppLocale;
 
 /**

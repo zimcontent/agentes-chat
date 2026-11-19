@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { and, eq, schema } from "@agenteschat/db";
+import { and, eq, schema } from "@dougbot/db";
 import { createAgent, makeRightHand, RIGHT_HAND, RIGHT_HAND_DEFAULTS, rightHandId } from "../src";
 import { addMember, type Fixture, setup } from "./fixtures";
 

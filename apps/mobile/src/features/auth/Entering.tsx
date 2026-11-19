@@ -1,4 +1,4 @@
-import { type Agent, keys } from "@agenteschat/client";
+import { type Agent, keys } from "@dougbot/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

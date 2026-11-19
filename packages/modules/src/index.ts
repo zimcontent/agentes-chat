@@ -1,7 +1,7 @@
-import type { Adapters } from "@agenteschat/adapters";
-import type { Config } from "@agenteschat/config";
-import type { Database } from "@agenteschat/db";
-import type { ModelProvider } from "@agenteschat/providers";
+import type { Adapters } from "@dougbot/adapters";
+import type { Config } from "@dougbot/config";
+import type { Database } from "@dougbot/db";
+import type { ModelProvider } from "@dougbot/providers";
 import type { OpenAPIHono } from "@hono/zod-openapi";
 
 export {
@@ -23,7 +23,7 @@ export {
 } from "./clients";
 
 /**
- * Which build of agentes.chat is running.
+ * Which build of DougBot is running.
  * - `selfhost`: the open-source server, started by `apps/server/src/main.ts`.
  * - `cloud`: our hosted service: this same server, with Cloud-only behavior
  *   switched on by environment variables (ADR 0002 §5).
@@ -58,9 +58,9 @@ export interface AdapterOverrides extends Partial<Adapters> {
  * private may run in this process (ADR 0002 §5, ADR 0180).
  *
  * Rule enforced by `bun run check:boundaries`: nothing under `apps/` or
- * `packages/` may import `@agenteschat/cloud` or `@agenteschat/ee`.
+ * `packages/` may import `@dougbot/cloud` or `@dougbot/ee`.
  */
-export interface AgentesModule {
+export interface DougBotModule {
   /** Stable identifier, e.g. `cloud-billing`. Shown in logs and `/api/health`. */
   name: string;
   /**
@@ -81,7 +81,7 @@ export interface AgentesModule {
 
 /** Applies each module's overrides over the defaults, in order. */
 export async function resolveAdapters(
-  modules: AgentesModule[],
+  modules: DougBotModule[],
   ctx: Omit<ModuleContext, "adapters">,
   defaults: Adapters,
   defaultProviders: Record<string, ModelProvider>,

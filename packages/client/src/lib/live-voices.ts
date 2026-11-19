@@ -14,4 +14,4 @@ export {
   liveVoiceFor,
   liveVoiceInfo,
   liveVoiceLabel,
-} from "@agenteschat/providers/live-voice";
+} from "@dougbot/providers/live-voice";

@@ -1,7 +1,7 @@
-import type { HumanCheck, PubSub } from "@agenteschat/adapters";
-import type { Config } from "@agenteschat/config";
-import type { Database } from "@agenteschat/db";
-import { type MachineHub, type SessionScreening, safeEqual } from "@agenteschat/engine";
+import type { HumanCheck, PubSub } from "@dougbot/adapters";
+import type { Config } from "@dougbot/config";
+import type { Database } from "@dougbot/db";
+import { type MachineHub, type SessionScreening, safeEqual } from "@dougbot/engine";
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { apiError, domainErrorResponse, routeOf, validationHook } from "../http/errors";
 import type { Logger } from "../logger";

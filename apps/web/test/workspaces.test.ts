@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { CLOUD_SERVER } from "@agenteschat/client/lib/server";
+import { CLOUD_SERVER } from "@dougbot/client/lib/server";
 import { serverLabel, workspaceGroups } from "@/lib/workspaces";
 
 const OWN = "https://agentes.exemplo.com.br";

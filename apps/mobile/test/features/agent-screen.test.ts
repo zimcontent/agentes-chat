@@ -1,5 +1,5 @@
 import { describe, expect, mock, test } from "bun:test";
-import { pointerInView, pointerShare, CURSOR_TAG_BELOW as TAG_BELOW } from "@agenteschat/client";
+import { pointerInView, pointerShare, CURSOR_TAG_BELOW as TAG_BELOW } from "@dougbot/client";
 import { pointerStep, watchView } from "../../src/features/computer/agent-pointer";
 import { CURSOR_CELLS, cursorCells } from "../../src/features/computer/pixel-cursor";
 import {

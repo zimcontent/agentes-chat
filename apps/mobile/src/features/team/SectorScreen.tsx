@@ -1,6 +1,6 @@
-import { type AgentGroup, useAgentGroupAction, useAgentGroups, useMembers } from "@agenteschat/client";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { can } from "@agenteschat/client/lib/permissions";
+import { type AgentGroup, useAgentGroupAction, useAgentGroups, useMembers } from "@dougbot/client";
+import { errorText } from "@dougbot/client/lib/errors";
+import { can } from "@dougbot/client/lib/permissions";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Alert, StyleSheet, TextInput, View } from "react-native";

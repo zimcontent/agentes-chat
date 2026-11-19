@@ -6,18 +6,12 @@ import {
   useAuthConfig,
   useSetAgentStyle,
   useSetShowActivity,
-} from "@agenteschat/client";
-import { formatTimeLeft } from "@agenteschat/client/lib/actions";
-import {
-  authErrorText,
-  emailChangeRefusal,
-  errorCode,
-  errorText,
-  REAUTH_SIGN_IN,
-} from "@agenteschat/client/lib/errors";
-import { CODE_LENGTH, typedCode } from "@agenteschat/client/lib/join-requests";
-import { browserTimezone, isTimeZone, timezoneName, zoneDisplayName } from "@agenteschat/client/lib/routines";
-import { isEmail } from "@agenteschat/client/lib/text";
+} from "@dougbot/client";
+import { formatTimeLeft } from "@dougbot/client/lib/actions";
+import { authErrorText, emailChangeRefusal, errorCode, errorText, REAUTH_SIGN_IN } from "@dougbot/client/lib/errors";
+import { CODE_LENGTH, typedCode } from "@dougbot/client/lib/join-requests";
+import { browserTimezone, isTimeZone, timezoneName, zoneDisplayName } from "@dougbot/client/lib/routines";
+import { isEmail } from "@dougbot/client/lib/text";
 import {
   AffixInput,
   Alert,
@@ -38,7 +32,7 @@ import {
   Segmented,
   Switch,
   useNow,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { type ReactNode, useEffect, useState, useSyncExternalStore } from "react";

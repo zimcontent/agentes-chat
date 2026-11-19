@@ -1,5 +1,5 @@
-import { previewBody } from "@agenteschat/client/lib/message-body";
-import { isPersonal } from "@agenteschat/client/lib/workspace-mode";
+import { previewBody } from "@dougbot/client/lib/message-body";
+import { isPersonal } from "@dougbot/client/lib/workspace-mode";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

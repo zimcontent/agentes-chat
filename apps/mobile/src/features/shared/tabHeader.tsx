@@ -1,4 +1,4 @@
-import { useMe } from "@agenteschat/client";
+import { useMe } from "@dougbot/client";
 import type { HeaderAction } from "@/ui";
 import { useDirectory, useMeId } from "./hooks";
 import { usePersonPhoto } from "./photo";

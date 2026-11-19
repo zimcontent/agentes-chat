@@ -1,6 +1,6 @@
-import { useMessageCard } from "@agenteschat/client";
-import { type MessageLink, messageRefLabel } from "@agenteschat/client/lib/message-links";
-import { Icon } from "@agenteschat/ui";
+import { useMessageCard } from "@dougbot/client";
+import { type MessageLink, messageRefLabel } from "@dougbot/client/lib/message-links";
+import { Icon } from "@dougbot/ui";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 

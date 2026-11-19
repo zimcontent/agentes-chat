@@ -6,8 +6,8 @@ import {
   mineOnRight,
   openAtOf,
   textSizeOf,
-} from "@agenteschat/client/lib/chat-look";
-import { AGENT_GRADIENTS, type AgentColorName, contrastOf, gradientOf, mixHex } from "@agenteschat/ui/agent/engine";
+} from "@dougbot/client/lib/chat-look";
+import { AGENT_GRADIENTS, type AgentColorName, contrastOf, gradientOf, mixHex } from "@dougbot/ui/agent/engine";
 import {
   BUBBLES_INSET,
   bubbleFill,

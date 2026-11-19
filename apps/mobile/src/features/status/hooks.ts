@@ -8,10 +8,10 @@ import {
   useAiStatus,
   useChannels,
   usePeople,
-} from "@agenteschat/client";
-import { WORK_TICK_MS, type WorkLine, workDetail, workLine } from "@agenteschat/client/lib/agent-work";
-import { lowerFirst } from "@agenteschat/client/lib/format";
-import { aiStateOf } from "@agenteschat/client/lib/no-ai";
+} from "@dougbot/client";
+import { WORK_TICK_MS, type WorkLine, workDetail, workLine } from "@dougbot/client/lib/agent-work";
+import { lowerFirst } from "@dougbot/client/lib/format";
+import { aiStateOf } from "@dougbot/client/lib/no-ai";
 import {
   type AgentFace,
   agentFaceOf,
@@ -22,7 +22,7 @@ import {
   clearsText,
   isOutOfOffice,
   type LIMIT_ICON,
-} from "@agenteschat/client/lib/presence";
+} from "@dougbot/client/lib/presence";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useDirectory, useMeId, useNow, useOrgId } from "../shared/hooks";

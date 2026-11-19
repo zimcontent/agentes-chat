@@ -1,10 +1,10 @@
-import { type Message, useAiAccounts, useStopReason } from "@agenteschat/client";
-import { seesDetails } from "@agenteschat/client/lib/audience";
-import { mayPickModel } from "@agenteschat/client/lib/brain-picker";
-import { type StoppedNotice, stopLine, stopperOf } from "@agenteschat/client/lib/notices";
-import { can } from "@agenteschat/client/lib/permissions";
-import { modelStandInKey } from "@agenteschat/client/lib/plan-usage";
-import { planOf } from "@agenteschat/client/lib/plans";
+import { type Message, useAiAccounts, useStopReason } from "@dougbot/client";
+import { seesDetails } from "@dougbot/client/lib/audience";
+import { mayPickModel } from "@dougbot/client/lib/brain-picker";
+import { type StoppedNotice, stopLine, stopperOf } from "@dougbot/client/lib/notices";
+import { can } from "@dougbot/client/lib/permissions";
+import { modelStandInKey } from "@dougbot/client/lib/plan-usage";
+import { planOf } from "@dougbot/client/lib/plans";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";

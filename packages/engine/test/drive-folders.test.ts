@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { eq, schema, sql } from "@agenteschat/db";
-import type { ModelRequest } from "@agenteschat/providers";
+import { eq, schema, sql } from "@dougbot/db";
+import type { ModelRequest } from "@dougbot/providers";
 import {
   type ArtifactActor,
   ConflictError,

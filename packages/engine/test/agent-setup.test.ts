@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { ACCOUNTS_PROTOCOL } from "@agenteschat/adapters";
-import { and, eq, inArray, schema, sql } from "@agenteschat/db";
+import { ACCOUNTS_PROTOCOL } from "@dougbot/adapters";
+import { and, eq, inArray, schema, sql } from "@dougbot/db";
 import {
   type AgentSetupInput,
   applyAgentSetup,

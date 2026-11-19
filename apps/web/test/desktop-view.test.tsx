@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, mock, setSystemTime, test } from "bun:test";
-import { setupDom } from "@agenteschat/ui/testing/dom";
+import { setupDom } from "@dougbot/ui/testing/dom";
 
 setupDom();
 
-import type { Agent, BrowserHandoff, DesktopStatus, DesktopViewState, SocketFactory } from "@agenteschat/client";
-import { ApiError, keys } from "@agenteschat/client";
-import { icons } from "@agenteschat/ui";
+import type { Agent, BrowserHandoff, DesktopStatus, DesktopViewState, SocketFactory } from "@dougbot/client";
+import { ApiError, keys } from "@dougbot/client";
+import { icons } from "@dougbot/ui";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
 import { ComputerDialog } from "@/components/computer/ComputerDialog";
 import { DesktopView } from "@/components/desktop/DesktopView";

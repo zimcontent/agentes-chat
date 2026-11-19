@@ -1,13 +1,13 @@
-import type { BrowserTraffic, MachineLoad, MachineSize } from "@agenteschat/adapters";
-import { type CombinedTraffic, combineLoads, combineTraffic, type LoadSample } from "@agenteschat/adapters/host-stats";
-import { type Database, eq, rowsOf, schema, sql } from "@agenteschat/db";
-import { catalogModelOf } from "@agenteschat/providers";
+import type { BrowserTraffic, MachineLoad, MachineSize } from "@dougbot/adapters";
+import { type CombinedTraffic, combineLoads, combineTraffic, type LoadSample } from "@dougbot/adapters/host-stats";
+import { type Database, eq, rowsOf, schema, sql } from "@dougbot/db";
+import { catalogModelOf } from "@dougbot/providers";
 import { WEB_USAGE_PROVIDER } from "./web-tools";
 
 const { instanceTelemetry } = schema;
 
 /**
- * The usage report (ADR 0060 §5): counts and sizes about this installation, sent once a day to agentes.chat.
+ * The usage report (ADR 0060 §5): counts and sizes about this installation, sent once a day to DougBot.
  * Never content: no messages, files, names, emails, hostnames, paths, prompts, IPs, or ids of
  * organizations, people or computers. The only id is the random `instance` made at first start.
  */
@@ -66,13 +66,13 @@ const PROVIDER_ID = /^[a-z0-9][a-z0-9._-]{0,39}$/;
 const MAX_MODELS = 50;
 const MAX_COMPUTERS = 50;
 
-/** agentes.chat's own servers: their report always goes out, and nobody there has the switch. */
+/** DougBot's own servers: their report always goes out, and nobody there has the switch. */
 export function isAgentesCloud(publicUrl: string) {
   const host = new URL(publicUrl).hostname;
   return host === "agentes.chat" || host.endsWith(".agentes.chat");
 }
 
-/** Whether the report goes out: always on agentes.chat's own servers; elsewhere unless `TELEMETRY=off` or the switch is off. */
+/** Whether the report goes out: always on DougBot's own servers; elsewhere unless `TELEMETRY=off` or the switch is off. */
 export function telemetrySends(config: { TELEMETRY: "on" | "off"; PUBLIC_URL: string }, enabled: boolean) {
   return isAgentesCloud(config.PUBLIC_URL) || (config.TELEMETRY === "on" && enabled);
 }

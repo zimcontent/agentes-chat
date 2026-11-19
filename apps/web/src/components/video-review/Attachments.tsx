@@ -1,5 +1,5 @@
-import type { VideoReview, VideoReviewAttachment, VideoReviewAttachmentInput } from "@agenteschat/client";
-import { Button, Icon, Input, Spinner } from "@agenteschat/ui";
+import type { VideoReview, VideoReviewAttachment, VideoReviewAttachmentInput } from "@dougbot/client";
+import { Button, Icon, Input, Spinner } from "@dougbot/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useApi } from "@/api/context";
 import { useUploadFailed } from "@/components/Limits";

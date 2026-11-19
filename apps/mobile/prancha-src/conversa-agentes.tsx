@@ -1,4 +1,4 @@
-import { type ApiClient, ApiProvider, keys, type Message, type OrgSummary } from "@agenteschat/client";
+import { type ApiClient, ApiProvider, keys, type Message, type OrgSummary } from "@dougbot/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";

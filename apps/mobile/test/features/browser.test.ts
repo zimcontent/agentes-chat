@@ -11,7 +11,7 @@ import {
   machineProfiles,
   pointerInView,
   pointerShare,
-} from "@agenteschat/client";
+} from "@dougbot/client";
 import { sortWaiting, waitingCardOf } from "../../src/features/activity/logic";
 import {
   browserGranted,

@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import type { AgentAccess, AgentForYouItem, Memory, OrgSummary, PlanUsage } from "@agenteschat/client";
-import { listsAgent, mailLossText, widenQuestion } from "@agenteschat/client/lib/audience";
-import { planMeterText } from "@agenteschat/client/lib/plan-usage";
-import { planLine } from "@agenteschat/ui/plan-state";
+import type { AgentAccess, AgentForYouItem, Memory, OrgSummary, PlanUsage } from "@dougbot/client";
+import { listsAgent, mailLossText, widenQuestion } from "@dougbot/client/lib/audience";
+import { planMeterText } from "@dougbot/client/lib/plan-usage";
+import { planLine } from "@dougbot/ui/plan-state";
 import { monthShare, TEAM_ORDER, teamNowOf, todayRows } from "../../src/features/agents/lite";
 import {
   byPlaybook,

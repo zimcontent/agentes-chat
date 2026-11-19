@@ -1,4 +1,4 @@
-import { connectorOAuthApps } from "@agenteschat/config";
+import { connectorOAuthApps } from "@dougbot/config";
 import {
   abandonComposioOAuth,
   acceptCustomSuggestion,
@@ -38,7 +38,7 @@ import {
   syncCustomTools,
   uninstallInstallation,
   withComposio,
-} from "@agenteschat/engine";
+} from "@dougbot/engine";
 import { createRoute, z } from "@hono/zod-openapi";
 import { sessionUser } from "../../auth";
 import { isExpectedError } from "../../http/errors";

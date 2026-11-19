@@ -1,9 +1,9 @@
-import type { AppNotification } from "@agenteschat/client";
-import { type DeviceNotice, deviceNoticeOf, joinFacts } from "@agenteschat/client/lib/devices";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { firstName } from "@agenteschat/client/lib/format";
-import { installableCli, toolWords } from "@agenteschat/client/lib/machines";
-import { Button, cx, ProviderLogo } from "@agenteschat/ui";
+import type { AppNotification } from "@dougbot/client";
+import { type DeviceNotice, deviceNoticeOf, joinFacts } from "@dougbot/client/lib/devices";
+import { errorText } from "@dougbot/client/lib/errors";
+import { firstName } from "@dougbot/client/lib/format";
+import { installableCli, toolWords } from "@dougbot/client/lib/machines";
+import { Button, cx, ProviderLogo } from "@dougbot/ui";
 import type { TFunction } from "i18next";
 import { type ReactNode, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";

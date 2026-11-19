@@ -1,5 +1,5 @@
-import { type ComposioClient, composioFile, FileTooLargeError } from "@agenteschat/adapters";
-import { BRAND_NAME } from "@agenteschat/i18n/brand";
+import { type ComposioClient, composioFile, FileTooLargeError } from "@dougbot/adapters";
+import { BRAND_NAME } from "@dougbot/i18n/brand";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import type { FetchLike, Transport } from "@modelcontextprotocol/sdk/shared/transport.js";

@@ -1,4 +1,4 @@
-import { useApi, type VideoReview, type VideoReviewNote } from "@agenteschat/client";
+import { useApi, type VideoReview, type VideoReviewNote } from "@dougbot/client";
 import { Image } from "expo-image";
 import { type ComponentRef, useEffect, useMemo, useRef, useState } from "react";
 import {

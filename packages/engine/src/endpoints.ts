@@ -1,5 +1,5 @@
-import { OutboundAddressError } from "@agenteschat/adapters";
-import { and, type Database, type Executor, eq, isNull, schema } from "@agenteschat/db";
+import { OutboundAddressError } from "@dougbot/adapters";
+import { and, type Database, type Executor, eq, isNull, schema } from "@dougbot/db";
 import {
   customModelId,
   ENDPOINT_STYLES,
@@ -9,7 +9,7 @@ import {
   parseCustomModel,
   setCustomModels,
   type ToolSpec,
-} from "@agenteschat/providers";
+} from "@dougbot/providers";
 import { recordAudit } from "./audit";
 import { caches } from "./cache";
 import { NotFoundError, ValidationError } from "./errors";

@@ -1,9 +1,9 @@
-import type { Agent, AgentAudience, Channel, OrgRole, OrgRoles, Person } from "@agenteschat/client";
-import { channelMembersQuery, keys, useApi, useSetRowHolders, useWidenAudience } from "@agenteschat/client";
-import { audienceAdmits, audienceOf, audiencePatch } from "@agenteschat/client/lib/audience";
-import { errorText } from "@agenteschat/client/lib/errors";
-import { agentGrammar } from "@agenteschat/client/lib/grammar";
-import type { RolePermission } from "@agenteschat/client/lib/permissions";
+import type { Agent, AgentAudience, Channel, OrgRole, OrgRoles, Person } from "@dougbot/client";
+import { channelMembersQuery, keys, useApi, useSetRowHolders, useWidenAudience } from "@dougbot/client";
+import { audienceAdmits, audienceOf, audiencePatch } from "@dougbot/client/lib/audience";
+import { errorText } from "@dougbot/client/lib/errors";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
+import type { RolePermission } from "@dougbot/client/lib/permissions";
 import {
   COMPUTERS_ROW,
   channelLeavers,
@@ -15,7 +15,7 @@ import {
   rowHolders,
   sortRoles,
   writableRoles,
-} from "@agenteschat/client/lib/roles";
+} from "@dougbot/client/lib/roles";
 import {
   Alert,
   Button,
@@ -30,7 +30,7 @@ import {
   OptionList,
   RoleMark,
   SearchField,
-} from "@agenteschat/ui";
+} from "@dougbot/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";

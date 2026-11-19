@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { eq, schema } from "@agenteschat/db";
-import { type ModelMessage, type ModelRequest, ProviderError, textOf } from "@agenteschat/providers";
+import { eq, schema } from "@dougbot/db";
+import { type ModelMessage, type ModelRequest, ProviderError, textOf } from "@dougbot/providers";
 import { drainOutbox, postPersonMessage, saveAgentStyle, type ToolSource } from "../src";
 import { advance, computerWork, decideTurnEnd, localPathsCited, type TurnEnd } from "../src/continuation";
 import { type Fixture, setup } from "./fixtures";

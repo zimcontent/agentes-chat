@@ -13,7 +13,7 @@ import {
   ROUTE_MODELS,
   ROUTE_TIMEOUT_MAX_MS,
   ROUTE_TIMEOUT_MS,
-} from "@agenteschat/adapters/machine-protocol";
+} from "@dougbot/adapters/machine-protocol";
 import {
   type AccountFolders,
   type AccountGrant,

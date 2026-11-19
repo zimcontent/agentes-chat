@@ -1,8 +1,8 @@
-import type { Issue, IssueActivity } from "@agenteschat/client";
-import { useArtifact, useIssueAction } from "@agenteschat/client";
-import { formatBytes } from "@agenteschat/client/lib/files";
-import { whenAt } from "@agenteschat/client/lib/format";
-import { Button, EmptyState, Icon, Segmented, Spinner } from "@agenteschat/ui";
+import type { Issue, IssueActivity } from "@dougbot/client";
+import { useArtifact, useIssueAction } from "@dougbot/client";
+import { formatBytes } from "@dougbot/client/lib/files";
+import { whenAt } from "@dougbot/client/lib/format";
+import { Button, EmptyState, Icon, Segmented, Spinner } from "@dougbot/ui";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useActors } from "@/components/actors";

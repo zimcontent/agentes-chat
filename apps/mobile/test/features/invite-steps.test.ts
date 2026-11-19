@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { ApiError } from "@agenteschat/client";
+import { ApiError } from "@dougbot/client";
 import {
   ASK_STEPS,
   type Asked,

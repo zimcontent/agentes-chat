@@ -34,7 +34,7 @@ bot an admin. Free ([bots](https://core.telegram.org/bots)).
 1. https://console.x.com: accept the Developer Agreement and describe the use. The description binds the app, so keep
    it to what's built: "Team workspace where AI agents post on the team's own X account, with the account owner's
    consent. No replies, likes, follows or direct messages." X allows up to 3 apps (development, staging, production).
-2. New App, named agentes.chat, website `https://agentes.chat`. The name and the website show as each post's source.
+2. New App, named DougBot, website `https://agentes.chat`. The name and the website show as each post's source.
 3. User authentication settings: OAuth 2.0, type Web App, Automated App or Bot (a confidential client), permissions
    Read and write. Callback URL: the redirect URI above, exactly (a test server: `http://127.0.0.1:<port>/…`, not
    `localhost`). Add the terms and privacy pages if it asks for them.

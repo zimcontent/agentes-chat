@@ -1,4 +1,4 @@
-import { type AgentColor, PixelSpinner } from "@agenteschat/ui";
+import { type AgentColor, PixelSpinner } from "@dougbot/ui";
 import { useTranslation } from "react-i18next";
 import { ImageSky } from "@/components/Sky";
 

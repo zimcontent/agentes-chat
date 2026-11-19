@@ -1,4 +1,4 @@
-import type { WorkItem } from "@agenteschat/client/lib/working";
+import type { WorkItem } from "@dougbot/client/lib/working";
 import type { DidLine } from "./logic";
 
 /*

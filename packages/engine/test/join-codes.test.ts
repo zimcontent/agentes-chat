@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { createFakeEmailSender, createMemoryRateLimiter, type EmailSender } from "@agenteschat/adapters";
-import { eq, inArray, schema } from "@agenteschat/db";
+import { createFakeEmailSender, createMemoryRateLimiter, type EmailSender } from "@dougbot/adapters";
+import { eq, inArray, schema } from "@dougbot/db";
 import {
   approveJoinRequest,
   askToJoin,
