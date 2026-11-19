@@ -446,6 +446,12 @@ export const envVars = {
     section: "Agents",
     secret: true,
   },
+  PLATFORM_AI_USD_PER_MONTH: {
+    schema: z.coerce.number().positive().optional(),
+    description:
+      "What the server's own AI keys may cost each workspace in a calendar month (US$), for a workspace the operator set no cap for. Past it the workspace's agents find no platform key and the apps ask it to connect its own. Unset: no cap.",
+    section: "Agents",
+  },
   PLATFORM_ANTHROPIC_WORKSPACE_ID: {
     schema: z.string().optional(),
     description:
