@@ -7,6 +7,7 @@ import {
   createFileArtifact,
   decideVideoReview,
   decisionMessage,
+  decisionShown,
   deleteReviewNote,
   getArtifact,
   getVideoReview,
@@ -20,6 +21,7 @@ import {
   timecode,
   type VideoReviewDeps,
 } from "../src";
+import { readableBody } from "../src/message-preview";
 import { addMember, addUser, type Fixture, setup } from "./fixtures";
 
 /** Video review (docs/adr/doug-0007-video-review.md): versions, notes on seconds, and the decision back to the agent. */
@@ -151,6 +153,16 @@ describe("video review", () => {
     const approved = await decideVideoReview(deps(), f.owner.id, f.org.id, sent.review.id, { decision: "approve" });
     expect(approved.status).toBe("approved");
     expect((await lastMessage())?.body).toStartWith(`@${f.agent.handle} Aprovado: «Short 01 Keith» V2`);
+    // People read the decision from meta, without the agent's instructions (the skill, the ids).
+    const posted = await lastMessage();
+    expect(posted?.meta?.videoReview).toMatchObject({
+      id: sent.review.id,
+      decision: "approve",
+      title: "Short 01 Keith",
+      handle: f.agent.handle,
+      said: "",
+    });
+    expect(readableBody(posted?.body ?? "", posted?.meta)).toBe("Aprovado: «Short 01 Keith» V2");
 
     const full = await getVideoReview(deps(), f.owner.id, f.org.id, sent.review.id);
     expect(full.versions.map((v) => v.version)).toEqual([1, 2]);
@@ -216,6 +228,30 @@ describe("video review", () => {
         "- [geral] cor mais quente (Gabriel)",
         "- [1:05.0] corte comeu a palavra (Lê)",
         "- [1:10.2–1:13.9] Texto/legenda: legenda some cedo (Ronny)",
+      ].join("\n"),
+    );
+  });
+
+  test("people read the person's words and notes, without the agent's instructions", () => {
+    const said = decisionShown({
+      message: "no geral, tá ótimo",
+      notes: [
+        { atMs: 65_000, body: "corte\ncomeu a palavra", author: "Lê", x: 0.5, y: 0.5 },
+        {
+          atMs: null,
+          body: "",
+          author: "Gabriel",
+          attachments: [{ type: "file", media: "image", name: "ref.png", artifactId: "a2" } as never],
+        },
+      ],
+    });
+    expect(said).toBe(
+      [
+        "no geral, tá ótimo",
+        "",
+        "- [1:05.0] corte comeu a palavra (Lê)",
+        "- [geral] (sem texto: veja o anexo) (Gabriel)",
+        "  - Anexo (imagem): ref.png",
       ].join("\n"),
     );
   });

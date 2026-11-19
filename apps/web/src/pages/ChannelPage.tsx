@@ -171,6 +171,7 @@ import { can, leavesChannel, makesAgents, managesChannel, setsAutoReply } from "
 import { modelStandInText } from "@agenteschat/client/lib/plan-usage";
 import { reachHandoffs } from "@agenteschat/client/lib/reach";
 import { localMeta, replyOf } from "@agenteschat/client/lib/reply";
+import { reviewDecisionOf } from "@agenteschat/client/lib/review-decision";
 import { isRightHand } from "@agenteschat/client/lib/right-hand";
 import { isReminderMessage, reminderBody, routineReplyOf } from "@agenteschat/client/lib/routines";
 import { picksForMe, replyAloneKey } from "@agenteschat/client/lib/routing";
@@ -409,6 +410,7 @@ import {
 } from "@/components/threads/ThreadLines";
 import { UsageWaitCancel, UsageWaitClosed } from "@/components/UsagePauseCard";
 import { ReviewCards } from "@/components/video-review/ReviewCards";
+import { ReviewDecisionHead } from "@/components/video-review/ReviewDecision";
 import { PushAskContext, PushAskInline, usePushAsk } from "@/components/WebPush";
 import { useWikiLinkRenderer } from "@/components/WikiLinks";
 import { BarAlsoTyping, BarPhrase, BarStep, ConsultClock, TypingMark, WorkingStack } from "@/components/WorkingLine";
@@ -4434,7 +4436,9 @@ export const TimelineMessage = memo(function TimelineMessage({
   // A voice message's own text is what was typed beside its recording: its words are in the player.
   const said = reminderBody(listedText(stopped.body, m.meta), m.meta);
   // A long work's anchor once it's over: no promise left, and dimmed (its line says how it ended).
-  const body = m.longWork ? workAnchorBody(t, said, m.meta, m.longWork) : said;
+  // A review's decision: its body is the agent's instructions, shown whole only in the technical style.
+  const decided = simple ? reviewDecisionOf(m.body, m.meta) : null;
+  const body = decided ? decided.said : m.longWork ? workAnchorBody(t, said, m.meta, m.longWork) : said;
   const workOver = Boolean(m.longWork && workIsOver(m.longWork));
   // The person's pick on a choice card (ADR 0124): one compact line.
   const choiceReply = Boolean(m.meta?.choiceReply);
@@ -4629,7 +4633,7 @@ export const TimelineMessage = memo(function TimelineMessage({
       !(question && body.trim() === question.text.trim()) &&
       !(voice && !body.trim()) &&
       !choiceReply &&
-      Boolean(body.trim() || (!card && !stopped.canceled && artifacts.length === 0 && !media));
+      Boolean(decided || body.trim() || (!card && !stopped.canceled && artifacts.length === 0 && !media));
   // People see name, time and text; the date, model and tokens wait behind the time. An agent's sticker after its
   // reply carries the reply's run: its model and tokens are the reply's, never said twice.
   const usage = m.author.type === "agent" && !mediaAfter ? messageUsage(m) : null;
@@ -4837,25 +4841,28 @@ export const TimelineMessage = memo(function TimelineMessage({
             {routine && report && reportOpen && <RoutineReport text={report} />}
             {bodyShown && (
               <MessageText key="body" style={workOver ? { opacity: 0.6 } : undefined}>
-                <ClippedBody lead={talk?.lead}>
-                  {(clip, lead) => (
-                    <MessageBody
-                      className={clip}
-                      body={lead ?? body}
-                      resolveMention={dir.mentionName}
-                      mentionTone={dir.mentionTone}
-                      renderMention={renderMention}
-                      wikiLink={wikiLink}
-                      channelRefs={channelRefsOf(m.meta)}
-                      accent={chartColorOf(agent)}
-                      pinFrom={
-                        m.author.type === "agent" && m.author.id && !m.local && !readOnly
-                          ? { messageId: m.id, agentId: m.author.id }
-                          : null
-                      }
-                    />
-                  )}
-                </ClippedBody>
+                {decided && <ReviewDecisionHead decision={decided} mention={renderMention} />}
+                {(!decided || body.trim()) && (
+                  <ClippedBody lead={talk?.lead}>
+                    {(clip, lead) => (
+                      <MessageBody
+                        className={clip}
+                        body={lead ?? body}
+                        resolveMention={dir.mentionName}
+                        mentionTone={dir.mentionTone}
+                        renderMention={renderMention}
+                        wikiLink={wikiLink}
+                        channelRefs={channelRefsOf(m.meta)}
+                        accent={chartColorOf(agent)}
+                        pinFrom={
+                          m.author.type === "agent" && m.author.id && !m.local && !readOnly
+                            ? { messageId: m.id, agentId: m.author.id }
+                            : null
+                        }
+                      />
+                    )}
+                  </ClippedBody>
+                )}
               </MessageText>
             )}
             {choiceReply && (
