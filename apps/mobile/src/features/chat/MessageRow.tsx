@@ -7,6 +7,7 @@ import {
   type MessageReceipt,
   type ReplyRef,
   type RunConsultation,
+  reviewWords,
   type ScreenKind,
   type ThreadInfo,
   useApi,
@@ -50,7 +51,9 @@ import { can } from "@agenteschat/client/lib/permissions";
 import { modelStandInText } from "@agenteschat/client/lib/plan-usage";
 import { reachHandoffs } from "@agenteschat/client/lib/reach";
 import { replyOf } from "@agenteschat/client/lib/reply";
+import { decidedBody, reviewDecisionOf } from "@agenteschat/client/lib/review-decision";
 import { isReminderMessage, reminderBody, routineReplyOf } from "@agenteschat/client/lib/routines";
+import { simpleScreens } from "@agenteschat/client/lib/simple-mode";
 import { replyChipsOf } from "@agenteschat/client/lib/team-plan";
 import { usagePauseCardOf, usageWaitOf } from "@agenteschat/client/lib/usage-pause";
 import { appVia } from "@agenteschat/client/lib/via";
@@ -271,8 +274,15 @@ function RowBody({
   const said = hidesBody(m)
     ? ""
     : reminderBody(splitCanceled(serverBody(t, listedText(m.body, meta), meta, i18n.language, names), meta).body, meta);
+  // A review's decision: its body is the agent's instructions, shown whole only in the technical style; people read
+  // "@Rosa Aprovado: **Title** V1" and their own words (the review's id opens from its card).
+  const decided = org && simpleScreens(org) ? reviewDecisionOf(m.body, meta) : null;
   // A long work's anchor once it's over: no promise left, and dimmed (its line says how it ended).
-  const body = m.longWork ? workAnchorBody(t, said, meta, m.longWork) : said;
+  const body = decided
+    ? decidedBody(decided, reviewWords(i18n.language))
+    : m.longWork
+      ? workAnchorBody(t, said, meta, m.longWork)
+      : said;
   const workOver = Boolean(m.longWork && workIsOver(m.longWork));
   // The person's pick on a choice card (ADR 0124): one compact line, not a bubble.
   const choiceReply = meta?.choiceReply && body ? <ChoiceReply text={choiceReplyLine(body)} /> : null;
