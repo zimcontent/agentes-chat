@@ -20,7 +20,7 @@ const keyOf = (line: string) => line.trim();
  * Puts `line` (the `index`th of `from`) into `out` right after the nearest line before it in `from` that `out` also
  * has, so a rule lands in its section; with none, where it was (the top) or at the end.
  */
-function insertAnchored(out: string[], from: string[], index: number, line: string) {
+export function insertAnchored(out: string[], from: string[], index: number, line: string) {
   for (let i = index - 1; i >= 0; i--) {
     const anchor = keyOf(from[i] ?? "");
     if (!anchor) continue;

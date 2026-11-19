@@ -3802,7 +3802,20 @@
     "synced": "Stesso addestramento ovunque, controllato {{when}}.",
     "syncing": "Sto unendo l'addestramento. Ci vuole fino a un minuto.",
     "missing": "Non è arrivato a {{workspace}}: {{what}}.",
-    "failed": "Non è stato possibile cambiarlo. Riprova."
+    "failed": "Non è stato possibile cambiarlo. Riprova.",
+    "craftOnly": "Attività separata: solo il mestiere va e viene."
+  },
+  "separateOperation": {
+    "title": "Attività separata",
+    "help": "Gli agenti di qui lavorano anche negli altri tuoi workspace, come dipendenti di due aziende. Solo il mestiere va e viene: istruzioni, skill, lezioni, regole e preferenze che non nominano nulla dell'altra azienda. Fatti, decisioni, note, clienti e connessioni restano in ciascuna.",
+    "switch": "Solo il mestiere va e viene",
+    "switchHelp": "Una volta attivo, ciò che è già arrivato da un'altra azienda torna lì entro un minuto. L'originale resta dove è stato imparato.",
+    "ownersOnly": "Solo i proprietari possono modificarlo.",
+    "names": "Nomi di questa attività",
+    "namesHelp": "Clienti, progetti e persone di questa attività, separati da virgole. Nulla che ne nomini uno arriva a una copia in un altro workspace. Il nome del workspace e i clienti che i suoi agenti conoscono già contano da soli.",
+    "namesExample": "Es.: Panificio Aurora, Torre Nord",
+    "sharedSignIn": "{{label}} usa lo stesso accesso di {{workspaces}}. Ricollegalo con l'account proprio di questa attività.",
+    "failed": "Impossibile salvare. Riprova."
   },
   "ronda": {
     "title": "Ronda",

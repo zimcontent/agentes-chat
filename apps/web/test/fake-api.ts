@@ -94,6 +94,7 @@ import type {
   ScopeGrant,
   SearchHit,
   SecretRequest,
+  SeparateOperation,
   ServerTelemetry,
   SidebarItem,
   SidebarItems,
@@ -340,6 +341,8 @@ export interface FakeState {
   carrySources?: CarrySource[];
   /** Each agent's copies in other workspaces (ADR doug-0013), by agent id; absent: none. */
   agentTwins?: Record<string, AgentTwins>;
+  /** Whether the workspace is a separate operation (ADR doug-0035); absent: off, the owner may change it. */
+  separateOperation?: SeparateOperation;
   /** What the organization's GitHub reaches (`githubApp.repositories`); unset = not connected. */
   githubRepos?: GitHubRepositories;
   /** The GitHub connection whose token GitHub no longer takes (its id): skills from private links say so. */
@@ -3984,6 +3987,14 @@ export function createFakeHttpApi(state: FakeState): Omit<HttpApi, FakedParts> {
         const next = { ...view, off: true, copies: [], candidates: [...view.candidates, ...view.copies] };
         state.agentTwins = { ...state.agentTwins, [agentId]: next };
         return structuredClone(next);
+      },
+      separateOperation: async () =>
+        structuredClone(state.separateOperation ?? { on: false, names: [], canEdit: true, sharedSignIns: [] }),
+      setSeparateOperation: async (orgId, input) => {
+        log("carry.setSeparateOperation", orgId, input);
+        const view = state.separateOperation ?? { on: false, names: [], canEdit: true, sharedSignIns: [] };
+        state.separateOperation = { ...view, ...input };
+        return structuredClone(state.separateOperation);
       },
     },
     githubApp: {

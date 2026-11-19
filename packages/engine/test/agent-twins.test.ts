@@ -9,6 +9,7 @@ import {
   createApiKeyConnection,
   createOrganization,
   enabledSkills,
+  getSeparateOperation,
   grantScopes,
   insertContextItem,
   joinInstructions,
@@ -18,9 +19,10 @@ import {
   mergeInstructions,
   saveSkill,
   setAgentSkills,
+  setSeparateOperation,
   syncTwins,
 } from "../src";
-import { type Fixture, setup } from "./fixtures";
+import { addMember, type Fixture, setup } from "./fixtures";
 
 let f: Fixture;
 afterEach(() => f?.close());
@@ -311,5 +313,122 @@ describe("one agent in several workspaces (ADR doug-0013)", () => {
     // Joined again by hand.
     const joined = await joinTwin(twinDeps(f), f.owner.id, second.id, other.id, f.agent.id);
     expect(joined.copies.map((c) => c.agentId)).toEqual([f.agent.id]);
+  });
+});
+
+describe("a separate operation: employees of two companies (ADR doug-0035)", () => {
+  const lesson = (fx: Fixture, orgId: string, agentId: string, kind: "lesson" | "fact" | "rule", content: string) =>
+    insertContextItem(fx.db, {
+      orgId,
+      kind,
+      scopeType: "agent",
+      scopeId: agentId,
+      agentId,
+      content,
+      createdByKind: "person",
+      createdById: fx.owner.id,
+    });
+  const skillIn = async (fx: Fixture, orgId: string, agentId: string, name: string, body: string) => {
+    const skill = await saveSkill(skillDeps(fx), fx.owner.id, orgId, {
+      name,
+      description: `How to do ${name}`,
+      body,
+      metadata: {},
+      source: "manual",
+    });
+    const current = (await enabledSkills(fx.db, orgId, agentId)).map((k) => ({ skillId: k.id, enabled: true }));
+    await setAgentSkills(fx.db, fx.owner.id, orgId, agentId, [...current, { skillId: skill.id, enabled: true }]);
+  };
+  const activeOf = async (fx: Fixture, agentId: string) =>
+    (await memoriesOf(fx, agentId)).filter(([, status]) => status === "active").map(([content]) => content);
+  const skillNames = async (fx: Fixture, orgId: string, agentId: string) =>
+    (await enabledSkills(fx.db, orgId, agentId)).map((k) => k.name).sort();
+
+  test("only the craft crosses, both ways; what crossed before goes back to its company", async () => {
+    f = await setup();
+    const zim = f.org.id;
+    await f.db
+      .update(agents)
+      .set({
+        instructions: "# Doug\n- Deliver in the conversation of the request.\n- Lexeer: formal tone, short captions.",
+      })
+      .where(eq(agents.id, f.agent.id));
+    const { organization: unbuilt } = await createOrganization(f.db, f.owner.id, { name: "Unbuilt" });
+    const out = await carryOver(carryOf(f), f.owner.id, unbuilt.id, { agentIds: [f.agent.id] });
+    const copyId = out.agents[0]?.id as string;
+    await syncAll(f, f.agent.id);
+
+    // Before the companies are told apart, everything crosses: the leak.
+    await setSeparateOperation(f.db, f.owner.id, zim, { names: ["Lexeer"] });
+    await lesson(f, zim, f.agent.id, "fact", "The posting day is Tuesday.");
+    await lesson(f, zim, f.agent.id, "lesson", "Always deliver the master in 4K.");
+    await lesson(f, zim, f.agent.id, "lesson", "At Lexeer the captions stay under two lines.");
+    await skillIn(f, zim, f.agent.id, "masters", "Export the master, then the light copy.");
+    await skillIn(f, zim, f.agent.id, "lexeer-captions", "Captions for Lexeer: formal, two lines.");
+    await syncAll(f, f.agent.id);
+    expect((await activeOf(f, copyId)).length).toBe(3);
+    expect(await skillNames(f, unbuilt.id, copyId)).toEqual(["lexeer-captions", "masters"]);
+
+    // Unbuilt becomes a separate operation: what came from Zim's company goes back, the craft stays.
+    const admin = await addMember(f.db, unbuilt.id, "admin", "messi");
+    await expect(setSeparateOperation(f.db, admin.id, unbuilt.id, { on: true })).rejects.toThrow();
+    const view = await setSeparateOperation(f.db, f.owner.id, unbuilt.id, { on: true, names: ["Senna", "Senna"] });
+    expect(view).toMatchObject({ on: true, names: ["Senna"], canEdit: true });
+    await syncAll(f, copyId);
+    expect(await activeOf(f, copyId)).toEqual(["Always deliver the master in 4K."]);
+    expect((await agentOf(f, copyId)).instructions).toBe("# Doug\n- Deliver in the conversation of the request.");
+    expect(await skillNames(f, unbuilt.id, copyId)).toEqual(["masters"]);
+    // Zim keeps all of its own.
+    expect((await activeOf(f, f.agent.id)).length).toBe(3);
+    expect((await agentOf(f, f.agent.id)).instructions).toContain("- Lexeer: formal tone, short captions.");
+    expect(await skillNames(f, zim, f.agent.id)).toEqual(["lexeer-captions", "masters"]);
+
+    // Learned in Unbuilt: the craft reaches Zim, Unbuilt's own stays.
+    const copy = await agentOf(f, copyId);
+    await f.db
+      .update(agents)
+      .set({
+        instructions: `${copy.instructions}\n- Senna Tower: realism first.\n- Show each take with a caption.`,
+        updatedAt: new Date(Date.now() + 1000),
+      })
+      .where(eq(agents.id, copyId));
+    await lesson(f, unbuilt.id, copyId, "lesson", "Quote the cost before generating a video.");
+    await lesson(f, unbuilt.id, copyId, "fact", "The film has fourteen scenes.");
+    await lesson(f, unbuilt.id, copyId, "rule", "Senna scenes keep the same boy in every shot.");
+    await syncAll(f, copyId);
+    const zimMemory = await activeOf(f, f.agent.id);
+    expect(zimMemory).toContain("Quote the cost before generating a video.");
+    expect(zimMemory).not.toContain("The film has fourteen scenes.");
+    expect(zimMemory).not.toContain("Senna scenes keep the same boy in every shot.");
+    const zimText = (await agentOf(f, f.agent.id)).instructions;
+    expect(zimText).toContain("- Show each take with a caption.");
+    expect(zimText).toContain("- Lexeer: formal tone, short captions.");
+    expect(zimText).not.toContain("Senna");
+    const unbuiltText = (await agentOf(f, copyId)).instructions;
+    expect(unbuiltText).toContain("- Senna Tower: realism first.");
+    expect(unbuiltText).not.toContain("Lexeer");
+
+    // Forgotten in Unbuilt, a crossing lesson is forgotten in Zim too; a company's own fact isn't tied.
+    await f.db
+      .update(contextItems)
+      .set({ status: "archived", updatedAt: new Date(Date.now() + 5000) })
+      .where(and(eq(contextItems.agentId, copyId), eq(contextItems.content, "Always deliver the master in 4K.")));
+    await syncAll(f, copyId);
+    expect(await activeOf(f, f.agent.id)).not.toContain("Always deliver the master in 4K.");
+
+    // A connection given in Zim isn't brought to Unbuilt.
+    const github = await createApiKeyConnection(connectorsOf(f), f.owner.id, zim, {
+      connector: "github",
+      apiKey: "ghp_secret_123456",
+    });
+    await grantScopes(f.db, zim, f.agent.id, [{ connectionId: github.id, scope: "github:pr.read" }]);
+    await grantScopes(f.db, zim, f.agent.id, [{ connectionId: null, scope: "wiki:read" }]);
+    await syncAll(f, f.agent.id);
+    const theirs = await listAgentScopes(f.db, unbuilt.id, copyId);
+    expect(theirs.some((g) => g.scope === "github:pr.read")).toBe(false);
+    expect(theirs.some((g) => g.connectionId === null && g.scope === "wiki:read")).toBe(true);
+
+    expect(await getSeparateOperation(f.db, f.owner.id, unbuilt.id)).toMatchObject({ on: true, sharedSignIns: [] });
+    await expect(getSeparateOperation(f.db, admin.id, unbuilt.id)).resolves.toMatchObject({ canEdit: false });
   });
 });

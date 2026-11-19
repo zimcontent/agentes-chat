@@ -3924,7 +3924,20 @@
     "synced": "To samo trenowanie wszędzie, sprawdzone {{when}}.",
     "syncing": "Łączenie trenowania. Potrwa do minuty.",
     "missing": "Nie dotarło do {{workspace}}: {{what}}.",
-    "failed": "Nie udało się zmienić. Spróbuj ponownie."
+    "failed": "Nie udało się zmienić. Spróbuj ponownie.",
+    "craftOnly": "Odrębna działalność: w obie strony przechodzi tylko warsztat."
+  },
+  "separateOperation": {
+    "title": "Odrębna działalność",
+    "help": "Agenci stąd pracują też w Twoich innych przestrzeniach roboczych, jak pracownicy dwóch firm. W obie strony przechodzi tylko warsztat: instrukcje, skille, lekcje, zasady i preferencje, które nie wymieniają niczego z drugiej firmy. Fakty, decyzje, notatki, klienci i połączenia zostają w każdej z nich.",
+    "switch": "W obie strony przechodzi tylko warsztat",
+    "switchHelp": "Po włączeniu to, co już przyszło z innej firmy, wraca tam w ciągu minuty. Oryginał zostaje tam, gdzie się go nauczono.",
+    "ownersOnly": "Zmieniać mogą tylko właściciele.",
+    "names": "Nazwy tej działalności",
+    "namesHelp": "Klienci, projekty i osoby tej działalności, oddzielone przecinkami. Nic, co wymienia któregoś z nich, nie trafia do kopii w innej przestrzeni roboczej. Nazwa przestrzeni roboczej i klienci, których agenci już znają, liczą się sami.",
+    "namesExample": "Np.: Piekarnia Aurora, Wieża Północna",
+    "sharedSignIn": "{{label}} używa tego samego logowania co {{workspaces}}. Połącz ponownie z własnym kontem tej działalności.",
+    "failed": "Nie udało się zapisać. Spróbuj ponownie."
   },
   "ronda": {
     "title": "Obchód",

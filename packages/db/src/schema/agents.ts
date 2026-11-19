@@ -487,6 +487,13 @@ export const organizationSettings = pgTable("organization_settings", {
    */
   dougTeam: jsonb().$type<{ cardId: string; agents: Record<string, string>; rightHand: boolean }>(),
   /**
+   * A separate operation (docs/adr/doug-0035-separate-operation.md): copies of its agents in other workspaces carry
+   * only their craft, both ways. A column of this instance's own (`EXTRA_COLUMNS`).
+   */
+  separateOperation: boolean().notNull().default(false),
+  /** Names that belong to this workspace (clients, projects, people): they never reach a separate copy elsewhere. */
+  keptNames: text().array().notNull().default(sql`'{}'::text[]`),
+  /**
    * How much the workspace's agents ask before acting (ADR 0173 addendum 2026-11-15): what every agent without its
    * own choice (`agents.approvals_level_own`) uses. A workspace with no row here is at `risky`.
    */

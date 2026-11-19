@@ -56,6 +56,11 @@ export function TwinsCard() {
           {t("agentTwins.missing", { workspace: m.orgName, what: m.label })}
         </SettingNote>
       ))}
+      {linked && view.craftOnly && (
+        <SettingNote icon="lock" quiet>
+          {t("agentTwins.craftOnly")}
+        </SettingNote>
+      )}
       {linked && (
         <SettingNote icon="repeat" quiet>
           {view.syncedAt ? t("agentTwins.synced", { when: timeAgo(t, view.syncedAt) }) : t("agentTwins.syncing")}

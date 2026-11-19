@@ -3800,7 +3800,20 @@
     "synced": "Même entraînement partout, vérifié {{when}}.",
     "syncing": "Réunion de l'entraînement en cours. Cela prend jusqu'à une minute.",
     "missing": "N'est pas arrivé dans {{workspace}} : {{what}}.",
-    "failed": "Impossible de modifier. Réessaie."
+    "failed": "Impossible de modifier. Réessaie.",
+    "craftOnly": "Activité séparée : seul le savoir-faire circule."
+  },
+  "separateOperation": {
+    "title": "Activité séparée",
+    "help": "Les agents d'ici travaillent aussi dans vos autres espaces de travail, comme des salariés de deux entreprises. Seul le savoir-faire circule : instructions, skills, leçons, règles et préférences qui ne nomment rien de l'autre entreprise. Les faits, décisions, notes, clients et connexions restent dans chacune.",
+    "switch": "Seul le savoir-faire circule",
+    "switchHelp": "Une fois activé, ce qui est déjà venu d'une autre entreprise y retourne en moins d'une minute. L'original reste là où il a été appris.",
+    "ownersOnly": "Seuls les propriétaires peuvent le modifier.",
+    "names": "Noms de cette activité",
+    "namesHelp": "Clients, projets et personnes de cette activité, séparés par des virgules. Rien de ce qui nomme l'un d'eux n'atteint une copie dans un autre espace de travail. Le nom de l'espace de travail et les clients que ses agents connaissent déjà comptent d'office.",
+    "namesExample": "Ex. : Boulangerie Aurora, Tour Nord",
+    "sharedSignIn": "{{label}} utilise la même connexion que {{workspaces}}. Reconnectez-le avec le compte propre à cette activité.",
+    "failed": "Enregistrement impossible. Réessayez."
   },
   "ronda": {
     "title": "Ronde",

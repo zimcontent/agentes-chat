@@ -3672,7 +3672,20 @@
     "synced": "Gleiches Training überall, geprüft {{when}}.",
     "syncing": "Das Training wird zusammengeführt. Das dauert bis zu einer Minute.",
     "missing": "Nicht in {{workspace}} angekommen: {{what}}.",
-    "failed": "Konnte nicht geändert werden. Versuch es noch einmal."
+    "failed": "Konnte nicht geändert werden. Versuch es noch einmal.",
+    "craftOnly": "Getrennter Betrieb: Nur das Handwerk geht hin und her."
+  },
+  "separateOperation": {
+    "title": "Getrennter Betrieb",
+    "help": "Die Agenten hier arbeiten auch in deinen anderen Workspaces, wie Angestellte zweier Firmen. Nur das Handwerk geht hin und her: Anweisungen, Skills, Lektionen, Regeln und Vorlieben, die nichts von der anderen Firma nennen. Fakten, Entscheidungen, Notizen, Kunden und Verbindungen bleiben jeweils dort.",
+    "switch": "Nur das Handwerk geht hin und her",
+    "switchHelp": "Sobald es an ist, geht, was schon aus einer anderen Firma kam, innerhalb einer Minute dorthin zurück. Das Original bleibt, wo es gelernt wurde.",
+    "ownersOnly": "Nur Inhaber können das ändern.",
+    "names": "Namen dieses Betriebs",
+    "namesHelp": "Kunden, Projekte und Personen dieses Betriebs, durch Kommas getrennt. Nichts, was einen davon nennt, erreicht eine Kopie in einem anderen Workspace. Der Name des Workspace und die Kunden, die seine Agenten schon kennen, zählen von selbst.",
+    "namesExample": "z. B. Bäckerei Aurora, Nordturm",
+    "sharedSignIn": "{{label}} nutzt dieselbe Anmeldung wie {{workspaces}}. Verbinde es neu mit dem eigenen Konto dieses Betriebs.",
+    "failed": "Speichern fehlgeschlagen. Versuch es noch einmal."
   },
   "ronda": {
     "title": "Rundgang",
