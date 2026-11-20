@@ -3028,6 +3028,65 @@ test("a computer brain that fails after a bridged tool ran: no fallback, what it
   expect(last?.meta.brainFallback).toBeUndefined();
 });
 
+const NO_MCP =
+  "Claude Code ended without an answer (exit 1): Error: MCP tool mcp__agentes__permission_prompt (passed via --permission-prompt-tool) not found. Available MCP tools: none";
+
+test("Claude Code started without our tools: the turn goes once more on its session, told what already ran", async () => {
+  f = await setup({ reply: () => ({ chunks: ["Respondi pela API."] }) });
+  await computerAgent(f);
+  const { brain, seen } = scriptedComputerBrain((n) =>
+    n === 0
+      ? [
+          {
+            type: "tool_call",
+            id: "b-1",
+            name: "Bash",
+            input: { command: "mkdir -p out" },
+            executed: { content: "" },
+          },
+          { type: "error", code: "claude_failed", message: NO_MCP, retryable: false },
+        ]
+      : [{ type: "done", text: "Pronto." }],
+  );
+  const handlers = createJobHandlers({
+    ...f.jobDeps,
+    toolsMissingRetryMs: 1,
+    brains: { claude_code: () => brain },
+    machines: { status: async (id) => statusOf(id) },
+  });
+  await post(f, "@dev prepara a pasta");
+  await drainOutbox(f.db, handlers);
+
+  expect(seen.length).toBe(2);
+  expect(seen[1]?.trigger).toContain("started without your tools");
+  expect(seen[1]?.trigger).toContain("do not repeat: Bash (mkdir -p out)");
+  expect(seen[1]?.trigger).toContain("prepara a pasta");
+  expect((await f.db.select().from(schema.agentRuns))[0]?.status).toBe("done");
+  const last = (await timeline(f)).at(-1);
+  expect(last?.body).toBe("Pronto.");
+  expect(last?.meta.brainInterrupted).toBeUndefined();
+});
+
+test("Claude Code without our tools twice in a run: the second ends it as any interrupted turn, never a loop", async () => {
+  f = await setup({ reply: () => ({ chunks: ["Respondi pela API."] }) });
+  await computerAgent(f);
+  const { brain, seen } = scriptedComputerBrain((n) => [
+    { type: "tool_call", id: `b-${n}`, name: "Bash", input: { command: "ls" }, executed: { content: "a" } },
+    { type: "error", code: "claude_failed", message: NO_MCP, retryable: false },
+  ]);
+  const handlers = createJobHandlers({
+    ...f.jobDeps,
+    toolsMissingRetryMs: 1,
+    brains: { claude_code: () => brain },
+    machines: { status: async (id) => statusOf(id) },
+  });
+  await post(f, "@dev lista");
+  await drainOutbox(f.db, handlers);
+
+  expect(seen.length).toBe(2);
+  expect((await timeline(f)).at(-1)?.meta.brainInterrupted).toMatchObject({ code: "claude_failed" });
+});
+
 test("a computer brain that fails after a bridged pause: the run keeps waiting with its pending call, then resumes", async () => {
   const gh = fakeGithub();
   f = await setup({ toolSources: [gh.source], reply: () => ({ chunks: ["Respondi pela API."] }) });

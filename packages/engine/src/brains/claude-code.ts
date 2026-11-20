@@ -301,6 +301,16 @@ export function toolOff(
 export const missingTurnFolder = (message: string): string | null =>
   /^The folder (.+) doesn't exist$/.exec(message)?.[1] ?? null;
 
+/**
+ * Claude Code ended a turn because it started without our MCP server, its `--permission-prompt-tool` included ("MCP
+ * tool mcp__agentes__permission_prompt (passed via --permission-prompt-tool) not found. Available MCP tools: none"):
+ * the first command that needed a prompt never ran. The runner tries again first (`MCP_MISSING` in
+ * `apps/server/runner/brain.ts`); this is the engine's one more try, for a runner without that (ADR 0032 addendum
+ * 2026-11-20).
+ */
+export const claudeToolsMissing = (message: string) =>
+  /--permission-prompt-tool\) not found|Available MCP tools: none/.test(message);
+
 /** A computer brain's error: its runner restarts once the turns running there end, and this turn starts after. */
 export const RUNNER_RESTARTING = "runner_restarting";
 

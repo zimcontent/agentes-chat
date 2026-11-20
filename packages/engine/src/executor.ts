@@ -69,7 +69,13 @@ import {
 import type { BlockSpecReader } from "./block-state";
 import { ASK_CHOICES_TOOL, SHOW_BLOCK_TOOL, someoneAnswers } from "./blocks";
 import { brainOf } from "./brain-settings";
-import { brainSessionId, missingTurnFolder, RUNNER_RESTARTING, recordPlanUsage } from "./brains/claude-code";
+import {
+  brainSessionId,
+  claudeToolsMissing,
+  missingTurnFolder,
+  RUNNER_RESTARTING,
+  recordPlanUsage,
+} from "./brains/claude-code";
 import { codexModelRefused } from "./brains/codex";
 import { ModelBrain } from "./brains/model";
 import type { ComputerTurn } from "./brains/prompt";
@@ -563,6 +569,8 @@ export interface EngineDeps {
   computerWakeWaitMs?: number;
   /** How long a computer turn is still read after its plan's `limit` event (default `PLAN_LIMIT_GRACE_MS`). */
   planLimitGraceMs?: number;
+  /** Tests: `TOOLS_MISSING_RETRY_MS`. */
+  toolsMissingRetryMs?: number;
   /**
    * Tools on demand (ADR 0043): each run lists the core tools and the groups the
    * judge (`context.judge`) expects it to need; the rest go behind
@@ -831,15 +839,21 @@ export interface Transcript {
    * `prompt`: what the interrupted turn was asked; `drops`: how many times this run was cut off after its turn said or
    * did something; `early`: cut before that, with nothing to redo (`MAX_EARLY_COMPUTER_DROPS`); `cause`: `restart`
    * when our server stopped in the middle of the turn, not the computer; `plan_limit` when the
-   * plan refused the rest of the turn (never one of the computer's drops).
+   * plan refused the rest of the turn (never one of the computer's drops); `no_tools` when Claude Code started
+   * without our tools (`toolsRetried`).
    */
   interruptedTurn?: {
     prompt: string;
     executed: string[];
     drops: number;
     early?: number;
-    cause?: "restart" | "plan_limit";
+    cause?: "restart" | "plan_limit" | "no_tools";
   };
+  /**
+   * Claude Code started this run's turn without our MCP server (`claudeToolsMissing`): the turn went once more on the
+   * same session (ADR 0032 addendum 2026-11-20). Once a run.
+   */
+  toolsRetried?: boolean;
   /** What the computer brain's turn under way was asked: a turn cut by a crash is sent again with it. */
   turnPrompt?: string;
   /**
@@ -961,6 +975,8 @@ export const MAX_EARLY_COMPUTER_DROPS = 10;
 export const COMPUTER_BUSY_RETRY_MS = 15_000;
 /** How soon a turn refused by a runner about to restart asks again (it is back a few seconds after, ADR doug-0005). */
 export const RUNNER_RESTART_RETRY_MS = 5_000;
+/** How long a turn Claude Code started without our tools waits before it goes again (`claudeToolsMissing`). */
+export const TOOLS_MISSING_RETRY_MS = 5_000;
 /**
  * Waiting for room is a live state on the person's message, not a chat line: only a run still in line after this long
  * says so, once per agent and conversation.
@@ -978,7 +994,9 @@ export function interruptedTurnPrompt(
       ? "the server restarted"
       : t.cause === "plan_limit"
         ? "the plan's usage limit was reached"
-        : "the computer disconnected";
+        : t.cause === "no_tools"
+          ? "Claude Code started without your tools (they are back now)"
+          : "the computer disconnected";
   return [
     `Your previous turn was cut off because ${why}.${done} Pick up where you left off and finish it. What you were asked:`,
     t.prompt,
@@ -5244,6 +5262,34 @@ async function executeRunInner(
               continue;
             }
             return waitForUsage({ code: "plan_limit", message: error.message, ...refusal });
+          }
+          // Claude Code started without our MCP server, so without its permission prompt: the first command that
+          // needed one ended the turn, so it never ran, and the session keeps what ran before it. Once a run, the turn
+          // goes again on that session after a moment, told what already ran (ADR 0032 addendum 2026-11-20).
+          if (
+            machineId &&
+            turnPlan.kind === "claude_code" &&
+            error instanceof BrainFailure &&
+            claudeToolsMissing(error.message) &&
+            !transcript.toolsRetried
+          ) {
+            transcript.toolsRetried = true;
+            const labels = executed.map((c) => c.label);
+            if (labels.length > 0) {
+              const prev = transcript.interruptedTurn;
+              transcript.interruptedTurn = {
+                prompt: prev?.prompt ?? prompt,
+                executed: [...new Set([...(prev?.executed ?? []), ...labels])],
+                drops: prev?.drops ?? 0,
+                ...(prev?.early ? { early: prev.early } : {}),
+                cause: "no_tools",
+              };
+              nextPrompt = interruptedTurnPrompt(transcript.interruptedTurn);
+            }
+            await saveTranscript(db, transcript);
+            later(() => addRunStep(db, run, "context", { toolsRetried: { executed: labels } }));
+            await Bun.sleep(deps.toolsMissingRetryMs ?? TOOLS_MISSING_RETRY_MS);
+            continue;
           }
           // The right hand's CLI killed at a tool of its own (ADR 0137 §4): nothing of that turn is posted, only its
           // DM's line (`brainUnavailable`), whatever it did through the bridge before.
