@@ -4976,7 +4976,6 @@ export const TimelineMessage = memo(function TimelineMessage({
             {m.author.type === "agent" && !m.local && <HandedTaskChips message={m} />}
             {!m.local && <ReviewCards message={m} />}
             {m.author.type === "agent" && !m.local && <TeamChecks message={m} />}
-            {m.author.type === "agent" && !m.local && <ProofLine message={m} />}
             {m.author.type === "agent" && !m.local && <ReachLines message={m} />}
             {m.author.type === "agent" && !m.local && <FeedbackOfferRow message={m} />}
             {agent &&
@@ -5029,6 +5028,8 @@ export const TimelineMessage = memo(function TimelineMessage({
                 </div>
               </ImageSet>
             )}
+            {/* What it delivered (docs/adr/doug-0040-proof-on-delivery.md): one line, under the files it shows. */}
+            {m.author.type === "agent" && !m.local && <ProofLine message={m} />}
             {/* Its tools after its words and what it changed: the same place live, kept and saved. */}
             {keptSteps?.length && seenLive ? (
               <LiveTools

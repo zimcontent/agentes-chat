@@ -935,11 +935,11 @@ function RowBody({
             {isAgent && m.actions?.length ? <Receipts message={m} onTap={onTap} onLongPress={press} /> : null}
             {isAgent ? <HandedTaskChips message={m} /> : null}
             {isAgent ? <TeamChecks message={m} /> : null}
-            {isAgent ? <ProofLine message={m} /> : null}
             {isAgent ? <ReachLines message={m} /> : null}
             {isAgent && feedbackOfferOf(meta) ? <FeedbackOfferRow message={m} /> : null}
             {isAgent && m.longWork ? <MessageWorkLine message={m} threaded={Boolean(thread)} /> : null}
             {files.length > 0 ? <MessageFiles files={files} /> : null}
+            {isAgent ? <ProofLine message={m} /> : null}
             {trails && m.author.id && trails.browser.length > 0 ? (
               <TrailCard
                 agentId={m.author.id}

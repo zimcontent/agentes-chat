@@ -30,6 +30,9 @@
   text-decoration: none;
   cursor: pointer;
 }
+.proof-line__chip--short {
+  flex-shrink: 0;
+}
 .proof-line__chip > svg {
   flex: none;
 }

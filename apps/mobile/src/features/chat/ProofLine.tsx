@@ -49,6 +49,9 @@ export function ProofLine({ message }: { message: Message }) {
   );
 }
 
+/** Words this short never shrink in the line. */
+const SHORT = 12;
+
 /** Up and down to the 44 a finger needs; the chips stay a footnote's height. */
 const HIT = { top: 10, bottom: 10 };
 
@@ -73,14 +76,16 @@ function Chip({ item }: { item: ProofItem }) {
       </Text>
     </>
   );
-  if (!go) return <View style={styles.chip}>{inner}</View>;
+  // A short one ("#42", "Print") keeps its words whole: only long names give way when the line is narrow.
+  const short = label.length <= SHORT && styles.short;
+  if (!go) return <View style={[styles.chip, short]}>{inner}</View>;
   return (
     <Pressable
       onPress={go}
       accessibilityRole={item.kind === "link" ? "link" : "button"}
       accessibilityLabel={label}
       hitSlop={HIT}
-      style={({ pressed }) => [styles.chip, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.chip, short, pressed && styles.pressed]}
     >
       {inner}
     </Pressable>
@@ -91,6 +96,7 @@ const styles = StyleSheet.create({
   line: { flexDirection: "row", alignItems: "center", columnGap: 12, rowGap: 4, marginTop: 8, overflow: "hidden" },
   open: { flexWrap: "wrap" },
   chip: { flexDirection: "row", alignItems: "center", gap: 4, minHeight: 24, flexShrink: 1, maxWidth: 200 },
+  short: { flexShrink: 0 },
   label: { flexShrink: 1 },
   tabular: { fontVariant: ["tabular-nums"] },
   pressed: { opacity: 0.6 },

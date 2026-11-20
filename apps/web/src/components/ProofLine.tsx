@@ -49,12 +49,17 @@ export function ProofLine({ message }: { message: Message }) {
   );
 }
 
+/** Words this short never shrink in the line. */
+const SHORT = 12;
+
 function ProofChip({ item }: { item: ProofItem }) {
   const { t } = useTranslation();
   const { org } = useOrg();
   const viewer = useMaybeArtifactViewer();
   const inPlace = useInPlace();
   const label = item.kind === "image" ? item.label || t("deliveryProof.screenshot") : item.label;
+  // A short one ("#42", "Print") keeps its words whole: only long names give way when the line is narrow.
+  const cls = `proof-line__chip${label.length <= SHORT ? " proof-line__chip--short" : ""}`;
   const inner = (
     <>
       <Icon name={ICONS[item.kind]} size={14} />
@@ -65,11 +70,11 @@ function ProofChip({ item }: { item: ProofItem }) {
     if ((item.kind === "file" || item.kind === "image") && item.ref) {
       const id = item.ref;
       return viewer ? (
-        <button type="button" className="proof-line__chip" onClick={() => viewer.open(id)}>
+        <button type="button" className={cls} onClick={() => viewer.open(id)}>
           {inner}
         </button>
       ) : (
-        <Link to="/org/$orgId/drive" params={{ orgId: org.id }} search={{ artifact: id }} className="proof-line__chip">
+        <Link to="/org/$orgId/drive" params={{ orgId: org.id }} search={{ artifact: id }} className={cls}>
           {inner}
         </Link>
       );
@@ -80,7 +85,7 @@ function ProofChip({ item }: { item: ProofItem }) {
         <Link
           to="/org/$orgId/issues/$number"
           params={{ orgId: org.id, number: item.ref }}
-          className="proof-line__chip"
+          className={cls}
           onClick={inPlace ? (e) => inPlaceClick(e, () => inPlace.issue(number)) : undefined}
         >
           {inner}
@@ -89,11 +94,11 @@ function ProofChip({ item }: { item: ProofItem }) {
     }
     if (item.kind === "link" && item.ref)
       return (
-        <a href={item.ref} target="_blank" rel="noopener noreferrer" className="proof-line__chip">
+        <a href={item.ref} target="_blank" rel="noopener noreferrer" className={cls}>
           {inner}
         </a>
       );
-    return <span className="proof-line__chip proof-line__chip--still">{inner}</span>;
+    return <span className={`${cls} proof-line__chip--still`}>{inner}</span>;
   })();
   return (
     <Tip tip={label} look="ac-msg__tip" button>
