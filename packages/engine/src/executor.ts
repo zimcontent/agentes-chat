@@ -358,6 +358,7 @@ import {
   transitionRun,
 } from "./runs";
 import { SANDBOX_SCOPE, truncateOutput } from "./sandbox";
+import { isSayNow, linesSaid, SAY_NOW_TOOL, type SaidNow, sayNowApplies, sayNowText, withoutSaidNow } from "./say-now";
 import { secretResult } from "./secrets";
 import { enabledSkills } from "./skills";
 import { type SpillRecord, spillMayHelp, spillPlan, spillTarget } from "./spill";
@@ -464,7 +465,7 @@ const DECIDED_LINE_MAX = 2000;
 /** How many apps a reply's `meta.work.calls` names: its closed block stacks only a few logos. */
 const WORK_CALLS = 12;
 /** The calls a reply's `meta.work` never counts, by name: a reaction, and looking a tool up. */
-const UNCOUNTED_TOOLS = `^(${REACT_TOOL}|${ON_DEMAND_FIND}|${ON_DEMAND_USE})$|_${ON_DEMAND_FIND}$`;
+const UNCOUNTED_TOOLS = `^(${REACT_TOOL}|${SAY_NOW_TOOL}|${ON_DEMAND_FIND}|${ON_DEMAND_USE})$|_${ON_DEMAND_FIND}$`;
 
 /**
  * What the agent engine needs (ADR 0032). The engine is this file: it owns the
@@ -637,6 +638,8 @@ export interface Transcript {
   feedbackOffer?: PendingFeedbackOffer;
   /** A switch a call found off on its computer, not yet on a posted message (`meta.toolOff`, its one-click card). */
   toolOff?: { machineId: string; tool: string };
+  /** The line it told them on the way (`say_now`, ADR 0207), with where it called it: never its reply. */
+  saidNow?: SaidNow[];
   /** The agent reacted (`react`) instead of replying: an empty final answer posts nothing. */
   reacted?: boolean;
   /** A file it opened was left out by a text-only connection, not yet on a posted message (`meta.filesTextOnly`). */
@@ -2218,8 +2221,9 @@ async function executeRunInner(
     // per logo of the closed block, in order of first use: per service, else app, else screen, else tool (a
     // connector's dozens of tools would push the next apps past the few kept). A reaction already shows on the
     // message it reacts to, looking a tool up is how our tools load (`find_tools`, a big connector's own, a
-    // `use_tool` that named none), and the runner asking again about a command waiting on a person is that command's
-    // line (`promptPoll`): none is counted, as the apps leave them out of the opened block (`UNLISTED`).
+    // `use_tool` that named none), the line before slow work is a message already (`say_now`, ADR 0207), and the runner
+    // asking again about a command waiting on a person is that command's line (`promptPoll`): none is counted, as the
+    // apps leave them out of the opened block (`UNLISTED`).
     const name = sql<string>`${agentRunSteps.data}->>'name'`;
     const screen = sql`substring(${name} from '^(?:mcp__agentes__)?(browser|desktop)_')`;
     const app = sql`coalesce(${agentRunSteps.data}->>'service', ${agentRunSteps.data}->>'connector', ${screen}, ${name})`;
@@ -2378,9 +2382,12 @@ async function executeRunInner(
       ? browsersPrompt(await agentBrowserProfiles(db, run.orgId, agent.id), agent.browserProfileId)
       : "";
     // Listed in every run of the agent (`EVERY_TOOL`): the prompt speaks of them only where they apply.
-    const [workApplies, choicesApply] = every
-      ? await Promise.all([workMayStart(ctx), someoneAnswers(ctx)])
-      : [true, true];
+    const [workApplies, choicesApply, sayNowHere] = await Promise.all([
+      every ? workMayStart(ctx) : true,
+      every ? someoneAnswers(ctx) : true,
+      // Listed in every run with an id: the line before slow work is spoken of only where people read it as it goes.
+      tools.some((t) => t.name === SAY_NOW_TOOL) ? sayNowApplies(db, run).catch(() => false) : false,
+    ]);
     const [context, memory, wikiPages, rules] = await Promise.all([
       buildRunContext(db, run, agent, {
         maxMessages: deps.contextMessages,
@@ -2389,6 +2396,7 @@ async function executeRunInner(
         react: tools.some((t) => t.name === REACT_TOOL),
         followUp: tools.some((t) => t.name === FOLLOW_UP_TOOL),
         work: workApplies && tools.some((t) => t.name === WORK_IN_BACKGROUND_TOOL),
+        sayNow: sayNowHere,
         blocks: tools.some((t) => t.name === SHOW_BLOCK_TOOL),
         ...(deps.blockSpec ? { blockSpec: deps.blockSpec } : {}),
         choices: choicesApply && tools.some((t) => t.name === ASK_CHOICES_TOOL),
@@ -2886,8 +2894,10 @@ async function executeRunInner(
     ]
       .filter(Boolean)
       .join("\n\n");
+    // Never the line it said on the way again (`say_now`): a cut turn's lines are only in the conversation yet.
+    const unsaid = withoutSaidNow(wrote, await linesSaid(db, run).catch(() => []));
     // The apps show `canceled.text`, not the body: the right hand's is scrubbed here, before both (ADR 0137 §4).
-    const shown = isRightHand(agent) ? await scrubRightHandReply(db, run, wrote) : wrote;
+    const shown = isRightHand(agent) ? await scrubRightHandReply(db, run, unsaid) : unsaid;
     // Cut mid-stream: what it was writing stays in the transcript too ("Continuar" picks up from there).
     if (partial.trim() && t.messages.at(-1)?.role !== "assistant")
       t.messages.push({ role: "assistant", content: [{ type: "text", text: partial.trim() }] });
@@ -3762,10 +3772,11 @@ async function executeRunInner(
     // what it wrote before an earlier call of the turn (narration, or a draft it dropped half-written for that call
     // and wrote again after it).
     const asked = await bridgedQuestionCard(t);
-    let text = pauseLead(stripSentinel(said));
+    // Never the line it said on the way again (`say_now`, ADR 0207): the turn's lines are on the transcript by now.
+    let text = withoutSaidNow(pauseLead(stripSentinel(said)), t.saidNow);
     let at: Date | undefined;
     if (asked && textBefore) {
-      text = stripSentinel(textBefore(asked.askedAt, ASKED_GRACE_MS));
+      text = withoutSaidNow(stripSentinel(textBefore(asked.askedAt, ASKED_GRACE_MS)), t.saidNow);
       at = new Date(asked.cardAt.getTime() - 1);
     } else if (text) {
       // A secret or an approval: what it wrote says what the card is for, so it reads before the card.
@@ -3818,8 +3829,10 @@ async function executeRunInner(
     await deferred;
     const t = transcript as Transcript;
     const name = isComputerBrain(from) ? BRAIN_NAMES[from] : "Claude Code";
-    // A reply it held back (`held`, `heldWording`) is still part of what it said.
-    const said = [t.held || t.heldWording, stripSentinel(partial)].filter(Boolean).join("\n\n");
+    // A reply it held back (`held`, `heldWording`) is still part of what it said; never its line on the way again
+    // (`say_now`: this turn's lines are only in the conversation yet).
+    const lines = await linesSaid(db, run).catch(() => []);
+    const said = [t.held || t.heldWording, withoutSaidNow(stripSentinel(partial), lines)].filter(Boolean).join("\n\n");
     // What the CLI said goes where everyone in the conversation reads it: without its paths, stack or secrets.
     const why = cliErrorWords(failure.message);
     const note = `_${name} stopped before finishing (${why}). Already done, not repeated: ${executed.join(", ")}._`;
@@ -4960,7 +4973,8 @@ async function executeRunInner(
               ownStep(call);
             },
             onExecuted: (call) => {
-              executedNow.push(call);
+              // Its line on the way (`say_now`) is talk, not work: a turn that fails after it did nothing to keep.
+              if (!isSayNow(call.name)) executedNow.push(call);
               progress?.step(call);
               // A brain that tells its calls only once they ended (Codex, an older runner) says the step now.
               if (!stepTold.delete(call.id)) ownStep(call);
@@ -5002,7 +5016,9 @@ async function executeRunInner(
           // was handed and never confirmed reading goes back there.
         ).finally(() => live.endTurn());
         const ownExecuted = turnPlan.kind === "model" ? result.executedCount : ownExecutedNow();
-        transcript.executedCalls = (transcript.executedCalls ?? 0) + result.toolCalls.length + ownExecuted;
+        // Its line on the way (`say_now`) is talk: never counted as progress (a nudged run must do the work).
+        const worked = result.toolCalls.filter((c) => !isSayNow(c.name)).length;
+        transcript.executedCalls = (transcript.executedCalls ?? 0) + worked + ownExecuted;
         callsCounted = true;
         // A turn ran: a later limit is a new wait, with its own note.
         if (transcript.usageWait || USAGE_WAIT_CODES.has(transcript.brainNotice ?? "")) {
@@ -5082,7 +5098,9 @@ async function executeRunInner(
         if (turnPlan.kind !== "model") {
           // What the bridge kept during this turn (cards, a reaction) is the engine's now.
           const bridged = await takeBridgeResult(db, run.id).catch(() => ({ effects: null, calls: 0 }));
+          const saidBefore = transcript.saidNow?.length ?? 0;
           mergeToolEffects(transcript, bridged.effects);
+          heardSaidNow(transcript, saidBefore);
           if (!callsCounted) transcript.executedCalls = (transcript.executedCalls ?? 0) + ownExecutedNow();
           transcript.executedCalls = (transcript.executedCalls ?? 0) + bridged.calls;
           // A bridged call paused the run before the brain failed: the run waits for the person, with the
@@ -5323,14 +5341,24 @@ async function executeRunInner(
       // Side effects of the tools a computer brain ran through the bridge (cards, a `react`): for this reply.
       if (turnPlan.kind !== "model") {
         const bridged = await takeBridgeResult(db, run.id);
+        const saidBefore = transcript.saidNow?.length ?? 0;
         mergeToolEffects(transcript, bridged.effects);
+        heardSaidNow(transcript, saidBefore);
         transcript.executedCalls = (transcript.executedCalls ?? 0) + bridged.calls;
       }
       // A computer brain's turn with nothing to say (its tools ran through the bridge) adds no empty message.
       if (result.content.length > 0) transcript.messages.push({ role: "assistant", content: result.content });
       // Text before tool calls is narration of the work: kept on the model call's step for its activity, never live.
       const turnText = dropSquashedEcho(textOf(result.content).trim());
-      const narration = result.stopReason === "tool_use" && turnText ? turnText : "";
+      // Text it wrote before its calls, without the line it said on the way in the same response (`say_now`).
+      const lines = result.toolCalls.filter((c) => isSayNow(c.name));
+      const narration =
+        result.stopReason === "tool_use" && turnText
+          ? withoutSaidNow(
+              turnText,
+              lines.map((c) => ({ text: sayNowText((c.input as { text?: unknown }).text) })),
+            )
+          : "";
       // The calls a computer turn ran itself (Codex's commands and edits, Claude Code's Bash, WebSearch…):
       // the report tells action from talk by them. Ours through the bridge have steps of their own.
       const ours = new Set(turnTools.map((t) => t.name));
@@ -5386,7 +5414,10 @@ async function executeRunInner(
         const waits: string[] = [];
         // What it wrote before these calls is the first one's step line (`takeStepWords`), never posted.
         if (!run.background) holdStepWords(run.id, isRightHand(agent) ? scrubSignIns(turnText, "••••").text : turnText);
-        for (const use of toolUses) {
+        // Its line on the way (`say_now`, ADR 0207) goes out before the work it announces, whatever order it wrote them in.
+        const saidBefore = transcript.saidNow?.length ?? 0;
+        const callingAt = transcript.messages.length - 1;
+        for (const use of [...toolUses.filter((u) => isSayNow(u.name)), ...toolUses.filter((u) => !isSayNow(u.name))]) {
           // Canceled during a tool, or the server is shutting down: the rest never run.
           if (signal.aborted) break;
           const outcome = await invokeWithChip(toolScope, use);
@@ -5428,6 +5459,10 @@ async function executeRunInner(
           }
         }
         takeStepWords(run.id);
+        heardSaidNow(transcript, saidBefore, callingAt);
+        // Results in the order the model called them, the line on the way included.
+        const calledAt = (id: string) => toolUses.findIndex((u) => u.id === id);
+        calls.sort((a, b) => calledAt(a.toolUseId) - calledAt(b.toolUseId));
         // The server is shutting down: the calls that never started say so, and the step ends as any other (its
         // results saved, its approvals and questions asked); the next instance takes the run from there.
         if (shuttingDown()) {
@@ -5536,7 +5571,7 @@ async function executeRunInner(
         // Only this turn's text: what leads to a question, or what says more than an approval's or a secret's
         // card, with a reply it held back (`heldWords`). Earlier narration is in the steps. A background run never
         // posts by itself (ADR 0053 §5): its cards speak for it.
-        const text = stripSentinel(turnText);
+        const text = withoutSaidNow(stripSentinel(turnText), t.saidNow);
         const spoken = run.background ? "" : asks.length > 0 ? text : pauseLead(text);
         const said = await heldWords(repeatsLastPost(spoken) ? "" : spoken);
         // Its cards are its next step: a reply held for its wording no longer stands in for an answer.
@@ -5584,8 +5619,9 @@ async function executeRunInner(
       const updates = transcript.memoryUpdates ?? [];
       const saved = (transcript.artifacts ?? []).length > 0 ? "File saved." : "";
       const anythingPosted = transcript.postedCount > 0;
-      // The silence word (NO_REPLY) is never posted, on any run (reply-policy.ts): what it really wrote.
-      const said = stripSentinel(turnText);
+      // The silence word (NO_REPLY) is never posted, on any run (reply-policy.ts): what it really wrote, without the line
+      // it already said on the way (`say_now`) when it writes it again.
+      const said = withoutSaidNow(stripSentinel(turnText), transcript.saidNow);
       const sentinelOnly = isSentinelOnly(turnText);
       // Quiet on purpose: only the word, or a note it closes ("Nada novo desde ontem.\n\nNO_REPLY").
       const wantsQuiet = endsWithSentinel(turnText);
@@ -6500,11 +6536,13 @@ async function executedSince(
       if (id) inputs.set(id, data.input);
       continue;
     }
-    if (data.isError === true || typeof data.name !== "string") continue;
+    // Its line on the way (`say_now`) is talk: a turn cut after it still has everything left to do.
+    if (data.isError === true || typeof data.name !== "string" || isSayNow(data.name)) continue;
     const input = id ? inputs.get(id) : undefined;
     calls.set(id ?? `step:${calls.size}`, { name: data.name, label: executedLabel(data.name, input) });
   }
-  for (const c of reported) calls.set(c.id, { name: c.name, label: executedLabel(c.name, c.input) });
+  for (const c of reported)
+    if (!isSayNow(c.name)) calls.set(c.id, { name: c.name, label: executedLabel(c.name, c.input) });
   return [...new Map([...calls.values()].map((c) => [c.label, c])).values()];
 }
 
@@ -6566,18 +6604,38 @@ const hasToolUse = (m: Transcript["messages"][number]) =>
   typeof m.content !== "string" && m.content.some((b) => b.type === "tool_use");
 
 /**
+ * What it told them on the way (`say_now`, ADR 0207) since `from`: the line is the last words people saw from it (an
+ * exact repeat is never posted again), and it still owes its reply (no pass, no quiet end). `at`: the assistant
+ * message that called it (model loop), where the text it wrote before its reply ends.
+ */
+function heardSaidNow(t: Transcript, from: number, at?: number) {
+  const fresh = (t.saidNow ?? []).slice(from);
+  if (fresh.length === 0) return;
+  if (at !== undefined) for (const said of fresh) said.at = at;
+  t.lastPosted = fresh.at(-1)?.text.trim();
+  t.answerOwed = true;
+}
+
+/**
  * When the final model call wrote nothing: the agent's last narration since
  * the last post ("Installed Go and built it."), else a plain "Done." when it
  * used tools, else nothing (an empty reply fails the run).
  */
 function closingSummary(t: Transcript, anythingPosted: boolean): string {
-  const turns = t.messages.slice(t.postedUpTo).filter((m) => m.role === "assistant");
-  const last = turns
-    .map((m) => stripSentinel(textOf(m.content)))
+  // What it wrote up to its line on the way (`say_now`) was that line: never the reply. The work it called in that
+  // same response is work, though: a run that did it and wrote nothing after still closes with "Done.".
+  const said = t.saidNow?.at(-1)?.at;
+  const from = said === undefined ? t.postedUpTo : Math.max(t.postedUpTo, said + 1);
+  const last = t.messages
+    .slice(from)
+    .filter((m) => m.role === "assistant")
+    .map((m) => withoutSaidNow(stripSentinel(textOf(m.content)), t.saidNow))
     .filter(Boolean)
     .at(-1);
   if (last) return last;
-  const usedTools = turns.some(hasToolUse);
+  const usedTools = t.messages
+    .slice(t.postedUpTo)
+    .some((m) => typeof m.content !== "string" && m.content.some((b) => b.type === "tool_use" && !isSayNow(b.name)));
   return usedTools && !anythingPosted ? DONE_TEXT : "";
 }
 

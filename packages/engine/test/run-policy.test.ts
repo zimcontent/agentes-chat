@@ -71,6 +71,7 @@ describe("run policy table", () => {
     // A client of the installation's own approval portal (docs/adr/doug-0031): elsewhere, never a routine's.
     expect(toolKind(builtIn("portal_clients")).kind).toBe("elsewhere");
     expect(toolKind(builtIn("react")).kind).toBe("here");
+    expect(toolKind(builtIn("say_now")).kind).toBe("here");
     expect(toolKind(builtIn("hand_off")).kind).toBe("hand_off");
     // A tool the table doesn't know: a sensitive one asks a person, any other is only for a person's run.
     expect(toolKind({ ...builtIn("deploy_app"), sensitive: true }).kind).toBe("external");
@@ -114,6 +115,8 @@ describe("run policy table", () => {
         expect(toolPolicy(r, builtIn(name))).toEqual({ action: "refuse", reason: REFUSALS.routineElsewhere });
       expect(toolPolicy(r, builtIn("ask_user"))).toEqual({ action: "refuse", reason: REFUSALS.routineAskUser });
       expect(toolPolicy(r, builtIn("react"))).toEqual({ action: "refuse", reason: REFUSALS.routineReact });
+      // Nobody is in its room to tell what it will do (ADR 0207).
+      expect(toolPolicy(r, builtIn("say_now"))).toEqual({ action: "refuse", reason: REFUSALS.routineSayNow });
     }
   });
 
@@ -158,6 +161,7 @@ describe("run policy table", () => {
     for (const tool of [
       builtIn("react"),
       builtIn("ask_user"),
+      builtIn("say_now"),
       builtIn("create_issue", "issues:write"),
       builtIn("update_wiki_page", "wiki:write"),
       builtIn("run_code", "sandbox:run"),
@@ -188,6 +192,7 @@ describe("run policy table", () => {
           builtIn("list_issues", "issues:read"),
           builtIn("react"),
           builtIn("ask_user"),
+          builtIn("say_now"),
           builtIn("browser_open", "browser:use"),
           builtIn("web_search"),
           builtIn("create_issue", "issues:write"),

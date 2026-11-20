@@ -17,6 +17,7 @@ import { notifyRunFailed } from "./notification-producers";
 import { ANSWER_NUDGE } from "./reply-policy";
 import { deliverNoticeToRun } from "./run-resume";
 import type { AgentRun } from "./runs";
+import { isSayNow } from "./say-now";
 import { runStretchOf } from "./stretch";
 import { HAND_OVER_STEP } from "./tools/directory";
 import { neutralizeUntrusted, untrustedBlock } from "./untrusted";
@@ -515,10 +516,14 @@ export async function runCalls(db: Database, run: { id: string; orgId: string })
     )
     .orderBy(schema.agentRunSteps.seq);
   const calls = new Map<string, RunCall>();
+  // Its lines on the way (`say_now`, ADR 0207) are talk: nothing it tried, did or could learn from.
+  const talk = new Set<string>();
   for (const { kind, data } of steps) {
     const id = typeof data.toolUseId === "string" ? data.toolUseId : `step:${calls.size}`;
     const name = typeof data.name === "string" ? data.name : "";
-    if (kind === "tool_call") calls.set(id, { name, input: data.input });
+    if (talk.has(id)) continue;
+    if (kind === "tool_call" && isSayNow(name)) talk.add(id);
+    else if (kind === "tool_call") calls.set(id, { name, input: data.input });
     else {
       const call = calls.get(id) ?? { name, input: undefined };
       call.result = {

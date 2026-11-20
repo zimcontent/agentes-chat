@@ -96,3 +96,7 @@ Measured before shipping with Jev on the eval's 72 lines (written for it, no con
 - Not one line for the agent was taken for someone else's, including those that name a person.
 - 8 of the 10 lines for someone else were caught. The two missed were lines to the whole group, which the agent reads as before.
 - The 52 earlier lines came out as before (49 right).
+
+## Addendum (2026-11-19, 3): the line before slow work
+
+ADR 0207 lets a run post one short line of what it will do before slow work (`say_now`), and the line keeps to this record: while a person's message waits unread in the run's inbox it isn't posted (the run reads the message next and answers all of it in one message, so the line never answers a conversation that has moved on); the call is a way of talking (`TALK_TOOLS`), so a run that has only said its line is still a conversation (`runAtWork`, the addendum above); and an answer posted early (`answerNow`) or at the turn's end drops leading sentences that only repeat the line (`withoutSaidNow`).

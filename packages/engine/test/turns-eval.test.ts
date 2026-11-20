@@ -119,8 +119,10 @@ const size = (r: ModelRequest) =>
  * 2026-11-19), adds 410 (49,030; 49,477 with the workspace's computer).
  * A task carried to its end in one turn, an answer about as long as the message and no em dash came in at about the
  * same size (48,635), once two rules stopped repeating them. With the `reach` above: 49,045 (49,492 with the computer).
+ * `say_now`, one short line before slow work (ADR 0207), its definition and its line in "# How you work" add
+ * 755 (49,799; 50,246 with the computer); the ceiling leaves a little room above them.
  */
-const OI_CEILING_CHARS = 49_500;
+const OI_CEILING_CHARS = 50_500;
 
 test("a DM 'oi' stays under the size ceiling", async () => {
   const [request] = await play(TURNS.find((t) => t.id === "greet-dm") as ScriptedTurn);

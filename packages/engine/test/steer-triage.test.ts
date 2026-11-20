@@ -222,7 +222,8 @@ describe("a message sent while the agent works", () => {
   });
 
   test("while the run has only talked, a quick question or another request is part of what it answers", async () => {
-    for (const tool of [null, "react"]) {
+    // Its line before slow work (`say_now`, ADR 0207) is talk too.
+    for (const tool of [null, "react", "say_now"]) {
       const { run, threadId } = await working("model", tool);
       const question = await send(threadId, "tá funcionando?", triage({ "tá funcionando?": "answer" }));
       const request = await send(

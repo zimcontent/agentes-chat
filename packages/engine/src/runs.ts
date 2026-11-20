@@ -611,11 +611,20 @@ export type StepKind = (typeof schema.agentRunStepKindEnum.enumValues)[number];
 const STEP_TRIES = 20;
 
 /**
- * The tools a turn uses to talk, not to work: a reaction, a question card, its background works' own tools
- * (`REACT_TOOL`, `ASK_USER_TOOL`, `ASK_CHOICES_TOOL` and the four of `work-tools.ts`, written out here: those modules
- * import this one).
+ * The tools a turn uses to talk, not to work: a reaction, a question card, the line it says before slow work, its
+ * background works' own tools (`REACT_TOOL`, `ASK_USER_TOOL`, `ASK_CHOICES_TOOL`, `SAY_NOW_TOOL` and the four of
+ * `work-tools.ts`, written out here: those modules import this one).
  */
-const TALK_TOOLS = ["react", "ask_user", "ask_choices", "post_update", "steer_work", "stop_work", "work_in_background"];
+const TALK_TOOLS = [
+  "react",
+  "ask_user",
+  "ask_choices",
+  "say_now",
+  "post_update",
+  "steer_work",
+  "stop_work",
+  "work_in_background",
+];
 
 /**
  * Whether a run is at work on something: its trail has a call of a tool other than a way of talking (`TALK_TOOLS`).
