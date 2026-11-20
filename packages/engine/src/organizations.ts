@@ -212,25 +212,30 @@ export async function getMembership(
   orgId: string,
   options: { includeBlocked?: boolean } = {},
 ): Promise<Membership | null> {
-  const [row] = await db
-    .select({
-      orgId: organizations.id,
-      orgName: organizations.name,
-      role: organizationMembers.role,
-      standing: STANDING_COLUMNS,
-      ...ROLE_COLUMNS,
-    })
-    .from(organizationMembers)
-    .innerJoin(organizations, eq(organizations.id, organizationMembers.orgId))
-    .innerJoin(users, eq(users.id, organizationMembers.userId))
-    .where(
-      and(
-        eq(organizationMembers.userId, userId),
-        eq(organizationMembers.orgId, orgId),
-        options.includeBlocked ? undefined : accountInUse,
-      ),
-    );
-  return row ? withPermissions(row) : null;
+  const load = async () => {
+    const [row] = await db
+      .select({
+        orgId: organizations.id,
+        orgName: organizations.name,
+        role: organizationMembers.role,
+        standing: STANDING_COLUMNS,
+        ...ROLE_COLUMNS,
+      })
+      .from(organizationMembers)
+      .innerJoin(organizations, eq(organizations.id, organizationMembers.orgId))
+      .innerJoin(users, eq(users.id, organizationMembers.userId))
+      .where(
+        and(
+          eq(organizationMembers.userId, userId),
+          eq(organizationMembers.orgId, orgId),
+          options.includeBlocked ? undefined : accountInUse,
+        ),
+      );
+    return row ? withPermissions(row) : null;
+  };
+  // `includeBlocked` reads come before acting on the person, and a transaction's read may never commit: both fresh.
+  if (options.includeBlocked || "rollback" in db) return load();
+  return (await caches.membership.getOrLoad(`${orgId}:${userId}`, load, (m) => m !== null)) as Membership | null;
 }
 
 /**
@@ -458,6 +463,7 @@ export async function updateOrganization(
     });
   }
   caches.orgs.delete(`${orgId}:`);
+  caches.membership.deletePrefix(`${orgId}:`);
   return row;
 }
 
@@ -981,12 +987,15 @@ export const lockWorkspacesOf = (tx: Executor, userId: string) =>
  * and the counts again.
  */
 /** `agents`: the ones whose owner or brain changed with it, which open apps read again. */
-export const announceMembers = (pubsub: PubSub | undefined, orgId: string, agents: string[] = []) =>
-  publishOrgEvent(pubsub, {
+export const announceMembers = (pubsub: PubSub | undefined, orgId: string, agents: string[] = []) => {
+  // Every change to who is in a workspace, or to their roles, announces itself here once it committed.
+  caches.membership.deletePrefix(`${orgId}:`);
+  return publishOrgEvent(pubsub, {
     type: "org.broadcast",
     orgId,
     event: { type: "org.members", ...(agents.length ? { agents } : {}) },
   });
+};
 
 /** A person's name or photo changed (theirs in every workspace): each of their workspaces reads its people again. */
 export async function announceProfile(db: Database, pubsub: PubSub | undefined, userId: string) {
@@ -1359,6 +1368,7 @@ export async function removeMember(
   }
   // Their open WebSocket connections lose every subscription now, not on reconnect.
   const quiet = actorId === targetUserId ? { quiet: true as const } : {};
+  caches.membership.delete(`${orgId}:${targetUserId}`);
   await publishOrgEvent(options.pubsub, { type: "membership.revoked", orgId, userId: targetUserId, ...quiet });
   // The workspace's computer hears their seat is gone: its worker and containers stop there.
   await publishMachineAgentsChanged(options.pubsub, orgId);
@@ -1519,6 +1529,7 @@ export async function deleteAccount(
   }
   // Their open WebSocket connections lose every subscription now.
   for (const org of [...plan.closes, ...plan.leaves]) {
+    caches.membership.delete(`${org.id}:${userId}`);
     await publishOrgEvent(options.pubsub, { type: "membership.revoked", orgId: org.id, userId, quiet: true });
   }
   for (const org of plan.leaves) await publishMachineAgentsChanged(options.pubsub, org.id);
