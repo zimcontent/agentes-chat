@@ -330,7 +330,7 @@ const STEER_CRITERIA: Record<Exclude<SteerHandling, "elsewhere">, string> = {
   answer:
     "Answer right away in a short reply and keep working: a greeting, thanks, small talk, a question about how the task is going (status, progress, time left, whether it got access), or a quick question it can answer from what it knows.",
   queue:
-    "Finish the task first, then do this: a new, separate piece of work, not part of the task in progress, and not urgent.",
+    "Do this apart from the task, which goes on: a new, separate piece of work, not part of the task in progress, that doesn't replace it.",
 };
 
 /**
@@ -350,7 +350,8 @@ export const ELSEWHERE_SURE = 0.75;
  * A message a person sent an agent while it works on a task for them (ADR 0112 addendum): how the agent takes it.
  * `stop` drops the task; `interrupt` reads it now (a correction that makes going on a waste, an urgent problem); `add`
  * folds it in at the next pause, as before; `answer` gets a short reply now while the work goes on (a greeting, a
- * question about the work); `queue` waits for the task to end and gets a run of its own (a separate request);
+ * question about the work); `queue` is a separate request: it waits for the task to end and gets a run of its own, or,
+ * once the task has run a while, starts beside it at once (docs/adr/doug-0038-parallel-work.md);
  * `elsewhere`, only asked where others share the conversation (`shared`), isn't for the agent at all: the task never
  * reads it and the router decides who answers it (ADR 0112 addendum of 2026-11-19). One judgment, in any language; a
  * way less likely than `STEER_SURE` (`ELSEWHERE_SURE` for `elsewhere`) is `add`. `task`: what the agent works on (its
@@ -372,12 +373,33 @@ export async function steerHandling(
     shared?: { fromAsker: boolean };
   },
 ): Promise<SteerHandling> {
+  return (await steerTriage(judge, input)).handling;
+}
+
+/**
+ * The triage of `steerHandling`, where the agent may have other runs at work in the same conversation (`others`, docs/
+ * adr/doug-0038-parallel-work.md): the same one judgment also says whether the message is about one of their tasks
+ * instead (`otherRunId`; `handling` is then `add`, read by that run). No `others`: the same question as before.
+ */
+export async function steerTriage(
+  judge: Judge,
+  input: Parameters<typeof steerHandling>[1] & { others?: { runId: string; task: string | null }[] },
+): Promise<{ handling: SteerHandling; otherRunId?: string }> {
   const text = input.text.trim();
-  if (!text) return "add";
+  if (!text) return { handling: "add" };
   const shared = input.shared;
-  const criteria: Record<string, string> = shared
-    ? { ...STEER_CRITERIA, elsewhere: ELSEWHERE_CRITERION }
-    : { ...STEER_CRITERIA };
+  const others = (input.others ?? []).filter((o) => o.task);
+  const otherKeys = new Map(others.map((o, i) => [`other_task_${i + 1}`, o.runId]));
+  const criteria: Record<string, string> = {
+    ...STEER_CRITERIA,
+    ...(shared ? { elsewhere: ELSEWHERE_CRITERION } : {}),
+    ...Object.fromEntries(
+      [...otherKeys.keys()].map((key) => [
+        key,
+        `It is about \`${key}\`, another task the agent is working on in parallel in this conversation, not about the task in progress: a correction, detail, question or stop for that one.`,
+      ]),
+    ),
+  };
   const task = input.task ? "`task_in_progress`, which a person asked for" : "a task a person asked for";
   const answers = await judge.ask({
     orgId: input.orgId,
@@ -387,6 +409,7 @@ export async function steerHandling(
     state: {
       agent: input.agentName,
       ...(input.task ? { task_in_progress: cutText(input.task, 1500) } : { agent_is_working_on_a_task: true }),
+      ...Object.fromEntries(others.map((o, i) => [`other_task_${i + 1}`, cutText(o.task ?? "", 600)])),
       ...(shared
         ? { written_by: shared.fromAsker ? "the person who asked for the task" : "someone else in the channel" }
         : {}),
@@ -405,10 +428,12 @@ export async function steerHandling(
     },
   });
   const answer = answers.handling;
-  const choice = Object.keys(criteria).find((k) => k === answer?.choice) as SteerHandling | undefined;
-  if (!choice) return "add";
+  const choice = Object.keys(criteria).find((k) => k === answer?.choice);
+  if (!choice) return { handling: "add" };
   const sure = choice === "elsewhere" ? ELSEWHERE_SURE : STEER_SURE;
-  return (answer?.probabilities?.[choice] ?? 1) >= sure ? choice : "add";
+  if ((answer?.probabilities?.[choice] ?? 1) < sure) return { handling: "add" };
+  const other = otherKeys.get(choice);
+  return other ? { handling: "add", otherRunId: other } : { handling: choice as SteerHandling };
 }
 
 /**

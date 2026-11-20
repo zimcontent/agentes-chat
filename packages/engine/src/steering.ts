@@ -5,11 +5,12 @@ import { runBrainOf } from "./brains/select";
 import { cancelRun, interruptRun } from "./cancel";
 import { frontOfLine } from "./computer-queue";
 import { publishChannelEvent } from "./events";
-import { type Judge, type SteerHandling, steerHandling } from "./judge";
+import { type Judge, type SteerHandling, steerTriage } from "./judge";
 import { deliverLive } from "./live-steer";
 import type { Message } from "./messages";
 import { missionOfThread } from "./missions";
 import { enqueue } from "./outbox";
+import { mayRunBeside, moveToSibling, quotedRunId, siblingRuns, startParallelRun, taskOf } from "./parallel-work";
 import { holdsMessages } from "./run-hold";
 import { handOnMessages, markTriage, queueAfterRun, releaseFromRun } from "./run-inbox";
 import { type AgentRun, computerWaitOf, replyThreadOf, runAtWork } from "./runs";
@@ -34,7 +35,9 @@ export const ROUTE_RELEASED_JOB = "message.route_released";
  * 2. The triage (the judge, `steerHandling`, ADR 0112 addendum), after the send: a plain "stop" cancels the task; a
  *    correction that makes going on a waste cuts the model call for it (a computer brain gets it live and urgent, or
  *    is stopped and started again from it); a separate request waits for the task's end (`queueAfterRun`) and gets a
- *    run of its own; a quick question gets the fast reply at once; anything else, or a judge that isn't sure, is read
+ *    run of its own, or, once the task has run a while (`mayRunBeside`), starts at once in a run of its own beside it,
+ *    in its own computer session (`startParallelRun`, docs/adr/doug-0038-parallel-work.md); a message about another
+ *    of the agent's runs at work there (it quotes that run, or the triage says so) moves to that run; a quick question gets the fast reply at once; anything else, or a judge that isn't sure, is read
  *    at the next pause. In a channel others share, a message that doesn't @mention the agent may be for someone else
  *    (`sharedConversation`): one that is leaves the task unread (`releaseFromRun`) and goes to the router, which may
  *    give it to nobody (ADR 0112 addendum of 2026-11-19). A run that has only talked so far (no tool called, `runAtWork`) has no task to finish first:
@@ -117,6 +120,9 @@ export async function afterSteered(deps: SteeringDeps, input: SteeredInput) {
           : {}),
       });
     }
+    // A quote of another of its runs at work here: that run reads it, untouched by this one's triage
+    // (docs/adr/doug-0038-parallel-work.md).
+    if (!now && (await toQuotedSibling(deps, active, message))) continue;
     let live = false;
     // Its model call stops and the loop reads the message at once (a running tool finishes first).
     // A computer brain (Claude Code, Codex) can't drop its turn halfway: one whose turn takes messages
@@ -218,9 +224,23 @@ export async function afterSteered(deps: SteeringDeps, input: SteeredInput) {
     // then what that does to the task, then its wait and the fast reply.
     trackStopCheck(
       (async () => {
+        // A separate request may start beside a task that has run a while, and a message may be about another of the
+        // agent's runs at work here (docs/adr/doug-0038-parallel-work.md): both only through the triage.
+        const beside =
+          !now && !holds
+            ? await mayRunBeside(deps.db, active, message, { now, atWork: !talking }).catch(() => false)
+            : false;
+        const siblings = now ? [] : await siblingRuns(deps.db, active).catch(() => []);
         let judged: SteerHandling;
         try {
-          judged = await judgeSteer(deps, judge, input, active, threadId, shared);
+          const triage = await judgeSteer(deps, judge, input, active, threadId, shared, siblings);
+          judged = triage.handling;
+          // About another of its runs at work here: that run reads it.
+          const sibling = siblings.find((s) => s.run.id === triage.otherRunId)?.run;
+          if (sibling && (await moveToSibling(deps.db, deps.pubsub, active, sibling, message).catch(() => false))) {
+            await handToSibling(deps, sibling, message);
+            return;
+          }
           // Not for this agent: out of its task while unread, and the router decides who answers (maybe nobody). Read
           // already (its next step took it first), it stays read, as any message the run read.
           if (judged === "elsewhere") {
@@ -238,6 +258,12 @@ export async function afterSteered(deps: SteeringDeps, input: SteeredInput) {
         // Only a task has an after: while the run only talks, a quick question or another request is part of the
         // conversation it is answering, read with its next step like anything else it adds.
         const handling = talking && (judged === "answer" || judged === "queue") ? "add" : judged;
+        // A separate request to a task that has run a while: a run of its own beside it, now, which answers it itself.
+        const forked =
+          handling === "queue" &&
+          beside &&
+          (await startParallelRun(deps.db, deps.pubsub, active, message).catch(() => null)) !== null;
+        if (forked) return;
         if (now) await toSend?.();
         else if (active.status === "running") {
           // A separate request: out of what the task reads, a run of its own once it ends.
@@ -267,9 +293,10 @@ async function judgeSteer(
   run: AgentRun,
   threadId: string | null,
   shared: { fromAsker: boolean } | null,
-): Promise<SteerHandling> {
+  siblings: { run: AgentRun; task: string | null }[] = [],
+): Promise<{ handling: SteerHandling; otherRunId?: string }> {
   const agentName = (await getAgentCached(deps.db, input.orgId, run.agentId))?.name ?? "the agent";
-  const handling = await steerHandling(judge, {
+  const triage = await steerTriage(judge, {
     orgId: input.orgId,
     text: input.message.body,
     agentName,
@@ -277,8 +304,9 @@ async function judgeSteer(
     agentId: run.agentId,
     runId: run.id,
     ...(shared ? { shared } : {}),
-  }).catch((): SteerHandling => "add");
-  if (handling !== "stop") return handling;
+    ...(siblings.length > 0 ? { others: siblings.map((s) => ({ runId: s.run.id, task: s.task })) } : {}),
+  }).catch(() => ({ handling: "add" as const }));
+  if (triage.handling !== "stop") return triage;
   await publishChannelEvent(deps.pubsub, {
     type: "agent.run.steered",
     channelId: input.channelId,
@@ -290,7 +318,37 @@ async function judgeSteer(
   });
   // The "stop" itself is not handed on to a new run when the task's unread messages are.
   await cancelRun(deps, input.userId, input.orgId, run.id, { stopMessageId: input.message.id });
-  return "stop";
+  return { handling: "stop" };
+}
+
+/**
+ * A message that quotes another of the agent's runs at work in this conversation (its reply, or what it was asked)
+ * moves to that run (docs/adr/doug-0038-parallel-work.md). False: it quotes nothing such, or it could not move.
+ */
+async function toQuotedSibling(deps: SteeringDeps, run: AgentRun, message: Message): Promise<boolean> {
+  if (!run.pendingMessageIds.includes(message.id)) return false;
+  const quoted = await quotedRunId(deps.db, message).catch(() => null);
+  if (!quoted || quoted === run.id) return false;
+  const sibling = (await siblingRuns(deps.db, run).catch(() => [])).find((s) => s.run.id === quoted)?.run;
+  if (!sibling || !(await moveToSibling(deps.db, deps.pubsub, run, sibling, message).catch(() => false))) return false;
+  await handToSibling(deps, sibling, message);
+  return true;
+}
+
+/** The run a message moved to hears it: a computer brain mid-turn gets it live (a model brain reads its inbox each step). */
+async function handToSibling(deps: SteeringDeps, run: AgentRun, message: Message) {
+  await publishChannelEvent(deps.pubsub, {
+    type: "agent.run.steered",
+    channelId: message.channelId,
+    threadId: replyThreadOf(run),
+    runId: run.id,
+    agentId: run.agentId,
+    messageId: message.id,
+  });
+  if (run.status !== "running") return;
+  const agent = await getAgentCached(deps.db, run.orgId, run.agentId);
+  if (agent && runBrainOf(run, agent) !== "model")
+    await deliverLive(deps, run, { messageId: message.id, urgent: false }).catch(() => false);
 }
 
 /**
@@ -340,18 +398,6 @@ async function released(deps: SteeringDeps, run: AgentRun, message: Message, thr
     payload: { messageId: message.id, agentId: run.agentId },
     dedupeKey: `${ROUTE_RELEASED_JOB}:${message.id}`,
   });
-}
-
-/** What the run works on, as its judges read it: its request, grown with what the person added, else its trigger. */
-async function taskOf(db: Database, run: AgentRun): Promise<string | null> {
-  const request = (run.transcript as { request?: unknown } | null)?.request;
-  if (typeof request === "string" && request.trim()) return request;
-  const [trigger] = await db
-    .select({ body: messages.body })
-    .from(messages)
-    .where(and(eq(messages.orgId, run.orgId), eq(messages.id, run.triggerMessageId)))
-    .limit(1);
-  return trigger?.body.trim() || null;
 }
 
 /** Checks still running after the post returned (stop judge, fast replies). */

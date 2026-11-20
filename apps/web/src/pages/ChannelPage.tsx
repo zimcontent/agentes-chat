@@ -4156,8 +4156,10 @@ function ActivityBar({
   const agents = entries.filter((e) => e.type === "agent");
   // The strip behind the bar (and the orbit) take the color of the first agent at work.
   const firstAgent = agents[0];
-  // The time, "Ver" and the stop are one agent's: with several, the line can't say whose (the composer still stops).
-  const soloRun = agents.length === 1 && firstAgent ? runs.find((r) => r.agentId === firstAgent.id) : undefined;
+  // The time, "Ver" and the stop are one run's: with several agents, or one agent at work on two things at once
+  // (docs/adr/doug-0038-parallel-work.md), the line can't say whose (each row and the composer still stop).
+  const firstRuns = firstAgent ? runs.filter((r) => r.agentId === firstAgent.id) : [];
+  const soloRun = agents.length === 1 && firstRuns.length === 1 ? firstRuns[0] : undefined;
   // Only while its row is out of view (a question it asks keeps its phrase here, its row in view or not).
   const soloAway = soloRun && !rowInView(soloRun) ? soloRun : undefined;
   const took = soloAway ? barElapsed(t, entries, runs, now) : null;

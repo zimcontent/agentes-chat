@@ -45,6 +45,7 @@ import { type Message, unreachedNote } from "./messages";
 import { missionBrief } from "./mission-brief";
 import { handoffGuidance, noticeForOthers, noticeText } from "./notices";
 import { openRequestsBlock, openRequestsOf } from "./open-requests";
+import { alongsideHere } from "./parallel-work";
 import { parkedOnBlock } from "./parked-asks";
 import { isQuickAck } from "./quick-ack";
 import { reachNote, reachOf } from "./reach";
@@ -698,6 +699,9 @@ export async function buildRunContext(
   // Asked in the main timeline: the run answers there, not in a thread.
   const flat = rootIsTrigger;
   const heldElsewhere = run.background ? null : heldHere(db, run).catch(() => null);
+  // Its other runs at work here, in sessions of their own (docs/adr/doug-0038-parallel-work.md): it neither redoes
+  // nor answers their work.
+  const alongside = run.background ? null : alongsideHere(db, run).catch(() => null);
   // What it asked people for and still stands, so it can take back what it no longer needs (`withdraw_request`).
   // This conversation's only, and like the hand-offs not for a routine's task nor between agents.
   const openRequests =
@@ -1306,6 +1310,7 @@ export async function buildRunContext(
     ...(openTasks ? await openTasks.then((text) => (text ? [{ turn: true, found: true, text }] : [])) : []),
     ...(works ? await works.then((text) => (text ? [{ turn: true, found: true, text }] : [])) : []),
     ...(heldElsewhere ? await heldElsewhere.then((text) => (text ? [{ turn: true, found: true, text }] : [])) : []),
+    ...(alongside ? await alongside.then((text) => (text ? [{ turn: true, found: true, text }] : [])) : []),
     ...(openRequests ? await openRequests.then((text) => (text ? [{ turn: true, found: true, text }] : [])) : []),
     ...(waitingOnThem ? await waitingOnThem.then((text) => (text ? [{ turn: true, found: true, text }] : [])) : []),
     ...(parkedHere ? await parkedHere.then((text) => (text ? [{ turn: true, found: true, text }] : [])) : []),

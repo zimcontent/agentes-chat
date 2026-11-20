@@ -17,7 +17,8 @@ const { agentConsultations, agentRunSteps, agentRuns, agentWorks, agents, approv
 
 /**
  * A run's inbox (`agent_runs.pending_message_ids`): messages sent to the agent's conversation while
- * the run is active (one active run per agent and conversation), read at its next step. The rule
+ * the run is active (the newest active run of the agent in that conversation: a run held by a decision, or a separate
+ * request started beside a long task, docs/adr/doug-0038-parallel-work.md, may make several), read at its next step. The rule
  * that makes delivery safe: a message is only ever queued on a run that is still active, and when
  * a run ends (done, failed, canceled, interrupted) whatever it hasn't read goes to a run of its own.
  * Nothing sent to an agent is dropped (unless it was archived), nor left on a dead run; the sweeper is the
@@ -580,7 +581,7 @@ async function handOn(
  * (it was sent to this agent: it must answer, never pass as a router pick would). Another agent's message
  * keeps how the ended run was called.
  */
-async function triggerFor(
+export async function triggerFor(
   db: Executor,
   run: Pick<AgentRun, "channelId" | "trigger">,
   message: Pick<Message, "authorType" | "meta" | "channelId">,
