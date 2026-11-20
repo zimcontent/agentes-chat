@@ -1,5 +1,5 @@
 import type { ApprovalPortal, PubSub } from "@dougbot/adapters";
-import { and, type Database, eq, gte, isNull, rowsOf, schema, sql } from "@dougbot/db";
+import { and, type Database, eq, gte, inArray, isNull, rowsOf, schema, sql } from "@dougbot/db";
 import { parseBlockSpec } from "@dougbot/ui/blocks/spec";
 import { type ArtifactDeps, createConversationArtifact, getArtifact } from "../artifacts";
 import { markBlockActed } from "../block-state";
@@ -10,6 +10,7 @@ import { openDm } from "../dms";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "../errors";
 import { publishMessageCreated } from "../events";
 import type { Judge } from "../judge";
+import { OFFER_ACT_KINDS } from "../learned-words";
 import { insertMessage, type MessageView, messageView } from "../messages";
 import { can, getMembership } from "../organizations";
 import { enqueue } from "../outbox";
@@ -338,15 +339,43 @@ export async function runBlockAct(
   if (row.forUserId && row.forUserId !== userId) throw new ForbiddenError("This card is someone else's");
   const { membership } = await requireChannelAccess(deps.db, userId, orgId, a.channelId);
   if (!can(membership, "post")) throw new ForbiddenError();
-  const [claimed] = await deps.db
+  // The offer to make a routine ("Aprendi a fazer isso", ADR 0120 addendum 2026-11-20) is one choice: pressing any of
+  // its buttons claims them all, so two cadences can't both become routines.
+  const oneChoice = OFFER_ACT_KINDS.has(row.kind);
+  const claimed = await deps.db
     .update(blockActions)
     .set({ doneAt: new Date(), doneByUserId: userId })
-    .where(and(eq(blockActions.id, row.id), isNull(blockActions.doneAt)))
+    .where(
+      and(
+        oneChoice ? eq(blockActions.artifactId, artifactId) : eq(blockActions.id, row.id),
+        isNull(blockActions.doneAt),
+      ),
+    )
     .returning({ id: blockActions.id });
-  if (!claimed) throw new ConflictError("This was already done", "block_act.done");
+  const release = () =>
+    claimed.length > 0
+      ? deps.db
+          .update(blockActions)
+          .set({ doneAt: null, doneByUserId: null })
+          .where(
+            inArray(
+              blockActions.id,
+              claimed.map((c) => c.id),
+            ),
+          )
+      : Promise.resolve();
+  if (!claimed.some((c) => c.id === row.id)) {
+    await release();
+    throw new ConflictError("This was already done", "block_act.done");
+  }
   let messageId: string | null = null;
   try {
-    if (row.kind === "ask_agent") {
+    if (row.kind === "make_routine") {
+      const { acceptRoutineOffer } = await import("../learned-line");
+      await acceptRoutineOffer(deps, userId, orgId, row.payload);
+    } else if (row.kind === "skip_routine") {
+      // "Agora não": nothing to run, the choice is made.
+    } else if (row.kind === "ask_agent") {
       const text = typeof row.payload.text === "string" ? row.payload.text : "";
       const m = await replyToBlock(deps, userId, orgId, artifactId, { text });
       messageId = m.id;
@@ -363,7 +392,7 @@ export async function runBlockAct(
       );
     } else throw new ValidationError("Unknown action");
   } catch (error) {
-    await deps.db.update(blockActions).set({ doneAt: null, doneByUserId: null }).where(eq(blockActions.id, row.id));
+    await release();
     throw error;
   }
   await markBlockActed(deps, userId, orgId, artifactId, a.version, act).catch(() => undefined);

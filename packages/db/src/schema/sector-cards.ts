@@ -22,7 +22,11 @@ export const blockActions = pgTable(
       .references(() => artifacts.id, { onDelete: "cascade" }),
     /** The button's `act`. */
     act: text().notNull(),
-    /** What it does: `ask_agent` (the person's own message to the agent), `whatsapp_mine` (the person takes it). */
+    /**
+     * What it does: `ask_agent` (the person's own message to the agent), `whatsapp_mine` (the person takes it),
+     * `make_routine` / `skip_routine` (the offer under "Aprendi a fazer isso", ADR 0120 addendum 2026-11-20: one press
+     * claims every button of its block).
+     */
     kind: text().notNull(),
     /** What it acts on, by kind (`{ text }`, `{ accountId, chatId }`). */
     payload: jsonb().$type<Record<string, unknown>>().notNull().default({}),

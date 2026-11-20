@@ -803,6 +803,8 @@ export const EXTRA_COLUMNS = [
   )`,
   `CREATE INDEX IF NOT EXISTS "connection_requests_org_id_state_index" ON "connection_requests" ("org_id", "state")`,
   `CREATE INDEX IF NOT EXISTS "connection_requests_run_id_index" ON "connection_requests" ("run_id")`,
+  // When an agent said "Aprendi a fazer isso" about a skill (ADR 0120, addendum 2026-11-20): once per skill.
+  `ALTER TABLE "skills" ADD COLUMN IF NOT EXISTS "learned_said_at" timestamp with time zone`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */
