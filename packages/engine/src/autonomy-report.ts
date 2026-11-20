@@ -41,6 +41,13 @@ import { REFUSALS } from "./tools/run-policy";
  * `ackReplies` replied to a message that is only a thanks, an ok or a sign-off, and did nothing else; `idleWakes`
  * were woken by an agent's @mention and did nothing (no message, or only an acknowledgement). `noiseRuns`,
  * `noiseTokens` and `noiseCostNanoUsd` count each such run once, with all its model usage.
+ *
+ * Resolution (ADR 0097, addendum 2026-11-20), from each run's last `continuation` step: `endedRuns`, runs that ended
+ * done (`outcome: done`, whatever the rule: the judge, a report, a quiet turn, `ended`); `cappedRuns`, those the
+ * controller ended at its cap while the judge still read work undone (`CAP_RULES`); `stalledEnds`, the capped ones
+ * whose last nudged round did no new work (`stalled`); `resolvedRuns`, the ended ones neither capped nor stopped by a
+ * bound (`BOUND_RULES`: stuck, the step limit, the turn cap). The resolution rate is `resolvedRuns / endedRuns`, also
+ * by brain (`agent_runs.brain`) and for the agents with the most unresolved runs (`resolutionBreakdown`).
  */
 
 export const AUTONOMY_STALLS = [
@@ -64,10 +71,18 @@ export const AUTONOMY_NOISE = [
 
 export const AUTONOMY_UNTRIED = ["untriedNudged", "untriedResolved"] as const;
 
+export const AUTONOMY_RESOLUTION = ["endedRuns", "resolvedRuns", "cappedRuns", "stalledEnds"] as const;
+
+/** The controller's rules that end a run at its cap while the judge still reads work undone (`continuation.ts`). */
+export const CAP_RULES = ["cap", "untried_cap", "unbacked_cap", "secret_cap"] as const;
+/** The bounds that stop a run before any judgment: no resolution either. */
+export const BOUND_RULES = ["stuck", "step_limit", "turn_cap"] as const;
+
 export type AutonomyMetric =
   | (typeof AUTONOMY_STALLS)[number]
   | (typeof AUTONOMY_NOISE)[number]
-  | (typeof AUTONOMY_UNTRIED)[number];
+  | (typeof AUTONOMY_UNTRIED)[number]
+  | (typeof AUTONOMY_RESOLUTION)[number];
 /** Every count, plus `stalls`: the stall counts added up, each stall once (`promiseIgnored` is part of `promiseUnkept`). */
 export type AutonomyCounts = Record<AutonomyMetric | "stalls", number>;
 export interface AutonomyRow extends AutonomyCounts {
@@ -138,6 +153,24 @@ const SAME_CONVERSATION = sql.raw(
 const DAY_MS = 86_400_000;
 const isoDay = (at: Date) => at.toISOString().slice(0, 10);
 
+const listOf = (words: readonly string[]) =>
+  sql.join(
+    words.map((w) => sql`${w}`),
+    sql`, `,
+  );
+const CAPPED = listOf(CAP_RULES);
+const UNRESOLVED = listOf([...CAP_RULES, ...BOUND_RULES]);
+
+/**
+ * SQL: run `r`'s last `continuation` step (`e.ending`, null when it has none): how its last turn ended. A run that
+ * waited and came back has several; the last is how it ended.
+ */
+const LAST_ENDING = sql.raw(`left join lateral (
+    select s.data->'continuation' as ending from agent_run_steps s
+    where s.run_id = r.id and s.kind = 'context' and s.data ? 'continuation'
+    order by s.seq desc limit 1
+  ) e on true`);
+
 /**
  * Every count for `days` UTC days from `from` (`YYYY-MM-DD`), one row per day and workspace that has any. Without
  * `orgId`, every workspace that is active (not held, suspended or being deleted); with it, that one whatever its
@@ -177,7 +210,9 @@ export function autonomySql(range: AutonomyRange) {
       select r.id, r.org_id, r.agent_id, r.trigger_message_id, r.trigger, r.status, r.error, r.background,
         (r.created_at at time zone 'UTC')::date as day, rm.body as reply_body, rd.needs_agent_score as reply_need,
         coalesce(rm.meta ? 'stepLimit', false) as reply_limit,
-        r.status = 'done' and not f.posted and not r.background as quiet, f.*
+        r.status = 'done' and not f.posted and not r.background as quiet,
+        r.status = 'done' and coalesce(e.ending->>'outcome' = 'done', false) as ended, e.ending->>'rule' as end_rule,
+        coalesce(e.ending->>'stalled' = 'true', false) as end_stalled, f.*
       from agent_runs r
       join orgs o on o.id = r.org_id
       left join messages rm on rm.org_id = r.org_id and rm.id = r.reply_message_id
@@ -191,6 +226,7 @@ export function autonomySql(range: AutonomyRange) {
           coalesce(bool_or(s.kind = 'context' and s.data ? 'wrapUp'), false) as wrapped_up
         from agent_run_steps s where s.run_id = r.id
       ) f
+      ${LAST_ENDING}
       where r.created_at >= ${start}::timestamptz and r.created_at < ${end}::timestamptz
     ),
     refused as (
@@ -280,6 +316,16 @@ export function autonomySql(range: AutonomyRange) {
           and exists (select 1 from agent_run_steps s where s.run_id = r.id and s.seq > r.untried_at and ${ACTED})
         group by 1, 2
       union all
+      select day, org_id, 'endedRuns', count(*) from runs where ended group by 1, 2
+      union all
+      select day, org_id, 'resolvedRuns', count(*) from runs where ended and end_rule not in (${UNRESOLVED})
+        group by 1, 2
+      union all
+      select day, org_id, 'cappedRuns', count(*) from runs where ended and end_rule in (${CAPPED}) group by 1, 2
+      union all
+      select day, org_id, 'stalledEnds', count(*) from runs where ended and end_rule in (${CAPPED}) and end_stalled
+        group by 1, 2
+      union all
       select day, org_id, 'limitStops', count(*) from runs
         where wrapped_up or reply_limit
           or (status = 'failed' and error in ('too_many_tool_calls', 'budget_exceeded', ${STUCK_ERROR}))
@@ -362,18 +408,83 @@ export function autonomySql(range: AutonomyRange) {
 
 const emptyCounts = (): AutonomyCounts =>
   Object.fromEntries(
-    [...AUTONOMY_STALLS, ...AUTONOMY_NOISE, ...AUTONOMY_UNTRIED, "stalls"].map((k) => [k, 0]),
+    [...AUTONOMY_STALLS, ...AUTONOMY_NOISE, ...AUTONOMY_UNTRIED, ...AUTONOMY_RESOLUTION, "stalls"].map((k) => [k, 0]),
   ) as AutonomyCounts;
 
 const stallsOf = (c: Record<AutonomyMetric, number>) =>
   AUTONOMY_STALLS.reduce((sum, k) => (k === "promiseIgnored" ? sum : sum + c[k]), 0);
 
-/** One day's report: its workspaces (most stalls first), their total, and the daily average of the 7 days before. */
+/** Ended runs of one brain or one agent (`resolutionBreakdown`): counts only. */
+export interface ResolutionCounts {
+  ended: number;
+  resolved: number;
+  capped: number;
+}
+
+export interface ResolutionBreakdown {
+  /** Per `agent_runs.brain` (`unknown` for runs that didn't record one), most ended runs first. */
+  byBrain: (ResolutionCounts & { brain: string })[];
+  /** The agents with the most ended runs left unresolved (capped or bounded), most first, at most `WORST_AGENTS`. */
+  worstAgents: (ResolutionCounts & { orgId: string; orgName: string; agentId: string })[];
+}
+
+/** How many agents the report names among the least resolved. */
+const WORST_AGENTS = 10;
+
+/**
+ * The resolution rate's breakdown (ADR 0097, addendum 2026-11-20) for `days` UTC days from `from`, over the same
+ * workspaces as `autonomyRows`: ended runs by brain, and the agents with the most unresolved ones. Ids and counts.
+ */
+export async function resolutionBreakdown(db: Executor, range: AutonomyRange): Promise<ResolutionBreakdown> {
+  const from = new Date(`${range.from}T00:00:00Z`);
+  const [start, end] = [from.toISOString(), new Date(from.getTime() + range.days * DAY_MS).toISOString()];
+  const orgs = range.orgId ? sql`${schema.organizations.id} = ${range.orgId}::uuid` : openOrg;
+  const ended = sql`with orgs as (
+      select ${schema.organizations.id} as id, ${schema.organizations.name} as name from ${schema.organizations} where ${orgs}
+    ),
+    ended as (
+      select r.org_id, o.name as org_name, r.agent_id, coalesce(r.brain, 'unknown') as brain,
+        e.ending->>'rule' not in (${UNRESOLVED}) as resolved, e.ending->>'rule' in (${CAPPED}) as capped
+      from agent_runs r
+      join orgs o on o.id = r.org_id
+      ${LAST_ENDING}
+      where r.created_at >= ${start}::timestamptz and r.created_at < ${end}::timestamptz
+        and r.status = 'done' and e.ending->>'outcome' = 'done'
+    )`;
+  const counts = sql`count(*)::int as ended, (count(*) filter (where resolved))::int as resolved,
+    (count(*) filter (where capped))::int as capped`;
+  const byBrain = rowsOf<ResolutionCounts & { brain: string }>(
+    await db.execute(sql`${ended} select brain, ${counts} from ended group by brain order by 2 desc, brain`),
+  );
+  const worst = rowsOf<ResolutionCounts & { org_id: string; org_name: string; agent_id: string }>(
+    await db.execute(sql`${ended} select org_id, org_name, agent_id, ${counts} from ended
+      group by org_id, org_name, agent_id having count(*) filter (where not resolved) > 0
+      order by count(*) filter (where not resolved) desc, count(*) desc, agent_id limit ${WORST_AGENTS}`),
+  );
+  const num = (c: ResolutionCounts) => ({
+    ended: Number(c.ended),
+    resolved: Number(c.resolved),
+    capped: Number(c.capped),
+  });
+  return {
+    byBrain: byBrain.map((b) => ({ brain: b.brain, ...num(b) })),
+    worstAgents: worst.map((w) => ({ orgId: w.org_id, orgName: w.org_name, agentId: w.agent_id, ...num(w) })),
+  };
+}
+
+/** `resolved / ended` as a share (0 to 1), null with nothing ended. */
+export const resolutionRate = (c: { ended: number; resolved: number }) => (c.ended > 0 ? c.resolved / c.ended : null);
+
+/**
+ * One day's report: its workspaces (most stalls first), their total, the daily average of the 7 days before, and
+ * that day's resolution by brain and agent.
+ */
 export interface AutonomyReport {
   day: string;
   workspaces: AutonomyRow[];
   total: AutonomyCounts;
   average: AutonomyCounts;
+  resolution: ResolutionBreakdown;
 }
 
 export async function autonomyReport(
@@ -382,6 +493,7 @@ export async function autonomyReport(
 ): Promise<AutonomyReport> {
   const first = isoDay(new Date(Date.parse(`${input.day}T00:00:00Z`) - 7 * DAY_MS));
   const rows = await autonomyRows(db, { from: first, days: 8, orgId: input.orgId, router: input.router });
+  const resolution = await resolutionBreakdown(db, { from: input.day, days: 1, orgId: input.orgId });
   const sum = (list: AutonomyRow[], divisor = 1) => {
     const out = emptyCounts();
     for (const r of list) for (const k of Object.keys(out) as (keyof AutonomyCounts)[]) out[k] += r[k] / divisor;
@@ -398,6 +510,7 @@ export async function autonomyReport(
       rows.filter((r) => r.day !== input.day),
       7,
     ),
+    resolution,
   };
 }
 
@@ -422,6 +535,10 @@ const COLUMNS: { key: keyof AutonomyCounts; head: string; means: string }[] = [
     means: "runs told to keep trying after saying they couldn't with ways left",
   },
   { key: "untriedResolved", head: "tried", means: "...that acted after it and ended done" },
+  { key: "endedRuns", head: "ended", means: "runs that ended done, as their last turn's continuation says" },
+  { key: "resolvedRuns", head: "resolved", means: "...not at the controller's cap nor stopped by a bound" },
+  { key: "cappedRuns", head: "capped", means: "...ended at the cap with the judge still reading work undone" },
+  { key: "stalledEnds", head: "stalled", means: "...of those, the last nudged round did no new tool call" },
   { key: "noiseRuns", head: "noise", means: "runs in any noise column, once each" },
   { key: "quietRuns", head: "quiet", means: "runs that ended without a message (pass)" },
   { key: "ackReplies", head: "ack", means: "replies to only a thanks, an ok or a sign-off" },
@@ -464,7 +581,28 @@ export function autonomyTable(report: AutonomyReport): string {
     ),
     "",
     ...COLUMNS.map((c) => `${c.head.padEnd(9)} ${c.means}`),
+    "",
+    ...resolutionLines(report),
   ].join("\n");
+}
+
+const percent = (c: { ended: number; resolved: number }) => {
+  const rate = resolutionRate(c);
+  return rate === null ? "-" : `${(rate * 100).toFixed(1)}%`;
+};
+
+/** The resolution rate of the day, by brain and for the least resolved agents (ids only). */
+function resolutionLines(report: AutonomyReport): string[] {
+  const { total, resolution } = report;
+  const line = (name: string, c: ResolutionCounts) =>
+    `  ${name.padEnd(40)} ${percent(c).padStart(6)}  ${String(c.resolved).padStart(5)}/${String(c.ended).padEnd(5)} capped ${c.capped}`;
+  return [
+    `Resolution: ${percent({ ended: total.endedRuns, resolved: total.resolvedRuns })} of ${total.endedRuns} ended runs (7-day average ${percent({ ended: report.average.endedRuns, resolved: report.average.resolvedRuns })})`,
+    "By brain:",
+    ...resolution.byBrain.map((b) => line(b.brain, b)),
+    "Least resolved agents:",
+    ...resolution.worstAgents.map((a) => line(`${a.agentId} (${a.orgName.slice(0, 20)})`, a)),
+  ];
 }
 
 /**

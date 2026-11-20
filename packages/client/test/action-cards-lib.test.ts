@@ -15,6 +15,7 @@ import {
   cardInstallAgent,
   cardInstallOf,
   connectAppDone,
+  connectAppState,
   draftLevels,
   draftMailLevels,
   installSkillDone,
@@ -628,4 +629,34 @@ test("a people card's rows, as the web and the phone both say and gate them", ()
   expect(rows.map((r) => memberRowDone(r, members))).toEqual([false, false]);
   const after = [{ userId: "u2", role: "owner" as const, roleIds: rolesAfter(rows[1] as never, ["r2"]) }];
   expect(rows.map((r) => memberRowDone(r, after))).toEqual([true, true]);
+});
+
+test("an agent's Connect card (request_connection) reads its request: open, connected and continuing, or ended", () => {
+  const card = actionCardOf({
+    actionCard: {
+      kind: "connect_app",
+      forUserId: "u1",
+      params: {
+        connector: "github",
+        why: "Para ler as issues.",
+        request: { state: "waiting", askedUserIds: ["u2", 3] },
+      },
+    },
+  });
+  if (card?.kind !== "connect_app") throw new Error("no card");
+  expect(card.request).toEqual({ state: "waiting", resumed: false, askedUserIds: ["u2"] });
+  expect(connectAppState(card, false)).toBe("open");
+  // Connected before the request says so: the agent is about to go on.
+  expect(connectAppState(card, true)).toBe("continuing");
+  const req = (state: "connected" | "expired", resumed: boolean) => ({
+    ...card,
+    request: { state, resumed, askedUserIds: [] },
+  });
+  expect(connectAppState(req("connected", true), false)).toBe("continuing");
+  expect(connectAppState(req("connected", false), true)).toBe("connected");
+  expect(connectAppState(req("expired", false), false)).toBe("expired");
+  // A plain offer (`offer_connect_app`) keeps its two states.
+  const offer = { ...card, request: undefined };
+  expect(connectAppState(offer, false)).toBe("open");
+  expect(connectAppState(offer, true)).toBe("connected");
 });

@@ -8,6 +8,7 @@ import { DOUG_RIGHT_HAND, dougAgent } from "./doug-team";
 import { brandMissing } from "./doug-team/brand";
 import { can, getMembership } from "./organizations";
 import type { RolePermission } from "./permissions";
+import { RIGHT_HAND_RESOLVE } from "./right-hand-defaults";
 import { type LodiLane, type LodiSwitch, liveLodiSwitches, lodiPromptBlocks } from "./right-hand-lane";
 import type { SeatState } from "./right-hand-seats";
 import { accountInUse, isBillingHold, orgStanding } from "./standing";
@@ -397,6 +398,8 @@ export async function rightHandPrompt(
       "- Never ask for a key, password or token in the chat: offer_connect_ai, offer_connect_app or offer_open_page open our dialog for it.",
       ownCardsLine(personal, liveLodiSwitches(input.lanes)),
     ].join("\n"),
+    // Its defaults in every workspace (docs/adr/doug-0041-doug-defaults.md), never the workspace's to switch off.
+    RIGHT_HAND_RESOLVE,
     ...laneBlocks,
     rightHandTools(input.computer ?? "none"),
     input.inDm

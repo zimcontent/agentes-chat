@@ -3,6 +3,7 @@ import type { BlobStore } from "@dougbot/adapters";
 import { and, asc, type Database, type Executor, eq, inArray, isNull, like, schema, sql } from "@dougbot/db";
 import { recordAudit } from "../audit";
 import { caches } from "../cache";
+import { queueConnectionCheck } from "../connection-check";
 import { type ConnectorEventId, connectorEventsOf } from "../connector-triggers";
 import { randomToken, sealSecret, sha256 } from "../crypto";
 import { ConflictError, isUniqueViolation, NotFoundError, ValidationError } from "../errors";
@@ -497,6 +498,8 @@ export async function storeCustomConnection(
     if (!row) throw new Error("connection update returned nothing");
     caches.connections.delete(`${input.orgId}:active`);
     caches.scopes.deletePrefix(`${input.orgId}:`);
+    // Signed in again: an agent waiting for this service goes on (docs/adr/doug-0039-connect-and-continue.md).
+    await queueConnectionCheck(deps.db, input.orgId);
     const replaced = target.composioAccountId;
     if (
       replaced &&
@@ -568,6 +571,7 @@ export async function storeCustomConnection(
           },
         });
         await grantToEveryAgent(tx, input.orgId, input.actorId, row);
+        await queueConnectionCheck(tx, input.orgId);
         return { twin: null, row };
       });
       if (!done.row) {

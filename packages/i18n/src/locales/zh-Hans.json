@@ -3938,7 +3938,10 @@
     "connect_app": {
       "title": "连接 {{name}}",
       "mcp": "添加 MCP 服务器",
-      "adminOnly": "由管理员连接"
+      "adminOnly": "由管理员连接",
+      "continuing": "已连接，继续中",
+      "asked": "正在等待 {{names}} 连接",
+      "expired": "已不再等待 {{name}}"
     },
     "invite": {
       "title_other": "邀请 {{count}} 人",
@@ -4037,6 +4040,11 @@
     "someonePersonal": "没有重复：已在{{when}}对 {{target}} 做过这件事",
     "inChannel": "在 #{{channel}}",
     "open": "查看"
+  },
+  "deliveryProof": {
+    "group": "交付的内容",
+    "screenshot": "截图",
+    "showAll": "全部显示"
   },
   "agentActions": {
     "issue": {
@@ -5479,6 +5487,7 @@
       "adminAskChannel": "<b>{{name}}</b> 请你把 <b>{{agent}}</b> 加入 #{{label}}",
       "adminAskCreate": "<b>{{name}}</b> 请求获得创建智能体的权限",
       "adminAskWebhook": "<b>{{name}}</b> 请你为例行任务设置 {{service}} Webhook",
+      "adminAskConnector": "<b>{{name}}</b> 请你连接 {{service}}",
       "invitationAccepted": "<b>{{name}}</b> 接受了你的邀请并加入了 {{org}}",
       "companyRequest": "<b>{{company}}</b> 申请了 DougBot：来自 <b>{{name}}</b> 的申请",
       "invitationAcceptedAny": "<b>{{name}}</b> 接受了你的邀请",
@@ -18287,6 +18296,7 @@
       "action_update_skills": "更新技能",
       "action_approvals": "等你处理的审批",
       "welcome_member": "你刚加入了{{org}}。**你在这里负责什么？**告诉我，我和你一起设置你的第一个智能体。",
+      "first_task_ask": "我们从一件实事开始：**告诉我一件你每周都要做的麻烦事。** 我现在就在这里把它做完，如果结果合你心意，以后每周都可以交给我。",
       "action_open_page": "打开页面",
       "calendar_proposal": "日程提议：{{title}}",
       "action_workspace": "提议了一项工作区更改",

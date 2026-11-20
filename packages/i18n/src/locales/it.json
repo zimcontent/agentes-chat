@@ -4209,7 +4209,10 @@
     "connect_app": {
       "title": "Collega {{name}}",
       "mcp": "Aggiungi un server MCP",
-      "adminOnly": "Lo collega un admin"
+      "adminOnly": "Lo collega un admin",
+      "continuing": "Connesso, si continua",
+      "asked": "In attesa che {{names}} lo colleghi",
+      "expired": "Non aspetta più {{name}}"
     },
     "invite": {
       "title_one": "Invita {{count}} persona",
@@ -4313,6 +4316,11 @@
     "someonePersonal": "Non ripetuto: è già stato fatto con {{target}} {{when}}",
     "inChannel": "in #{{channel}}",
     "open": "Vedi"
+  },
+  "deliveryProof": {
+    "group": "Cosa ha consegnato",
+    "screenshot": "Schermata",
+    "showAll": "Mostra tutto"
   },
   "agentActions": {
     "issue": {
@@ -5844,6 +5852,7 @@
       "adminAskChannel": "<b>{{name}}</b> ti chiede di aggiungere <b>{{agent}}</b> a #{{label}}",
       "adminAskCreate": "<b>{{name}}</b> chiede di poter creare agenti",
       "adminAskWebhook": "<b>{{name}}</b> ti chiede di configurare il webhook di {{service}} per le routine",
+      "adminAskConnector": "<b>{{name}}</b> ti chiede di collegare {{service}}",
       "invitationAccepted": "<b>{{name}}</b> ha accettato il tuo invito ed è entrato in {{org}}",
       "companyRequest": "<b>{{company}}</b> ha chiesto DougBot: una richiesta da <b>{{name}}</b>",
       "invitationAcceptedAny": "<b>{{name}}</b> ha accettato il tuo invito",
@@ -19409,6 +19418,7 @@
       "action_update_skills": "Aggiorna le skill",
       "action_approvals": "Approvazioni che ti aspettano",
       "welcome_member": "Ora fai parte di {{org}}. **Di cosa ti occupi qui?** Dimmelo e creo con te il tuo primo agente.",
+      "first_task_ask": "Partiamo da qualcosa di concreto: **dammi un compito noioso che fai ogni settimana.** Lo faccio qui, adesso, e se viene come piace a te posso occuparmene io ogni settimana.",
       "action_open_page": "Apri una schermata",
       "calendar_proposal": "Proposta di evento: {{title}}",
       "action_workspace": "Ha proposto una modifica nello spazio di lavoro",

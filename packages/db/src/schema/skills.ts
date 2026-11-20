@@ -143,6 +143,11 @@ export const skills = pgTable(
       /** An agent's change: `editedSinceSource` and `linkBase` before it, as undoing it leaves them. */
       prior?: { edited: boolean; linkBase: { body: string; description: string; at: string } | null };
     }>(),
+    /**
+     * When an agent told the conversation it learned this (ADR 0120, addendum 2026-11-20): the line comes once per
+     * skill, however often it changes later. Created by `EXTRA_COLUMNS`.
+     */
+    learnedSaidAt: timestamp({ withTimezone: true }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp({ withTimezone: true }),

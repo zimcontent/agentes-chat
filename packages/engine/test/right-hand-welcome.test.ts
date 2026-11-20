@@ -12,13 +12,26 @@ import {
   liveLodiSwitches,
   type MemberRole,
   openPersonAgentDm,
+  personAgentDmKey,
   postPersonMessage,
   RIGHT_HAND,
   removeMember,
   rightHandPrompt,
+  saveOnboarding,
   updateOrgSettings,
 } from "../src";
-import { NEWCOMER_DAYS, newcomerBlock, postWelcome, WELCOME_JOB, welcomeLane } from "../src/right-hand-welcome";
+import {
+  FIRST_TASK_BODY,
+  FIRST_TASK_DAYS,
+  FIRST_TASK_JOB,
+  firstTaskBlock,
+  NEWCOMER_DAYS,
+  newcomerBlock,
+  postFirstTask,
+  postWelcome,
+  WELCOME_JOB,
+  welcomeLane,
+} from "../src/right-hand-welcome";
 import { addUser, type Fixture, SECRET, setup } from "./fixtures";
 
 let f: Fixture;
@@ -300,11 +313,110 @@ describe("while they are new", () => {
   });
 });
 
+describe("the first task (docs/adr/doug-0041-doug-defaults.md)", () => {
+  const ending = async (fx: Fixture) => {
+    await fx.db.update(schema.organizations).set({ onboardedAt: null }).where(eq(schema.organizations.id, fx.org.id));
+    await saveOnboarding(fx.db, fx.owner.id, fx.org.id, { finished: true });
+  };
+  const firstTaskJobs = (fx: Fixture) =>
+    fx.db.select().from(schema.outbox).where(eq(schema.outbox.kind, FIRST_TASK_JOB));
+  const ask = (fx: Fixture, userId: string) => postFirstTask(fx.jobDeps, fx.org.id, { userId });
+  const lodiBlock = async (fx: Fixture, personId: string) =>
+    (await welcomeLane.promptBlock?.(fx.db, { orgId: fx.org.id, agentId: (await lodiOf(fx)).id, personId })) ?? "";
+
+  test("the owner whose onboarding ends is asked once, quietly, in their DM, in their language", async () => {
+    f = await setup({ rightHand: true });
+    const lodi = await lodiOf(f);
+    expect(await firstTaskBlock(f.db, { orgId: f.org.id, agentId: lodi.id, personId: f.owner.id })).toBe("");
+    await ending(f);
+    const jobs = await firstTaskJobs(f);
+    expect(jobs.map((j) => [j.payload, j.dedupeKey])).toEqual([
+      [{ userId: f.owner.id }, `${FIRST_TASK_JOB}:${f.org.id}:${f.owner.id}`],
+    ]);
+    // The server's own handler is the lane's job; two runs at once and a retry post one message.
+    await f.handlers[FIRST_TASK_JOB]?.(jobs[0] as never, {} as never);
+    await Promise.all([ask(f, f.owner.id), ask(f, f.owner.id)]);
+    const [m, ...more] = await said(f);
+    expect(more).toEqual([]);
+    expect(m?.meta).toMatchObject({ bodyCode: FIRST_TASK_BODY });
+    expect(m?.body).toBe(
+      "Vamos começar por algo de verdade: **me passa uma tarefa chata que você faz toda semana.** Eu resolvo agora, aqui mesmo, e se ficar do seu jeito eu passo a fazer toda semana pra você.",
+    );
+    const [dm] = await f.db
+      .select({ dmKey: schema.channels.dmKey })
+      .from(schema.channels)
+      .where(eq(schema.channels.id, m?.channelId ?? ""));
+    expect(dm?.dmKey).toBe(personAgentDmKey(f.owner.id, lodi.id));
+    // No ring: they are on their way into that conversation.
+    expect(await rings(f)).toEqual([]);
+    expect(f.provider.calls).toHaveLength(0);
+  });
+
+  test("while the ask is fresh its prompt says to do the task now and offer the routine", async () => {
+    f = await setup({ rightHand: true });
+    const lodi = await lodiOf(f);
+    await ending(f);
+    await ask(f, f.owner.id);
+    const text = await lodiBlock(f, f.owner.id);
+    expect(text).toContain("# Their first task");
+    expect(text).toContain("do it now");
+    expect(text).toContain("create_routine");
+    // And it reaches the right hand's prompt in that DM, not in a channel.
+    const prompt = (inDm: boolean) =>
+      rightHandPrompt({ db: f.db }, { orgId: f.org.id, agent: lodi, personId: f.owner.id, inDm });
+    expect(await prompt(true)).toContain("# Their first task");
+    expect(await prompt(false)).not.toContain("# Their first task");
+    // Someone else's DM has none of it.
+    const bia = await join(f, "bia");
+    expect(await firstTaskBlock(f.db, { orgId: f.org.id, agentId: lodi.id, personId: bia.id })).toBe("");
+    // Older than its days: gone.
+    await f.db
+      .update(schema.messages)
+      .set({ createdAt: new Date(Date.now() - (FIRST_TASK_DAYS + 1) * DAY) })
+      .where(eq(schema.messages.authorAgentId, lodi.id));
+    expect(await lodiBlock(f, f.owner.id)).toBe("");
+  });
+
+  test("nothing for a member, with the switch off, on a hold, or for an owner who left", async () => {
+    f = await setup({ rightHand: true });
+    const bia = await join(f, "bia");
+    await ask(f, bia.id);
+    await updateOrgSettings(f.db, f.owner.id, f.org.id, { welcomePeople: false });
+    await ask(f, f.owner.id);
+    await updateOrgSettings(f.db, f.owner.id, f.org.id, { welcomePeople: true });
+    await f.db
+      .update(schema.organizations)
+      .set({ standing: "hold", standingReason: "payment", standingNotice: "shown" })
+      .where(eq(schema.organizations.id, f.org.id));
+    await ask(f, f.owner.id);
+    await postFirstTask(f.jobDeps, f.org.id, {});
+    expect((await said(f)).filter((m) => m.meta.bodyCode === FIRST_TASK_BODY)).toEqual([]);
+    // With the switch off, an ask already made is not read either.
+    await f.db
+      .update(schema.organizations)
+      .set({ standing: "active", standingReason: null })
+      .where(eq(schema.organizations.id, f.org.id));
+    await ask(f, f.owner.id);
+    expect(await lodiBlock(f, f.owner.id)).toContain("# Their first task");
+    await updateOrgSettings(f.db, f.owner.id, f.org.id, { welcomePeople: false });
+    expect(await lodiBlock(f, f.owner.id)).toBe("");
+  });
+
+  test("someone new who hands over a task gets it done before their agent", async () => {
+    f = await setup({ rightHand: true });
+    const bia = await join(f, "bia");
+    expect(await newcomerBlock(f.db, { orgId: f.org.id, agentId: "lodi", personId: bia.id })).toContain(
+      "do it now yourself",
+    );
+  });
+});
+
 test("the lane is built: its switch shows and its job is the server's", async () => {
   f = await setup({ rightHand: true });
   expect(welcomeLane.live).toBe(true);
   expect(liveLodiSwitches()).toContain("welcomePeople");
-  expect(Object.keys(welcomeLane.jobs)).toEqual([WELCOME_JOB]);
+  expect(Object.keys(welcomeLane.jobs)).toEqual([WELCOME_JOB, FIRST_TASK_JOB]);
+  expect(Object.keys(f.handlers)).toContain(FIRST_TASK_JOB);
   expect(welcomeLane.sweep).toBeUndefined();
   expect(Object.keys(f.handlers)).toContain(WELCOME_JOB);
 });

@@ -9904,6 +9904,15 @@
   "actionCard.connect_app.adminOnly": {
     "value": "An admin connects it"
   },
+  "actionCard.connect_app.continuing": {
+    "value": "Connected, continuing"
+  },
+  "actionCard.connect_app.asked": {
+    "value": "Waiting for {{names}} to connect it"
+  },
+  "actionCard.connect_app.expired": {
+    "value": "No longer waiting for {{name}}"
+  },
   "actionCard.invite.title": {
     "value": {
       "one": "Invite {{count}} person",
@@ -10134,6 +10143,15 @@
   },
   "teamChecks.open": {
     "value": "View"
+  },
+  "deliveryProof.group": {
+    "value": "What it delivered"
+  },
+  "deliveryProof.screenshot": {
+    "value": "Screenshot"
+  },
+  "deliveryProof.showAll": {
+    "value": "Show all"
   },
   "agentActions.issue.created": {
     "value": "Created task <b>#{{number}}</b> · {{title}}"
@@ -13787,6 +13805,9 @@
   },
   "notifications.what.adminAskWebhook": {
     "value": "<b>{{name}}</b> asks you to set up the {{service}} webhook for routines"
+  },
+  "notifications.what.adminAskConnector": {
+    "value": "<b>{{name}}</b> asks you to connect {{service}}"
   },
   "notifications.what.invitationAccepted": {
     "value": "<b>{{name}}</b> accepted your invitation and joined {{org}}"
@@ -46476,6 +46497,9 @@
   },
   "chat.body.welcome_member": {
     "value": "You just joined {{org}}. **What do you look after here?** Tell me and I set up your first agent with you."
+  },
+  "chat.body.first_task_ask": {
+    "value": "Let's start with something real: **give me a boring task you do every week.** I'll do it right here, now, and if it comes out the way you like I can take it off your hands every week."
   },
   "chat.body.action_open_page": {
     "value": "Open a screen"

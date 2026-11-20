@@ -3935,7 +3935,10 @@
     "connect_app": {
       "title": "{{name}}を接続",
       "mcp": "MCPサーバーを追加",
-      "adminOnly": "管理者が接続します"
+      "adminOnly": "管理者が接続します",
+      "continuing": "接続済み、続行中",
+      "asked": "{{names}} の接続を待っています",
+      "expired": "{{name}} の待機を終了しました"
     },
     "invite": {
       "title_other": "{{count}}人を招待",
@@ -4036,6 +4039,11 @@
     "someonePersonal": "繰り返しませんでした: {{when}}に{{target}}に対してすでに行われています",
     "inChannel": "#{{channel}}",
     "open": "見る"
+  },
+  "deliveryProof": {
+    "group": "届けたもの",
+    "screenshot": "スクリーンショット",
+    "showAll": "すべて表示"
   },
   "agentActions": {
     "issue": {
@@ -5476,6 +5484,7 @@
       "adminAskChannel": "<b>{{name}}</b> が <b>{{agent}}</b> を #{{label}} に追加するよう求めています",
       "adminAskCreate": "<b>{{name}}</b> がエージェントを作成できるよう求めています",
       "adminAskWebhook": "<b>{{name}}</b> がルーティン用の {{service}} Webhook の設定を求めています",
+      "adminAskConnector": "<b>{{name}}</b> が {{service}} の接続を依頼しています",
       "invitationAccepted": "<b>{{name}}</b>があなたの招待を受けて{{org}}に参加しました",
       "companyRequest": "<b>{{company}}</b>がDougBotを依頼しました: <b>{{name}}</b>からの依頼です",
       "invitationAcceptedAny": "<b>{{name}}</b>があなたの招待を受けました",
@@ -18217,6 +18226,7 @@
       "action_update_skills": "スキルを更新",
       "action_approvals": "あなたの承認待ち",
       "welcome_member": "{{org}}に参加しましたね。**ここでは何を担当していますか？** 教えてもらえれば、最初のエージェントを一緒に設定します。",
+      "first_task_ask": "まずは実際の仕事から始めましょう。**毎週やっている面倒な作業をひとつ教えてください。** 今ここで片付けます。気に入ってもらえたら、毎週こちらで引き受けます。",
       "action_open_page": "画面を開く",
       "calendar_proposal": "予定の提案: {{title}}",
       "action_workspace": "ワークスペースの変更を提案しました",

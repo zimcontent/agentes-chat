@@ -1224,6 +1224,38 @@ test.if(posix)(
   },
 );
 
+test.if(posix)(
+  "started without our MCP server: the turn goes again on a resumed session after a pause, once more than a crash",
+  async () => {
+    const { spawns, turn } = setup({ mcpRetryMs: 5 });
+    // The kept-alive process and the one-shot after it both start without it; the third has it.
+    const r = await turn(1, "NOMCP2 please");
+    expect(r.final).toMatchObject({ type: "done", text: "echo 1: NOMCP2 please" });
+    const all = spawns();
+    expect(all).toHaveLength(3);
+    expect(all[1]?.args.slice(-2)).toEqual(["--resume", SESSION(1)]);
+    expect(all[2]?.args.slice(-2)).toEqual(["--resume", SESSION(1)]);
+  },
+);
+
+test.if(posix)("a routine's turn (one-shot) that starts without our MCP server gets one more process", async () => {
+  const { spawns, turn } = setup({ mcpRetryMs: 5 });
+  const r = await turn(1, "NOMCP1 please", { keepAlive: false });
+  expect(r.final).toMatchObject({ type: "done", text: "echo 1: NOMCP1 please" });
+  expect(spawns()).toHaveLength(2);
+  expect(spawns()[1]?.args.slice(-2)).toEqual(["--resume", SESSION(1)]);
+});
+
+test.if(posix)("never without our MCP server however often it goes again: the turn ends saying why", async () => {
+  const { spawns, turn } = setup({ mcpRetryMs: 5 });
+  expect((await turn(1, "NOMCP9 please", { keepAlive: false })).final).toMatchObject({
+    type: "error",
+    code: "claude_failed",
+    message: expect.stringContaining("Available MCP tools: none"),
+  });
+  expect(spawns()).toHaveLength(2);
+});
+
 test.if(posix)("a process that dies mid-turn: the same turn runs again one-shot, resuming the session", async () => {
   const { m, spawns, turn } = setup();
   const r = await turn(1, "CRASH please");

@@ -334,6 +334,33 @@ async function answer(line) {
     await sleep(20);
     process.exit(3);
   }
+  // "NOMCP<k>": the first k processes start without our MCP server, as Claude Code 2.1.326 does once it gave up on it:
+  // a command its rules allow runs, and the next one, which needs the permission prompt, ends the process.
+  const noMcp = /NOMCP(\d)/.exec(prompt);
+  if (marker && noMcp) {
+    const counter = `${marker}-nomcp`;
+    const failed = existsSync(counter) ? Number(readFileSync(counter, "utf8")) : 0;
+    if (failed < Number(noMcp[1])) {
+      writeFileSync(counter, String(failed + 1));
+      out({
+        type: "assistant",
+        message: {
+          content: [{ type: "tool_use", id: `nm${failed}`, name: "Bash", input: { command: "mkdir -p out" } }],
+        },
+        parent_tool_use_id: null,
+      });
+      out({
+        type: "user",
+        message: { content: [{ type: "tool_result", tool_use_id: `nm${failed}`, content: "" }] },
+        parent_tool_use_id: null,
+      });
+      process.stderr.write(
+        "Error: MCP tool mcp__agentes__permission_prompt (passed via --permission-prompt-tool) not found. Available MCP tools: none\n",
+      );
+      await sleep(20);
+      process.exit(1);
+    }
+  }
   // Silence: "HANGMODEL" starts the model's answer and goes quiet, once (its resumed process answers); "HANGPING" the
   // same while the API's pings go on every 40 ms (as Claude Code passes them on over an answer that stopped coming);
   // "HANGTHINK" the same inside an open thinking block (a think whose text is omitted, that never ends); "LONGTHINK"

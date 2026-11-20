@@ -29,16 +29,32 @@ import { neutralizeUntrusted, untrustedBlock } from "./untrusted";
  */
 
 /**
- * Extra turns one run may be given, every kind counted together (the decision nudge, the answer nudge and the
- * continue nudges), plus one ask nudge. Worst case: 3 extra turns and 4 judgments, then a question card or done.
+ * Extra turns one run may be given, every kind counted together (the widget, decision and answer nudges and the
+ * continue nudges: promise, unreached, untried, unbacked), plus one ask nudge (ADR 0097, addendum 2026-11-20).
+ *
+ * The judged continues are gated by progress, not by a small count: the first is free, and each further one only if
+ * the round since the last nudge executed at least one new tool call (`TurnEnd.executed`, which leaves out calls that
+ * repeat one that already worked); a round with none ends the run as judged (`stalled`). `maxPerRun` and
+ * `routineMaxPerRun` are only the ceiling for a run that keeps doing new work and still doesn't get there: six walks
+ * the four tool families of `untriedNudge`'s escalation with room for one retry; four for a routine, which nobody
+ * watches and which fires again on its own schedule. Circles are braked before this by `stuck.ts` and the turn cap.
+ * The nudges given without a judgment (`blindMaxPerRun`: a widget's, a decision's, an empty answer's) keep the old
+ * fixed count, since nothing tells progress from noise there.
+ *
+ * Cost: one follow-through judgment per judged turn end. Worst case for a conversation: 7 extra turns (6 continues
+ * and the ask nudge) and 8 judgments, then a question card or done; for a routine, 4 extra turns and 5 judgments.
+ * The once-only rules (the secret nudge, open requests, the wording rewrites) add at most one turn each. Before the
+ * addendum the ceiling was 2 and 1 (3 extra turns and 4 judgments).
  */
-export const CONTINUE = { maxPerRun: 2, routineMaxPerRun: 1 } as const;
+export const CONTINUE = { maxPerRun: 6, routineMaxPerRun: 4, blindMaxPerRun: 2, routineBlindMaxPerRun: 1 } as const;
 
 /** Where the controller stands in a run (`transcript.continuation`). */
 export interface ContinuationState {
   count: number;
   /** The run's executed tool calls when it was last told to continue: the next continue needs more. */
   executedAtNudge?: number;
+  /** How many `untried` nudges it got: from the second on, the nudge tells it to change tool family. */
+  untried?: number;
   askNudged?: boolean;
   /**
    * The last turn was told to ask: this one is judged past the cap, and a reply that still asks only in its text
@@ -59,12 +75,18 @@ export type ContinuationVerdict = "done" | "continue" | "ask" | "untried" | "sec
 
 /**
  * What a run reads when it ended saying it couldn't while it still had ways to try (ADR 0109): its means and what it
- * already tried, so it varies the attempt instead of handing the problem to a person.
+ * already tried, so it varies the attempt instead of handing the problem to a person. `round` is which untried nudge
+ * this is: from the second on it gave up again after trying more, so it is told to change tool family in order
+ * (ADR 0097 addendum 2026-11-20) instead of repeating what `tried` shows.
  */
-export function untriedNudge(means: string[], tried: string[]) {
+export function untriedNudge(means: string[], tried: string[], round = 1) {
   const have = means.length > 0 ? means.join("; ") : "your tools and find_tools";
-  return `You ended saying you couldn't, but you still have ways to try. Your means: ${have}. Already tried:\n${triedBlock(tried)}\nUse the ones that fit; when a search or a page gives nothing or is blocked, change the words, the source or the tool. Missing an access or a login? Look in the workspace first (your memory, search_context for who signed in or holds it) and ask the teammate who has it. ${SAFETY_FINAL} ${HAND_OVER_STEP} If no way is left at all, say what you tried and the one step a person must do.`;
+  return `You ended saying you couldn't, but you still have ways to try. Your means: ${have}. Already tried:\n${triedBlock(tried)}\n${round >= 2 ? ESCALATION : "Use the ones that fit; when a search or a page gives nothing or is blocked, change the words, the source or the tool."} Missing an access or a login? Look in the workspace first (your memory, search_context for who signed in or holds it) and ask the teammate who has it. ${SAFETY_FINAL} ${HAND_OVER_STEP} If no way is left at all, say what you tried and the one step a person must do.`;
 }
+
+/** The later untried nudges: the families of tools in order, the first one `tried` doesn't show yet. */
+const ESCALATION =
+  "You were sent back already and gave up again: the way you took didn't work. Don't repeat any call in what you tried, not even with other words. Switch to the next family of tools you haven't used, in this order: an API or a connector (find_tools, use_tool; one the workspace hasn't connected: request_connection, then wait for it) → the browser (open the site and do it as a person would) → code you write yourself on your computer (a terminal command or a script that calls the service) → a teammate agent who may know or hold it (ask_agent). Skip a family your means don't have.";
 
 /**
  * The `untried` nudge as a conversation run reads it: its reply was held back (`Transcript.held`), so it must never
@@ -349,6 +371,11 @@ export async function continuationVerdict(
      * and computer brains through the MCP bridge) plus a computer brain's own tools (`transcript.harnessTried`).
      */
     tried: string[];
+    /**
+     * What the run delivered, read from its steps and team actions (`runProof`, docs/adr/doug-0040-proof-on-delivery.md):
+     * a file, a screenshot, a task, a page. A claim one of them backs is backed.
+     */
+    proof?: string[];
     runKind: TurnKind;
     /** Agents and people its reply @named that aren't in the conversation (`unreachedNote`), "" none. */
     unreached?: string;
@@ -379,6 +406,7 @@ export async function continuationVerdict(
         reply: cutTextEnd(input.reply, 3000),
         means: input.means,
         tried: input.tried.slice(-20).map(neutralizeUntrusted),
+        ...(input.proof?.length ? { proof: input.proof.slice(0, 6).map(neutralizeUntrusted) } : {}),
         runKind: input.runKind,
         ...(input.unreached ? { unreached: input.unreached } : {}),
         ...(input.backgroundWork?.length
@@ -391,16 +419,16 @@ export async function continuationVerdict(
           instructions:
             "An AI agent in a team chat was asked `request` and ended its turn with `reply`, its last message. `tried`: each tool call it made in this run, with its argument and outcome. `means`: the general ways it has (web search, browser, terminal, tool directory, teammates). It won't act again until someone writes to it or something it set up wakes it. `background_work`, when given: its own work already running in the background in this conversation, which posts its results here by itself when it ends. Is it done, should it go on by itself, does it still have untried ways, or does it need something only a person can give?",
           criteria: {
-            done: "It gave the result or the answer `request` asked for, also when it adds a caveat, a limit of the data or a part it couldn't get. Or it said what it couldn't do, and either `tried` shows several different attempts (another query, another source, another tool or the browser), or what blocks it is something only a person can give (a code, a sign-in, a payment, a permission, a decision) and it already asked them for it (with its request: `tried` shows browser_ask_person, desktop_ask_person, request_secret, request_approval, request_permission or ask_user; for a decision, one direct question) or `means` has no way to hand it to them. A reply that says it can't, stops, or only offers in passing, because a step needs the person (a sign-in, a QR code, a code, a captcha, an approval, a permission) is not done while `means` can hand that step to them: that is untried. When the request left open how to do it, one direct question offering to start a way it names, with the step the person will do ('I can do it in my browser: you'll scan a QR code. Shall I start?'), is done. A refusal because the account or the data is someone else's, not the asking person's own, is done. Saying it or the team has no access, or asking people for one, without having looked in the workspace (search_context, find_agent, ask_agent or tell_agent in `tried`) is not done: that is untried. An offer that needs someone else's decision (a sensitive or external action, a choice between their options) counts as done only when asked as one direct question. When `request` asks only for information or advice (what the options are, which is best or cheapest, how something works) and the reply gives it, it is done, also when it offers to start one of the ways: starting is the person's choice. Work asked as a question ('can you…?', 'consegue…?', 'pode ver…?', 'dá pra…?') is work, not a question: offering to do it is not done. When what it says will come later is what its `background_work` will bring (its findings, its result, word when it ends), that work posts it here by itself: done.",
+            done: "It gave the result or the answer `request` asked for, also when it adds a caveat, a limit of the data or a part it couldn't get. Or it said what it couldn't do, and either `tried` shows several different attempts (another query, another source, another tool or the browser), or what blocks it is something only a person can give (a code, a sign-in, a payment, a permission, a decision) and it already asked them for it (with its request: `tried` shows browser_ask_person, desktop_ask_person, request_secret, request_approval, request_permission, request_connection or ask_user; for a decision, one direct question) or `means` has no way to hand it to them. A reply that says it can't, stops, or only offers in passing, because a step needs the person (a sign-in, a QR code, a code, a captcha, an approval, a permission) is not done while `means` can hand that step to them: that is untried. When the request left open how to do it, one direct question offering to start a way it names, with the step the person will do ('I can do it in my browser: you'll scan a QR code. Shall I start?'), is done. A refusal because the account or the data is someone else's, not the asking person's own, is done. Saying it or the team has no access, or asking people for one, without having looked in the workspace (search_context, find_agent, ask_agent or tell_agent in `tried`) is not done: that is untried. An offer that needs someone else's decision (a sensitive or external action, a choice between their options) counts as done only when asked as one direct question. When `request` asks only for information or advice (what the options are, which is best or cheapest, how something works) and the reply gives it, it is done, also when it offers to start one of the ways: starting is the person's choice. Work asked as a question ('can you…?', 'consegue…?', 'pode ver…?', 'dá pra…?') is work, not a question: offering to do it is not done. When what it says will come later is what its `background_work` will bring (its findings, its result, word when it ends), that work posts it here by itself: done.",
             untried:
-              "What `request` asked for is still missing: it said it couldn't or that it lacks a tool, or asked a person to do or connect something, or asked a person for information its means could find (an address, docs, what a name refers to), while `means` has ways that fit the task it hasn't used in `tried`, or it gave up after one empty or failed attempt without varying it. Handing the work to a teammate counts as an attempt. Also when it said it or the team lacks an access, a login or an account, or asked people for one or who has it, without first looking in the workspace (`tried` has no search_context, find_agent, ask_agent or tell_agent): a teammate or an earlier conversation may hold it. Also when it said it couldn't, stopped, or only offered in passing ('one option would be…', 'only if you want'), because a step needs the person (a sign-in, a QR code scanned with their phone, a code sent to them, a captcha, an approval, a permission, their consent to their own account) instead of doing everything up to it and handing that step over, while `means` can hand it over: a step that needs the person is never a blocker. Also when it handed a person, or refused as unsafe, a sign-in to an account it was given to use whose link or code goes to a mailbox `means` can read: getting it there is its own work. A call refused for safety ([refused for safety]) is final for that data: counting it as a way left to try is wrong. A caveat beside an answer it gave is not this: that answer is done. Nor a step it offers beyond information or advice `request` asked for (a connection, a key, a trial run): that step is the person's choice, not work left undone. Work asked as a question ('can you…?', 'consegue…?') is still work.",
+              "What `request` asked for is still missing: it said it couldn't or that it lacks a tool, or asked a person to do or connect something, or asked a person for information its means could find (an address, docs, what a name refers to), while `means` has ways that fit the task it hasn't used in `tried`, or it gave up after one empty or failed attempt without varying it. Handing the work to a teammate counts as an attempt. Also when it said it or the team lacks an access, a login or an account, or asked people for one or who has it, without first looking in the workspace (`tried` has no search_context, find_agent, ask_agent or tell_agent): a teammate or an earlier conversation may hold it. Also when it said it couldn't, stopped, or only offered in passing ('one option would be…', 'only if you want'), because a step needs the person (a sign-in, a QR code scanned with their phone, a code sent to them, a captcha, an approval, a permission, their consent to their own account) instead of doing everything up to it and handing that step over, while `means` can hand it over: a step that needs the person is never a blocker. Also when it said it has no access to an app or service, that one isn't connected, or asked a person to connect it, while `means` offers request_connection and `tried` has no request_connection or request_permission call: a missing connection is handed over with its card, never a reason to stop. Also when it handed a person, or refused as unsafe, a sign-in to an account it was given to use whose link or code goes to a mailbox `means` can read: getting it there is its own work. A call refused for safety ([refused for safety]) is final for that data: counting it as a way left to try is wrong. A caveat beside an answer it gave is not this: that answer is done. Nor a step it offers beyond information or advice `request` asked for (a connection, a key, a trial run): that step is the person's choice, not work left undone. Work asked as a question ('can you…?', 'consegue…?') is still work.",
             continue:
               "It said it will do more itself (next, later, after a build), or stopped midway, and nothing it set up brings it back. A promise about what its `background_work` will bring is kept by that work, not this. A reply that asks the person whether to do something ('want me to…?', 'quer que eu faça?') is not this: it waits for their answer. Also when `unreached` is set and the reply hands work or a question to an agent it names, or says it told a person it names (that mention reached nobody); merely naming one is not that.",
             ask: "To go on it needs something only a person can give (a decision, a test, access) that its `means` can't find, but it described the need or listed what's missing instead of asking one direct question. Not when it says it needs nothing from them, or what's missing only blocks optional extra work the request doesn't need, or `request` asked what is missing or left to do and the list answers it: that is done. A way to do the request itself, even worded 'only if you want', is never optional extra work.",
             secret:
               "It asks a person to type or paste a secret into the chat (a password, an API key, a token, a private key), or the work `request` asked it to do can't go on without one only a person has and it hasn't asked for it through a secure request (`tried` has no request_secret call). Not when it only names the key a step it offers would need.",
             unbacked:
-              "Its reply says it made, sent, created, posted, saved or did something (an image, a file, a message or an email sent, a task opened, a change made, 'done', 'here it is') that no call in `tried` did. Not when the reply only plans, offers or asks, says plainly it couldn't, or reports what someone did before and says so.",
+              "Its reply says it made, sent, created, posted, saved or did something (an image, a file, a message or an email sent, a task opened, a change made, 'done', 'here it is') that no call in `tried` did. `proof`, when given, is what the run really delivered (files, screenshots, tasks, pages, outside actions), read from its steps: a claim one of them backs is not this. Not when the reply only plans, offers or asks, says plainly it couldn't, or reports what someone did before and says so.",
           },
         },
         ...(learn ? { learn: input.personal ? LEARN_QUESTION_PERSONAL : LEARN_QUESTION } : {}),
@@ -619,6 +647,11 @@ export type TurnEndDecision = {
   nudge?: string;
   verdict?: ContinuationVerdict;
   judgeError?: boolean;
+  /**
+   * A judged continue it would have had, refused because the round since its last nudge executed no new tool call
+   * (ADR 0097 addendum 2026-11-20): kept on the run's `continuation` step, so the report tells it from the ceiling.
+   */
+  stalled?: boolean;
 };
 
 /**
@@ -665,14 +698,20 @@ function wordingHold(t: TurnEnd): TurnEndDecision | null {
 
 /** The decision without the wording rules (`wordingHold`). */
 async function answerTurnEnd(t: TurnEnd): Promise<TurnEndDecision> {
-  const max = t.kind === "routine" ? CONTINUE.routineMaxPerRun : CONTINUE.maxPerRun;
-  const canNudge = t.state.count < max;
+  const routine = t.kind === "routine";
+  const canNudge = t.state.count < (routine ? CONTINUE.routineMaxPerRun : CONTINUE.maxPerRun);
+  // Unjudged nudges keep the old fixed count (`CONTINUE`).
+  const canBlindNudge = t.state.count < (routine ? CONTINUE.routineBlindMaxPerRun : CONTINUE.blindMaxPerRun);
+  // The first continue is free; each further one needs a new executed call since the last nudge.
+  const progressed = t.state.count === 0 || t.executed > (t.state.executedAtNudge ?? 0);
+  const goesOn = canNudge && progressed;
+  const stalled = canNudge && !progressed ? { stalled: true } : {};
   if (t.bound) return { outcome: "done", rule: t.bound };
   // Quiet or not, a widget's run speaks only through update_widget: without it, nobody gets anything.
-  if (t.widgetOwed && canNudge) return { outcome: "continue", rule: "widget", nudge: WIDGET_NUDGE };
+  if (t.widgetOwed && canBlindNudge) return { outcome: "continue", rule: "widget", nudge: WIDGET_NUDGE };
   if (t.quiet) return { outcome: "done", rule: "quiet" };
-  if (t.decided && canNudge) return { outcome: "continue", rule: "decision", nudge: decisionNudge(t.decided) };
-  if (t.unanswered && canNudge) return { outcome: "continue", rule: "answer", nudge: ANSWER_NUDGE };
+  if (t.decided && canBlindNudge) return { outcome: "continue", rule: "decision", nudge: decisionNudge(t.decided) };
+  if (t.unanswered && canBlindNudge) return { outcome: "continue", rule: "answer", nudge: ANSWER_NUDGE };
   if (t.openRequest && !t.state.requestNudged)
     return { outcome: "continue", rule: "open_request", nudge: t.openRequest };
   if (!t.judged || !t.verdict) return { outcome: "done", rule: t.verdict ? "nothing_to_judge" : "no_judge" };
@@ -696,11 +735,11 @@ async function answerTurnEnd(t: TurnEnd): Promise<TurnEndDecision> {
       : { outcome: "continue", rule: "secret", verdict, nudge: SECRET_NUDGE };
   // A result it claims that no call produced (ADR 0167): never posted; once more to do it or say it can't.
   if (verdict === "unbacked")
-    return canNudge
+    return goesOn
       ? { outcome: "continue", rule: "unbacked", verdict, nudge: UNBACKED_NUDGE }
-      : { outcome: "done", rule: "unbacked_cap", verdict };
+      : { outcome: "done", rule: "unbacked_cap", verdict, ...stalled };
   // A hand-off by mention to an agent that isn't here is an unkept hand-off: it goes on and hands it over.
-  if (verdict === "continue" && t.unreached && canNudge)
+  if (verdict === "continue" && t.unreached && goesOn)
     return { outcome: "continue", rule: "unreached", verdict, nudge: t.unreached };
   // Asking means waiting (ADR 0131 §1): a reply that ends asking the person whether to go on waits for their answer,
   // never pushed into going ahead. A secret asked in the chat and an unkept hand-off keep their rules above; one told
@@ -712,28 +751,27 @@ async function answerTurnEnd(t: TurnEnd): Promise<TurnEndDecision> {
   if (verdict === "continue" && t.kind === "conversation" && (await t.comesBack?.().catch(() => false)))
     return { outcome: "waiting", rule: "comes_back", verdict };
   if (verdict === "continue") {
-    const progressed = t.state.count === 0 || t.executed > (t.state.executedAtNudge ?? 0);
-    if (canNudge && progressed)
+    if (goesOn)
       return {
         outcome: "continue",
         rule: "promise",
         verdict,
         nudge: t.kind === "agents_dm" ? FOLLOW_THROUGH_NUDGE_DM : FOLLOW_THROUGH_NUDGE,
       };
-    if (t.kind !== "conversation") return { outcome: "done", rule: "cap", verdict };
+    if (t.kind !== "conversation") return { outcome: "done", rule: "cap", verdict, ...stalled };
     // Nothing brings it back: a person is asked what it needs instead.
   }
-  // It said it couldn't with ways left: once more with its means, while it still acts between nudges.
+  // It said it couldn't with ways left: again with its means, while it still does new work between nudges, and from
+  // the second time told to change tool family.
   if (verdict === "untried") {
-    const progressed = t.state.count === 0 || t.executed > (t.state.executedAtNudge ?? 0);
-    if (canNudge && progressed)
+    if (goesOn)
       return {
         outcome: "continue",
         rule: "untried",
         verdict,
-        nudge: untriedNudge(t.evidence?.means ?? [], t.evidence?.tried ?? []),
+        nudge: untriedNudge(t.evidence?.means ?? [], t.evidence?.tried ?? [], (t.state.untried ?? 0) + 1),
       };
-    return { outcome: "done", rule: "untried_cap", verdict };
+    return { outcome: "done", rule: "untried_cap", verdict, ...stalled };
   }
   if (verdict === "done") return { outcome: "done", rule: "judged", verdict };
   if (!t.state.askNudged)
@@ -751,7 +789,8 @@ export function advance(state: ContinuationState, d: TurnEndDecision, executed: 
   // A reply held for its wording answers no ask: one it was told to ask still becomes the question card.
   if (d.rule === "local_paths") return { ...state, pathsNudged: true };
   if (d.rule === "tool_names") return { ...state, toolsNudged: true };
-  return { ...rest, count: state.count + 1, executedAtNudge: executed };
+  const untried = d.rule === "untried" ? { untried: (state.untried ?? 0) + 1 } : {};
+  return { ...rest, ...untried, count: state.count + 1, executedAtNudge: executed };
 }
 
 /** Run errors the person already sees explained elsewhere, or that no one can act on. */

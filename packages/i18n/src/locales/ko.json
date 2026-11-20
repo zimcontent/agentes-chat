@@ -3933,7 +3933,10 @@
     "connect_app": {
       "title": "{{name}} 연결",
       "mcp": "MCP 서버 추가",
-      "adminOnly": "관리자가 연결해요"
+      "adminOnly": "관리자가 연결해요",
+      "continuing": "연결됨, 계속 진행 중",
+      "asked": "{{names}}님이 연결하기를 기다리는 중",
+      "expired": "더 이상 {{name}}을(를) 기다리지 않음"
     },
     "invite": {
       "title_other": "{{count}}명 초대",
@@ -4034,6 +4037,11 @@
     "someonePersonal": "반복하지 않음: {{when}} {{target}}에 이미 한 일이에요",
     "inChannel": "#{{channel}}",
     "open": "보기"
+  },
+  "deliveryProof": {
+    "group": "전달한 결과",
+    "screenshot": "스크린샷",
+    "showAll": "모두 보기"
   },
   "agentActions": {
     "issue": {
@@ -5474,6 +5482,7 @@
       "adminAskChannel": "<b>{{name}}</b> 님이 <b>{{agent}}</b>을(를) #{{label}}에 추가해 달라고 요청합니다",
       "adminAskCreate": "<b>{{name}}</b> 님이 에이전트를 만들 수 있게 해 달라고 요청합니다",
       "adminAskWebhook": "<b>{{name}}</b> 님이 루틴용 {{service}} 웹훅을 설정해 달라고 요청합니다",
+      "adminAskConnector": "<b>{{name}}</b>님이 {{service}} 연결을 요청합니다",
       "invitationAccepted": "<b>{{name}}</b> 님이 내 초대를 수락하고 {{org}}에 참여했어요",
       "companyRequest": "<b>{{company}}</b>님이 DougBot을 요청했습니다: <b>{{name}}</b>님의 요청입니다",
       "invitationAcceptedAny": "<b>{{name}}</b> 님이 내 초대를 수락했어요",
@@ -18209,6 +18218,7 @@
       "action_update_skills": "스킬 업데이트",
       "action_approvals": "내 승인을 기다리는 요청",
       "welcome_member": "방금 {{org}}에 들어오셨네요. **여기서 어떤 일을 맡고 있나요?** 알려주시면 첫 에이전트를 함께 만들어 드릴게요.",
+      "first_task_ask": "실제 일부터 시작해요. **매주 하는 귀찮은 일 하나를 알려주세요.** 지금 여기서 바로 처리할게요. 마음에 들면 매주 제가 맡아서 할게요.",
       "action_open_page": "화면 열기",
       "calendar_proposal": "일정 제안: {{title}}",
       "action_workspace": "워크스페이스 변경을 제안했어요",

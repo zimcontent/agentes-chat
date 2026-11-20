@@ -4349,6 +4349,12 @@ export const en = {
       title: "Connect {{name}}",
       mcp: "Add an MCP server",
       adminOnly: "An admin connects it",
+      /** The agent's task goes on by itself once it's connected (`request_connection`). */
+      continuing: "Connected, continuing",
+      /** Who was asked to connect it, because the person can't. */
+      asked: "Waiting for {{names}} to connect it",
+      /** Nobody connected it within a day: the agent stopped waiting. */
+      expired: "No longer waiting for {{name}}",
     },
     invite: {
       title_one: "Invite {{count}} person",
@@ -4456,6 +4462,12 @@ export const en = {
     someonePersonal: "Didn't repeat: this was already done with {{target}} {{when}}",
     inChannel: "in #{{channel}}",
     open: "View",
+  },
+  /** Proof on delivery (docs/adr/doug-0040-proof-on-delivery.md): the line of what a run delivered under its reply. */
+  deliveryProof: {
+    group: "What it delivered",
+    screenshot: "Screenshot",
+    showAll: "Show all",
   },
   agentActions: {
     issue: {
@@ -6048,6 +6060,8 @@ export const en = {
       adminAskChannel: "<b>{{name}}</b> asks you to add <b>{{agent}}</b> to #{{label}}",
       adminAskCreate: "<b>{{name}}</b> asks to be able to create agents",
       adminAskWebhook: "<b>{{name}}</b> asks you to set up the {{service}} webhook for routines",
+      /** An agent waits for the app to be connected to go on with a task (`request_connection`). */
+      adminAskConnector: "<b>{{name}}</b> asks you to connect {{service}}",
       invitationAccepted: "<b>{{name}}</b> accepted your invitation and joined {{org}}",
       /** A company asked for DougBot on the page (`company_request`): the company and the person. */
       companyRequest: "<b>{{company}}</b> asked for DougBot: a request from <b>{{name}}</b>",
@@ -19280,6 +19294,9 @@ export const en = {
       /** The right hand's greeting to someone who just joined the workspace, the first message of their DM with it. */
       welcome_member:
         "You just joined {{org}}. **What do you look after here?** Tell me and I set up your first agent with you.",
+      /** The right hand's ask to an owner whose onboarding just ended: one weekly chore it does on the spot. */
+      first_task_ask:
+        "Let's start with something real: **give me a boring task you do every week.** I'll do it right here, now, and if it comes out the way you like I can take it off your hands every week.",
       action_open_page: "Open a screen",
       calendar_proposal: "Event proposal: {{title}}",
       action_workspace: "Proposed a change in the workspace",

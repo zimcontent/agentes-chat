@@ -422,7 +422,23 @@ export async function saveOnboarding(
     if (await brandPending(db, orgId)) throw new ConflictError("Save the brand first", "onboarding.brand_pending");
   }
   if (input.finished) {
-    await db.update(organizations).set({ onboardingStep: "done", onboardedAt: new Date() }).where(open);
+    const ended = await db
+      .update(organizations)
+      .set({ onboardingStep: "done", onboardedAt: new Date() })
+      .where(open)
+      .returning({ id: organizations.id });
+    // The workspace opens on the right hand's DM, which has its house skills and asks for a first task to do right
+    // there (docs/adr/doug-0041-doug-defaults.md). Loaded here: the right hand's lanes import half the engine.
+    if (ended.length > 0) {
+      const [{ queueFirstTask }, { giveRightHandSkills }, { rightHandId }] = await Promise.all([
+        import("./right-hand-welcome"),
+        import("./right-hand-defaults"),
+        import("./right-hand"),
+      ]);
+      const hand = await rightHandId(db, orgId);
+      if (hand) await db.transaction((tx) => giveRightHandSkills(tx, orgId, hand));
+      await queueFirstTask(db, orgId, userId);
+    }
   } else if (input.step) {
     // The steps before it, in the statement itself: two tabs saving at once never take it back.
     const before = ONBOARDING_STEPS.slice(0, ONBOARDING_STEPS.indexOf(input.step));

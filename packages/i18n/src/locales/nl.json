@@ -4077,7 +4077,10 @@
     "connect_app": {
       "title": "{{name}} koppelen",
       "mcp": "Een MCP-server toevoegen",
-      "adminOnly": "Een admin koppelt het"
+      "adminOnly": "Een admin koppelt het",
+      "continuing": "Verbonden, gaat verder",
+      "asked": "Wacht tot {{names}} het verbindt",
+      "expired": "Wacht niet meer op {{name}}"
     },
     "invite": {
       "title_one": "{{count}} persoon uitnodigen",
@@ -4179,6 +4182,11 @@
     "someonePersonal": "Niet herhaald: dit was al {{when}} gedaan met {{target}}",
     "inChannel": "in #{{channel}}",
     "open": "Bekijken"
+  },
+  "deliveryProof": {
+    "group": "Wat het opleverde",
+    "screenshot": "Schermafbeelding",
+    "showAll": "Alles tonen"
   },
   "agentActions": {
     "issue": {
@@ -5675,6 +5683,7 @@
       "adminAskChannel": "<b>{{name}}</b> vraagt je <b>{{agent}}</b> toe te voegen aan #{{label}}",
       "adminAskCreate": "<b>{{name}}</b> vraagt om agents te mogen maken",
       "adminAskWebhook": "<b>{{name}}</b> vraagt je de {{service}}-webhook voor routines in te stellen",
+      "adminAskConnector": "<b>{{name}}</b> vraagt je {{service}} te verbinden",
       "invitationAccepted": "<b>{{name}}</b> heeft je uitnodiging geaccepteerd en doet mee in {{org}}",
       "companyRequest": "<b>{{company}}</b> vroeg DougBot aan: een verzoek van <b>{{name}}</b>",
       "invitationAcceptedAny": "<b>{{name}}</b> heeft je uitnodiging geaccepteerd",
@@ -18892,6 +18901,7 @@
       "action_update_skills": "Skills bijwerken",
       "action_approvals": "Goedkeuringen die op jou wachten",
       "welcome_member": "Je bent net bij {{org}} gekomen. **Waar houd je je hier mee bezig?** Vertel het me en ik stel samen met jou je eerste agent in.",
+      "first_task_ask": "Laten we met iets echts beginnen: **geef me een saaie taak die je elke week doet.** Ik doe hem hier, nu meteen, en als het goed uitpakt kan ik hem elke week van je overnemen.",
       "action_open_page": "Een scherm openen",
       "calendar_proposal": "Voorstel voor een afspraak: {{title}}",
       "action_workspace": "Stelde een wijziging in de werkruimte voor",

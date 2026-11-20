@@ -46,6 +46,7 @@ import {
   createChatToolSource,
   createClaudeCodeBrain,
   createCoAuthorToolSource,
+  createConnectionRequestToolSource,
   createConnectorToolSource,
   createContextToolSource,
   createDashboardToolSource,
@@ -470,6 +471,12 @@ export function buildEngine(o: EngineOptions) {
       createAskUserToolSource({ judge: context.judge, tools: () => tools }),
       // Missing something a request needs: ask for it (an approval card) instead of failing.
       createPermissionToolSource(),
+      // Missing an app the workspace hasn't connected: a Connect card, and the run goes on once it is
+      // (docs/adr/doug-0039-connect-and-continue.md).
+      createConnectionRequestToolSource({
+        pubsub: adapters.pubsub,
+        catalog: { oauthApps: connectorDeps.oauthApps, mail: adapters.mail, composio },
+      }),
       // The agent browser asks a person for help (ADR 0040 §6).
       createBrowserHandoffToolSource({ pubsub: adapters.pubsub, machines: { hub: machineHub } }),
       // The agent takes back a request for a person it no longer needs (listed while it has one open).

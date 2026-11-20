@@ -151,6 +151,7 @@ import {
 } from "./logic";
 import { lookRows, RowPartContext, useRhythm, useRowLook } from "./look";
 import { MessageText } from "./MessageText";
+import { ProofLine } from "./ProofLine";
 import { QuoteAbove, QuotePlate } from "./QuoteLine";
 import { ReachLines } from "./ReachLines";
 import { Receipts } from "./Receipts";
@@ -938,6 +939,7 @@ function RowBody({
             {isAgent && feedbackOfferOf(meta) ? <FeedbackOfferRow message={m} /> : null}
             {isAgent && m.longWork ? <MessageWorkLine message={m} threaded={Boolean(thread)} /> : null}
             {files.length > 0 ? <MessageFiles files={files} /> : null}
+            {isAgent ? <ProofLine message={m} /> : null}
             {trails && m.author.id && trails.browser.length > 0 ? (
               <TrailCard
                 agentId={m.author.id}

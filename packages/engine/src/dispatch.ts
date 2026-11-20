@@ -110,6 +110,11 @@ export interface StartRunOptions {
   park?: number;
   /** A parked wake: when it started waiting. Its run's place in the computer's line counts from then. */
   parkedSince?: number;
+  /**
+   * A separate request starting beside the agent's run at work in the conversation (docs/adr/doug-0038-parallel-work.md):
+   * it never joins that run; `startParallelRun` took it out of its inbox and checked the cap.
+   */
+  alongside?: boolean;
 }
 
 /**
@@ -127,7 +132,7 @@ export async function startOrJoinRun(
   options: StartRunOptions = {},
 ): Promise<{ created: AgentRun } | { joined: string } | null> {
   // One active run per agent and conversation (background runs hold no slot): the message goes to it, read at its next step, instead of a second run.
-  if (!options.background) {
+  if (!options.background && !options.alongside) {
     // Several runs may be active (in the agents' DM one per person behind them; elsewhere a person's run
     // next to an unattended one, or one held by a decision): the message joins the newest it may
     // (`mayJoin`). A run waiting on an approval, a secret or a mission's decision takes nothing new

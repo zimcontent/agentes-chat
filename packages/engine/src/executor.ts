@@ -69,7 +69,13 @@ import {
 import type { BlockSpecReader } from "./block-state";
 import { ASK_CHOICES_TOOL, SHOW_BLOCK_TOOL, someoneAnswers } from "./blocks";
 import { brainOf } from "./brain-settings";
-import { brainSessionId, missingTurnFolder, RUNNER_RESTARTING, recordPlanUsage } from "./brains/claude-code";
+import {
+  brainSessionId,
+  claudeToolsMissing,
+  missingTurnFolder,
+  RUNNER_RESTARTING,
+  recordPlanUsage,
+} from "./brains/claude-code";
 import { codexModelRefused } from "./brains/codex";
 import { ModelBrain } from "./brains/model";
 import type { ComputerTurn } from "./brains/prompt";
@@ -314,6 +320,7 @@ import {
   unreadNow,
   whileHeld,
 } from "./run-inbox";
+import { type ProofMark, proofLines, runProof } from "./run-proof";
 import { deliverNoticeToRun } from "./run-resume";
 import { issueRunToolToken, revokeRunToolTokens } from "./run-tool-tokens";
 import {
@@ -563,6 +570,8 @@ export interface EngineDeps {
   computerWakeWaitMs?: number;
   /** How long a computer turn is still read after its plan's `limit` event (default `PLAN_LIMIT_GRACE_MS`). */
   planLimitGraceMs?: number;
+  /** Tests: `TOOLS_MISSING_RETRY_MS`. */
+  toolsMissingRetryMs?: number;
   /**
    * Tools on demand (ADR 0043): each run lists the core tools and the groups the
    * judge (`context.judge`) expects it to need; the rest go behind
@@ -611,6 +620,8 @@ export interface Transcript {
   postedCount: number;
   /** The words of the last message it posted (trimmed): saying exactly them again next adds nothing. */
   lastPosted?: string;
+  /** Where the proof on its last message read up to (docs/adr/doug-0040-proof-on-delivery.md): the next carries what came after. */
+  proof?: ProofMark;
   /**
    * A reply judged `untried` and held back (ADR 0109): nobody saw it. It goes out with the run's next words
    * (`heldWords`), or alone when the run ends without any (a pass, an empty turn, a closing line, a failure).
@@ -831,15 +842,21 @@ export interface Transcript {
    * `prompt`: what the interrupted turn was asked; `drops`: how many times this run was cut off after its turn said or
    * did something; `early`: cut before that, with nothing to redo (`MAX_EARLY_COMPUTER_DROPS`); `cause`: `restart`
    * when our server stopped in the middle of the turn, not the computer; `plan_limit` when the
-   * plan refused the rest of the turn (never one of the computer's drops).
+   * plan refused the rest of the turn (never one of the computer's drops); `no_tools` when Claude Code started
+   * without our tools (`toolsRetried`).
    */
   interruptedTurn?: {
     prompt: string;
     executed: string[];
     drops: number;
     early?: number;
-    cause?: "restart" | "plan_limit";
+    cause?: "restart" | "plan_limit" | "no_tools";
   };
+  /**
+   * Claude Code started this run's turn without our MCP server (`claudeToolsMissing`): the turn went once more on the
+   * same session (ADR 0032 addendum 2026-11-20). Once a run.
+   */
+  toolsRetried?: boolean;
   /** What the computer brain's turn under way was asked: a turn cut by a crash is sent again with it. */
   turnPrompt?: string;
   /**
@@ -961,6 +978,8 @@ export const MAX_EARLY_COMPUTER_DROPS = 10;
 export const COMPUTER_BUSY_RETRY_MS = 15_000;
 /** How soon a turn refused by a runner about to restart asks again (it is back a few seconds after, ADR doug-0005). */
 export const RUNNER_RESTART_RETRY_MS = 5_000;
+/** How long a turn Claude Code started without our tools waits before it goes again (`claudeToolsMissing`). */
+export const TOOLS_MISSING_RETRY_MS = 5_000;
 /**
  * Waiting for room is a live state on the person's message, not a chat line: only a run still in line after this long
  * says so, once per agent and conversation.
@@ -978,7 +997,9 @@ export function interruptedTurnPrompt(
       ? "the server restarted"
       : t.cause === "plan_limit"
         ? "the plan's usage limit was reached"
-        : "the computer disconnected";
+        : t.cause === "no_tools"
+          ? "Claude Code started without your tools (they are back now)"
+          : "the computer disconnected";
   return [
     `Your previous turn was cut off because ${why}.${done} Pick up where you left off and finish it. What you were asked:`,
     t.prompt,
@@ -2232,6 +2253,15 @@ async function executeRunInner(
     const said = note ? body : await publishable(tx, threadId, body);
     // Team actions (ADR 0064): what the run didn't repeat because the team already did it rides on its reply.
     const teamChecks = note ? [] : await runChecksForReply(tx, run.orgId, run.id);
+    // Proof on delivery (docs/adr/doug-0040-proof-on-delivery.md): what it did since its last message, read from its
+    // steps, never from its words.
+    // Only after a call it executed since the last proof (`executedCalls`): a reply with nothing done since reads
+    // nothing (the query budget), and a call counted after this post leaves the mark where it was for the next one.
+    const calls = transcript?.executedCalls ?? 0;
+    const proof =
+      note || !transcript || calls <= (transcript.proof?.calls ?? 0)
+        ? null
+        : await runProof(tx, run, transcript.proof ?? null).catch(() => null);
     // "Ver o que ele fez" under the reply: how many tool calls so far, so the apps leave it out at 0, and one call
     // per logo of the closed block, in order of first use: per service, else app, else screen, else tool (a
     // connector's dozens of tools would push the next apps past the few kept). A reaction already shows on the
@@ -2306,6 +2336,7 @@ async function executeRunInner(
         ...(readOutside && !note ? { readOutside: true } : {}),
         work,
         ...(teamChecks.length > 0 ? { teamChecks } : {}),
+        ...(proof && proof.items.length > 0 ? { proof: proof.items } : {}),
         ...(unreached.length > 0 ? { unreachedAgents: unreached } : {}),
         ...(missed.length > 0 ? { unreachedPeople: missed } : {}),
       },
@@ -2332,6 +2363,7 @@ async function executeRunInner(
     if ((await linkRunActions(tx, run.orgId, run.id, m.id)) > 0) withReceipts.push(m.id);
     if (!note && transcript) {
       transcript.lastPosted = body.trim();
+      if (proof) transcript.proof = { ...proof.mark, calls };
       // Its words went out, the held reply with them or in their place (`heldWords`), or before them (`closeWith`).
       delete transcript.held;
       delete transcript.heldWording;
@@ -3205,7 +3237,9 @@ async function executeRunInner(
       evidence.means = [...turnMeans(names, teammates, await isPersonalWorkspace(db, run.orgId)), ...own];
       // No call executed in this run: no tool step to read.
       evidence.tried = t.executedCalls ? await triedCalls(db, run, t.harnessTried) : (t.harnessTried ?? []);
-      return evidence;
+      // What the whole run delivered, read from its steps (docs/adr/doug-0040-proof-on-delivery.md).
+      const proof = t.executedCalls ? await runProof(db, run).catch(() => null) : null;
+      return { ...evidence, proof: proof ? proofLines(proof.items) : [] };
     };
     return { evidence, gather };
   };
@@ -5244,6 +5278,34 @@ async function executeRunInner(
               continue;
             }
             return waitForUsage({ code: "plan_limit", message: error.message, ...refusal });
+          }
+          // Claude Code started without our MCP server, so without its permission prompt: the first command that
+          // needed one ended the turn, so it never ran, and the session keeps what ran before it. Once a run, the turn
+          // goes again on that session after a moment, told what already ran (ADR 0032 addendum 2026-11-20).
+          if (
+            machineId &&
+            turnPlan.kind === "claude_code" &&
+            error instanceof BrainFailure &&
+            claudeToolsMissing(error.message) &&
+            !transcript.toolsRetried
+          ) {
+            transcript.toolsRetried = true;
+            const labels = executed.map((c) => c.label);
+            if (labels.length > 0) {
+              const prev = transcript.interruptedTurn;
+              transcript.interruptedTurn = {
+                prompt: prev?.prompt ?? prompt,
+                executed: [...new Set([...(prev?.executed ?? []), ...labels])],
+                drops: prev?.drops ?? 0,
+                ...(prev?.early ? { early: prev.early } : {}),
+                cause: "no_tools",
+              };
+              nextPrompt = interruptedTurnPrompt(transcript.interruptedTurn);
+            }
+            await saveTranscript(db, transcript);
+            later(() => addRunStep(db, run, "context", { toolsRetried: { executed: labels } }));
+            await Bun.sleep(deps.toolsMissingRetryMs ?? TOOLS_MISSING_RETRY_MS);
+            continue;
           }
           // The right hand's CLI killed at a tool of its own (ADR 0137 §4): nothing of that turn is posted, only its
           // DM's line (`brainUnavailable`), whatever it did through the bridge before.

@@ -4207,7 +4207,10 @@
     "connect_app": {
       "title": "Connecter {{name}}",
       "mcp": "Ajouter un serveur MCP",
-      "adminOnly": "Un admin le connecte"
+      "adminOnly": "Un admin le connecte",
+      "continuing": "Connecté, on continue",
+      "asked": "En attente de {{names}} pour le connecter",
+      "expired": "N'attend plus {{name}}"
     },
     "invite": {
       "title_one": "Inviter {{count}} personne",
@@ -4312,6 +4315,11 @@
     "someonePersonal": "Pas refait : cela a déjà été fait avec {{target}} {{when}}",
     "inChannel": "dans #{{channel}}",
     "open": "Voir"
+  },
+  "deliveryProof": {
+    "group": "Ce qu'il a livré",
+    "screenshot": "Capture",
+    "showAll": "Tout afficher"
   },
   "agentActions": {
     "issue": {
@@ -5843,6 +5851,7 @@
       "adminAskChannel": "<b>{{name}}</b> vous demande d'ajouter <b>{{agent}}</b> à #{{label}}",
       "adminAskCreate": "<b>{{name}}</b> demande à pouvoir créer des agents",
       "adminAskWebhook": "<b>{{name}}</b> vous demande de configurer le webhook {{service}} pour les routines",
+      "adminAskConnector": "<b>{{name}}</b> vous demande de connecter {{service}}",
       "invitationAccepted": "<b>{{name}}</b> a accepté votre invitation et a rejoint {{org}}",
       "companyRequest": "<b>{{company}}</b> a demandé DougBot : une demande de <b>{{name}}</b>",
       "invitationAcceptedAny": "<b>{{name}}</b> a accepté votre invitation",
@@ -19403,6 +19412,7 @@
       "action_update_skills": "Mettre à jour des compétences",
       "action_approvals": "Approbations qui vous attendent",
       "welcome_member": "Vous venez de rejoindre {{org}}. **De quoi vous occupez-vous ici ?** Dites-le-moi et je crée votre premier agent avec vous.",
+      "first_task_ask": "Commençons par du concret : **donne-moi une tâche ennuyeuse que tu fais chaque semaine.** Je la fais ici, maintenant, et si le résultat te plaît je peux m'en charger chaque semaine.",
       "action_open_page": "Ouvrir un écran",
       "calendar_proposal": "Proposition d'événement : {{title}}",
       "action_workspace": "A proposé une modification dans l'espace de travail",

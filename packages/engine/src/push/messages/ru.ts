@@ -92,9 +92,11 @@ export const strings: Partial<PushStrings> = {
   adminAskTitle: (a, what, l) =>
     what === "channel_agent"
       ? `${a} просит добавить агента в #${l}`
-      : what === "create_agents"
-        ? `${a} просит разрешить создавать агентов`
-        : `${a} просит настроить вебхук ${l} для рутин`,
+      : what === "connector"
+        ? `${a} просит подключить ${l}`
+        : what === "create_agents"
+          ? `${a} просит разрешить создавать агентов`
+          : `${a} просит настроить вебхук ${l} для рутин`,
   deviceWaitingTitle: (p, d) => `Агент для ${p} ждёт ваше устройство ${d}`,
   deviceWaitingBody: "Начнёт, когда оно вернётся.",
   teamWeekReady: "Итоги недели команды готовы",

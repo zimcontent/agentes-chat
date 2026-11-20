@@ -279,8 +279,9 @@ async function runEvidence(deps: ResourcefulDeps, ctx: ToolContext, run: RunRow)
 
 /**
  * A routine's report that says it couldn't while the run still had ways to try (ADR 0109): held once, before
- * anything posts (never inside the delivery's transaction), and the nudge is the tool's answer. It uses the run's one
- * extra turn (`CONTINUE.routineMaxPerRun`, shared with the turn-end controller), so the next report always posts.
+ * anything posts (never inside the delivery's transaction), and the nudge is the tool's answer. It uses one of the
+ * run's extra turns (`CONTINUE.routineMaxPerRun`, shared with the turn-end controller), and only one hold, so the
+ * next report always posts.
  * Null: post it.
  */
 async function holdUntried(deps: HandOffDeps, ctx: ToolContext, text: string): Promise<string | null> {
@@ -292,8 +293,11 @@ async function holdUntried(deps: HandOffDeps, ctx: ToolContext, text: string): P
     .where(and(eq(agentRuns.id, ctx.runId), eq(agentRuns.orgId, ctx.orgId)));
   if (!run?.background || run.status !== "running") return null;
   const t = (run.transcript ?? {}) as RunTranscript;
-  const used = Math.max(t.continuation?.count ?? 0, await handOffHolds(ctx.db, run));
-  if (used >= CONTINUE.routineMaxPerRun) return null;
+  const holds = await handOffHolds(ctx.db, run);
+  const used = Math.max(t.continuation?.count ?? 0, holds);
+  // Held once at most, even with turns left under the progress-gated ceiling (ADR 0097 addendum 2026-11-20): a
+  // report is the routine's last act, and a second hold would leave it with nothing posted.
+  if (holds > 0 || used >= CONTINUE.routineMaxPerRun) return null;
   const { request, means, tried } = await runEvidence(deps, ctx, run);
   const verdict = await continuationVerdict(deps.judge, {
     orgId: ctx.orgId,

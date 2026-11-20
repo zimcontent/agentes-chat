@@ -4244,6 +4244,9 @@ export const ptBR = {
       title: "Conectar {{name}}",
       mcp: "Adicionar um servidor MCP",
       adminOnly: "Um admin conecta",
+      continuing: "Conectado, continuando",
+      asked: "Esperando {{names}} conectar",
+      expired: "Deixou de esperar por {{name}}",
     },
     invite: {
       title_one: "Convidar {{count}} pessoa",
@@ -4349,6 +4352,11 @@ export const ptBR = {
     someonePersonal: "Não repeti: isso já tinha sido feito com {{target}} {{when}}",
     inChannel: "em #{{channel}}",
     open: "Ver",
+  },
+  deliveryProof: {
+    group: "O que ele entregou",
+    screenshot: "Print",
+    showAll: "Mostrar tudo",
   },
   agentActions: {
     issue: {
@@ -5911,6 +5919,7 @@ export const ptBR = {
       adminAskChannel: "<b>{{name}}</b> pede para adicionar <b>{{agent}}</b> a #{{label}}",
       adminAskCreate: "<b>{{name}}</b> pede para poder criar agentes",
       adminAskWebhook: "<b>{{name}}</b> pede para ligar o webhook do {{service}} para rotinas",
+      adminAskConnector: "<b>{{name}}</b> pede para conectar o {{service}}",
       invitationAccepted: "<b>{{name}}</b> aceitou seu convite e entrou na {{org}}",
       companyRequest: "<b>{{company}}</b> pediu o DougBot: um pedido de <b>{{name}}</b>",
       invitationAcceptedAny: "<b>{{name}}</b> aceitou seu convite",
@@ -19157,6 +19166,8 @@ export const ptBR = {
       action_approvals: "Aprovações esperando você",
       welcome_member:
         "Você acabou de entrar na {{org}}. **Do que você cuida por aqui?** Me conta e eu monto seu primeiro agente com você.",
+      first_task_ask:
+        "Vamos começar por algo de verdade: **me passa uma tarefa chata que você faz toda semana.** Eu resolvo agora, aqui mesmo, e se ficar do seu jeito eu passo a fazer toda semana pra você.",
       action_open_page: "Abrir uma tela",
       calendar_proposal: "Proposta de evento: {{title}}",
       action_workspace: "Propôs uma mudança no workspace",

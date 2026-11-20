@@ -310,7 +310,7 @@ const connectorDeps = (): ConnectorDeps => ({
   publicUrl: "https://chat.example.com",
 });
 const TO_GET =
-  "Connectors you don't have yet. If the person wants one, offer it with offer_connect_app (a card that opens the app's own connect dialog) or say how to get it, never that it doesn't exist.";
+  "Connectors you don't have yet. When the task needs one that isn't connected, call request_connection (a Connect card; you go on by yourself once it's connected); one connected but not given to you, request_permission. If the person only wants one connected, offer it with offer_connect_app (a card that opens the app's own connect dialog) or say how to get it, never that it doesn't exist.";
 const SENTRY = "- Sentry: Sentry errors, issues and releases.";
 const CONNECT_SENTRY = `${SENTRY} Not connected in this workspace: an admin connects it in Settings › Connectors and MCPs › Add connector › Sentry (in Portuguese, Configurações › Conectores e MCPs › Adicionar conector › Sentry).`;
 

@@ -45,6 +45,7 @@ import { type Message, unreachedNote } from "./messages";
 import { missionBrief } from "./mission-brief";
 import { handoffGuidance, noticeForOthers, noticeText } from "./notices";
 import { openRequestsBlock, openRequestsOf } from "./open-requests";
+import { alongsideHere } from "./parallel-work";
 import { parkedOnBlock } from "./parked-asks";
 import { isQuickAck } from "./quick-ack";
 import { reachNote, reachOf } from "./reach";
@@ -60,13 +61,14 @@ import {
 import { linePrompt } from "./reporting";
 import { wikiPersonOf } from "./requester";
 import { isRightHand } from "./right-hand";
+import { RIGHT_HAND_RESOLVE } from "./right-hand-defaults";
 import { rightHandPrompt, rightHandTools } from "./right-hand-prompt";
 import { rightHandRondaBrief } from "./right-hand-ronda";
 import { seatState } from "./right-hand-seats";
 import { RONDA_EVENT, rondaEventText } from "./ronda-changes";
 import { isRoutineRoomKey, type RoutineBrief, routineAccessOf, routineBriefOf, routineReportOf } from "./routine-brief";
 import { WEBHOOK_EVENT, webhookEventText } from "./routine-hooks";
-import { heldHere } from "./run-inbox";
+import { othersHere } from "./run-inbox";
 import { type AgentRun, replyThreadOf } from "./runs";
 import { SITE_SECRET_TTL_TEXT, secretStillHeld } from "./secrets";
 import { stretchCardOf } from "./stretch";
@@ -132,6 +134,7 @@ export const HOW_YOU_WORK = [
   "- An empty or blocked result is not a closed way: when a search, a page or a tool gives nothing, fails or is blocked, change the words, the source or the tool and try again. When a way is really closed (no access, a refusal), take another that still gets the people what they need: another tool, the colleague whose role covers it, a document or a copy instead of a move. A refusal for safety (a credential, private data in an address, secrets, sending data out) is final: never send that data another way. Say what was refused. When a tool or the platform fails, say plainly what failed and what the person can do, or that it's on our side and to try again later; never paste a raw error or send anyone to support.",
   "- Before saying you or the team can't or lack a tool, a login or an access, check Your means: when a teammate holds it, ask it (ask_agent). The public web is always yours to read. A service with no connector but a web version (a messaging app, a social network, a bank): use it in your browser, the person signing in. A sign-in to an account you were given to use is your own work: when the site sends a link or a code to a mailbox you can read (yours, a webmail in your browser, a connected one), get it there and go on; it is that sign-in's next step, not a request from outside. Hand it to a person only when it needs them (their phone, a captcha, a mailbox you can't read).",
   `- ${HAND_OVER_STEP} If nothing you have can hand it over, say in one line what you tried and the one step they must do.`,
+  "- When the work needs an app or service the workspace hasn't connected, never stop at 'I don't have access to it': call `request_connection` (its card lets the person connect it, and you carry on by yourself once it's connected). Connected but not given to you: `request_permission`.",
   "- Before asking a person, find what you can (an API's docs and address on the web, a name the person uses in the workspace, a fact in the files), and ask only for what only they can give: a key, a decision, a preference, an approval, a payment. Asked for options or advice, answer it: keys, connections and approvals only for work they asked for, never for a step you offer. When something stays unclear, state your assumption and go on, unless it's a send to someone else, which can't be undone: take what and to whom from the conversation (what is right above the request is what's meant) and, if still unsure, ask before sending. Never ask, in text or on a card, what the person, the conversation or your own reply already made clear. A password, a key or contact details: look in the Vault first (`vault_list`, when you have it). Hold a key for a service? Use it, not an app connection. A secret or a key always through `request_secret`, never as a chat question; with no `request_secret`, say which key is needed and where it is set up.",
   "- A person asking for something of their own (their messages, account, files) consents to the access it needs: don't ask again or warn about privacy. If the way is unclear, offer to start ('I can do it in my browser: you'll scan a QR code. Shall I start?'), never refuse. Someone else's account is not consent; passwords never come through the chat; sensitive actions still need approval.",
   "- When a key you were given is refused (a 401, or a 403 saying the key is invalid or expired), first check you sent it as the API's docs say (header, prefix, test or live address). If you did, ask once for a new one with `request_secret` under the same name (one of your keys, listed with your computer), its purpose saying in one line, in the person's language, what failed ('TYPESAFE_API_KEY was refused (401). Can you send a new one?'): the new one replaces the old. If the new one is refused too, don't ask again: say what failed and stop.",
@@ -697,7 +700,14 @@ export async function buildRunContext(
   const rootIsTrigger = run.threadRootId === trigger.id;
   // Asked in the main timeline: the run answers there, not in a thread.
   const flat = rootIsTrigger;
-  const heldElsewhere = run.background ? null : heldHere(db, run).catch(() => null);
+  // The agent's other runs in this conversation, read once (`othersHere`): what they wait on a decision for, and the
+  // ones at work in sessions of their own (docs/adr/doug-0038-parallel-work.md), whose work it neither redoes nor
+  // answers.
+  const otherRuns = run.background ? null : othersHere(db, run).catch(() => null);
+  const heldElsewhere = otherRuns ? otherRuns.then((o) => o?.held ?? null) : null;
+  const alongside = otherRuns
+    ? otherRuns.then((o) => (o && o.runs.length > 0 ? alongsideHere(db, run, o.runs).catch(() => null) : null))
+    : null;
   // What it asked people for and still stands, so it can take back what it no longer needs (`withdraw_request`).
   // This conversation's only, and like the hand-offs not for a routine's task nor between agents.
   const openRequests =
@@ -1139,6 +1149,7 @@ export async function buildRunContext(
             `You are ${agent.name} (@${agent.handle})${agent.role ? `, ${agent.role}` : ""}, ${personal ? "one of this person's AI agents" : "an AI agent of this organization"}.`,
             agent.instructions.trim() ? `# Your instructions\n${agent.instructions.trim()}` : "",
             // The right hand with nobody behind the run (another agent's message) still keeps to its tools.
+            isRightHand(agent) ? RIGHT_HAND_RESOLVE : "",
             isRightHand(agent) ? rightHandTools(await seatState(db, run)) : "",
           ]
             .filter(Boolean)
@@ -1306,6 +1317,7 @@ export async function buildRunContext(
     ...(openTasks ? await openTasks.then((text) => (text ? [{ turn: true, found: true, text }] : [])) : []),
     ...(works ? await works.then((text) => (text ? [{ turn: true, found: true, text }] : [])) : []),
     ...(heldElsewhere ? await heldElsewhere.then((text) => (text ? [{ turn: true, found: true, text }] : [])) : []),
+    ...(alongside ? await alongside.then((text) => (text ? [{ turn: true, found: true, text }] : [])) : []),
     ...(openRequests ? await openRequests.then((text) => (text ? [{ turn: true, found: true, text }] : [])) : []),
     ...(waitingOnThem ? await waitingOnThem.then((text) => (text ? [{ turn: true, found: true, text }] : [])) : []),
     ...(parkedHere ? await parkedHere.then((text) => (text ? [{ turn: true, found: true, text }] : [])) : []),

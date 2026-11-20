@@ -25,6 +25,12 @@ import { HANDOFF_REMIND_JOB, remindBrowserHandoff } from "./browser/handoff";
 import { typingLogFor } from "./burst";
 import { CHANNEL_DELETE_JOB, purgeChannel } from "./channel-deletion";
 import { crowdedAgents, publishQueueChanged } from "./computer-queue";
+import { CONNECTION_CHECK_JOB } from "./connection-check";
+import {
+  CONNECTION_REQUEST_EXPIRED_JOB,
+  expireConnectionRequest,
+  settleConnectionRequests,
+} from "./connection-requests";
 import type { ConnectorDeps } from "./connectors/connections";
 import { startNoteRun } from "./consultations";
 import { getChannelCached } from "./context";
@@ -80,6 +86,8 @@ import { FILE_JOIN_REQUEST_JOB, fileJoinRequest } from "./invite-requests";
 import { announceTaskConversation } from "./issues";
 import type { JevKey, JevKeySource } from "./jev-key";
 import { DEEP_MENTION_THRESHOLD, DEEP_WAKE_HOP, MENTION_WAKE_THRESHOLD, mentionNeedsNothing } from "./judge";
+import { announceLearned } from "./learned-line";
+import { isLearnedLine, LEARNED_LINE_JOB } from "./learned-words";
 import { platformCapReached } from "./limits";
 import { wakeForAccessDecision } from "./machine-access";
 import type { MachineCaller } from "./machine-hub";
@@ -661,6 +669,8 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
       if (message.meta.talker || message.meta.sayNow) return;
       // An agent's first line before its answer (docs/adr/doug-0037): the answer that follows is what counts.
       if (isQuickAck(message.meta)) return;
+      // "Aprendi a fazer isso" under an answer (ADR 0120, addendum 2026-11-20): the answer is what counts.
+      if (isLearnedLine(message.meta)) return;
       // A GIF or a sticker alone (ADR 0091), an agent's silent one after its reply too: it starts nobody, routes
       // to nobody and gets no sticker after it. Its insert queues no `message.posted`; one delivered anyway does
       // nothing.
@@ -956,6 +966,17 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
         threadRootId: String(job.payload.threadRootId),
       });
       if (res.results.length > 0) await publishListChanged(deps.pubsub, orgOf(job), "memory");
+    },
+    // "Aprendi a fazer isso" once a run left a new or better skill (ADR 0120, addendum 2026-11-20).
+    [LEARNED_LINE_JOB]: async (job) => {
+      if (!deps.artifacts) return;
+      const res = await announceLearned(
+        { ...deps.artifacts, pubsub: deps.pubsub },
+        { orgId: orgOf(job), runId: String(job.payload.runId) },
+      );
+      // Its run went on after the turn that queued it: the outbox's backoff brings it back once the run ends.
+      if ("skipped" in res && res.skipped === "running")
+        throw Object.assign(new Error("its run is still going"), { retryable: true });
     },
     [LEARN_JOB]: async (job) => {
       if (!deps.context) return;
@@ -1265,6 +1286,14 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
       await wakeForAccessDecision({ db: deps.db, pubsub: deps.pubsub }, String(job.payload.requestId), {
         maxHops: deps.maxHops,
       });
+    },
+    // Something changed what an agent may hold: requests to connect a service it now holds go on (docs/adr/doug-0039).
+    [CONNECTION_CHECK_JOB]: async (job) => {
+      await settleConnectionRequests({ db: deps.db, pubsub: deps.pubsub }, String(job.payload.orgId));
+    },
+    // Nobody connected it within a day (`request_connection`): the wait ends and the agent says so.
+    [CONNECTION_REQUEST_EXPIRED_JOB]: async (job) => {
+      await expireConnectionRequest({ db: deps.db, pubsub: deps.pubsub }, String(job.payload.requestId));
     },
     // A run waited a day for a device (`wait_for_device`): still waiting, it stops and says so.
     [DEVICE_WAIT_EXPIRED_JOB]: async (job) => {

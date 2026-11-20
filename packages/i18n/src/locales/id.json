@@ -3945,7 +3945,10 @@
     "connect_app": {
       "title": "Hubungkan {{name}}",
       "mcp": "Tambah server MCP",
-      "adminOnly": "Admin yang menghubungkannya"
+      "adminOnly": "Admin yang menghubungkannya",
+      "continuing": "Terhubung, melanjutkan",
+      "asked": "Menunggu {{names}} menghubungkannya",
+      "expired": "Tidak lagi menunggu {{name}}"
     },
     "invite": {
       "title_other": "Undang {{count}} orang",
@@ -4047,6 +4050,11 @@
     "someonePersonal": "Tidak diulangi: ini sudah dilakukan dengan {{target}} {{when}}",
     "inChannel": "di #{{channel}}",
     "open": "Lihat"
+  },
+  "deliveryProof": {
+    "group": "Yang dihasilkan",
+    "screenshot": "Tangkapan layar",
+    "showAll": "Tampilkan semua"
   },
   "agentActions": {
     "issue": {
@@ -5490,6 +5498,7 @@
       "adminAskChannel": "<b>{{name}}</b> memintamu menambahkan <b>{{agent}}</b> ke #{{label}}",
       "adminAskCreate": "<b>{{name}}</b> meminta izin membuat agen",
       "adminAskWebhook": "<b>{{name}}</b> memintamu menyiapkan webhook {{service}} untuk rutinitas",
+      "adminAskConnector": "<b>{{name}}</b> meminta Anda menghubungkan {{service}}",
       "invitationAccepted": "<b>{{name}}</b> menerima undanganmu dan bergabung ke {{org}}",
       "companyRequest": "<b>{{company}}</b> meminta DougBot: permintaan dari <b>{{name}}</b>",
       "invitationAcceptedAny": "<b>{{name}}</b> menerima undanganmu",
@@ -18271,6 +18280,7 @@
       "action_update_skills": "Perbarui skill",
       "action_approvals": "Persetujuan yang menunggumu",
       "welcome_member": "Anda baru saja bergabung dengan {{org}}. **Apa yang Anda tangani di sini?** Beri tahu saya dan saya siapkan agen pertama Anda bersama Anda.",
+      "first_task_ask": "Kita mulai dari sesuatu yang nyata: **berikan saya satu tugas membosankan yang Anda kerjakan setiap minggu.** Saya kerjakan sekarang juga di sini, dan kalau hasilnya sesuai, saya bisa mengambil alih setiap minggu.",
       "action_open_page": "Buka layar",
       "calendar_proposal": "Usulan acara: {{title}}",
       "action_workspace": "Mengusulkan perubahan di ruang kerja",
