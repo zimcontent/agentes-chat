@@ -209,6 +209,9 @@ const Message = z
     media: z
       .object({ mimeType: z.string(), fileName: z.string().nullable(), seconds: z.number().nullable() })
       .nullable(),
+    wave: z.array(z.number()).nullable().openapi({
+      description: "A voice message's bars as WhatsApp draws them (about 64, each 0 to 100); null for anything else.",
+    }),
     file: z.boolean().openapi({
       description: "Its file can be loaded with `GET …/accounts/{accountId}/messages/{messageId}/file`.",
     }),

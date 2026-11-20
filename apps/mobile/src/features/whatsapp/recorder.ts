@@ -12,8 +12,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 export const TAKE_MIN_MS = 1_000;
 
 /**
- * A voice message for WhatsApp: tap the green mic to record, then send it or delete it, as WhatsApp's own locked
- * recording. `stop` answers the finished file and its length; null when there was nothing (or it was too short).
+ * A voice message for WhatsApp: held on the green mic (or locked, hands free), then sent or deleted, as in WhatsApp.
+ * `start` answers whether it is recording. `stop` answers the finished file and its length; null when there was nothing (or it was too short).
  * Past the app's longest voice message it stops by itself and `onFull` sends what it has.
  */
 export function useWhatsAppTake({ onBlocked, onFull }: { onBlocked: () => void; onFull: () => void }) {
@@ -39,16 +39,20 @@ export function useWhatsAppTake({ onBlocked, onFull }: { onBlocked: () => void; 
     [recorder, clear],
   );
 
-  const start = useCallback(async () => {
+  const start = useCallback(async (): Promise<boolean> => {
     const known = await getRecordingPermissionsAsync();
     const asked = known.granted ? known : known.canAskAgain ? await requestRecordingPermissionsAsync() : known;
     if (!asked.granted) {
       onBlocked();
-      return;
+      return false;
     }
-    await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true, interruptionMode: "doNotMix" });
-    await recorder.prepareToRecordAsync();
-    recorder.record();
+    try {
+      await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true, interruptionMode: "doNotMix" });
+      await recorder.prepareToRecordAsync();
+      recorder.record();
+    } catch {
+      return false;
+    }
     started.current = Date.now();
     setMs(0);
     setRecording(true);
@@ -57,6 +61,7 @@ export function useWhatsAppTake({ onBlocked, onFull }: { onBlocked: () => void; 
       setMs(now);
       if (now >= VOICE_MAX_MS) full.current();
     }, 250);
+    return true;
   }, [recorder, onBlocked]);
 
   const finish = useCallback(async () => {

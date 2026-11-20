@@ -70,3 +70,7 @@ export const openWhatsAppAccount = (accountId: string) => router.push(`/whatsapp
 /** Opens one conversation of a number. */
 export const openWhatsAppChat = (accountId: string, chatId: string) =>
   router.push(`/whatsapp/chat?account=${encodeURIComponent(accountId)}&chat=${encodeURIComponent(chatId)}`);
+
+/** Opens a WhatsApp photo full screen, saying who sent it and when. */
+export const openWhatsAppPhoto = (accountId: string, messageId: string, title: string, sub: string) =>
+  router.push({ pathname: "/whatsapp/photo", params: { account: accountId, message: messageId, title, sub } });

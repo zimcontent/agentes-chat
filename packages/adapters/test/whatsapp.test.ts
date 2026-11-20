@@ -299,6 +299,17 @@ describe("a message's file", () => {
     expect(whatsappFileMessage(null)).toBeNull();
   });
 
+  test("a sticker whose address is WhatsApp's bare placeholder is fetched at its path on the media server", () => {
+    const sticker = { URL: "https://a.whatsapp.net", directPath: "/v/t62.15575-24/1_n.enc?ccb=11-4", mediaKey: "a2V5" };
+    expect(whatsappFileMessage({ stickerMessage: sticker })).toEqual({
+      stickerMessage: { ...sticker, URL: "https://mmg.whatsapp.net/v/t62.15575-24/1_n.enc?ccb=11-4" },
+    });
+    // No path to go by: left as it came.
+    expect(whatsappFileMessage({ stickerMessage: { URL: "https://a.whatsapp.net" } })).toEqual({
+      stickerMessage: { URL: "https://a.whatsapp.net" },
+    });
+  });
+
   test("the gateway is handed that message and answers with the bytes and their type", async () => {
     const { gateway, asked } = evolution({
       "/message/downloadmedia": {

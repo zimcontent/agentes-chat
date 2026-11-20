@@ -6,6 +6,8 @@ import {
   type WhatsAppMessage,
   whatsappFileKind,
   whatsappFileMessage,
+  whatsappMediaOf,
+  whatsappWaveOf,
 } from "@dougbot/adapters";
 import { and, desc, eq, inArray, lt, schema, sql } from "@dougbot/db";
 import { sniffImage } from "../avatars";
@@ -71,6 +73,8 @@ export interface WhatsAppMessageView {
   /** The message this one answers, by this API's id; null when it isn't here. */
   replyToId: string | null;
   media: MessageRow["media"];
+  /** A voice message's bars as WhatsApp draws them, each 0 to 100 (`whatsappWaveOf`); null for anything else. */
+  wave: number[] | null;
   /** Its file can be asked for (`whatsappMessageFile`): it arrived with one and we kept what fetches it. */
   file: boolean;
   status: MessageRow["status"];
@@ -291,7 +295,8 @@ export async function listWhatsAppMessages(
         kind: row.kind,
         body: row.body,
         replyToId: row.replyToWaId ? (idOf.get(row.replyToWaId) ?? null) : null,
-        media: row.media,
+        media: row.media ? fileMedia(row.media, row.raw) : null,
+        wave: row.kind === "audio" ? whatsappWaveOf(row.raw) : null,
         file: row.media !== null && whatsappFileMessage(row.raw) !== null,
         status: row.status,
         sentByUserId: row.sentByUserId,
@@ -439,7 +444,9 @@ export async function sendWhatsAppFile(
     kind,
     text: caption,
     replyTo: null,
-    media: { mimeType, fileName: kind === "document" ? fileName : null, seconds: null },
+    // What WhatsApp says the file is now: the gateway turns a recording into Ogg Opus, and a voice message labeled
+    // with the type it was handed would play as nothing.
+    media: sentMedia(sent.message, mimeType, kind === "document" ? fileName : null),
     // What the gateway sent, kept to open the file here later.
     raw: sent.message,
   };
@@ -456,6 +463,13 @@ export async function sendWhatsAppFile(
     .where(eq(schema.whatsappChats.id, stored.chatId));
   await publishWhatsAppChanged(deps, account, { chatId: stored.chatId });
   return { chatId: stored.chatId, kind };
+}
+
+/** A file we sent as WhatsApp describes it, or as it was handed to the gateway when the gateway said nothing. */
+function sentMedia(raw: unknown, mimeType: string, fileName: string | null): NonNullable<WhatsAppMessage["media"]> {
+  const told = raw ? whatsappMediaOf(raw) : null;
+  const toldType = told && told.mimeType !== "application/octet-stream" ? told.mimeType : null;
+  return { mimeType: toldType ?? mimeType, fileName, seconds: told?.seconds ?? null };
 }
 
 /** Stickers offered to send again: the number's latest ones, each once. */
@@ -642,11 +656,23 @@ export async function whatsappMessageFile(
   if (file.bytes.byteLength > WHATSAPP_FILE_MAX_BYTES) throw new ValidationError("This file is too large to open here");
   return {
     bytes: file.bytes,
-    // What the message itself said it is: the gateway's answer names the same type, less reliably.
-    mimeType: row.media?.mimeType || file.mimeType,
+    // What the message itself says it is (WhatsApp's own description first: a voice message we sent was kept with the
+    // type it was handed, not the Ogg Opus the gateway made of it); the gateway's answer names the same, less reliably.
+    mimeType: (row.media ? fileMedia(row.media, row.raw).mimeType : "") || file.mimeType,
     fileName: row.media?.fileName ?? null,
     kind: row.kind,
   };
+}
+
+/**
+ * A kept file's description, corrected by WhatsApp's own (`raw`): its type and length where the row has another
+ * type or none. Rows of voice messages sent before the fix were kept as `audio/x-m4a` with no length.
+ */
+function fileMedia(media: NonNullable<WhatsAppMessage["media"]>, raw: unknown): NonNullable<WhatsAppMessage["media"]> {
+  const told = whatsappMediaOf(raw);
+  if (!told) return media;
+  const toldType = told.mimeType !== "application/octet-stream" ? told.mimeType : null;
+  return { ...media, mimeType: toldType ?? media.mimeType, seconds: media.seconds ?? told.seconds };
 }
 
 /**

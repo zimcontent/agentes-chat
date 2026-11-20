@@ -15,11 +15,12 @@ import {
   whatsappPhotoUrl,
 } from "@dougbot/client";
 import { formatClock } from "@dougbot/client/lib/format";
+import * as Clipboard from "expo-clipboard";
 import * as DocumentPicker from "expo-document-picker";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { Stack } from "expo-router";
-import { memo, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -28,20 +29,23 @@ import {
   Platform,
   Pressable,
   Text as RNText,
+  type StyleProp,
   StyleSheet,
   TextInput,
   type TextInputInstance,
+  type TextStyle,
   View,
 } from "react-native";
 import { KeyboardAvoidingView, useReanimatedKeyboardAnimation } from "react-native-keyboard-controller";
-import Animated, { useAnimatedStyle } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Button, Icon, IconButton, type IconName, useToast } from "@/ui";
+import { haptics } from "@/ui/haptics";
 import { goBack } from "@/ui/navigation";
 import { filePart } from "../review/media";
 import { Face } from "../shared/Face";
 import { useDirectory, useOrgId, useWhen } from "../shared/hooks";
-import { playingId, startPlayback, stopPlayback, subscribePlayback } from "../voice/playback";
+import { ExpressionPanel } from "./ExpressionPanel";
 import {
   agentStoppable,
   chatTitle,
@@ -49,15 +53,19 @@ import {
   FILE_MAX,
   fileShape,
   handedLine,
+  linkParts,
+  openWhatsAppPhoto,
   ownFile,
   showPhone,
   startsDay,
   useWhatsAppKeepFresh,
   useWhatsAppSay,
+  withoutLast,
 } from "./logic";
 import { useWa, WA_FONT, type WaColors, WaGlyph, WaPhoto, WaTicks, WaWall } from "./look";
+import { LockPill, MicButton, RecordingDot, SlideHint } from "./MicButton";
 import { useWhatsAppTake } from "./recorder";
-import { StickerPanel } from "./StickerPanel";
+import { VoiceNote } from "./VoiceNote";
 import { useWhatsAppWords, type WhatsAppWords } from "./words";
 
 /** How often the open conversation is asked again while it is in front (see `useWhatsAppKeepFresh`). */
@@ -70,8 +78,8 @@ const STICKER = 130;
 /** WhatsApp's bubble: radius 9, the first of a run with its tail at the top corner on the speaker's side. */
 const RADIUS = 9;
 const TAIL = 8;
-/** A voice message's bars. */
-const BARS = 28;
+/** A hold on the mic shorter than this was a tap: WhatsApp then says to hold it. */
+const TAP_MS = 400;
 
 const KIND_ICONS: Record<string, IconName> = {
   image: "image",
@@ -144,8 +152,83 @@ export function WhatsAppConversationScreen({ accountId, chatId }: { accountId: s
   const failed = (e: unknown) => toast({ title: say(e), icon: "x" });
   const take = useWhatsAppTake({
     onBlocked: () => toast({ title: w.chat.micBlocked, icon: "x" }),
-    onFull: () => void sendTake(),
+    onFull: () => {
+      setRec("idle");
+      void sendTake();
+    },
   });
+  // The mic, as WhatsApp's: held it records, let go it sends, slid left it drops, slid up it locks (`locked`: the
+  // take goes on hands free, with delete and send). A hold's end that comes before the recorder started waits for it.
+  const [rec, setRec] = useState<"idle" | "hold" | "locked">("idle");
+  const holdDx = useSharedValue(0);
+  const holdDy = useSharedValue(0);
+  const press = useRef<{ at: number; started: boolean; ended: "release" | "cancel" | "lock" | null } | null>(null);
+  const endHold = (how: "release" | "cancel" | "lock") => {
+    const now = press.current;
+    if (!now) return;
+    if (!now.started) {
+      now.ended = how;
+      return;
+    }
+    if (how === "lock") {
+      haptics.medium();
+      setRec("locked");
+      return;
+    }
+    press.current = null;
+    setRec("idle");
+    if (how === "cancel") {
+      haptics.firm();
+      void take.cancel();
+      return;
+    }
+    if (Date.now() - now.at < TAP_MS) {
+      void take.cancel();
+      toast({ title: w.chat.holdToRecord, icon: "mic" });
+      return;
+    }
+    void sendTake();
+  };
+  const hold = {
+    onStart: () => {
+      if (!connected || sending || press.current) return;
+      const now = { at: Date.now(), started: false, ended: null as "release" | "cancel" | "lock" | null };
+      press.current = now;
+      haptics.light();
+      setRec("hold");
+      setStickers(false);
+      void take.start().then((ok) => {
+        if (press.current !== now) return;
+        if (!ok) {
+          press.current = null;
+          setRec("idle");
+          return;
+        }
+        now.started = true;
+        // Let go (or slid) while the recorder was still starting, the microphone question included: that was no
+        // recording, only the hint is owed.
+        if (now.ended === "release" || now.ended === "cancel") {
+          press.current = null;
+          setRec("idle");
+          void take.cancel();
+          if (now.ended === "release") toast({ title: w.chat.holdToRecord, icon: "mic" });
+        } else if (now.ended === "lock") endHold("lock");
+      });
+    },
+    onRelease: () => endHold("release"),
+    onCancel: () => endHold("cancel"),
+    onLock: () => endHold("lock"),
+  };
+  const dropLocked = () => {
+    press.current = null;
+    setRec("idle");
+    void take.cancel();
+  };
+  const sendLocked = () => {
+    press.current = null;
+    setRec("idle");
+    void sendTake();
+  };
 
   const upload = (uri: string, name: string, type: string, size: number | null | undefined, voice = false) => {
     if ((size ?? 0) > FILE_MAX) {
@@ -174,6 +257,11 @@ export function WhatsAppConversationScreen({ accountId, chatId }: { accountId: s
       },
     );
   };
+  const addEmoji = (emoji: string) => {
+    setText((now) => now + emoji);
+    typing.typing();
+  };
+  const eraseOne = () => setText((now) => withoutLast(now));
   async function sendTake() {
     const done = await take.stop();
     if (!done) {
@@ -359,10 +447,10 @@ export function WhatsAppConversationScreen({ accountId, chatId }: { accountId: s
           ) : null}
           {connected ? (
             <View style={styles.composer}>
-              {take.recording ? (
+              {rec === "locked" ? (
                 <>
                   <Pressable
-                    onPress={() => void take.cancel()}
+                    onPress={dropLocked}
                     accessibilityRole="button"
                     accessibilityLabel={w.chat.deleteTake}
                     style={styles.side}
@@ -370,14 +458,31 @@ export function WhatsAppConversationScreen({ accountId, chatId }: { accountId: s
                     <WaGlyph name="trash" size={22} color={wa.danger} />
                   </Pressable>
                   <View style={[styles.field, { backgroundColor: wa.field }]}>
-                    <View style={[styles.recDot, { backgroundColor: wa.danger }]} />
+                    <RecordingDot color={wa.danger} />
                     <RNText style={[styles.fieldText, styles.recClock, { color: wa.ink }]}>
                       {clockOf(take.ms / 1000)}
                     </RNText>
-                    <RNText style={[styles.fieldText, { color: wa.sub }]}>{w.chat.recording}</RNText>
+                    <RNText numberOfLines={1} style={[styles.fieldText, styles.recWords, { color: wa.sub }]}>
+                      {w.chat.recording}
+                    </RNText>
                   </View>
-                  <RoundButton glyph="send" label={w.chat.sendTake} wa={wa} onPress={() => void sendTake()} />
                 </>
+              ) : rec === "hold" ? (
+                <View style={[styles.field, styles.holdField, { backgroundColor: wa.field }]}>
+                  <RecordingDot color={wa.danger} />
+                  <RNText style={[styles.fieldText, styles.recClock, { color: wa.ink }]}>
+                    {clockOf(take.ms / 1000)}
+                  </RNText>
+                  <SlideHint
+                    wa={wa}
+                    dx={holdDx}
+                    text={
+                      <RNText numberOfLines={1} style={[styles.hintText, { color: wa.sub }]}>
+                        {w.chat.slideCancel}
+                      </RNText>
+                    }
+                  />
+                </View>
               ) : (
                 <>
                   <Pressable
@@ -412,16 +517,22 @@ export function WhatsAppConversationScreen({ accountId, chatId }: { accountId: s
                     />
                     <Pressable
                       onPress={() => {
+                        // Open, the smiley is the keyboard: back to writing, as in WhatsApp.
+                        if (stickers) {
+                          setStickers(false);
+                          input.current?.focus();
+                          return;
+                        }
                         input.current?.blur();
-                        setStickers((open) => !open);
+                        setStickers(true);
                       }}
                       accessibilityRole="button"
-                      accessibilityLabel={w.chat.stickers}
+                      accessibilityLabel={stickers ? w.chat.keyboard : `${w.chat.emoji}, ${w.chat.stickers}`}
                       accessibilityState={{ expanded: stickers }}
                       hitSlop={8}
                       style={styles.inField}
                     >
-                      <WaGlyph name="smile" size={21} color={stickers ? wa.green : wa.soft} />
+                      <WaGlyph name={stickers ? "keyboard" : "smile"} size={21} color={wa.soft} />
                     </Pressable>
                   </View>
                   <Pressable
@@ -442,23 +553,40 @@ export function WhatsAppConversationScreen({ accountId, chatId }: { accountId: s
                       <WaGlyph name="camera" size={22} color={wa.ink} />
                     </Pressable>
                   )}
-                  {sending ? (
-                    <View style={[styles.round, { backgroundColor: wa.green }]}>
-                      <ActivityIndicator color={wa.onGreen} />
-                    </View>
-                  ) : text.trim() ? (
-                    <RoundButton glyph="send" label={w.chat.send} wa={wa} onPress={sendText} />
-                  ) : (
-                    <RoundButton glyph="mic" label={w.chat.record} wa={wa} onPress={() => void take.start()} />
-                  )}
                 </>
               )}
+              {sending ? (
+                <View style={[styles.round, { backgroundColor: wa.green }]}>
+                  <ActivityIndicator color={wa.onGreen} />
+                </View>
+              ) : rec === "locked" ? (
+                <RoundButton glyph="send" label={w.chat.sendTake} wa={wa} onPress={sendLocked} />
+              ) : text.trim() && rec === "idle" ? (
+                <RoundButton glyph="send" label={w.chat.send} wa={wa} onPress={sendText} />
+              ) : (
+                // The same mic from the first touch to the last: the hold's gesture lives on it.
+                <MicButton
+                  wa={wa}
+                  label={`${w.chat.record}. ${w.chat.holdToRecord}`}
+                  holding={rec === "hold"}
+                  hold={hold}
+                  dx={holdDx}
+                  dy={holdDy}
+                />
+              )}
+              {rec === "hold" ? <LockPill wa={wa} dy={holdDy} /> : null}
             </View>
           ) : (
             <RNText style={[styles.offline, { color: wa.sub }]}>{account ? w.composer.offline : ""}</RNText>
           )}
-          {stickers && connected ? (
-            <StickerPanel accountId={accountId} chatId={chatId} onSent={() => setStickers(false)} />
+          {stickers && connected && rec === "idle" ? (
+            <ExpressionPanel
+              accountId={accountId}
+              chatId={chatId}
+              onEmoji={addEmoji}
+              onErase={eraseOne}
+              onSent={() => setStickers(false)}
+            />
           ) : null}
         </Animated.View>
       </KeyboardAvoidingView>
@@ -556,6 +684,7 @@ const Bubble = memo(function Bubble({
   const wa = useWa();
   const { i18n } = useTranslation();
   const dir = useDirectory();
+  const when = useWhen();
   const mine = m.fromMe;
   const shape = fileShape(m);
   const fill = mine ? wa.bubbleOut : wa.bubbleIn;
@@ -619,7 +748,20 @@ const Bubble = memo(function Bubble({
             {w.sentBy(author)}
           </RNText>
         ) : null}
-        {shape === "picture" ? <FilePicture message={m} accountId={accountId} /> : null}
+        {shape === "picture" ? (
+          <FilePicture
+            message={m}
+            accountId={accountId}
+            onOpen={() =>
+              openWhatsAppPhoto(
+                accountId,
+                m.id,
+                mine ? author || w.you : group ? m.senderName || showPhone(m.senderPhone) || w.unknown : title,
+                `${when.day(m.at)} ${clock}`,
+              )
+            }
+          />
+        ) : null}
         {shape === "audio" ? (
           <VoiceNote
             message={m}
@@ -636,10 +778,9 @@ const Bubble = memo(function Bubble({
           </RNText>
         ) : null}
         {m.body ? (
-          <RNText selectable style={[styles.words, { color: wa.ink }, shape === "picture" ? styles.caption : null]}>
-            {m.body}
+          <Words text={m.body} style={[styles.words, { color: wa.ink }, shape === "picture" ? styles.caption : null]}>
             {room}
-          </RNText>
+          </Words>
         ) : shape === "row" ? (
           <RNText style={styles.words}>{room}</RNText>
         ) : null}
@@ -665,10 +806,13 @@ function FilePicture({
   message: m,
   accountId,
   sticker = false,
+  onOpen,
 }: {
   message: WhatsAppMessage;
   accountId: string;
   sticker?: boolean;
+  /** A photo opens full screen; a sticker opens nothing. */
+  onOpen?: () => void;
 }) {
   const orgId = useOrgId();
   const wa = useWa();
@@ -677,7 +821,7 @@ function FilePicture({
   const [gone, setGone] = useState(false);
   if (gone) return <FileRow message={m} gone />;
   const height = Math.min(PICTURE_MAX_H, Math.max(PICTURE_MIN_H, PICTURE_W / ratio));
-  return (
+  const picture = (
     <Image
       source={ownFile((base) => whatsappFileUrl(orgId, accountId, m.id, base))}
       style={
@@ -692,6 +836,17 @@ function FilePicture({
       }}
       onError={() => setGone(true)}
     />
+  );
+  if (!onOpen) return picture;
+  return (
+    <Pressable
+      onPress={onOpen}
+      accessibilityRole="imagebutton"
+      accessibilityLabel={w.chat.openPhoto}
+      style={({ pressed }) => (pressed ? styles.pressed : null)}
+    >
+      {picture}
+    </Pressable>
   );
 }
 
@@ -718,85 +873,40 @@ function FileRow({ message: m, gone = false }: { message: WhatsAppMessage; gone?
   );
 }
 
-/** A voice message's bars: WhatsApp draws the recording's loudness; ours, a fixed shape of its own per message. */
-function barsOf(id: string): number[] {
-  let seed = 0;
-  for (let i = 0; i < id.length; i++) seed = (seed * 31 + id.charCodeAt(i)) >>> 0;
-  return Array.from({ length: BARS }, (_, i) => {
-    seed = (seed * 1103515245 + 12345) >>> 0;
-    const wave = (seed % 1000) / 1000;
-    return 5 + Math.round((i % 2 === 0 ? 0.35 + wave * 0.65 : wave * 0.6) * 16);
-  });
-}
-
-/** A voice message: play and pause on the app's one player, its bars filling as it plays, its length. */
-function VoiceNote({
-  message: m,
-  accountId,
-  face,
-  stamp,
-}: {
-  message: WhatsAppMessage;
-  accountId: string;
-  face: React.ReactNode;
-  stamp: React.ReactNode;
-}) {
-  const w = useWhatsAppWords();
+/**
+ * A message's words with its addresses as WhatsApp shows them: blue, underlined, a tap opens them where the phone
+ * opens such a thing (the browser, the app the address belongs to, the mail), a long press copies them. Words with
+ * no address stay selectable; with one they aren't, as a selectable text takes the taps meant for its links on iOS.
+ */
+function Words({ text, style, children }: { text: string; style: StyleProp<TextStyle>; children: React.ReactNode }) {
   const wa = useWa();
-  const orgId = useOrgId();
-  const playing = useSyncExternalStore(subscribePlayback, () => playingId() === m.id);
-  const [at, setAt] = useState(0);
-  const [failed, setFailed] = useState(false);
-  const bars = useMemo(() => barsOf(m.id), [m.id]);
-  if (failed) return <FileRow message={m} gone />;
-  const seconds = m.media?.seconds ?? 0;
-  const toggle = () => {
-    if (playing) {
-      stopPlayback();
-      return;
-    }
-    void startPlayback({
-      id: m.id,
-      source: ownFile((base) => whatsappFileUrl(orgId, accountId, m.id, base)),
-      durationMs: seconds * 1000,
-      from: at >= 1 ? 0 : at,
-      speed: 1,
-      onProgress: setAt,
-      onEnd: () => setAt(0),
-      onError: () => setFailed(true),
-    }).catch(() => setFailed(true));
-  };
-  const played = Math.round(at * BARS);
+  const w = useWhatsAppWords();
+  const toast = useToast();
+  const parts = useMemo(() => linkParts(text), [text]);
+  const linked = parts.some((part) => part.href);
   return (
-    <View style={styles.voice}>
-      <Pressable
-        onPress={toggle}
-        hitSlop={10}
-        accessibilityRole="button"
-        accessibilityLabel={`${playing ? w.pause : w.play}, ${clockOf(seconds)}`}
-        style={styles.play}
-      >
-        <WaGlyph name={playing ? "pause" : "playBox"} size={22} color={wa.soft} />
-      </Pressable>
-      <View style={styles.voiceMid}>
-        <View style={styles.bars}>
-          {bars.map((h, i) => (
-            <View
-              // biome-ignore lint/suspicious/noArrayIndexKey: the bars are a fixed row, by position
-              key={i}
-              style={[styles.barOne, { height: h, backgroundColor: i < played ? wa.played : wa.sub }]}
-            />
-          ))}
-        </View>
-        <View style={styles.voiceFoot}>
-          <RNText style={[styles.clock, { color: m.fromMe ? wa.metaOut : wa.sub }]}>
-            {clockOf(playing || at > 0 ? seconds * at : seconds)}
+    <RNText selectable={!linked} style={style}>
+      {parts.map((part, i) =>
+        part.href ? (
+          <RNText
+            // biome-ignore lint/suspicious/noArrayIndexKey: the parts of one fixed text, by position
+            key={i}
+            accessibilityRole="link"
+            onPress={() => void Linking.openURL(part.href as string).catch(() => undefined)}
+            onLongPress={() => {
+              haptics.light();
+              void Clipboard.setStringAsync(part.text).then(() => toast({ title: w.chat.linkCopied, icon: "check" }));
+            }}
+            style={[styles.link, { color: wa.read }]}
+          >
+            {part.text}
           </RNText>
-          {stamp}
-        </View>
-      </View>
-      {face}
-    </View>
+        ) : (
+          part.text
+        ),
+      )}
+      {children}
+    </RNText>
   );
 }
 
@@ -838,7 +948,7 @@ const styles = StyleSheet.create({
     paddingRight: 9,
     borderRadius: RADIUS,
   },
-  bubbleVoice: { width: "76%", paddingTop: 6, paddingBottom: 6 },
+  bubbleVoice: { width: "80%", paddingTop: 4, paddingBottom: 6, paddingLeft: 6 },
   bubbleBare: { padding: 3 },
   firstMine: { borderTopRightRadius: 0 },
   firstTheirs: { borderTopLeftRadius: 0 },
@@ -849,6 +959,8 @@ const styles = StyleSheet.create({
   caption: { paddingHorizontal: 4, paddingTop: 4 },
   room: { fontFamily: WA_FONT.r, fontSize: 11.5, color: "transparent" },
   gone: { fontStyle: "italic" },
+  link: { textDecorationLine: "underline" },
+  pressed: { opacity: 0.85 },
   stampAt: { position: "absolute", right: 9, bottom: 5 },
   stampOver: { right: 8, bottom: 8, borderRadius: 8, paddingHorizontal: 5, paddingVertical: 1 },
   stamp: { flexDirection: "row", alignItems: "center", gap: 3 },
@@ -859,12 +971,6 @@ const styles = StyleSheet.create({
   fileText: { flexShrink: 1, gap: 2 },
   fileName: { fontFamily: WA_FONT.m, fontSize: 14.5 },
   fileSub: { fontFamily: WA_FONT.r, fontSize: 12 },
-  voice: { flexDirection: "row", alignItems: "center", gap: 8 },
-  play: { width: 32, height: 36, alignItems: "center", justifyContent: "center" },
-  voiceMid: { flex: 1, gap: 0, paddingTop: 6 },
-  bars: { flexDirection: "row", alignItems: "center", gap: 2, height: 24 },
-  barOne: { width: 2.5, borderRadius: 2 },
-  voiceFoot: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   bottom: { paddingHorizontal: 8, paddingTop: 8, gap: 8 },
   strip: {
     flexDirection: "row",
@@ -905,8 +1011,10 @@ const styles = StyleSheet.create({
   },
   inField: { width: 34, height: 44, alignItems: "center", justifyContent: "center" },
   fieldText: { fontFamily: WA_FONT.r, fontSize: 16 },
-  recDot: { width: 10, height: 10, borderRadius: 5 },
   recClock: { fontVariant: ["tabular-nums"], marginRight: 6 },
+  recWords: { flexShrink: 1 },
+  holdField: { marginLeft: 2 },
+  hintText: { fontFamily: WA_FONT.r, fontSize: 15 },
   round: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", marginLeft: 2 },
   offline: { fontFamily: WA_FONT.r, fontSize: 14, textAlign: "center", paddingVertical: 16 },
 });

@@ -213,6 +213,16 @@ const GLYPHS = {
   trash: "M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12",
   send: "M4 12 20 4l-4 16-4-7z",
   file: "M7 3.5h6l4.5 4.5v11.5a1 1 0 0 1-1 1h-9.5a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1M13 3.5V8h4.5",
+  lock: "M7.5 11V8a4.5 4.5 0 0 1 9 0v3M6.5 11h11a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1",
+  up: "m7 14 5-5 5 5",
+  left: "m14 7-5 5 5 5",
+  keyboard:
+    "M4.5 6.5h15a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-15a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1M7 10h.01M10 10h.01M13 10h.01M16 10h.01M8 14h8",
+  erase: "M9 5.5h10a1.5 1.5 0 0 1 1.5 1.5v10a1.5 1.5 0 0 1-1.5 1.5H9L3.5 12zM11.5 9.5l5 5M16.5 9.5l-5 5",
+  close: "M6 6l12 12M18 6 6 18",
+  /** Filled: the voice player's play and pause, as WhatsApp's solid ones. */
+  playSolid: "M8 5.2v13.6a.8.8 0 0 0 1.2.7l10.6-6.8a.8.8 0 0 0 0-1.4L9.2 4.5A.8.8 0 0 0 8 5.2",
+  pauseSolid: "M7 5h3v14H7zM14 5h3v14h-3z",
 } as const;
 
 export type WaGlyphName = keyof typeof GLYPHS;

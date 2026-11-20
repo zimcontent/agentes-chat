@@ -19,6 +19,7 @@ import {
   updateWhatsAppAccount,
   type WhatsAppDeps,
   whatsappChatPhoto,
+  whatsappMessageFile,
   whatsappStickerFile,
 } from "../src";
 import { addMember, type Fixture, setup } from "./fixtures";
@@ -315,6 +316,36 @@ describe("sending a file", () => {
         fileName: "vazio.png",
       }),
     ).rejects.toThrow("empty");
+  });
+
+  test("a voice message we sent plays back here as what the gateway made of it, Ogg Opus, with its length", async () => {
+    f = await setup();
+    const { deps, account, post } = await connected();
+    await post(text("A1", "manda um áudio"));
+    const chatId = (await listWhatsAppChats(deps, f.owner.id, f.org.id, account.id)).chats[0]?.id as string;
+    await sendWhatsAppFile(deps, f.owner.id, f.org.id, account.id, {
+      chatId,
+      bytes: new TextEncoder().encode("m4a"),
+      mimeType: "audio/x-m4a",
+      fileName: "voice.m4a",
+      voice: true,
+    });
+    const page = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chatId, { limit: 1 });
+    const voice = page.messages[0];
+    expect(voice?.media).toEqual({ mimeType: "audio/ogg; codecs=opus", fileName: null, seconds: 3 });
+    expect(voice?.wave).toEqual([0, 10, 20, 30, 40, 50, 60, 100]);
+    const file = await whatsappMessageFile(deps, f.owner.id, f.org.id, account.id, voice?.id as string);
+    expect(file.mimeType).toBe("audio/ogg; codecs=opus");
+
+    // One kept before this fix, with the type the phone handed over: WhatsApp's own description wins.
+    await f.db
+      .update(schema.whatsappMessages)
+      .set({ media: { mimeType: "audio/x-m4a", fileName: null, seconds: null } })
+      .where(eq(schema.whatsappMessages.id, voice?.id as string));
+    const again = await listWhatsAppMessages(deps, f.owner.id, f.org.id, account.id, chatId, { limit: 1 });
+    expect(again.messages[0]?.media).toEqual({ mimeType: "audio/ogg; codecs=opus", fileName: null, seconds: 3 });
+    const old = await whatsappMessageFile(deps, f.owner.id, f.org.id, account.id, voice?.id as string);
+    expect(old.mimeType).toBe("audio/ogg; codecs=opus");
   });
 });
 

@@ -411,7 +411,50 @@ function unwrap(message: Record<string, unknown>): Record<string, unknown> {
 export function whatsappFileMessage(raw: unknown): Record<string, unknown> | null {
   const body = unwrap(rec(raw));
   const field = MEDIA_FIELDS.find(([name]) => body[name] !== undefined)?.[0];
-  return field ? { [field]: body[field] } : null;
+  return field ? { [field]: withMediaAddress(rec(body[field])) } : null;
+}
+
+/** WhatsApp's media server, where a file's `directPath` lives. */
+const MEDIA_HOST = "https://mmg.whatsapp.net";
+
+/**
+ * A file's address as the gateway can fetch it. Some stickers arrive with `URL: "https://a.whatsapp.net"`, a host
+ * with no path that doesn't resolve; the gateway fetches `URL` when there is one, so such a file never downloads
+ * (and a sticker never goes out again). Its `directPath` on WhatsApp's media server is the real address.
+ */
+function withMediaAddress(part: Record<string, unknown>): Record<string, unknown> {
+  const path = str(part.directPath);
+  if (!path.startsWith("/")) return part;
+  const url = str(part.URL ?? part.url);
+  let usable = false;
+  try {
+    usable = url !== "" && new URL(url).pathname.length > 1;
+  } catch {}
+  if (usable) return part;
+  const { url: _lower, ...rest } = part;
+  return { ...rest, URL: `${MEDIA_HOST}${path}` };
+}
+
+/**
+ * What the file in a message (`WhatsAppMessage.raw`) is, as WhatsApp itself describes it: its type, name and length.
+ * The gateway may convert what it was given (a recording becomes Ogg Opus, the voice message format), so this,
+ * not what was handed to it, says what the file is now. Null: it carries no file.
+ */
+export function whatsappMediaOf(raw: unknown): WhatsAppMessage["media"] {
+  return contentOf(rec(raw)).media;
+}
+
+/**
+ * A voice message's loudness as WhatsApp draws it: the `waveform` its apps send with the recording, one byte per bar
+ * (64 of them), each 0 to 100. Null: no voice message, or one sent without it.
+ */
+export function whatsappWaveOf(raw: unknown): number[] | null {
+  const part = rec(unwrap(rec(raw)).audioMessage);
+  const coded = str(part.waveform);
+  if (!coded) return null;
+  const bytes = Buffer.from(coded, "base64");
+  if (bytes.length < 8 || bytes.length > 256) return null;
+  return [...bytes].map((b) => Math.min(100, b));
 }
 
 /** What kind of message it is, its words and the id of the one it answers. */
@@ -725,7 +768,18 @@ export function createFakeWhatsAppGateway(): WhatsAppGateway & {
       return {
         id: `SENT${++sent}`,
         at: new Date(),
-        message: { [`${input.kind}Message`]: { mimetype: input.mimeType, fileName: input.fileName } },
+        // As Evolution Go does: a recording goes out as a voice message in Ogg Opus, whatever it was handed.
+        message:
+          input.kind === "audio"
+            ? {
+                audioMessage: {
+                  mimetype: "audio/ogg; codecs=opus",
+                  PTT: true,
+                  seconds: 3,
+                  waveform: Buffer.from([0, 10, 20, 30, 40, 50, 60, 100]).toString("base64"),
+                },
+              }
+            : { [`${input.kind}Message`]: { mimetype: input.mimeType, fileName: input.fileName } },
       };
     },
     async sendSticker(token: string, input: { to: WhatsAppJid; url: string }) {

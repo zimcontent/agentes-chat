@@ -59,7 +59,8 @@
     "./blocks/expr": "./src/blocks/expr.ts",
     "./blocks/spec": "./src/blocks/spec.ts",
     "./blocks/source-marks": "./src/blocks/source-marks.ts",
-    "./widgets/spec": "./src/widgets/spec.ts"
+    "./widgets/spec": "./src/widgets/spec.ts",
+    "./emoji-data": "./src/emoji-data.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json",

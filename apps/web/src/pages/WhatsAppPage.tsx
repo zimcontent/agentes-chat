@@ -21,6 +21,7 @@ import {
 } from "@dougbot/client";
 import { formatBytes } from "@dougbot/client/lib/files";
 import { clockAt, dayLabel, formatTime } from "@dougbot/client/lib/format";
+import { linkParts } from "@dougbot/client/lib/text-links";
 import {
   Avatar,
   Button,
@@ -332,7 +333,7 @@ function Bubble({
           </span>
         )}
         {message.kind === "deleted" && <span className="wa-bubble__gone">{w.kind.deleted}</span>}
-        {message.body && <span className="wa-bubble__text">{message.body}</span>}
+        {message.body && <BubbleText text={message.body} />}
         <span className="wa-bubble__meta">
           {message.fromMe && author && <span className="wa-bubble__by">{w.sentBy(author)}</span>}
           <time>{formatTime(i18n.language, message.at)}</time>
@@ -1009,5 +1010,30 @@ export function WhatsAppPage({
         />
       )}
     </div>
+  );
+}
+
+/** A message's words with the addresses in it as links, opened in a new tab (the same rule as the phone's). */
+function BubbleText({ text }: { text: string }) {
+  const parts = useMemo(() => linkParts(text), [text]);
+  return (
+    <span className="wa-bubble__text">
+      {parts.map((part, i) =>
+        part.href ? (
+          <a
+            // biome-ignore lint/suspicious/noArrayIndexKey: the parts of one fixed text, by position
+            key={i}
+            className="ac-link"
+            href={part.href}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {part.text}
+          </a>
+        ) : (
+          part.text
+        ),
+      )}
+    </span>
   );
 }

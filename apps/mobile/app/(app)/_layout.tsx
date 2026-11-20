@@ -160,6 +160,15 @@ function AppStack() {
       <Stack.Screen name="whatsapp/[account]" options={{ ...pushed, headerShown: false }} />
       <Stack.Screen name="whatsapp/chat" options={{ ...pushed, headerShown: false }} />
       <Stack.Screen name="whatsapp/new" options={formSheet} />
+      {/* A WhatsApp photo full screen, as the app's own pictures open. */}
+      <Stack.Screen
+        name="whatsapp/photo"
+        options={{
+          presentation: "transparentModal",
+          animation: "fade",
+          contentStyle: { backgroundColor: "transparent" },
+        }}
+      />
       {/* A number's settings and its AI (docs/adr/doug-0004-whatsapp-bridge.md, addendum 2026-11-17). */}
       <Stack.Screen name="whatsapp/settings" options={{ ...pushed, ...scrollUnder }} />
       <Stack.Screen name="whatsapp/ai" options={{ ...pushed, ...scrollUnder }} />

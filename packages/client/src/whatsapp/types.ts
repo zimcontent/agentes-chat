@@ -101,6 +101,8 @@ export interface WhatsAppMessage {
   body: string;
   replyToId: string | null;
   media: { mimeType: string; fileName: string | null; seconds: number | null } | null;
+  /** A voice message's bars as WhatsApp draws them, each 0 to 100; null for anything else (or an older server). */
+  wave?: number[] | null;
   /** Its file can be loaded (`whatsappFileUrl`). */
   file: boolean;
   status: WhatsAppMessageStatus;

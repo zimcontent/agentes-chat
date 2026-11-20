@@ -1,6 +1,8 @@
 import type { WhatsAppAccount, WhatsAppChat, WhatsAppMessage, WhatsAppOverview } from "@dougbot/client";
 import type { WhatsAppWords } from "./words";
 
+export { linkParts, type TextPart } from "@dougbot/client/lib/text-links";
+
 /*
  * The WhatsApp screens' pure rules (docs/adr/doug-0001-whatsapp-numbers.md), kept apart from React so they are
  * unit-tested: whether the feature shows, where the first screen goes, and how a conversation and a message read.
@@ -173,4 +175,66 @@ export function toneOf(id: string, tones: readonly string[]): string {
   let hash = 0;
   for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
   return tones[hash % tones.length] ?? tones[0] ?? "#4F7DF0";
+}
+
+/**
+ * A voice message's bars at the width drawn: WhatsApp's own loudness (`wave`, 0 to 100) taken to `count` bars, or,
+ * when it sent none, a calm shape of the message's own (`id`). Each bar is 0 to 1, never under a dot.
+ */
+export function waveBars(wave: readonly number[] | null | undefined, id: string, count: number): number[] {
+  const floor = 0.12;
+  if (wave && wave.length > 0) {
+    const peak = Math.max(...wave, 1);
+    return Array.from({ length: count }, (_, i) => {
+      const from = Math.floor((i * wave.length) / count);
+      const to = Math.max(from + 1, Math.floor(((i + 1) * wave.length) / count));
+      const slice = wave.slice(from, to);
+      const value = Math.max(...slice) / peak;
+      return Math.max(floor, Math.min(1, value));
+    });
+  }
+  let seed = 0;
+  for (let i = 0; i < id.length; i++) seed = (seed * 31 + id.charCodeAt(i)) >>> 0;
+  return Array.from({ length: count }, () => {
+    seed = (seed * 1103515245 + 12345) >>> 0;
+    return floor + ((seed % 1000) / 1000) * 0.6;
+  });
+}
+
+/** How far the finger slides on the mic, as WhatsApp reads it: left to drop the take, up to keep it going. */
+export const SLIDE_CANCEL = 110;
+export const SLIDE_LOCK = 80;
+
+/** What a hold on the mic means where the finger is now. */
+export function holdAt(dx: number, dy: number): "hold" | "cancel" | "lock" {
+  "worklet";
+  if (-dx >= SLIDE_CANCEL && -dx > -dy) return "cancel";
+  if (-dy >= SLIDE_LOCK) return "lock";
+  return "hold";
+}
+
+type SegmenterClass = new (
+  locale?: string,
+  options?: { granularity: "grapheme" },
+) => { segment: (text: string) => Iterable<{ index: number }> };
+
+/** The field's words without their last character, an emoji (flags, skin tones, families) as one. */
+export function withoutLast(text: string): string {
+  if (!text) return text;
+  try {
+    const Segmenter = (Intl as unknown as { Segmenter?: SegmenterClass }).Segmenter;
+    if (Segmenter) {
+      let last = 0;
+      for (const piece of new Segmenter(undefined, { granularity: "grapheme" }).segment(text)) last = piece.index;
+      return text.slice(0, last);
+    }
+  } catch {}
+  // No segmenter (older engines): a flag is two letters of its own, any other emoji a pictograph and what joins it.
+  const flag = /\p{Regional_Indicator}{2}$/u.exec(text);
+  if (flag) return text.slice(0, flag.index);
+  const pictograph =
+    /\p{Extended_Pictographic}(?:\uFE0F|[\u{1F3FB}-\u{1F3FF}]|\u200D\p{Extended_Pictographic}\uFE0F?)*$/u;
+  const match = pictograph.exec(text);
+  if (match) return text.slice(0, match.index);
+  return Array.from(text).slice(0, -1).join("");
 }
