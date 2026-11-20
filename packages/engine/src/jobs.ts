@@ -91,7 +91,7 @@ import {
   wakeConversationForTask,
 } from "./machine-tasks";
 import { isMediaAfterReply, isMediaOnly } from "./media";
-import { getMessage, referencedOf } from "./messages";
+import { getMessage, type Message, referencedOf } from "./messages";
 import { checkMissionDone } from "./mission-delivery";
 import { onMissionTaskEnded, syncMissionFiles } from "./mission-sync";
 import { afterMachineTaskEnded, afterMissionRunEnded, startQueuedMissionTasks } from "./mission-worktree";
@@ -130,6 +130,7 @@ import { activateDeliveredSecret, discardClosedSecret } from "./secrets";
 import { runSkillUpdates, SKILL_UPDATES_JOB } from "./skill-updates";
 import type { SkillDeps } from "./skills";
 import { TEAM_HELLO_JOB } from "./standing";
+import { ROUTE_RELEASED_JOB } from "./steering";
 import { purgeOrgFiles, purgeUserFiles, runMigration, type StorageDeps } from "./storage";
 import { postStretchCard, STRETCH_JOB, type StretchHold } from "./stretch";
 import { sayTeamHello } from "./team-templates";
@@ -572,6 +573,55 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
     missionEngine: deps.missionEngine ?? null,
   };
 
+  /**
+   * A person's message nobody mentioned, past the cases that start or join a run by themselves: the DM's agent, or the
+   * router (`routeMessage`), whose decision the receipts say (`message.routed`).
+   */
+  async function routePersonMessage(message: Message, where: Awaited<ReturnType<typeof getChannelCached>>) {
+    const input = { orgId: message.orgId, messageId: message.id };
+    const routed = (
+      strategy: "mention" | "dm" | "router" | "none",
+      seenBy: string[],
+      runs: AgentRun[],
+      reason?: string,
+      intent?: ConnectIntent,
+      decidedBy?: DecidedBy,
+    ) =>
+      publishRouted(deps.pubsub, message, {
+        strategy,
+        seenBy,
+        runs,
+        ...(reason ? { reason } : {}),
+        ...(decidedBy ? { decidedBy } : {}),
+        ...intent,
+      });
+    if (where?.kind === "dm") {
+      await dispatchDm(deps.db, message, { maxHops: deps.maxHops }); // idempotent safety net
+      return;
+    }
+    if (!routing) return routed("none", [], []);
+    // In a mission's thread only its owner and deciders make the agent work (the router included).
+    if (message.threadId && message.authorUserId) {
+      const mission = await missionOfThread(deps.db, message.orgId, message.threadId);
+      if (mission && ["proposed", "active", "paused", "awaiting_close"].includes(mission.status)) {
+        const role = await missionRole(deps.db, mission, message.authorUserId);
+        if (role !== "owner" && role !== "decide") return routed("none", [], [], "mission_read_only");
+      }
+    }
+    const res = await routeMessage(routing, input);
+    // Continued: the person's next message carries the decision, and its receipt.
+    if (res.skipped === "already_routed" || res.skipped === "continued") return;
+    // Nobody can think: what the person asks for may be to connect an AI (Jev reads it), for the Connect step.
+    if (res.reason === NO_AI) {
+      if (res.held) await queuePlanWaiting(deps.db, message.orgId);
+      const intent = res.held
+        ? undefined
+        : await aiConnectIntent(deps.context?.judge, { orgId: message.orgId, text: message.body });
+      return routed("none", [], [], NO_AI, intent);
+    }
+    await routed(res.seenBy ? "router" : "none", res.seenBy ?? [], res.runs, res.reason, undefined, res.decidedBy);
+  }
+
   const handlers: JobHandlers = {
     // A wake the brakes deferred (its agent at its cap of unrequested work, or its computer full) looks again.
     [LATER_JOB]: async (job) => {
@@ -775,38 +825,23 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
       }
       // An answer to an agent's question resumes that run; nobody else is routed.
       if (typeof message.meta.answersQuestionId === "string") return;
-      // Delivered to an agent's task already in progress (steering): no second run.
+      // Delivered to an agent's task already in progress (steering): no second run. One that wasn't for that agent
+      // after all comes back to the router from the triage (`ROUTE_RELEASED_JOB`).
       if (Array.isArray(message.meta.steeredRunIds)) return;
       // A reply in an agent's background work thread: its reply turn started with the message.
       if (message.meta.forWork) return;
       // For the task's agent in its task's conversation: its run started with the message, as in a DM.
       if (message.meta.forTask) return;
-      const channel = where;
-      if (channel?.kind === "dm") {
-        await dispatchDm(deps.db, message, { maxHops: deps.maxHops }); // idempotent safety net
-        return;
-      }
-      if (!routing) return routed("none", [], []);
-      // In a mission's thread only its owner and deciders make the agent work (the router included).
-      if (message.threadId && message.authorUserId) {
-        const mission = await missionOfThread(deps.db, message.orgId, message.threadId);
-        if (mission && ["proposed", "active", "paused", "awaiting_close"].includes(mission.status)) {
-          const role = await missionRole(deps.db, mission, message.authorUserId);
-          if (role !== "owner" && role !== "decide") return routed("none", [], [], "mission_read_only");
-        }
-      }
-      const res = await routeMessage(routing, input);
-      // Continued: the person's next message carries the decision, and its receipt.
-      if (res.skipped === "already_routed" || res.skipped === "continued") return;
-      // Nobody can think: what the person asks for may be to connect an AI (Jev reads it), for the Connect step.
-      if (res.reason === NO_AI) {
-        if (res.held) await queuePlanWaiting(deps.db, message.orgId);
-        const intent = res.held
-          ? undefined
-          : await aiConnectIntent(deps.context?.judge, { orgId: message.orgId, text: message.body });
-        return routed("none", [], [], NO_AI, intent);
-      }
-      await routed(res.seenBy ? "router" : "none", res.seenBy ?? [], res.runs, res.reason, undefined, res.decidedBy);
+      await routePersonMessage(message, where);
+    },
+    // A message that went into an agent's task but was for someone else (`steerHandling` `elsewhere`, ADR 0112
+    // addendum of 2026-11-19): the router decides who answers it, maybe nobody, as for any message nobody mentioned.
+    [ROUTE_RELEASED_JOB]: async (job) => {
+      const message = await getMessage(deps.db, orgOf(job), String(job.payload.messageId));
+      if (!message || message.deletedAt || message.authorType !== "person") return;
+      // Still in another agent's task (two were at it when it came): that one has it.
+      if (Array.isArray(message.meta.steeredRunIds)) return;
+      await routePersonMessage(message, await getChannelCached(deps.db, message.orgId, message.channelId));
     },
     "agent_run.execute": async (job, ctx) => {
       // Counted per run (statements per stage go into the run profile).

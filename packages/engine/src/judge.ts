@@ -308,13 +308,16 @@ export function withJudgeFallback(primary: Judge, fallback: Judge, primaryOn: ()
 
 // ── The judgments the product uses ────────────────────────────────────────────
 
-/** How an agent at work takes a message the person it works for sends meanwhile (`steerHandling`). */
-export type SteerHandling = "stop" | "interrupt" | "add" | "answer" | "queue";
+/**
+ * How an agent at work takes a message the person it works for sends meanwhile (`steerHandling`). `elsewhere`: in a
+ * conversation others share, the message isn't for the agent at all.
+ */
+export type SteerHandling = "stop" | "interrupt" | "add" | "answer" | "queue" | "elsewhere";
 
 /** How likely a way must be for the agent to take it: below, the message is read at the next pause (`add`). */
 export const STEER_SURE = 0.6;
 
-const STEER_CRITERIA: Record<SteerHandling, string> = {
+const STEER_CRITERIA: Record<Exclude<SteerHandling, "elsewhere">, string> = {
   stop: "Stop and drop the task: the message only tells the agent to stop, cancel or forget the task ('para', 'deixa', 'cancela'), asking for nothing else.",
   interrupt:
     "Stop at once and read the message, because going on as it is would waste work or something can't wait: it corrects or changes the task in progress (another target, file, period, recipient, branch or approach; a mistake pointed out), drops it for something else, or reports an urgent problem.",
@@ -326,19 +329,51 @@ const STEER_CRITERIA: Record<SteerHandling, string> = {
 };
 
 /**
+ * In a channel other people and agents share, a message written while the agent works may be for one of them (ADR
+ * 0112 addendum of 2026-11-19): the person who asked turns to a colleague, or people talk among themselves.
+ */
+const ELSEWHERE_CRITERION =
+  "Not for the agent: it talks to someone else in the channel (another person or another agent, by name or @), or people are just talking among themselves; it asks the agent nothing and adds nothing to its task.";
+
+/**
+ * How sure the judge must be that a message isn't for the agent: below, the agent reads it (`add`), as before. Above
+ * `STEER_SURE`: a follow-up of theirs the agent never reads costs more than a line it reads and leaves.
+ */
+export const ELSEWHERE_SURE = 0.75;
+
+/**
  * A message a person sent an agent while it works on a task for them (ADR 0112 addendum): how the agent takes it.
  * `stop` drops the task; `interrupt` reads it now (a correction that makes going on a waste, an urgent problem); `add`
  * folds it in at the next pause, as before; `answer` gets a short reply now while the work goes on (a greeting, a
- * question about the work); `queue` waits for the task to end and gets a run of its own (a separate request). One
- * judgment, in any language; a way less likely than `STEER_SURE` is `add`. `task`: what the agent works on (its
+ * question about the work); `queue` waits for the task to end and gets a run of its own (a separate request);
+ * `elsewhere`, only asked where others share the conversation (`shared`), isn't for the agent at all: the task never
+ * reads it and the router decides who answers it (ADR 0112 addendum of 2026-11-19). One judgment, in any language; a
+ * way less likely than `STEER_SURE` (`ELSEWHERE_SURE` for `elsewhere`) is `add`. `task`: what the agent works on (its
  * request), null when unknown.
  */
 export async function steerHandling(
   judge: Judge,
-  input: { orgId: string; text: string; agentName: string; task: string | null; agentId?: string; runId?: string },
+  input: {
+    orgId: string;
+    text: string;
+    agentName: string;
+    task: string | null;
+    agentId?: string;
+    runId?: string;
+    /**
+     * Written in a channel others share, without @mentioning the agent: it may be for someone else (`elsewhere`).
+     * `fromAsker`: its writer is the person who asked for the task.
+     */
+    shared?: { fromAsker: boolean };
+  },
 ): Promise<SteerHandling> {
   const text = input.text.trim();
   if (!text) return "add";
+  const shared = input.shared;
+  const criteria: Record<string, string> = shared
+    ? { ...STEER_CRITERIA, elsewhere: ELSEWHERE_CRITERION }
+    : { ...STEER_CRITERIA };
+  const task = input.task ? "`task_in_progress`, which a person asked for" : "a task a person asked for";
   const answers = await judge.ask({
     orgId: input.orgId,
     agentId: input.agentId,
@@ -347,22 +382,28 @@ export async function steerHandling(
     state: {
       agent: input.agentName,
       ...(input.task ? { task_in_progress: cutText(input.task, 1500) } : { agent_is_working_on_a_task: true }),
+      ...(shared
+        ? { written_by: shared.fromAsker ? "the person who asked for the task" : "someone else in the channel" }
+        : {}),
       message: cutText(text, 2000),
     },
     questions: {
       handling: {
         type: "choice",
-        instructions: input.task
-          ? "`agent` is an AI teammate in a team chat. It is in the middle of `task_in_progress`, which the person asked for, and that person just sent `message` while it works. How should the agent handle `message`?"
-          : "`agent` is an AI teammate in a team chat, in the middle of a task the person asked for, and that person just sent `message` while it works. How should the agent handle `message`?",
-        criteria: STEER_CRITERIA,
+        instructions: shared
+          ? `\`agent\` is an AI teammate in a team chat channel that other people and agents share. It is in the middle of ${task}, and \`message\` was just written in the channel (\`written_by\`) while it works. How should the agent handle \`message\`?`
+          : input.task
+            ? "`agent` is an AI teammate in a team chat. It is in the middle of `task_in_progress`, which the person asked for, and that person just sent `message` while it works. How should the agent handle `message`?"
+            : "`agent` is an AI teammate in a team chat, in the middle of a task the person asked for, and that person just sent `message` while it works. How should the agent handle `message`?",
+        criteria,
       },
     },
   });
   const answer = answers.handling;
-  const choice = Object.keys(STEER_CRITERIA).find((k) => k === answer?.choice) as SteerHandling | undefined;
+  const choice = Object.keys(criteria).find((k) => k === answer?.choice) as SteerHandling | undefined;
   if (!choice) return "add";
-  return (answer?.probabilities?.[choice] ?? 1) >= STEER_SURE ? choice : "add";
+  const sure = choice === "elsewhere" ? ELSEWHERE_SURE : STEER_SURE;
+  return (answer?.probabilities?.[choice] ?? 1) >= sure ? choice : "add";
 }
 
 /**

@@ -307,6 +307,7 @@ import {
   releaseInbox,
   stoppedToSend,
   takeInbox,
+  triageSettled,
   whileHeld,
 } from "./run-inbox";
 import { deliverNoticeToRun } from "./run-resume";
@@ -1638,7 +1639,17 @@ async function executeRunInner(
       });
   };
   /** Messages people sent to this conversation while the run was active (one run per agent and conversation). */
-  const takeSteering = () => takeInbox(db, run.id);
+  /**
+   * A message just written in a channel others share may not be for this agent: its triage takes it out of the inbox
+   * (`steerHandling` `elsewhere`, ADR 0112 addendum of 2026-11-19), so a step waits a moment for it instead of reading
+   * it first. Without a judge there is no triage to wait for.
+   */
+  const settleTriage = () =>
+    deps.context?.judge ? triageSettled(db, run).catch(() => undefined) : Promise.resolve(undefined);
+  const takeSteering = async () => {
+    await settleTriage();
+    return takeInbox(db, run.id);
+  };
   /**
    * The run ended: messages it took but never read get a run of their own (`releaseInbox`), so
    * nothing sent to the agent is swallowed by an ending.
@@ -3321,6 +3332,7 @@ async function executeRunInner(
    * A run that changed something posts its receipts instead (`endWithReceipts`).
    */
   const endQuietly = async (how: "pass" | "sentinel" | "empty", reason: string): Promise<boolean> => {
+    await settleTriage();
     const [still] = await db
       .select({ pending: agentRuns.pendingMessageIds })
       .from(agentRuns)
@@ -5961,6 +5973,7 @@ async function executeRunInner(
       }
       if (!text && !anythingPosted && !silent) return fail("empty_reply");
       // Someone wrote while it answered: post this answer, then read the new message(s) and go on.
+      await settleTriage();
       const [still] = await db
         .select({ pending: agentRuns.pendingMessageIds })
         .from(agentRuns)

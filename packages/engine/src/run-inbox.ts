@@ -118,6 +118,96 @@ export async function queueAfterRun(db: Executor, runId: string, messageId: stri
 }
 
 /**
+ * A message that went into the run's task but isn't for its agent (`steerHandling` `elsewhere`, ADR 0112 addendum of
+ * 2026-11-19): out of its inbox while still unread, and out of the message's `steeredRunIds`, so nothing reads it as
+ * sent to that run (a reload's receipts, who wrote into the run, the router's history). False: read already, or the
+ * run no longer takes messages.
+ */
+export async function releaseFromRun(
+  db: Database,
+  run: Pick<AgentRun, "id" | "orgId">,
+  message: { id: string; createdAt: Date },
+): Promise<boolean> {
+  return db.transaction(async (tx) => {
+    const released = await tx
+      .update(agentRuns)
+      .set({
+        pendingMessageIds: sql`array_remove(${agentRuns.pendingMessageIds}, ${message.id}::uuid)`,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(agentRuns.id, run.id),
+          inArray(agentRuns.status, [...ACTIVE_RUN_STATUSES]),
+          sql`${message.id}::uuid = any(${agentRuns.pendingMessageIds})`,
+        ),
+      )
+      .returning({ id: agentRuns.id });
+    if (released.length === 0) return false;
+    const runs = sql`coalesce(${messages.meta}->'steeredRunIds', '[]'::jsonb) - ${run.id}::text`;
+    await tx
+      .update(messages)
+      .set({
+        meta: sql`case when jsonb_array_length(${runs}) = 0 then ${messages.meta} - 'steeredRunIds'
+          else jsonb_set(${messages.meta}, '{steeredRunIds}', ${runs}) end`,
+      })
+      .where(and(eq(messages.orgId, run.orgId), eq(messages.id, message.id), sentSince(message)));
+    return true;
+  });
+}
+
+/** Bounds a statement on one message to its month's partition (its date in the app is the database's, cut to ms). */
+const sentSince = (message: { createdAt: Date }) =>
+  gte(messages.createdAt, new Date(message.createdAt.getTime() - 1000));
+
+/**
+ * Marks a message whose triage is under way (`meta.triage`, ADR 0112 addendum of 2026-11-19): a run's step waits for
+ * it a moment (`triageSettled`) instead of reading first what may be for someone else. Cleared when the judge answers.
+ */
+export async function markTriage(db: Executor, message: Pick<Message, "id" | "orgId" | "createdAt">, on: boolean) {
+  await db
+    .update(messages)
+    .set({ meta: on ? sql`${messages.meta} || '{"triage":true}'::jsonb` : sql`${messages.meta} - 'triage'` })
+    .where(and(eq(messages.orgId, message.orgId), eq(messages.id, message.id), sentSince(message)));
+}
+
+/**
+ * How long a run's step waits at most for the triage of a message in its inbox (`markTriage`, ADR 0112 addendum of
+ * 2026-11-19), counted from the message's send: it may be for someone else (`releaseFromRun`), and a step that took it
+ * first would answer it. The judge answers in about a second; past this, the step reads it as before.
+ */
+export const TRIAGE_GRACE_MS = 2_000;
+const TRIAGE_POLL_MS = 150;
+
+/**
+ * Waits while a message in the run's inbox is still being triaged (`meta.triage`), at most `TRIAGE_GRACE_MS` from its
+ * send (a triage that never ended holds nothing longer). Nothing under triage, the usual case, costs one query.
+ */
+export async function triageSettled(db: Executor, run: Pick<AgentRun, "id">): Promise<void> {
+  // On the database's clock, which dated the message.
+  const grace = sql`${`${TRIAGE_GRACE_MS} milliseconds`}::interval`;
+  const deadline = Date.now() + TRIAGE_GRACE_MS;
+  for (;;) {
+    const [row] = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(agentRuns)
+      .innerJoin(
+        messages,
+        and(eq(messages.orgId, agentRuns.orgId), sql`${messages.id} = any(${agentRuns.pendingMessageIds})`),
+      )
+      .where(
+        and(
+          eq(agentRuns.id, run.id),
+          sql`${messages.meta} ? 'triage'`,
+          sql`${messages.createdAt} > clock_timestamp() - ${grace}`,
+        ),
+      );
+    if (!row?.n || Date.now() >= deadline) return;
+    await Bun.sleep(TRIAGE_POLL_MS);
+  }
+}
+
+/**
  * Takes the run's unread messages (the inbox is emptied): the executor reads them, or hands them on. What waits for
  * after the task (`afterMessageIds`) stays: only an ending hands it on.
  */
