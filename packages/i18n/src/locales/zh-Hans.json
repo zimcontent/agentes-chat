@@ -4038,6 +4038,11 @@
     "inChannel": "在 #{{channel}}",
     "open": "查看"
   },
+  "deliveryProof": {
+    "group": "交付的内容",
+    "screenshot": "截图",
+    "showAll": "全部显示"
+  },
   "agentActions": {
     "issue": {
       "created": "创建了任务 <b>#{{number}}</b> · {{title}}",

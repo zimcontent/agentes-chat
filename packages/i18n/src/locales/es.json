@@ -4308,6 +4308,11 @@
     "inChannel": "en #{{channel}}",
     "open": "Ver"
   },
+  "deliveryProof": {
+    "group": "Lo que entregó",
+    "screenshot": "Captura",
+    "showAll": "Mostrar todo"
+  },
   "agentActions": {
     "issue": {
       "created": "Creé la tarea <b>#{{number}}</b> · {{title}}",

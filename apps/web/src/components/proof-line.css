@@ -1,0 +1,57 @@
+/* Proof on delivery (docs/adr/doug-0040-proof-on-delivery.md): one quiet line of chips under an agent's reply. No
+   plate and no card: the words of a footnote, each opening what it names. One line until "+N" opens the rest. */
+.proof-line {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px 12px;
+  min-width: 0;
+  max-width: min(100%, var(--msg-card-w));
+  margin-top: 8px;
+  overflow: hidden;
+}
+.proof-line--open {
+  flex-wrap: wrap;
+}
+.proof-line__chip {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  max-width: 200px;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--faint);
+  font: inherit;
+  font-size: 12.5px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.proof-line__chip > svg {
+  flex: none;
+}
+.proof-line__chip:hover {
+  color: var(--ink2);
+}
+.proof-line__chip--still,
+.proof-line__chip--still:hover {
+  color: var(--faint);
+  cursor: default;
+}
+html:not([data-pointer]) .proof-line__chip:focus-visible {
+  outline: none;
+  border-radius: 4px;
+  box-shadow: var(--focus-ring);
+}
+.proof-line__t {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.proof-line__more {
+  flex: none;
+}

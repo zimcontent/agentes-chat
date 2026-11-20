@@ -4179,6 +4179,11 @@
     "inChannel": "in #{{channel}}",
     "open": "Ansehen"
   },
+  "deliveryProof": {
+    "group": "Was geliefert wurde",
+    "screenshot": "Bildschirmfoto",
+    "showAll": "Alle zeigen"
+  },
   "agentActions": {
     "issue": {
       "created": "Aufgabe <b>#{{number}}</b> erstellt · {{title}}",

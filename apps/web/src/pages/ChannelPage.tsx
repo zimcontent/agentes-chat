@@ -369,6 +369,7 @@ import { useOrg } from "@/components/org-context";
 import { AuthorStatus } from "@/components/Presence";
 import { ProfileTrigger } from "@/components/ProfileCard";
 import { ChannelIconDialog, ChannelPhoto } from "@/components/ProfilePhoto";
+import { ProofLine } from "@/components/ProofLine";
 import { ReachLines } from "@/components/ReachLines";
 import { MessageReactions, useEmojiLabels } from "@/components/Reactions";
 import {
@@ -4975,6 +4976,7 @@ export const TimelineMessage = memo(function TimelineMessage({
             {m.author.type === "agent" && !m.local && <HandedTaskChips message={m} />}
             {!m.local && <ReviewCards message={m} />}
             {m.author.type === "agent" && !m.local && <TeamChecks message={m} />}
+            {m.author.type === "agent" && !m.local && <ProofLine message={m} />}
             {m.author.type === "agent" && !m.local && <ReachLines message={m} />}
             {m.author.type === "agent" && !m.local && <FeedbackOfferRow message={m} />}
             {agent &&

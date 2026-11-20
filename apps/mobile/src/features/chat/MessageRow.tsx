@@ -151,6 +151,7 @@ import {
 } from "./logic";
 import { lookRows, RowPartContext, useRhythm, useRowLook } from "./look";
 import { MessageText } from "./MessageText";
+import { ProofLine } from "./ProofLine";
 import { QuoteAbove, QuotePlate } from "./QuoteLine";
 import { ReachLines } from "./ReachLines";
 import { Receipts } from "./Receipts";
@@ -934,6 +935,7 @@ function RowBody({
             {isAgent && m.actions?.length ? <Receipts message={m} onTap={onTap} onLongPress={press} /> : null}
             {isAgent ? <HandedTaskChips message={m} /> : null}
             {isAgent ? <TeamChecks message={m} /> : null}
+            {isAgent ? <ProofLine message={m} /> : null}
             {isAgent ? <ReachLines message={m} /> : null}
             {isAgent && feedbackOfferOf(meta) ? <FeedbackOfferRow message={m} /> : null}
             {isAgent && m.longWork ? <MessageWorkLine message={m} threaded={Boolean(thread)} /> : null}
