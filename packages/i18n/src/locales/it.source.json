@@ -15106,8 +15106,11 @@
   "agentPage.work.brain.speedText": {
     "value": "Answers faster in conversations and uses the plan 2.5× as fast. Routines and long tasks stay at standard speed."
   },
+  "agentPage.work.brain.modelLine.fable": {
+    "value": "The most capable. Uses up the plan much faster."
+  },
   "agentPage.work.brain.modelLine.opus": {
-    "value": "The most capable. Uses up the plan faster."
+    "value": "Very capable. Uses up the plan faster."
   },
   "agentPage.work.brain.modelLine.sonnet": {
     "value": "Balanced. Good for almost everything."
@@ -16528,6 +16531,9 @@
   },
   "agentPage.activity.errors.computer_timeout": {
     "value": "The computer took too long to answer."
+  },
+  "agentPage.activity.errors.disk_full": {
+    "value": "This computer's disk is full. Delete files you no longer need on it (an agent can do it once there's a little room), or ask an admin to free space."
   },
   "agentPage.activity.errors.cli_failed": {
     "value": "The {{brain}} program stopped with an error: {{detail}}"
@@ -18223,6 +18229,9 @@
   },
   "newAgent.model": {
     "value": "Model"
+  },
+  "newAgent.modelDesc.fable": {
+    "value": "The most capable, for the hardest work"
   },
   "newAgent.modelDesc.sonnet": {
     "value": "Recommended for most"
@@ -22804,6 +22813,9 @@
   },
   "routines.code.computer_timeout": {
     "value": "The computer took too long to answer"
+  },
+  "routines.code.disk_full": {
+    "value": "The computer's disk was full"
   },
   "routines.code.cli_failed": {
     "value": "The AI program on the computer stopped with an error"

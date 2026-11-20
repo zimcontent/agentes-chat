@@ -6603,7 +6603,8 @@
         },
         "speedText": "Odpowiada szybciej w rozmowach i zużywa plan 2,5× szybciej. Rutyny i długie zadania zostają przy standardowej szybkości.",
         "modelLine": {
-          "opus": "Najbardziej zaawansowany. Szybciej zużywa plan.",
+          "fable": "Najbardziej zaawansowany. Zużywa plan znacznie szybciej.",
+          "opus": "Bardzo zaawansowany. Szybciej zużywa plan.",
           "sonnet": "Zrównoważony. Dobry prawie do wszystkiego.",
           "haiku": "Szybki i lekki. Do prostych zadań."
         },
@@ -7211,6 +7212,7 @@
         "computer_busy": "Komputer był zajęty innymi zadaniami.",
         "computer_failed": "Komputer napotkał problem i się zatrzymał.",
         "computer_timeout": "Komputer zbyt długo nie odpowiadał.",
+        "disk_full": "Dysk tego komputera jest pełny. Usuń z niego pliki, których już nie potrzebujesz (agent może to zrobić, gdy zwolni się trochę miejsca), albo poproś administratora o zwolnienie miejsca.",
         "cli_failed": "Program {{brain}} zatrzymał się z błędem: {{detail}}",
         "cli_stopped": "Program {{brain}} zatrzymał się z błędem.",
         "cli_closed": "Program {{brain}} nagle się zamknął.",
@@ -7989,6 +7991,7 @@
     "modelAndCost": "Model i koszt",
     "model": "Model",
     "modelDesc": {
+      "fable": "Najbardziej zaawansowany, do najtrudniejszej pracy",
       "sonnet": "Zalecany w większości przypadków",
       "opus": "Długie, trudne zadania",
       "haiku": "Szybki i tani",
@@ -10036,6 +10039,7 @@
       "computer_busy": "Komputer był zajęty innymi zadaniami",
       "computer_failed": "Komputer napotkał problem i się zatrzymał",
       "computer_timeout": "Komputer zbyt długo nie odpowiadał",
+      "disk_full": "Dysk komputera był pełny",
       "cli_failed": "Program AI na komputerze zatrzymał się z błędem",
       "account_missing": "Konta agenta nie ma już na jego komputerze",
       "our_error": "Coś poszło nie tak po naszej stronie"

@@ -6391,7 +6391,8 @@
         },
         "speedText": "Répond plus vite dans les conversations et consomme l'abonnement 2,5× plus vite. Les routines et les tâches longues restent en standard.",
         "modelLine": {
-          "opus": "Le plus performant. Consomme l'abonnement plus vite.",
+          "fable": "Le plus performant. Consomme l'abonnement bien plus vite.",
+          "opus": "Très performant. Consomme l'abonnement plus vite.",
           "sonnet": "Équilibré. Convient à presque tout.",
           "haiku": "Rapide et léger. Pour les tâches simples."
         },
@@ -6975,6 +6976,7 @@
         "computer_busy": "L'ordinateur est resté occupé par d'autres tâches.",
         "computer_failed": "L'ordinateur a rencontré un problème et s'est arrêté.",
         "computer_timeout": "L'ordinateur a mis trop de temps à répondre.",
+        "disk_full": "Le disque de cet ordinateur est plein. Supprimez-y les fichiers dont vous n'avez plus besoin (un agent peut le faire dès qu'il y a un peu de place), ou demandez à un admin de libérer de l'espace.",
         "cli_failed": "Le programme {{brain}} s'est arrêté sur une erreur : {{detail}}",
         "cli_stopped": "Le programme {{brain}} s'est arrêté sur une erreur.",
         "cli_closed": "Le programme {{brain}} s'est fermé de façon inattendue.",
@@ -7747,6 +7749,7 @@
     "modelAndCost": "Modèle et coût",
     "model": "Modèle",
     "modelDesc": {
+      "fable": "Le plus performant, pour le travail le plus difficile",
       "sonnet": "Recommandé dans la plupart des cas",
       "opus": "Tâches longues et difficiles",
       "haiku": "Rapide et économique",
@@ -9752,6 +9755,7 @@
       "computer_busy": "L'ordinateur est resté occupé par d'autres tâches",
       "computer_failed": "L'ordinateur a rencontré un problème et s'est arrêté",
       "computer_timeout": "L'ordinateur a mis trop de temps à répondre",
+      "disk_full": "Le disque de l'ordinateur était plein",
       "cli_failed": "Le programme d'IA de l'ordinateur s'est arrêté sur une erreur",
       "account_missing": "Le compte de l'agent n'est plus sur son ordinateur",
       "our_error": "Un problème est survenu de notre côté"

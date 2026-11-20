@@ -5,6 +5,7 @@ import {
   type PlanUsage,
   type ProviderFailureCause,
   type PubSub,
+  saysDiskFull,
 } from "@dougbot/adapters";
 import {
   and,
@@ -332,6 +333,7 @@ import {
   cliFailureText,
   cliRefusedStart,
   cliWords,
+  DISK_FULL,
   isTerminal,
   keyRefused,
   NO_AI,
@@ -4936,6 +4938,18 @@ async function executeRunInner(
               // The text it streams next is another model call's: never one reply with what it wrote before.
               deltas.toolEnded();
             },
+            // Its CLI went quiet and the computer stopped it: on the trail, where it was and for how long.
+            onStalled: (stall) => {
+              const step = {
+                reason: "brain_stalled",
+                code: stall.phase,
+                ...(stall.tool ? { tool: stall.tool } : {}),
+                ...(stall.label ? { label: stall.label } : {}),
+                silentMs: stall.silentMs,
+                resumed: stall.resumed,
+              };
+              later(() => addRunStep(db, run, "error", step));
+            },
             onFile: (path) => {
               const machineId = turnPlan.session?.machineId;
               if (!machineId || !deps.shareFile || run.background) return;
@@ -5072,6 +5086,8 @@ async function executeRunInner(
         // they would run them again. Post what the brain said and what it did instead, and end the run there.
         if (turnPlan.kind !== "model") {
           const executed = await executedSince(db, run.id, turnStepSeq, executedNow);
+          // A full disk there fails every turn the same way, a wait for the computer included: only freeing space helps.
+          if (error instanceof BrainFailure && saysDiskFull(error.message)) return fail(DISK_FULL);
           // The computer dropped mid-turn: the turn resumes there when it is back (its session keeps what it did).
           const machineId = turnPlan.session?.machineId;
           if (machineId && error instanceof BrainFailure && error.code === "machine_offline") {
@@ -6265,6 +6281,8 @@ async function thinkOnce(
     onTaken?(): void | Promise<void>;
     /** Fast failed and the turn answered at standard speed. */
     onSpeedFallback?(message: string): void;
+    /** The computer stopped the brain's CLI for its silence (`stalled`): resumed there, or the turn ends. */
+    onStalled?(stall: Extract<BrainEvent, { type: "stalled" }>): void;
     /** A failed turn that is the plan's refusal, though the CLI didn't call it a limit. */
     refusedByPlan?(message: string): boolean;
   } = {},
@@ -6309,6 +6327,7 @@ async function thinkOnce(
     }
     if (event.type === "text_delta") onDelta(event.text);
     else if (event.type === "tool_started") hooks.onStarted?.(event);
+    else if (event.type === "stalled") hooks.onStalled?.(event);
     else if (event.type === "tool_call") {
       // Executed elsewhere (a computer brain through the runner bridge, which recorded its steps): shown only.
       if (event.executed) {

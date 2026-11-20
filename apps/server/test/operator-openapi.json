@@ -4182,7 +4182,7 @@
                 },
                 "tool": {
                   "type": ["string", "null"],
-                  "description": "A tool call's and its result's."
+                  "description": "A tool call's and its result's. An error's whose `reason` is `brain_stalled`: the CLI's own tool it hung in."
                 },
                 "builtIn": {
                   "type": ["boolean", "null"],
@@ -4202,7 +4202,7 @@
                 },
                 "code": {
                   "type": ["string", "null"],
-                  "description": "An error's, or a tool result's own (`tool.unknown`, `tool.invalid_input`, `tool.failed`, `tool.not_allowed`…). On an error whose `reason` is `no_ai`: why the run had nothing to think with, one of `no_key`, `not_signed_in`, `no_computer`, `cli_missing`, `computer_away`, `computer_failed`, `cli_failed`, `plan_limit`, `model_limit`, `model_region`, `model_off`, `plan_inactive`, `commands_off`, `plan_not_shared`, `plans_not_yours`, `runner_outdated`, `plan_tools`, `plan_hold`, `plan_unattended`; null on a run from before the server kept it."
+                  "description": "An error's, or a tool result's own (`tool.unknown`, `tool.invalid_input`, `tool.failed`, `tool.not_allowed`…). On an error whose `reason` is `no_ai`: why the run had nothing to think with, one of `no_key`, `not_signed_in`, `no_computer`, `cli_missing`, `computer_away`, `computer_failed`, `cli_failed`, `plan_limit`, `model_limit`, `model_region`, `model_off`, `plan_inactive`, `commands_off`, `plan_not_shared`, `plans_not_yours`, `runner_outdated`, `plan_tools`, `plan_hold`, `plan_unattended`; null on a run from before the server kept it. On an error whose `reason` is `brain_stalled` (the computer stopped the CLI after it said nothing for too long): where it was, `model` (waiting for the model's answer), `tool` (in one of its own tools, `tool`) or `compacting`."
                 },
                 "errorClass": {
                   "type": ["string", "null"],
@@ -4226,7 +4226,7 @@
                 },
                 "reason": {
                   "type": ["string", "null"],
-                  "description": "An error's: `transient`, `provider_outage`, `brain_unavailable`, `usage_wait`, `no_ai`, `canceled`, `gave_up`, `recovered`, `interrupted`… A `context` step's that handed the run's unread messages on to another run (`redispatchedMessageIds`): why, one of `done`, `failed`, `canceled`, `interrupted`, `swept`, `held`."
+                  "description": "An error's: `transient`, `provider_outage`, `brain_unavailable`, `brain_stalled`, `usage_wait`, `no_ai`, `canceled`, `gave_up`, `recovered`, `interrupted`… A `context` step's that handed the run's unread messages on to another run (`redispatchedMessageIds`): why, one of `done`, `failed`, `canceled`, `interrupted`, `swept`, `held`."
                 },
                 "toRunId": {
                   "type": ["string", "null"],
@@ -4281,7 +4281,7 @@
                 "durationMs": {
                   "type": ["integer", "null"],
                   "minimum": 0,
-                  "description": "A tool result's: since its call; null when the call is on an earlier page."
+                  "description": "A tool result's: since its call; null when the call is on an earlier page. A `brain_stalled` error's: how long nothing came from the CLI."
                 },
                 "messageId": {
                   "type": ["string", "null"],

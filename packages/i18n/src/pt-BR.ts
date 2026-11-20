@@ -6460,7 +6460,8 @@ export const ptBR = {
           "Responde mais rápido nas conversas e gasta o plano 2,5× mais depressa. Rotinas e tarefas longas seguem no padrão.",
         /** The model picker's line under each Claude Code model (other models show their name only). */
         modelLine: {
-          opus: "O mais capaz. Gasta o plano mais rápido.",
+          fable: "O mais capaz. Gasta o plano bem mais rápido.",
+          opus: "Muito capaz. Gasta o plano mais rápido.",
           sonnet: "Equilibrado. Bom para quase tudo.",
           haiku: "Rápido e leve. Para tarefas simples.",
         },
@@ -7085,6 +7086,8 @@ export const ptBR = {
         /** The computer's own program (the one that runs the agent's CLI there) failed; its code shows only on hover. */
         computer_failed: "O computador teve um problema e parou.",
         computer_timeout: "O computador demorou demais para responder.",
+        disk_full:
+          "O disco deste computador está cheio. Apague arquivos de que você não precisa mais nele (um agente consegue fazer isso quando houver um pouco de espaço) ou peça a um admin para liberar espaço.",
         /** The agent's CLI on its computer (`brain`: Claude Code, Codex…) stopped on an error; `detail`: what it said. */
         cli_failed: "O {{brain}} parou com um erro: {{detail}}",
         /** The same, when it said nothing about it. */
@@ -7862,6 +7865,7 @@ export const ptBR = {
     modelAndCost: "Modelo e custo",
     model: "Modelo",
     modelDesc: {
+      fable: "O mais capaz, para o trabalho mais difícil",
       sonnet: "Recomendado para a maioria",
       opus: "Tarefas longas e difíceis",
       haiku: "Rápido e barato",
@@ -9811,6 +9815,7 @@ export const ptBR = {
       computer_busy: "O computador continuou ocupado com outras tarefas",
       computer_failed: "O computador teve um problema e parou",
       computer_timeout: "O computador demorou demais para responder",
+      disk_full: "O disco do computador estava cheio",
       /** The agent's CLI on its computer (Claude Code, Codex…) stopped on an error of its own. */
       cli_failed: "A IA do computador parou com um erro",
       account_missing: "A conta do agente não está mais no computador dele",

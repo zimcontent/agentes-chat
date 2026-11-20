@@ -59,6 +59,7 @@ import {
   turnContext,
   userMessageLine,
 } from "../../runner/brain";
+import { CLAUDE_SILENCE, silenceLimit } from "../../runner/brain-silence";
 import { claudeAuth } from "../../runner/executors";
 import { handleRequest } from "../../runner/handlers";
 import { chatToolsBreach, delegatedToolsBreach, type IpcReply, McpBridge, McpToolCache } from "../../runner/mcp";
@@ -567,6 +568,8 @@ test("command line: stream-json both ways, opus falls back to sonnet, strict MCP
   expect(lean.join(" ")).toContain("--tools Bash,Read,Edit,Write,Glob,Grep,ToolSearch");
   expect(lean.join(" ")).not.toContain("WebFetch");
   expect(lean.slice(-2)).toEqual(["--session-id", SESSION(1)]);
+  expect(fallbackModelFor("fable")).toBe("opus");
+  expect(fallbackModelFor("claude-fable-5-2")).toBe("opus");
   expect(fallbackModelFor("claude-opus-5-5")).toBe("sonnet");
   expect(fallbackModelFor("sonnet")).toBeUndefined();
   expect(JSON.parse(userMessageLine("oi"))).toEqual({
@@ -1716,7 +1719,7 @@ test.if(posix)(
         [SIGNED_IN]: signedIn,
         [GO_ACCOUNT]: go,
       };
-      const { spawns, turn } = setup({
+      const { m, spawns, turn } = setup({
         accounts: { accountDir: (kind, id) => (kind === "claude_code" ? (folders[id] ?? null) : null) },
       });
       type Run = {
@@ -1762,6 +1765,11 @@ test.if(posix)(
         CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: "1",
         API_TIMEOUT_MS: "3000000",
       });
+      // The CLI applies that env: the model's wait is its API timeout plus its stream watchdog, not the default 10 min.
+      const proc = m.process(AGENT.id, SESSION(1));
+      expect(proc?.apiTimeoutMs).toBe(3_000_000);
+      const wait = { tools: [], compacting: false, bridgeCalls: 0, apiTimeoutMs: proc?.apiTimeoutMs };
+      expect(silenceLimit(wait, CLAUDE_SILENCE)?.ms).toBe(3_000_000 + 5 * 60_000);
       // The agent keeps its alias (the plan names the model), with no fallback model.
       expect(flag(glm, "--model")).toBe("opus");
       expect(glm?.args).not.toContain("--fallback-model");

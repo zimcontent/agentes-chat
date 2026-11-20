@@ -6167,7 +6167,8 @@
         },
         "speedText": "Sohbetlerde daha hızlı yanıt verir ve planı 2,5× daha hızlı tüketir. Rutinler ve uzun görevler standart hızda kalır.",
         "modelLine": {
-          "opus": "En yetenekli olanı. Planı daha hızlı tüketir.",
+          "fable": "En yetenekli olanı. Planı çok daha hızlı tüketir.",
+          "opus": "Çok yetenekli. Planı daha hızlı tüketir.",
           "sonnet": "Dengeli. Neredeyse her şey için iyi.",
           "haiku": "Hızlı ve hafif. Basit görevler için."
         },
@@ -6715,6 +6716,7 @@
         "computer_busy": "Bilgisayar başka görevlerle meşgul kaldı.",
         "computer_failed": "Bilgisayar bir sorunla karşılaştı ve durdu.",
         "computer_timeout": "Bilgisayarın yanıt vermesi çok uzun sürdü.",
+        "disk_full": "Bu bilgisayarın diski dolu. Orada artık ihtiyacınız olmayan dosyaları silin (biraz yer açılınca bunu bir ajan da yapabilir) ya da bir yöneticiden yer açmasını isteyin.",
         "cli_failed": "Bir hata {{brain}} programını durdurdu: {{detail}}",
         "cli_stopped": "Bir hata {{brain}} programını durdurdu.",
         "cli_closed": "Beklenmedik şekilde {{brain}} programı kapandı.",
@@ -7450,6 +7452,7 @@
     "modelAndCost": "Model ve maliyet",
     "model": "Model",
     "modelDesc": {
+      "fable": "En yetenekli olanı, en zor işler için",
       "sonnet": "Çoğu iş için önerilen",
       "opus": "Uzun, zor görevler",
       "haiku": "Hızlı ve ucuz",
@@ -9388,6 +9391,7 @@
       "computer_busy": "Bilgisayar başka görevlerle meşgul kaldı",
       "computer_failed": "Bilgisayar bir sorunla karşılaştı ve durdu",
       "computer_timeout": "Bilgisayarın yanıt vermesi çok uzun sürdü",
+      "disk_full": "Bilgisayarın diski doluydu",
       "cli_failed": "Bilgisayardaki yapay zeka programı bir hatayla durdu",
       "account_missing": "Ajanın hesabı artık bilgisayarında değil",
       "our_error": "Bizim tarafımızda bir şeyler ters gitti"

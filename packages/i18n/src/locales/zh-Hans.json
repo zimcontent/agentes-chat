@@ -5994,7 +5994,8 @@
         },
         "speedText": "在对话中回复更快，套餐额度消耗速度为 2.5 倍。例行工作和长任务仍按标准速度。",
         "modelLine": {
-          "opus": "能力最强，套餐额度消耗更快。",
+          "fable": "能力最强，套餐额度消耗快得多。",
+          "opus": "能力很强，套餐额度消耗更快。",
           "sonnet": "均衡，几乎适合所有场景。",
           "haiku": "快速轻量，适合简单任务。"
         },
@@ -6530,6 +6531,7 @@
         "computer_busy": "电脑一直忙于其他任务。",
         "computer_failed": "电脑遇到问题，已停止。",
         "computer_timeout": "电脑响应时间过长。",
+        "disk_full": "这台电脑的磁盘已满。请删除上面不再需要的文件（腾出一点空间后，智能体也能帮你删除），或请管理员释放空间。",
         "cli_failed": "因为出错，{{brain}} 程序已停止：{{detail}}",
         "cli_stopped": "因为出错，{{brain}} 程序已停止。",
         "cli_closed": "程序 {{brain}} 意外关闭。",
@@ -7261,6 +7263,7 @@
     "modelAndCost": "模型和费用",
     "model": "模型",
     "modelDesc": {
+      "fable": "能力最强，适合最难的工作",
       "sonnet": "适合大多数情况",
       "opus": "长时间、高难度的任务",
       "haiku": "快速又便宜",
@@ -9155,6 +9158,7 @@
       "computer_busy": "电脑一直忙于其他任务",
       "computer_failed": "电脑遇到问题，已停止",
       "computer_timeout": "电脑响应时间过长",
+      "disk_full": "电脑的磁盘已满",
       "cli_failed": "电脑上的 AI 程序因出错而停止",
       "account_missing": "智能体的账号已不在它的电脑上",
       "our_error": "我们这边出了点问题"

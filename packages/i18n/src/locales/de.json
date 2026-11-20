@@ -6184,7 +6184,8 @@
         },
         "speedText": "Antwortet in Unterhaltungen schneller und verbraucht das Abo 2,5× so schnell. Routinen und lange Aufgaben bleiben beim Standard.",
         "modelLine": {
-          "opus": "Das leistungsstärkste. Verbraucht das Abo schneller.",
+          "fable": "Das leistungsstärkste. Verbraucht das Abo deutlich schneller.",
+          "opus": "Sehr leistungsstark. Verbraucht das Abo schneller.",
           "sonnet": "Ausgewogen. Gut für fast alles.",
           "haiku": "Schnell und leicht. Für einfache Aufgaben."
         },
@@ -6732,6 +6733,7 @@
         "computer_busy": "Der Computer war mit anderen Aufgaben beschäftigt.",
         "computer_failed": "Der Computer hatte ein Problem und hat angehalten.",
         "computer_timeout": "Der Computer hat zu lange für eine Antwort gebraucht.",
+        "disk_full": "Die Festplatte dieses Computers ist voll. Lösche Dateien, die du dort nicht mehr brauchst (ein Agent kann das tun, sobald wieder etwas Platz ist), oder bitte einen Admin, Platz zu schaffen.",
         "cli_failed": "Das Programm {{brain}} wurde mit einem Fehler beendet: {{detail}}",
         "cli_stopped": "Das Programm {{brain}} wurde mit einem Fehler beendet.",
         "cli_closed": "Das Programm {{brain}} wurde unerwartet beendet.",
@@ -7486,6 +7488,7 @@
     "modelAndCost": "Modell und Kosten",
     "model": "Modell",
     "modelDesc": {
+      "fable": "Das leistungsstärkste, für die schwierigste Arbeit",
       "sonnet": "Für die meisten empfohlen",
       "opus": "Lange, schwierige Aufgaben",
       "haiku": "Schnell und günstig",
@@ -9431,6 +9434,7 @@
       "computer_busy": "Der Computer war mit anderen Aufgaben beschäftigt",
       "computer_failed": "Der Computer hatte ein Problem und hat angehalten",
       "computer_timeout": "Der Computer hat zu lange gebraucht, um zu antworten",
+      "disk_full": "Die Festplatte des Computers war voll",
       "cli_failed": "Das KI-Programm auf dem Computer wurde mit einem Fehler beendet",
       "account_missing": "Das Konto des Agenten ist nicht mehr auf seinem Computer",
       "our_error": "Bei uns ist etwas schiefgelaufen"

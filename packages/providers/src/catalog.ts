@@ -156,6 +156,15 @@ const DEEPSEEK_PEAK = [
 const OPENDESIGN_EFFORTS = ["max", "high", "low"] as const;
 
 export const MODEL_CATALOG: Record<string, ModelInfo> = {
+  // Claude Fable 5.2, Fable 5.1's successor at a lower price: $8 / $0.20 / $10 / $40 across its whole 1M-token
+  // window (2026-11-17). Like 5.1, no tier and no pick for routing or system tasks: people choose it.
+  "claude-fable-5-2": {
+    provider: "anthropic",
+    label: "Claude Fable 5.2",
+    prices: { input: 8000, output: 40000, cacheRead: 200, cacheWrite: 10000 },
+    contextWindow: 1_000_000,
+    serverSideFallback: true,
+  },
   // Its 1M-token window from platform.claude.com/docs/en/about-claude/models/overview, all of it at these prices
   // (2026-11-09). No tier and no pick for routing or system tasks: "Automático" never chooses it, people do.
   "claude-fable-5-1": {

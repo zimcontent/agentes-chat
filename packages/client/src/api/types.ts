@@ -6391,7 +6391,7 @@ export type BrainUnavailable =
   | "cant_start";
 
 export interface BrainModelOption {
-  /** What is stored (`opus`, `sonnet`, `haiku`, a Codex model). */
+  /** What is stored (`fable`, `opus`, `sonnet`, `haiku`, a Codex model). */
   value: string;
   label: string;
   modelId?: string;

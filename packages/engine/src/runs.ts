@@ -122,6 +122,8 @@ export const PERSON_LIMIT = "person_limit" as const;
 export const COMPUTER_BUSY = "computer_busy" as const;
 /** A run's error when it went in circles and its kind of run can't end with Continuar (a routine's). */
 export const STUCK_ERROR = "stuck" as const;
+/** A run's error when its computer's disk is full (`saysDiskFull`): every turn there fails until someone frees space. */
+export const DISK_FULL = "disk_full" as const;
 
 /** A run's error when its server stopped in the middle of a tool call (a deploy, a crash, a reboot). */
 export const INTERRUPTED_BY_RESTART = "Interrupted by a server restart";
@@ -329,6 +331,7 @@ export function runErrorDetail(error: string | null | undefined): {
     PERSON_LIMIT,
     COMPUTER_BUSY,
     STUCK_ERROR,
+    DISK_FULL,
     // A Codex turn on a Windows computer where MXC can't hold its commands (the runner's own words say what to do).
     "windows_sandbox",
   ];

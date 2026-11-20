@@ -6365,7 +6365,8 @@
         },
         "speedText": "Responde más rápido en las conversaciones y consume el plan 2,5× más deprisa. Las rutinas y las tareas largas siguen en estándar.",
         "modelLine": {
-          "opus": "El más capaz. Consume el plan más rápido.",
+          "fable": "El más capaz. Consume el plan mucho más rápido.",
+          "opus": "Muy capaz. Consume el plan más rápido.",
           "sonnet": "Equilibrado. Bueno para casi todo.",
           "haiku": "Rápido y ligero. Para tareas simples."
         },
@@ -6937,6 +6938,7 @@
         "computer_busy": "La computadora siguió ocupada con otras tareas.",
         "computer_failed": "La computadora tuvo un problema y se detuvo.",
         "computer_timeout": "La computadora tardó demasiado en responder.",
+        "disk_full": "El disco de esta computadora está lleno. Borra en ella los archivos que ya no necesites (un agente puede hacerlo en cuanto haya un poco de espacio) o pide a un admin que libere espacio.",
         "cli_failed": "El programa {{brain}} se detuvo con un error: {{detail}}",
         "cli_stopped": "El programa {{brain}} se detuvo con un error.",
         "cli_closed": "El programa {{brain}} se cerró de repente.",
@@ -7695,6 +7697,7 @@
     "modelAndCost": "Modelo y costo",
     "model": "Modelo",
     "modelDesc": {
+      "fable": "El más capaz, para el trabajo más difícil",
       "sonnet": "Recomendado para la mayoría",
       "opus": "Tareas largas y difíciles",
       "haiku": "Rápido y económico",
@@ -9700,6 +9703,7 @@
       "computer_busy": "La computadora siguió ocupada con otras tareas",
       "computer_failed": "La computadora tuvo un problema y se detuvo",
       "computer_timeout": "La computadora tardó demasiado en responder",
+      "disk_full": "El disco de la computadora estaba lleno",
       "cli_failed": "El programa de IA de la computadora se detuvo con un error",
       "account_missing": "La cuenta del agente ya no está en su computadora",
       "our_error": "Algo salió mal de nuestro lado"
