@@ -3935,7 +3935,10 @@
     "connect_app": {
       "title": "{{name}}を接続",
       "mcp": "MCPサーバーを追加",
-      "adminOnly": "管理者が接続します"
+      "adminOnly": "管理者が接続します",
+      "continuing": "接続済み、続行中",
+      "asked": "{{names}} の接続を待っています",
+      "expired": "{{name}} の待機を終了しました"
     },
     "invite": {
       "title_other": "{{count}}人を招待",
@@ -5481,6 +5484,7 @@
       "adminAskChannel": "<b>{{name}}</b> が <b>{{agent}}</b> を #{{label}} に追加するよう求めています",
       "adminAskCreate": "<b>{{name}}</b> がエージェントを作成できるよう求めています",
       "adminAskWebhook": "<b>{{name}}</b> がルーティン用の {{service}} Webhook の設定を求めています",
+      "adminAskConnector": "<b>{{name}}</b> が {{service}} の接続を依頼しています",
       "invitationAccepted": "<b>{{name}}</b>があなたの招待を受けて{{org}}に参加しました",
       "companyRequest": "<b>{{company}}</b>がDougBotを依頼しました: <b>{{name}}</b>からの依頼です",
       "invitationAcceptedAny": "<b>{{name}}</b>があなたの招待を受けました",

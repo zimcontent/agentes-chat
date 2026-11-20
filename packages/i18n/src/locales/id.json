@@ -3945,7 +3945,10 @@
     "connect_app": {
       "title": "Hubungkan {{name}}",
       "mcp": "Tambah server MCP",
-      "adminOnly": "Admin yang menghubungkannya"
+      "adminOnly": "Admin yang menghubungkannya",
+      "continuing": "Terhubung, melanjutkan",
+      "asked": "Menunggu {{names}} menghubungkannya",
+      "expired": "Tidak lagi menunggu {{name}}"
     },
     "invite": {
       "title_other": "Undang {{count}} orang",
@@ -5495,6 +5498,7 @@
       "adminAskChannel": "<b>{{name}}</b> memintamu menambahkan <b>{{agent}}</b> ke #{{label}}",
       "adminAskCreate": "<b>{{name}}</b> meminta izin membuat agen",
       "adminAskWebhook": "<b>{{name}}</b> memintamu menyiapkan webhook {{service}} untuk rutinitas",
+      "adminAskConnector": "<b>{{name}}</b> meminta Anda menghubungkan {{service}}",
       "invitationAccepted": "<b>{{name}}</b> menerima undanganmu dan bergabung ke {{org}}",
       "companyRequest": "<b>{{company}}</b> meminta DougBot: permintaan dari <b>{{name}}</b>",
       "invitationAcceptedAny": "<b>{{name}}</b> menerima undanganmu",

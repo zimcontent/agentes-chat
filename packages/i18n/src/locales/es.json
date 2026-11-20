@@ -4202,7 +4202,10 @@
     "connect_app": {
       "title": "Conectar {{name}}",
       "mcp": "Agregar un servidor MCP",
-      "adminOnly": "Lo conecta un admin"
+      "adminOnly": "Lo conecta un admin",
+      "continuing": "Conectado, continuando",
+      "asked": "Esperando a que {{names}} lo conecte",
+      "expired": "Ya no espera {{name}}"
     },
     "invite": {
       "title_one": "Invitar a {{count}} persona",
@@ -5842,6 +5845,7 @@
       "adminAskChannel": "<b>{{name}}</b> te pide añadir a <b>{{agent}}</b> a #{{label}}",
       "adminAskCreate": "<b>{{name}}</b> pide poder crear agentes",
       "adminAskWebhook": "<b>{{name}}</b> te pide configurar el webhook de {{service}} para rutinas",
+      "adminAskConnector": "<b>{{name}}</b> te pide que conectes {{service}}",
       "invitationAccepted": "<b>{{name}}</b> aceptó tu invitación y se unió a {{org}}",
       "companyRequest": "<b>{{company}}</b> pidió DougBot: una solicitud de <b>{{name}}</b>",
       "invitationAcceptedAny": "<b>{{name}}</b> aceptó tu invitación",

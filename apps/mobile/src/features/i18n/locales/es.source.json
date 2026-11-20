@@ -2313,6 +2313,9 @@
   "activity.kind.admin_ask_webhook": {
     "value": "{{names}} asks you to set up the {{service}} webhook for routines"
   },
+  "activity.kind.admin_ask_connector": {
+    "value": "{{names}} asks you to connect {{service}}"
+  },
   "activity.kind.routine_paused": {
     "value": {
       "one": "Routine paused",

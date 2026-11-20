@@ -4077,7 +4077,10 @@
     "connect_app": {
       "title": "{{name}} koppelen",
       "mcp": "Een MCP-server toevoegen",
-      "adminOnly": "Een admin koppelt het"
+      "adminOnly": "Een admin koppelt het",
+      "continuing": "Verbonden, gaat verder",
+      "asked": "Wacht tot {{names}} het verbindt",
+      "expired": "Wacht niet meer op {{name}}"
     },
     "invite": {
       "title_one": "{{count}} persoon uitnodigen",
@@ -5680,6 +5683,7 @@
       "adminAskChannel": "<b>{{name}}</b> vraagt je <b>{{agent}}</b> toe te voegen aan #{{label}}",
       "adminAskCreate": "<b>{{name}}</b> vraagt om agents te mogen maken",
       "adminAskWebhook": "<b>{{name}}</b> vraagt je de {{service}}-webhook voor routines in te stellen",
+      "adminAskConnector": "<b>{{name}}</b> vraagt je {{service}} te verbinden",
       "invitationAccepted": "<b>{{name}}</b> heeft je uitnodiging geaccepteerd en doet mee in {{org}}",
       "companyRequest": "<b>{{company}}</b> vroeg DougBot aan: een verzoek van <b>{{name}}</b>",
       "invitationAcceptedAny": "<b>{{name}}</b> heeft je uitnodiging geaccepteerd",

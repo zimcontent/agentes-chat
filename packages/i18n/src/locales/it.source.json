@@ -9904,6 +9904,15 @@
   "actionCard.connect_app.adminOnly": {
     "value": "An admin connects it"
   },
+  "actionCard.connect_app.continuing": {
+    "value": "Connected, continuing"
+  },
+  "actionCard.connect_app.asked": {
+    "value": "Waiting for {{names}} to connect it"
+  },
+  "actionCard.connect_app.expired": {
+    "value": "No longer waiting for {{name}}"
+  },
   "actionCard.invite.title": {
     "value": {
       "one": "Invite {{count}} person",
@@ -13796,6 +13805,9 @@
   },
   "notifications.what.adminAskWebhook": {
     "value": "<b>{{name}}</b> asks you to set up the {{service}} webhook for routines"
+  },
+  "notifications.what.adminAskConnector": {
+    "value": "<b>{{name}}</b> asks you to connect {{service}}"
   },
   "notifications.what.invitationAccepted": {
     "value": "<b>{{name}}</b> accepted your invitation and joined {{org}}"

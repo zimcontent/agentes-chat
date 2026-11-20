@@ -4063,7 +4063,10 @@
     "connect_app": {
       "title": "{{name}} bağla",
       "mcp": "Bir MCP sunucusu ekle",
-      "adminOnly": "Bir yönetici bağlar"
+      "adminOnly": "Bir yönetici bağlar",
+      "continuing": "Bağlandı, devam ediyor",
+      "asked": "{{names}} bağlamasını bekliyor",
+      "expired": "Artık {{name}} beklenmiyor"
     },
     "invite": {
       "title_one": "{{count}} kişiyi davet et",
@@ -5661,6 +5664,7 @@
       "adminAskChannel": "<b>{{name}}</b>, <b>{{agent}}</b> ajanını #{{label}} kanalına eklemenizi istiyor",
       "adminAskCreate": "<b>{{name}}</b>, ajan oluşturabilmek istiyor",
       "adminAskWebhook": "<b>{{name}}</b>, rutinler için {{service}} webhook'unu kurmanızı istiyor",
+      "adminAskConnector": "<b>{{name}}</b> {{service}} bağlamanızı istiyor",
       "invitationAccepted": "<b>{{name}}</b> davetinizi kabul etti ve {{org}} çalışma alanına katıldı",
       "companyRequest": "<b>{{company}}</b> DougBot istedi: <b>{{name}}</b> tarafından bir talep",
       "invitationAcceptedAny": "<b>{{name}}</b> davetinizi kabul etti",

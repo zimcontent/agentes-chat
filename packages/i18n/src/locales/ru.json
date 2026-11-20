@@ -4336,7 +4336,10 @@
     "connect_app": {
       "title": "Подключить {{name}}",
       "mcp": "Добавить MCP-сервер",
-      "adminOnly": "Подключает администратор"
+      "adminOnly": "Подключает администратор",
+      "continuing": "Подключено, продолжаем",
+      "asked": "Ждём, пока {{names}} подключит",
+      "expired": "Больше не ждёт {{name}}"
     },
     "invite": {
       "title_one": "Пригласить {{count}} человека",
@@ -6046,6 +6049,7 @@
       "adminAskChannel": "<b>{{name}}</b> просит добавить <b>{{agent}}</b> в #{{label}}",
       "adminAskCreate": "<b>{{name}}</b> просит разрешить создавать агентов",
       "adminAskWebhook": "<b>{{name}}</b> просит настроить вебхук {{service}} для рутин",
+      "adminAskConnector": "<b>{{name}}</b> просит подключить {{service}}",
       "invitationAccepted": "<b>{{name}}</b> принял(а) ваше приглашение и вступил(а) в {{org}}",
       "companyRequest": "<b>{{company}}</b> запросила DougBot: заявка от <b>{{name}}</b>",
       "invitationAcceptedAny": "<b>{{name}}</b> принял(а) ваше приглашение",
