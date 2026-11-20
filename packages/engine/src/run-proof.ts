@@ -31,6 +31,8 @@ export const PROOF_MAX = 6;
 export interface ProofMark {
   seq: number;
   action: string | null;
+  /** The run's executed calls (`Transcript.executedCalls`) when it was read: none since, nothing to read. */
+  calls?: number;
 }
 
 /** A tool's result step, as `proofOf` reads it. */
@@ -95,7 +97,7 @@ function targetItem(target: string): ProofItem | null {
  * The proof in a run's result steps and team actions, in order of what people most want to open (files, screenshots,
  * tasks, pages, the rest), one item per thing, at most `PROOF_MAX`. Pure: `runProof` reads the rows.
  */
-export function proofOf(steps: ProofStep[], actions: ProofAction[] = []): ProofItem[] {
+export function proofOf(steps: ProofStep[], actions: ProofAction[] = [], max = PROOF_MAX): ProofItem[] {
   const found: ProofItem[] = [];
   for (const step of steps) {
     if (step.isError) continue;
@@ -135,7 +137,7 @@ export function proofOf(steps: ProofStep[], actions: ProofAction[] = []): ProofI
       return true;
     })
     .sort((a, b) => order.indexOf(a.kind) - order.indexOf(b.kind))
-    .slice(0, PROOF_MAX);
+    .slice(0, max);
 }
 
 /**
@@ -154,6 +156,7 @@ export async function runProof(
       .from(agentRunSteps)
       .where(
         and(
+          eq(agentRunSteps.orgId, run.orgId),
           eq(agentRunSteps.runId, run.id),
           eq(agentRunSteps.kind, "tool_result"),
           ...(since ? [gt(agentRunSteps.seq, since.seq)] : []),
@@ -188,9 +191,11 @@ export async function runProof(
       };
     }),
     actions,
+    // Cut after the files people here can't see are out (below), never before: a hidden one takes no visible one's place.
+    Number.POSITIVE_INFINITY,
   );
   const ids = items.flatMap((i) => ((i.kind === "file" || i.kind === "image") && i.ref ? [i.ref] : []));
-  if (ids.length === 0) return { items, mark };
+  if (ids.length === 0) return { items: items.slice(0, PROOF_MAX), mark };
   const seen = new Set(
     (
       await db
@@ -207,7 +212,10 @@ export async function runProof(
         )
     ).map((r) => r.id),
   );
-  return { items: items.filter((i) => (i.kind !== "file" && i.kind !== "image") || seen.has(i.ref ?? "")), mark };
+  return {
+    items: items.filter((i) => (i.kind !== "file" && i.kind !== "image") || seen.has(i.ref ?? "")).slice(0, PROOF_MAX),
+    mark,
+  };
 }
 
 /** The proof as the turn-end judge reads it: one short line per item. */

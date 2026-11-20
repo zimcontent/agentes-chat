@@ -1,7 +1,17 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { schema } from "@dougbot/db";
 import type { ModelRequest } from "@dougbot/providers";
-import { drainOutbox, grantScopes, listMessages, PROOF_MAX, postPersonMessage, proofOf, proofUrl } from "../src";
+import {
+  addRunStep,
+  drainOutbox,
+  grantScopes,
+  listMessages,
+  PROOF_MAX,
+  postPersonMessage,
+  proofOf,
+  proofUrl,
+  runProof,
+} from "../src";
 import { type Fixture, setup } from "./fixtures";
 
 /** Proof on delivery (docs/adr/doug-0040-proof-on-delivery.md): what a run delivered, read from its steps. */
@@ -106,5 +116,42 @@ describe("on the reply", () => {
     const next = (await listMessages(f.db, f.owner.id, f.org.id, f.general.id)).at(-1);
     expect(next?.body).toBe("Claro.");
     expect(next?.meta.proof).toBeUndefined();
+  });
+
+  test("files people here can't see take no visible file's place in the line", async () => {
+    f = await setup({
+      artifactTools: true,
+      reply: (req) => {
+        const text = last(req);
+        if (text.includes("tool_result")) return { chunks: ["Pronto."] };
+        if (text.includes("monta o relatório"))
+          return {
+            chunks: [],
+            toolUses: [{ name: "create_artifact", input: { title: "Relatório", kind: "document", markdown: "# Q3" } }],
+          };
+        return { chunks: ["Claro."] };
+      },
+    });
+    await grantScopes(f.db, f.org.id, f.agent.id, DRIVE);
+    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, {
+      body: "@dev monta o relatório",
+    });
+    await drainOutbox(f.db, f.handlers);
+    const [run] = await f.db.select().from(schema.agentRuns);
+    const [file] = await f.db.select().from(schema.artifacts);
+    if (!run || !file) throw new Error("no run");
+    // More files than the line keeps that nobody here may open (another conversation's, or gone), sorted before the
+    // task it opened: they must not push the task out.
+    for (let i = 0; i < PROOF_MAX + 2; i++)
+      await addRunStep(f.db, run, "tool_result", {
+        name: "create_artifact",
+        data: { artifact: { id: crypto.randomUUID(), title: `oculto ${i}` } },
+      });
+    await addRunStep(f.db, run, "tool_result", { name: "create_issue", data: { issue: { id: "i7", number: 7 } } });
+    const proof = await runProof(f.db, run);
+    expect(proof.items).toEqual([
+      { kind: "file", label: "Relatório", ref: file.id },
+      { kind: "task", label: "#7", ref: "7" },
+    ]);
   });
 });

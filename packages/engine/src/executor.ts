@@ -2255,7 +2255,13 @@ async function executeRunInner(
     const teamChecks = note ? [] : await runChecksForReply(tx, run.orgId, run.id);
     // Proof on delivery (docs/adr/doug-0040-proof-on-delivery.md): what it did since its last message, read from its
     // steps, never from its words.
-    const proof = note || !transcript ? null : await runProof(tx, run, transcript.proof ?? null).catch(() => null);
+    // Only after a call it executed since the last proof (`executedCalls`): a reply with nothing done since reads
+    // nothing (the query budget), and a call counted after this post leaves the mark where it was for the next one.
+    const calls = transcript?.executedCalls ?? 0;
+    const proof =
+      note || !transcript || calls <= (transcript.proof?.calls ?? 0)
+        ? null
+        : await runProof(tx, run, transcript.proof ?? null).catch(() => null);
     // "Ver o que ele fez" under the reply: how many tool calls so far, so the apps leave it out at 0, and one call
     // per logo of the closed block, in order of first use: per service, else app, else screen, else tool (a
     // connector's dozens of tools would push the next apps past the few kept). A reaction already shows on the
@@ -2357,7 +2363,7 @@ async function executeRunInner(
     if ((await linkRunActions(tx, run.orgId, run.id, m.id)) > 0) withReceipts.push(m.id);
     if (!note && transcript) {
       transcript.lastPosted = body.trim();
-      if (proof) transcript.proof = proof.mark;
+      if (proof) transcript.proof = { ...proof.mark, calls };
       // Its words went out, the held reply with them or in their place (`heldWords`), or before them (`closeWith`).
       delete transcript.held;
       delete transcript.heldWording;

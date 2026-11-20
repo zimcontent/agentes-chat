@@ -20,7 +20,7 @@ import {
   parallelRule,
   siblingRuns,
 } from "../src/parallel-work";
-import { takeInbox } from "../src/run-inbox";
+import { othersHere, takeInbox } from "../src/run-inbox";
 import { type AgentRun, addRunStep } from "../src/runs";
 import { type Fixture, setup } from "./fixtures";
 
@@ -195,6 +195,11 @@ describe("a message sent while the agent works a long task", () => {
     // Each knows what the other works on.
     expect(await alongsideHere(f.db, beside)).toContain("monta o relatório de outubro");
     expect(await alongsideHere(f.db, task)).toContain(body);
+    // The run's context reads its siblings with what its other runs hold, in one statement (`othersHere`).
+    const read = await othersHere(f.db, task);
+    expect(read.held).toBeNull();
+    expect(read.runs.map((r) => r.id)).toEqual([beside.id]);
+    expect(await alongsideHere(f.db, task, read.runs)).toBe(await alongsideHere(f.db, task));
   });
 
   test("in a DM too: the second run answers in the main timeline beside the first", async () => {

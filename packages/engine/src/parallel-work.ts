@@ -112,18 +112,22 @@ export async function taskOf(
 
 /**
  * The agent's other runs at work in this conversation that take messages (not held by a decision, `holdsMessages`),
- * oldest first, with what each works on.
+ * oldest first, with what each works on. `read`: those runs already read (`othersHere`, which the run's context reads
+ * anyway), so no statement of its own while there are none.
  */
 export async function siblingRuns(
   db: Executor,
   run: Pick<AgentRun, "id" | "orgId" | "agentId" | "channelId" | "threadRootId" | "triggerMessageId">,
+  read?: AgentRun[],
 ): Promise<{ run: AgentRun; task: string | null }[]> {
-  const rows = await db
-    .select()
-    .from(agentRuns)
-    .where(and(sameConversation(run), ne(agentRuns.id, run.id)))
-    .orderBy(asc(agentRuns.createdAt))
-    .limit(MAX_PARALLEL_RUNS);
+  const rows = read
+    ? read.filter((r) => r.id !== run.id && !r.background && r.agentId === run.agentId).slice(0, MAX_PARALLEL_RUNS)
+    : await db
+        .select()
+        .from(agentRuns)
+        .where(and(sameConversation(run), ne(agentRuns.id, run.id)))
+        .orderBy(asc(agentRuns.createdAt))
+        .limit(MAX_PARALLEL_RUNS);
   const out: { run: AgentRun; task: string | null }[] = [];
   for (const row of rows) {
     if (await holdsMessages(db, row)) continue;
@@ -327,8 +331,9 @@ async function steeredInto(
 export async function alongsideHere(
   db: Executor,
   run: Pick<AgentRun, "id" | "orgId" | "agentId" | "channelId" | "threadRootId" | "triggerMessageId">,
+  read?: AgentRun[],
 ): Promise<string | null> {
-  const others = await siblingRuns(db, run);
+  const others = await siblingRuns(db, run, read);
   if (others.length === 0) return null;
   return [
     "# Also at work here",

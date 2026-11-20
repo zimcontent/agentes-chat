@@ -20,7 +20,10 @@ export async function enqueueLearnedLine(db: Executor, orgId: string, runId: str
     kind: LEARNED_LINE_JOB,
     payload: { runId },
     dedupeKey: `${LEARNED_LINE_JOB}:${runId}:${step}`,
-    maxAttempts: 4,
+    // A turn's end queues it while the run may still go on for long (continues, waits): each try finds it still going
+    // and comes back on the outbox's backoff. Eight tries span about 4.7 hours, inside `LEARNED_LATE_MS`; four gave up
+    // after under three minutes, so a run longer than that never said it.
+    maxAttempts: 8,
   });
 }
 

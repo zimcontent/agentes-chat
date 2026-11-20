@@ -86,7 +86,7 @@ export function untriedNudge(means: string[], tried: string[], round = 1) {
 
 /** The later untried nudges: the families of tools in order, the first one `tried` doesn't show yet. */
 const ESCALATION =
-  "You were sent back already and gave up again: the way you took didn't work. Don't repeat any call in what you tried, not even with other words. Switch to the next family of tools you haven't used, in this order: an API or a connector (find_tools, use_tool) → the browser (open the site and do it as a person would) → code you write yourself on your computer (a terminal command or a script that calls the service) → a teammate agent who may know or hold it (ask_agent). Skip a family your means don't have.";
+  "You were sent back already and gave up again: the way you took didn't work. Don't repeat any call in what you tried, not even with other words. Switch to the next family of tools you haven't used, in this order: an API or a connector (find_tools, use_tool; one the workspace hasn't connected: request_connection, then wait for it) → the browser (open the site and do it as a person would) → code you write yourself on your computer (a terminal command or a script that calls the service) → a teammate agent who may know or hold it (ask_agent). Skip a family your means don't have.";
 
 /**
  * The `untried` nudge as a conversation run reads it: its reply was held back (`Transcript.held`), so it must never

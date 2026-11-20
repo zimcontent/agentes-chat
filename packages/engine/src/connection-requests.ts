@@ -373,7 +373,7 @@ async function askedFor(db: Executor, row: ConnectionRequestRow) {
   const [run] = await db
     .select({ triggerMessageId: agentRuns.triggerMessageId })
     .from(agentRuns)
-    .where(eq(agentRuns.id, row.runId));
+    .where(and(eq(agentRuns.orgId, row.orgId), eq(agentRuns.id, row.runId)));
   if (!run?.triggerMessageId) return "";
   const [m] = await db
     .select({ body: messages.body })
@@ -402,7 +402,10 @@ async function goOn(deps: ConnectionRequestDeps, row: ConnectionRequestRow): Pro
     pubsub: deps.pubsub,
   });
   if (resumed) return true;
-  const [run] = await deps.db.select().from(agentRuns).where(eq(agentRuns.id, row.runId));
+  const [run] = await deps.db
+    .select()
+    .from(agentRuns)
+    .where(and(eq(agentRuns.orgId, row.orgId), eq(agentRuns.id, row.runId)));
   if (!run || run.status === "canceled") return false;
   const notice: Notice = { kind: "wait_result", from, text: later, refs: { waitId: connectionWaitId(row.id) } };
   const delivered = await deps.db.transaction((tx) => deliverNoticeToRun(tx, run, notice));

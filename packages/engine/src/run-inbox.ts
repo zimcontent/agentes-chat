@@ -355,12 +355,26 @@ export async function heldHere(
   db: Executor,
   run: Pick<AgentRun, "id" | "orgId" | "agentId" | "channelId" | "threadRootId" | "triggerMessageId">,
 ): Promise<string | null> {
+  return (await othersHere(db, run)).held;
+}
+
+/**
+ * The agent's other active runs in this run's conversation, read in one statement: `held`, what they wait on a
+ * person's decision for (`heldHere`'s block), and `runs`, the runs themselves in this channel, oldest first, which
+ * parallel work reads (`alongsideHere`, docs/adr/doug-0038-parallel-work.md). One statement for both: the context
+ * pays for the conversation's other runs once (the query budget, `budget-queries.test.ts`).
+ */
+export async function othersHere(
+  db: Executor,
+  run: Pick<AgentRun, "id" | "orgId" | "agentId" | "channelId" | "threadRootId" | "triggerMessageId">,
+): Promise<{ held: string | null; runs: AgentRun[] }> {
   const rows = await db
-    .select({ title: approvals.title, params: approvals.params, status: approvals.status })
-    .from(approvals)
-    .innerJoin(agentRuns, eq(agentRuns.id, approvals.runId))
-    .where(
+    .select({ run: agentRuns, title: approvals.title, params: approvals.params, status: approvals.status })
+    .from(agentRuns)
+    .leftJoin(
+      approvals,
       and(
+        eq(approvals.runId, agentRuns.id),
         eq(approvals.orgId, run.orgId),
         eq(approvals.agentId, run.agentId),
         eq(approvals.channelId, run.channelId),
@@ -369,30 +383,50 @@ export async function heldHere(
           eq(approvals.status, "pending"),
           and(eq(approvals.status, "approved"), isNull(approvals.result), isNull(approvals.runAt)),
         ),
+      ),
+    )
+    .where(
+      and(
+        eq(agentRuns.orgId, run.orgId),
+        eq(agentRuns.agentId, run.agentId),
         ne(agentRuns.id, run.id),
-        inArray(agentRuns.status, ["waiting_approval", "waiting_input"]),
+        inArray(agentRuns.status, [...ACTIVE_RUN_STATUSES]),
+        or(eq(agentRuns.channelId, run.channelId), sql`${approvals.id} is not null`),
         or(
           eq(agentRuns.threadRootId, run.threadRootId),
           replyThreadOf(run) ? undefined : inChannelRun(sql`${agentRuns}`),
         ),
       ),
     )
-    .orderBy(asc(approvals.createdAt))
-    .limit(10);
-  if (rows.length === 0) return null;
-  const lines = rows.map((r) => {
-    const params = Object.entries(scalarParams(r.params))
+    .orderBy(sql`${approvals.createdAt} asc nulls last`, asc(agentRuns.createdAt))
+    .limit(20);
+  const seen = new Set<string>();
+  const runs = rows.flatMap((r) => {
+    if (r.run.channelId !== run.channelId || seen.has(r.run.id)) return [];
+    seen.add(r.run.id);
+    return [r.run as AgentRun];
+  });
+  runs.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  const held = rows
+    .filter((r) => r.title !== null && (r.run.status === "waiting_approval" || r.run.status === "waiting_input"))
+    .slice(0, 10);
+  if (held.length === 0) return { held: null, runs };
+  const lines = held.map((r) => {
+    const params = Object.entries(scalarParams(r.params ?? {}))
       .map(([k, v]) => `${k}=${v}`)
       .join(", ");
     const turn = r.status === "approved" ? " [approved, runs once what was asked before it is done]" : "";
     return `- ${r.title}${params ? ` (${params})` : ""}${turn}`;
   });
-  return [
-    "# Already waiting for approval here",
-    "Another run of yours in this conversation asked for these and waits for a person's decision; it carries on by itself once decided and says how it went:",
-    ...lines,
-    "Don't ask for them again, don't do them yourself and don't repeat their status: answer only what is new.",
-  ].join("\n");
+  return {
+    held: [
+      "# Already waiting for approval here",
+      "Another run of yours in this conversation asked for these and waits for a person's decision; it carries on by itself once decided and says how it went:",
+      ...lines,
+      "Don't ask for them again, don't do them yourself and don't repeat their status: answer only what is new.",
+    ].join("\n"),
+    runs,
+  };
 }
 
 /**

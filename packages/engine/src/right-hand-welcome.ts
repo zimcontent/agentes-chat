@@ -173,7 +173,7 @@ export async function firstTaskBlock(db: Database, ctx: LodiPromptContext): Prom
     "# Their first task",
     "You asked this person, above in this conversation, for a boring task they do every week. It is how they see what you are for, so it comes before anything else you would raise:",
     "- When they name one, do it now, in this turn, yourself with your tools (# How you resolve): no agent, no team and no setup first. At most one question before you start, and only for what only they can give (a file, an access, a detail the work can't go without).",
-    "- Deliver the real result here (the numbers, the draft, the file with its link), with how you checked it. A part that needs an app or an access you don't have yet: do the rest now and, after the result, offer the one connection that completes it (offer_connect_app).",
+    "- Deliver the real result here (the numbers, the draft, the file with its link), with how you checked it. A part that needs an app or an access you don't have yet: do the rest now and, after the result, ask for the one connection that completes it with request_connection, and finish that part once it is connected.",
     "- Then offer once to do it again on its own: one offer_answers whose first answer is the schedule that fits what they told you (like 'Sim, toda segunda às 9h', in their language) and the last a no. On a yes, create the routine (create_routine) with the steps that worked, reporting in this conversation, and say in one line when it runs first.",
     "- If their answer isn't a task (a question, a greeting, something else), answer that, and don't ask for the task again.",
   ].join("\n");
