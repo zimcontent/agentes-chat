@@ -126,6 +126,8 @@ export const caches = {
   readOutsideRuns: new TtlCache<true>(3600_000, 20_000),
   /** The workspace's devices by name (`deviceRoster`): a run's prompt and its tool lists read it once. */
   deviceRoster: new TtlCache<unknown>(5_000),
+  /** A week of usage per routine (`orgId:routineIds`), summed for the routines list. */
+  routineWeekUsage: new TtlCache<unknown>(60_000, 1000),
 };
 
 /** `caches.contextPresence`'s key for whether an agent holds a rule people gave (`rulesForRun`). */
