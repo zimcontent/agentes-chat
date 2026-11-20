@@ -306,11 +306,10 @@ export const exposedToolName = (connector: string, tool: string) =>
 const LIST_TTL_MS = 60_000;
 /**
  * DougBot: a server that doesn't list its tools in this time is skipped for the run (its tools are missing, nothing
- * else waits), and for `DOWN_RETRY_MS` after: an unreachable server (a bridge whose far end is off) held every run's
- * start for the MCP client's own 60 s.
+ * else waits), and its failure is kept for `LIST_TTL_MS`: an unreachable server (a bridge whose far end is off) held
+ * every run's start for the MCP client's own 60 s.
  */
 export const LIST_TIMEOUT_MS = 8000;
-const DOWN_RETRY_MS = 2 * 60_000;
 
 /** Where a tool call's signed caller statement goes in the request's `params._meta` (ADR 0181). */
 export const CALLER_META_KEY = "chat.agentes/caller";
@@ -345,9 +344,8 @@ export function createConnectorToolSource(
 ): ToolSource {
   const listTimeoutMs = deps.listTimeoutMs ?? LIST_TIMEOUT_MS;
   const connect = deps.connect ?? connectOverHttp;
-  const cache = new Map<string, { at: number; tools: McpTool[] }>();
-  /** Connections whose last listing failed or timed out, until when they are skipped. */
-  const down = new Map<string, number>();
+  const cache = new Map<string, { at: number; tools: McpTool[] } | { at: number; failed: unknown }>();
+  const listing = new Map<string, Promise<McpTool[]>>();
   /** How many times a listing found changed tools and worked out a custom server's levels again. */
   let reclassified = 0;
   const github = { fetch: deps.http ?? fetch, apiUrl: "https://api.github.com", ...deps.githubApp?.http };
@@ -373,18 +371,50 @@ export function createConnectorToolSource(
     }
   }
 
-  async function serverTools(connection: ConnectorConnection) {
+  /**
+   * The server's tools, stale-while-revalidate: a list past its TTL is returned at once while one refresh per
+   * connection runs behind it. Only a connection with no list yet waits on the network (at most `listTimeoutMs`). A
+   * failed listing is kept for the TTL too, so a server that is down isn't asked again on every claim.
+   */
+  async function serverTools(connection: ConnectorConnection): Promise<McpTool[]> {
     // A change to the connection lists again at once; a token refresh isn't one (it leaves `updatedAt` as it was).
     const key = `${connection.id}:${connection.updatedAt.getTime()}`;
     const hit = cache.get(key);
-    if (hit && Date.now() - hit.at < LIST_TTL_MS) return hit.tools;
+    const fresh = hit !== undefined && Date.now() - hit.at < LIST_TTL_MS;
+    if (hit && "tools" in hit) {
+      if (!fresh) refreshTools(connection, key).catch(() => {});
+      return hit.tools;
+    }
+    if (hit && fresh) throw hit.failed;
+    return refreshTools(connection, key);
+  }
+
+  function refreshTools(connection: ConnectorConnection, key: string): Promise<McpTool[]> {
+    let pending = listing.get(key);
+    if (!pending) {
+      pending = listNow(connection)
+        .then(
+          (tools) => {
+            cache.set(key, { at: Date.now(), tools });
+            return tools;
+          },
+          (failed: unknown) => {
+            cache.set(key, { at: Date.now(), failed });
+            throw failed;
+          },
+        )
+        .finally(() => listing.delete(key));
+      listing.set(key, pending);
+    }
+    return pending;
+  }
+
+  async function listNow(connection: ConnectorConnection): Promise<McpTool[]> {
     const auth =
       connection.authType === GITHUB_APP_AUTH
         ? await githubListingHeaders(deps, deps.githubApp, { db: deps.db, orgId: connection.orgId }, connection)
         : undefined;
     if (auth === null) throw new Error("no installation of the GitHub App to list GitHub's tools with");
-    const skipUntil = down.get(connection.id) ?? 0;
-    if (Date.now() < skipUntil) throw new Error("connector unreachable a moment ago; skipped");
     let timer: ReturnType<typeof setTimeout> | undefined;
     let listed: McpTool[];
     try {
@@ -398,7 +428,6 @@ export function createConnectorToolSource(
         }),
       ]);
     } catch (error) {
-      down.set(connection.id, Date.now() + DOWN_RETRY_MS);
       deps.log?.warn("connector listing failed; skipped for a while", {
         connectionId: connection.id,
         error: error instanceof Error ? error.message : String(error),
@@ -407,13 +436,10 @@ export function createConnectorToolSource(
     } finally {
       if (timer) clearTimeout(timer);
     }
-    down.delete(connection.id);
     const reclassify = isCustom(connection)
       ? () => syncCustomTools({ ...deps, connect }, connection).finally(() => reclassified++)
       : undefined;
-    const tools = await applyToolPins({ ...deps, reclassify }, connection, listed, pinnedTool(connection));
-    cache.set(key, { at: Date.now(), tools });
-    return tools;
+    return applyToolPins({ ...deps, reclassify }, connection, listed, pinnedTool(connection));
   }
 
   /**
@@ -589,88 +615,90 @@ export function createConnectorToolSource(
   return {
     name: "connectors",
     async tools(ctx) {
-      const out: ToolDefinition[] = [];
-      for (const connection of await activeConnections(ctx.db, ctx.orgId)) {
-        if (isCustom(connection)) {
-          out.push(...(await customToolsOf(connection)));
-          continue;
-        }
-        const def = CONNECTOR_CATALOG[connection.connector];
-        // A sign-in that stopped working has no tools until Reconectar.
-        if (!def || connection.status === "needs_reconnect") continue;
-        const prefix = toolPrefixOfConnection(connection);
-        let listed: McpTool[];
-        try {
-          listed = await serverTools(connection);
-        } catch {
-          continue; // an unreachable server hides its tools for this turn
-        }
-        for (const tool of listed) {
-          const mapped = def.tools[tool.name];
-          if (!mapped || mapped.ours) continue; // not in our catalog, or one we serve: never exposed
-          out.push({
-            name: exposedToolName(prefix, tool.name),
-            description: cutText(`[${connection.label}] ${tool.description ?? tool.name}`, 1024),
-            inputSchema: tool.inputSchema?.type === "object" ? tool.inputSchema : { type: "object" },
-            scope: connectorScope(def.id, mapped.scope),
-            connectionId: connection.id,
-            connector: { key: def.id, via: "mcp", tool: tool.name },
-            connectorLabel: connection.label,
-            service: def.id,
-            toolPrefix: prefix,
-            sensitive: mapped.sensitive === true,
-            ahead: true,
-            external: true, // whatever the server returns is third-party text
-            describe: (input) => ({
-              title: mapped.title ? fillTitle(mapped.title, input) : `${def.label}: ${tool.name}`,
-              detail: `${def.id}.${tool.name} · ${Object.entries(input)
-                .map(([k, v]) => `${k}=${typeof v === "object" ? JSON.stringify(v) : String(v)}`)
-                .join(" · ")}`,
-            }),
-            execute: async (input, ctx) => {
-              let auth: Record<string, string> | undefined;
-              let args = input;
-              if (def.id === "github") {
-                const call = { tool: tool.name, scope: mapped.scope, input };
-                const how = await githubCallAuth(deps, deps.githubApp, ctx, connection, call);
-                if ("refused" in how) {
-                  return {
-                    content: how.refused,
-                    isError: true,
-                    data: { connector: def.id, tool: tool.name, isError: true },
-                  };
-                }
-                auth = how.headers;
-                args = await signed(input, mapped.sign, { ...ctx, token: how.token });
-              }
-              const result = await withSession(connection, (s) => s.callTool(tool.name, args), auth);
-              // Where the agent's words went on GitHub: what people answer there comes back to it here.
-              const item =
-                def.id === "github" && mapped.sign?.field === "body" && !result.isError
-                  ? githubItemOfCall(tool.name, input, result.content)
-                  : null;
-              if (item) await recordGitHubItem(ctx, item).catch(() => {});
-              return {
-                content: result.content,
-                isError: result.isError,
-                data: { connector: def.id, tool: tool.name, isError: result.isError },
-                ...(mapped.onSuccess && !result.isError
-                  ? {
-                      outcome: {
-                        kind: mapped.onSuccess.kind,
-                        subject: fillTitle(mapped.onSuccess.subject, input),
-                        summary: `${def.label} ${tool.name}`,
-                      },
-                    }
-                  : {}),
-              };
-            },
-          });
-        }
-      }
-      return out;
+      const connections = await activeConnections(ctx.db, ctx.orgId);
+      // Every connection lists at once; the result keeps the connections' order.
+      const lists = await Promise.all(connections.map((connection) => toolsOf(connection)));
+      return lists.flat();
     },
   };
+
+  async function toolsOf(connection: ConnectorConnection): Promise<ToolDefinition[]> {
+    if (isCustom(connection)) return customToolsOf(connection);
+    const out: ToolDefinition[] = [];
+    const def = CONNECTOR_CATALOG[connection.connector];
+    // A sign-in that stopped working has no tools until Reconectar.
+    if (!def || connection.status === "needs_reconnect") return out;
+    const prefix = toolPrefixOfConnection(connection);
+    let listed: McpTool[];
+    try {
+      listed = await serverTools(connection);
+    } catch {
+      return out; // an unreachable server hides its tools for this turn
+    }
+    for (const tool of listed) {
+      const mapped = def.tools[tool.name];
+      if (!mapped || mapped.ours) continue; // not in our catalog, or one we serve: never exposed
+      out.push({
+        name: exposedToolName(prefix, tool.name),
+        description: cutText(`[${connection.label}] ${tool.description ?? tool.name}`, 1024),
+        inputSchema: tool.inputSchema?.type === "object" ? tool.inputSchema : { type: "object" },
+        scope: connectorScope(def.id, mapped.scope),
+        connectionId: connection.id,
+        connector: { key: def.id, via: "mcp", tool: tool.name },
+        connectorLabel: connection.label,
+        service: def.id,
+        toolPrefix: prefix,
+        sensitive: mapped.sensitive === true,
+        ahead: true,
+        external: true, // whatever the server returns is third-party text
+        describe: (input) => ({
+          title: mapped.title ? fillTitle(mapped.title, input) : `${def.label}: ${tool.name}`,
+          detail: `${def.id}.${tool.name} · ${Object.entries(input)
+            .map(([k, v]) => `${k}=${typeof v === "object" ? JSON.stringify(v) : String(v)}`)
+            .join(" · ")}`,
+        }),
+        execute: async (input, ctx) => {
+          let auth: Record<string, string> | undefined;
+          let args = input;
+          if (def.id === "github") {
+            const call = { tool: tool.name, scope: mapped.scope, input };
+            const how = await githubCallAuth(deps, deps.githubApp, ctx, connection, call);
+            if ("refused" in how) {
+              return {
+                content: how.refused,
+                isError: true,
+                data: { connector: def.id, tool: tool.name, isError: true },
+              };
+            }
+            auth = how.headers;
+            args = await signed(input, mapped.sign, { ...ctx, token: how.token });
+          }
+          const result = await withSession(connection, (s) => s.callTool(tool.name, args), auth);
+          // Where the agent's words went on GitHub: what people answer there comes back to it here.
+          const item =
+            def.id === "github" && mapped.sign?.field === "body" && !result.isError
+              ? githubItemOfCall(tool.name, input, result.content)
+              : null;
+          if (item) await recordGitHubItem(ctx, item).catch(() => {});
+          return {
+            content: result.content,
+            isError: result.isError,
+            data: { connector: def.id, tool: tool.name, isError: result.isError },
+            ...(mapped.onSuccess && !result.isError
+              ? {
+                  outcome: {
+                    kind: mapped.onSuccess.kind,
+                    subject: fillTitle(mapped.onSuccess.subject, input),
+                    summary: `${def.label} ${tool.name}`,
+                  },
+                }
+              : {}),
+          };
+        },
+      });
+    }
+    return out;
+  }
 }
 
 /** What marks a file in a Composio answer: a short-lived download link, or the file's bytes inline. */

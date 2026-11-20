@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, setSystemTime, test } from "bun:test";
 import { createHash } from "node:crypto";
 import { eq, schema } from "@dougbot/db";
 import { StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
@@ -749,5 +749,112 @@ describe("a sign-in that stops working", () => {
     });
     expect(fresh.status).toBe("active");
     expect((await source.tools(ctxOf(f))).length).toBeGreaterThan(0);
+  });
+});
+
+describe("listing a server's tools", () => {
+  afterEach(() => setSystemTime());
+  const ctxOf = (fx: Fixture) => ({
+    db: fx.db,
+    orgId: fx.org.id,
+    agentId: fx.agent.id,
+    runId: crypto.randomUUID(),
+    channelId: fx.general.id,
+    threadRootId: crypto.randomUUID(),
+    triggerMessageId: crypto.randomUUID(),
+  });
+  const github = (fx: Fixture) =>
+    createApiKeyConnection(depsOf(fx), fx.owner.id, fx.org.id, { connector: "github", apiKey: "ghp_FAKE_123456" });
+
+  test("past its minute the last list comes at once, and one refresh runs behind it", async () => {
+    f = await setup();
+    const mcp = fakeGithubMcp();
+    let hold: Promise<void> | null = null;
+    const connect: typeof mcp.connect = async (c, headers) => {
+      await hold;
+      return mcp.connect(c, headers);
+    };
+    await github(f);
+    const source = createConnectorToolSource({ ...depsOf(f), connect });
+    const listed = (await source.tools(ctxOf(f))).map((t) => t.name);
+    expect(mcp.sessions).toHaveLength(1);
+
+    setSystemTime(new Date(Date.now() + 61_000));
+    let release = () => {};
+    hold = new Promise((resolve) => {
+      release = resolve;
+    });
+    // The server hangs: both claims still get the old list, and only one listing is asked for.
+    expect((await source.tools(ctxOf(f))).map((t) => t.name)).toEqual(listed);
+    expect((await source.tools(ctxOf(f))).map((t) => t.name)).toEqual(listed);
+    hold = null;
+    release();
+    await Bun.sleep(20);
+    expect(mcp.sessions).toHaveLength(2);
+    // The refreshed list is fresh: no further listing.
+    expect((await source.tools(ctxOf(f))).map((t) => t.name)).toEqual(listed);
+    expect(mcp.sessions).toHaveLength(2);
+  });
+
+  test("a failed listing is kept for a minute, then asked again", async () => {
+    f = await setup();
+    const mcp = fakeGithubMcp();
+    let down = true;
+    let tries = 0;
+    const connect: typeof mcp.connect = async (c, headers) => {
+      tries++;
+      if (down) throw new Error("connect ECONNREFUSED");
+      return mcp.connect(c, headers);
+    };
+    await github(f);
+    const source = createConnectorToolSource({ ...depsOf(f), connect });
+    expect(await source.tools(ctxOf(f))).toEqual([]);
+    down = false;
+    expect(await source.tools(ctxOf(f))).toEqual([]);
+    expect(tries).toBe(1);
+
+    setSystemTime(new Date(Date.now() + 61_000));
+    expect((await source.tools(ctxOf(f))).length).toBeGreaterThan(0);
+    expect(tries).toBe(2);
+  });
+
+  test("a change to the connection lists again at once", async () => {
+    f = await setup();
+    const mcp = fakeGithubMcp();
+    const c = await github(f);
+    const source = createConnectorToolSource({ ...depsOf(f), connect: mcp.connect });
+    await source.tools(ctxOf(f));
+    await source.tools(ctxOf(f));
+    expect(mcp.sessions).toHaveLength(1);
+    await f.db
+      .update(schema.connectorConnections)
+      .set({ updatedAt: new Date(c.updatedAt.getTime() + 1000) })
+      .where(eq(schema.connectorConnections.id, c.id));
+    await source.tools(ctxOf(f));
+    expect(mcp.sessions).toHaveLength(2);
+  });
+
+  test("connections list at the same time: a slow server doesn't hold the others", async () => {
+    f = await setup();
+    const mcp = fakeGithubMcp();
+    await github(f);
+    await createApiKeyConnection(depsOf(f), f.owner.id, f.org.id, { connector: "linear", apiKey: "lin_api_FAKE_1234" });
+    const started: string[] = [];
+    let bothStarted = () => {};
+    const both = new Promise<void>((resolve) => {
+      bothStarted = resolve;
+    });
+    const connect: typeof mcp.connect = async (c, headers) => {
+      started.push(c.serverUrl);
+      if (started.length === 2) bothStarted();
+      // Listed one after the other, the first would wait here alone and give up.
+      const together = await Promise.race([both.then(() => true), Bun.sleep(1000).then(() => false)]);
+      if (!together) throw new Error("listed one at a time");
+      return mcp.connect(c, headers);
+    };
+    const source = createConnectorToolSource({ ...depsOf(f), connect });
+    const names = (await source.tools(ctxOf(f))).map((t) => t.name);
+    expect(started).toHaveLength(2);
+    expect(names).toContain("github_pull_request_read");
   });
 });
