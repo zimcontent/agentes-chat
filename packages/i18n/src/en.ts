@@ -7179,6 +7179,9 @@ export const en = {
         /** The computer's own program (the one that runs the agent's CLI there) failed; its code shows only on hover. */
         computer_failed: "The computer ran into a problem and stopped.",
         computer_timeout: "The computer took too long to answer.",
+        /** The agent's computer has no disk space left (ENOSPC/EDQUOT): nothing runs there until someone frees some. */
+        disk_full:
+          "This computer's disk is full. Delete files you no longer need on it (an agent can do it once there's a little room), or ask an admin to free space.",
         /** The agent's CLI on its computer (`brain`: Claude Code, Codex…) stopped on an error; `detail`: what it said. */
         cli_failed: "The {{brain}} program stopped with an error: {{detail}}",
         /** The same, when it said nothing about it. */
@@ -9840,6 +9843,7 @@ export const en = {
       computer_busy: "The computer stayed busy with other tasks",
       computer_failed: "The computer had a problem and stopped",
       computer_timeout: "The computer took too long to answer",
+      disk_full: "The computer's disk was full",
       /** The agent's CLI on its computer (Claude Code, Codex…) stopped on an error of its own. */
       cli_failed: "The AI program on the computer stopped with an error",
       account_missing: "The agent's account isn't on its computer anymore",

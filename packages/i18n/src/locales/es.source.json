@@ -16529,6 +16529,9 @@
   "agentPage.activity.errors.computer_timeout": {
     "value": "The computer took too long to answer."
   },
+  "agentPage.activity.errors.disk_full": {
+    "value": "This computer's disk is full. Delete files you no longer need on it (an agent can do it once there's a little room), or ask an admin to free space."
+  },
   "agentPage.activity.errors.cli_failed": {
     "value": "The {{brain}} program stopped with an error: {{detail}}"
   },
@@ -22780,6 +22783,9 @@
   },
   "routines.code.computer_timeout": {
     "value": "The computer took too long to answer"
+  },
+  "routines.code.disk_full": {
+    "value": "The computer's disk was full"
   },
   "routines.code.cli_failed": {
     "value": "The AI program on the computer stopped with an error"

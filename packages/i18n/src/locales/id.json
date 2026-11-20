@@ -6510,6 +6510,7 @@
         "computer_busy": "Komputer terus sibuk dengan tugas lain.",
         "computer_failed": "Komputer mengalami masalah dan berhenti.",
         "computer_timeout": "Komputer terlalu lama menjawab.",
+        "disk_full": "Disk komputer ini penuh. Hapus file yang tidak kamu perlukan lagi di sana (agen bisa melakukannya setelah ada sedikit ruang), atau minta admin mengosongkan ruang.",
         "cli_failed": "Program {{brain}} berhenti karena kesalahan: {{detail}}",
         "cli_stopped": "Program {{brain}} berhenti karena kesalahan.",
         "cli_closed": "Program {{brain}} tertutup tiba-tiba.",
@@ -9147,6 +9148,7 @@
       "computer_busy": "Komputernya terus sibuk dengan tugas lain",
       "computer_failed": "Komputer mengalami masalah dan berhenti",
       "computer_timeout": "Komputer terlalu lama menjawab",
+      "disk_full": "Disk komputer penuh",
       "cli_failed": "Program AI di komputer berhenti karena kesalahan",
       "account_missing": "Akun agen sudah tidak ada di komputernya",
       "our_error": "Ada yang salah di pihak kami"

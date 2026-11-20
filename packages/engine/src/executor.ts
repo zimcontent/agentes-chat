@@ -5,6 +5,7 @@ import {
   type PlanUsage,
   type ProviderFailureCause,
   type PubSub,
+  saysDiskFull,
 } from "@dougbot/adapters";
 import {
   and,
@@ -332,6 +333,7 @@ import {
   cliFailureText,
   cliRefusedStart,
   cliWords,
+  DISK_FULL,
   isTerminal,
   keyRefused,
   NO_AI,
@@ -5072,6 +5074,8 @@ async function executeRunInner(
         // they would run them again. Post what the brain said and what it did instead, and end the run there.
         if (turnPlan.kind !== "model") {
           const executed = await executedSince(db, run.id, turnStepSeq, executedNow);
+          // A full disk there fails every turn the same way, a wait for the computer included: only freeing space helps.
+          if (error instanceof BrainFailure && saysDiskFull(error.message)) return fail(DISK_FULL);
           // The computer dropped mid-turn: the turn resumes there when it is back (its session keeps what it did).
           const machineId = turnPlan.session?.machineId;
           if (machineId && error instanceof BrainFailure && error.code === "machine_offline") {
