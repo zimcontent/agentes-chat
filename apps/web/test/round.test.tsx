@@ -546,6 +546,51 @@ describe("agent questions (ask_user)", () => {
     ]);
   });
 
+  test("a number picks from anywhere in the card (Pular too), never from a field typed in", async () => {
+    const state = seedState();
+    const question = {
+      id: "q-card-keys",
+      agentId: ADA_ID,
+      channelId: ENG_ID,
+      threadId: null,
+      messageId: "msg-card-keys",
+      text: "Para qual faixa a versão 8 deve ir?",
+      choices: ["Teste fechado", "Teste aberto", "Produção"],
+      status: "open",
+      answer: null,
+      answeredByUserId: null,
+    };
+    state.messages.push({
+      id: "msg-card-keys",
+      channelId: ENG_ID,
+      threadId: null,
+      author: { type: "agent", id: ADA_ID },
+      body: "",
+      mentionedAgentIds: [],
+      agentRunId: "r-card-keys",
+      meta: { question },
+      createdAt: new Date().toISOString(),
+    });
+    await go(`c/${ENG_ID}`, state);
+    await settle();
+    const card = screen().getByRole("group", { name: "Pergunta de Ada" });
+    // "Outra resposta" open: a number typed in its field is the answer's words, never a pick.
+    await click(within(card).getByRole("button", { name: "Outra resposta" }));
+    const field = within(card).getByRole("textbox", { name: "Sua resposta" });
+    fireEvent.keyDown(field, { key: "1" });
+    await settle(2);
+    expect(state.calls.some((c) => c.method === "questions.answer")).toBe(false);
+    // From the card's footer (Pular), outside the list: a number answers.
+    within(card).getByRole("button", { name: "Pular" }).focus();
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: "3" });
+    await settle(4);
+    expect(state.calls.find((c) => c.method === "questions.answer")?.args).toEqual([
+      ORG_ID,
+      "q-card-keys",
+      { choice: "Produção" },
+    ]);
+  });
+
   test("'Responder' on a question without choices opens a field; its text answers the question", async () => {
     const state = seedState();
     const question = {

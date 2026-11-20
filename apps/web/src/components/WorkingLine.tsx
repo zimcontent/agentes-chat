@@ -12,7 +12,7 @@ import {
   markInk,
   peopleGroups,
 } from "@dougbot/client/lib/activity";
-import { Avatar, Icon } from "@dougbot/ui";
+import { Avatar, Icon, Popover } from "@dougbot/ui";
 import { Fragment, type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AgentAvatar, AgentWho } from "@/components/AgentAvatar";
@@ -125,15 +125,44 @@ export function RecordingMark() {
 /**
  * One agent whose row is out of view: its name and its row's step ("Nina consultando o Email · …"). The step keeps
  * one width (cut with "…"), so its time and the controls after it never move under the pointer as it turns; the
- * whole step stays for screen readers and as the tip.
+ * whole step stays for screen readers and as the tip. With `steps` (it called a tool), the step is a button that
+ * opens them over the bar: the reply's steps stay folded behind this one line until asked for.
  */
-export function BarStep({ name, step }: { name: string; step: string }) {
+export function BarStep({
+  name,
+  step,
+  steps,
+}: {
+  name: string;
+  step: string;
+  steps?: { label: string; node: ReactNode };
+}) {
+  const [open, setOpen] = useState(false);
+  const words = <TurnText text={step} />;
   return (
     <span className="ac-typing__agents">
       <b>{name}</b>{" "}
-      <span className="ac-typing__step" title={step}>
-        <TurnText text={step} />
-      </span>
+      {steps ? (
+        <Popover
+          open={open}
+          onOpenChange={setOpen}
+          side="top"
+          align="start"
+          label={steps.label}
+          className="ac-typing__steps"
+          trigger={
+            <button type="button" className="ac-typing__step" aria-haspopup="dialog" title={step}>
+              {words}
+            </button>
+          }
+        >
+          {steps.node}
+        </Popover>
+      ) : (
+        <span className="ac-typing__step" title={step}>
+          {words}
+        </span>
+      )}
     </span>
   );
 }

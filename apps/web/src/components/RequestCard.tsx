@@ -613,23 +613,31 @@ export function RequestNote({
 /** The keys a request's answers take: one to nine. */
 const CHOICE_KEYS = 9;
 
-/** Number keys pick an answer while the focus is in the list (never while typing elsewhere). */
+/** A field someone types in: a number there is their words, never a pick. */
+const typing = (el: EventTarget | null) =>
+  el instanceof HTMLElement && (el.isContentEditable || el.matches("input, textarea, select"));
+
+/**
+ * Number keys pick an answer while the focus is anywhere in its card (a choice, Pular, Ver mais), never in a field
+ * (the card's own "Outra resposta" or the composer, which still answers in words).
+ */
 function choiceKeys(pick: (index: number) => void) {
   return (list: HTMLElement | null) => {
     if (!list) return;
+    const card = list.closest<HTMLElement>(".rq") ?? list;
     const onKey = (e: KeyboardEvent) => {
-      if (e.metaKey || e.ctrlKey || e.altKey || !/^[1-9]$/.test(e.key)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey || !/^[1-9]$/.test(e.key) || typing(e.target)) return;
       e.preventDefault();
       pick(Number(e.key) - 1);
     };
-    list.addEventListener("keydown", onKey);
-    return () => list.removeEventListener("keydown", onKey);
+    card.addEventListener("keydown", onKey);
+    return () => card.removeEventListener("keydown", onKey);
   };
 }
 
 /**
  * The answers an agent offers, in a request card's body: a list, one a line in the full width with its number key
- * (1 to 9 pick while the focus is in the list), whole sentences wrapping in their line, and `other` ("Outra
+ * (1 to 9 pick while the focus is in the card, outside a field), whole sentences wrapping in their line, and `other` ("Outra
  * resposta") its last line. Only answers: deciding (approve, accept, create) stays the footer's buttons.
  */
 export function RequestChoices({

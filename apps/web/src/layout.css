@@ -13953,6 +13953,33 @@ html:not([data-pointer]) .channel__latest-btn.ac-btn:focus-visible {
   flex: 0 1000 auto;
   min-width: 0;
 }
+/* The step that opens the reply's steps: the same words, a button only to the pointer and the keys. */
+button.ac-typing__step {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+html:not([data-pointer]) button.ac-typing__step:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 4px;
+}
+/* Its steps over the bar: the reply's own block, flat on the popover's glass, scrolling past half the window. */
+.ac-typing__steps.ac-popover {
+  width: min(420px, calc(100vw - 24px));
+  max-height: min(60vh, 480px);
+  padding: var(--space-1);
+  overflow-y: auto;
+}
+.ac-typing__steps .ac-tools {
+  max-width: none;
+  background: none;
+  box-shadow: none;
+}
 .ac-typing__also {
   flex: 0 1 auto;
   margin-right: auto;

@@ -235,6 +235,7 @@ export function LiveTools({
   steerNote,
   done,
   stopped,
+  open = false,
 }: {
   work: LiveWork[];
   agentName: string;
@@ -244,6 +245,8 @@ export function LiveTools({
   done?: boolean;
   /** Stopped by someone: the call running then shows as stopped. */
   stopped?: boolean;
+  /** Opens on its steps (the working bar's popover, opened to see them). */
+  open?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
@@ -292,12 +295,13 @@ export function LiveTools({
   return (
     <>
       <ToolBlock
+        defaultOpen={open}
         logos={toolApps(items).map((a) => <span key={appKey(a)}>{logo(a)}</span>)}
         head={head}
         // Its own line is closed until clicked, as the block it stands for (code that runs shows when opened).
         items={
           one
-            ? blockItems.map((i) => (i.kind === "line" ? { ...i, line: { ...i.line, defaultOpen: false } } : i))
+            ? blockItems.map((i) => (i.kind === "line" ? { ...i, line: { ...i.line, defaultOpen: open } } : i))
             : blockItems
         }
         color={color}
