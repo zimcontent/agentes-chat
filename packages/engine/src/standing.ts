@@ -450,6 +450,7 @@ async function standingWritten(
   { notify = true }: { notify?: boolean } = {},
 ) {
   caches.standing.delete(`${orgId}:`);
+  caches.membership.deletePrefix(`${orgId}:`);
   if (seen) {
     await publishOrgEvent(deps.pubsub, {
       type: "org.broadcast",
@@ -591,7 +592,10 @@ export async function setUserBlocked(
   });
   if (!done) return null;
   const { orgIds, ...state } = done;
-  for (const orgId of orgIds)
+  // Every workspace reads them as no member at once, before the first socket is told.
+  for (const orgId of orgIds) caches.membership.delete(`${orgId}:${userId}`);
+  for (const orgId of orgIds) {
     await publishOrgEvent(deps.pubsub, { type: "membership.revoked", orgId, userId, quiet: true });
+  }
   return state;
 }

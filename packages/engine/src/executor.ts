@@ -69,6 +69,7 @@ import type { BlockSpecReader } from "./block-state";
 import { ASK_CHOICES_TOOL, SHOW_BLOCK_TOOL, someoneAnswers } from "./blocks";
 import { brainOf } from "./brain-settings";
 import { brainSessionId, missingTurnFolder, RUNNER_RESTARTING, recordPlanUsage } from "./brains/claude-code";
+import { codexModelRefused } from "./brains/codex";
 import { ModelBrain } from "./brains/model";
 import type { ComputerTurn } from "./brains/prompt";
 import {
@@ -5100,6 +5101,21 @@ async function executeRunInner(
               const labels = executed.map((c) => c.label);
               return waitForDroppedComputer(turnPlan.kind, machineId, prompt, labels, error.serverStop, early);
             }
+          }
+          // Codex's sign-in refused the agent's model before anything ran: the rest of the run goes on the sign-in's
+          // default, in a fresh session, the conversation so far in its first prompt (`codexModelRefused`).
+          if (
+            error instanceof BrainFailure &&
+            codexModelRefused(error.message) &&
+            executed.length === 0 &&
+            plan.model &&
+            plan.session &&
+            !plan.missionId
+          ) {
+            const fresh = Bun.randomUUIDv7();
+            await db.update(agentRuns).set({ brainSessionId: fresh }).where(eq(agentRuns.id, run.id));
+            plan = { ...plan, model: undefined, session: { ...plan.session, id: fresh, resume: false } };
+            continue;
           }
           // The folder its session works in isn't on the computer anymore: every later turn would be refused the
           // same way. A fresh session takes the turn in the agent's own folder, told the one before was lost. A
