@@ -768,7 +768,8 @@ describe("listing a server's tools", () => {
 
   test("past its minute the last list comes at once, and one refresh runs behind it", async () => {
     f = await setup();
-    const mcp = fakeGithubMcp();
+    const options: { issueWrite?: boolean } = {};
+    const mcp = fakeGithubMcp(options);
     let hold: Promise<void> | null = null;
     const connect: typeof mcp.connect = async (c, headers) => {
       await hold;
@@ -787,13 +788,62 @@ describe("listing a server's tools", () => {
     // The server hangs: both claims still get the old list, and only one listing is asked for.
     expect((await source.tools(ctxOf(f))).map((t) => t.name)).toEqual(listed);
     expect((await source.tools(ctxOf(f))).map((t) => t.name)).toEqual(listed);
+    // The server now has one more tool: the refreshed list shows once the refresh wrote it.
+    options.issueWrite = true;
     hold = null;
     release();
-    await Bun.sleep(20);
-    expect(mcp.sessions).toHaveLength(2);
+    let names = listed;
+    for (let i = 0; i < 200 && names.length === listed.length; i++) {
+      await Bun.sleep(5);
+      names = (await source.tools(ctxOf(f))).map((t) => t.name);
+    }
+    expect(names).toContain("github_issue_write");
     // The refreshed list is fresh: no further listing.
-    expect((await source.tools(ctxOf(f))).map((t) => t.name)).toEqual(listed);
     expect(mcp.sessions).toHaveLength(2);
+  });
+
+  test("a failed refresh keeps the last list", async () => {
+    f = await setup();
+    const mcp = fakeGithubMcp();
+    let down = false;
+    let failures = 0;
+    const connect: typeof mcp.connect = async (c, headers) => {
+      if (down) {
+        failures++;
+        throw new Error("connect ETIMEDOUT");
+      }
+      return mcp.connect(c, headers);
+    };
+    await github(f);
+    const source = createConnectorToolSource({ ...depsOf(f), connect });
+    const listed = (await source.tools(ctxOf(f))).map((t) => t.name);
+    expect(listed.length).toBeGreaterThan(0);
+
+    down = true;
+    setSystemTime(new Date(Date.now() + 61_000));
+    expect((await source.tools(ctxOf(f))).map((t) => t.name)).toEqual(listed);
+    await Bun.sleep(50);
+    expect(failures).toBe(1);
+    // The failure counts as a try: no new one inside the minute, and the list stays.
+    expect((await source.tools(ctxOf(f))).map((t) => t.name)).toEqual(listed);
+    expect(failures).toBe(1);
+  });
+
+  test("a list older than ten minutes isn't served: the claim waits for a new listing", async () => {
+    f = await setup();
+    const mcp = fakeGithubMcp();
+    let down = false;
+    const connect: typeof mcp.connect = async (c, headers) => {
+      if (down) throw new Error("connect ECONNREFUSED");
+      return mcp.connect(c, headers);
+    };
+    await github(f);
+    const source = createConnectorToolSource({ ...depsOf(f), connect });
+    expect((await source.tools(ctxOf(f))).length).toBeGreaterThan(0);
+
+    down = true;
+    setSystemTime(new Date(Date.now() + 601_000));
+    expect(await source.tools(ctxOf(f))).toEqual([]);
   });
 
   test("a failed listing is kept for a minute, then asked again", async () => {
