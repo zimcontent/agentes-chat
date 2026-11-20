@@ -423,6 +423,7 @@ import { movedNote, queuedNote, workMayStart, workStartsNote } from "./work-tool
 import {
   dropWorkNotices,
   endWork,
+  liveWorksHere,
   moveToBackground,
   pauseWorkTimer,
   resumeWorkTimer,
@@ -3175,6 +3176,13 @@ async function executeRunInner(
     };
     return { evidence, gather };
   };
+  /**
+   * The titles of the agent's own work running in the background in this conversation (ADR 0121), other than this
+   * run's: the follow-through judge reads a promise about what that work will bring as kept by it, so a reply turn
+   * beside it ("I'll bring the findings when it ends") isn't pushed into doing the work itself.
+   */
+  const backgroundWorkHere = async () =>
+    run.workId ? [] : (await liveWorksHere(db, run).catch(() => [])).map((w) => w.title || "untitled background work");
   let brain = createBrain(deps, thinker, run, plan.kind, turnToken, () => transcript as Transcript);
   /**
    * What the model brain stands in for since this claim's fallback, until it answers a turn: the computer brain's plan
@@ -5849,6 +5857,7 @@ async function executeRunInner(
                 runKind: betweenAgents ? "agents_dm" : "conversation",
                 unreached,
                 personal: await isPersonalWorkspace(db, run.orgId),
+                backgroundWork: await backgroundWorkHere(),
                 onLearn: (signal) => {
                   learned = signal;
                 },
