@@ -5958,14 +5958,16 @@ async function executeRunInner(
         .where(eq(agentRuns.id, run.id));
       // At the cap this answer ends the run instead: what came in gets a run of its own.
       if (((still?.pending.length ?? 0) > 0 && run.turns < maxTurns) || keep) {
-        // Overtaken (ADR 0112 addendum of 2026-11-19): a reply that only talked (no tool called yet), and the person
-        // wrote again before it went out. Sent as it is it would answer a conversation that has moved on ("Hi! Send me
-        // a PR" after they asked for flights). It is rewritten instead: the next turn reads what came and answers all
-        // of it in one message, as a person who sees new messages before pressing send would. Twice in a row at most,
-        // so someone who keeps writing still gets an answer.
+        // Overtaken (ADR 0112 addendum of 2026-11-19): a short reply of a run that only talked (no tool called yet),
+        // and the person wrote again before it went out. Sent as it is it would answer a conversation that has moved
+        // on ("Hi! Send me a PR" after they asked for flights). It is rewritten instead: the next turn reads what came
+        // and answers all of it in one message, as a person who sees new messages before pressing send would. A long
+        // reply is substance, a result or an explanation: it goes out, and the next turn answers what came. Twice in a
+        // row at most, so someone who keeps writing still gets an answer.
         if (
           !keep &&
           text &&
+          text.length <= OVERTAKEN_MAX_CHARS &&
           (t.overtaken ?? 0) < OVERTAKEN_MAX &&
           !run.background &&
           !run.workId &&
@@ -6860,6 +6862,8 @@ export function continuedTranscript(stopped: Transcript, line: string): Transcri
 /** Adds text to the conversation as the person's side (joined to a last user message, never two in a row). */
 /** Replies in a row a run may rewrite because people overtook them (`Transcript.overtaken`). */
 export const OVERTAKEN_MAX = 2;
+/** The longest reply rewritten when overtaken: a greeting or a quick answer. A longer one is substance, and goes out. */
+export const OVERTAKEN_MAX_CHARS = 200;
 
 /** What the next turn reads before the messages that overtook its reply: its draft, unsent, and to answer all of it. */
 export const overtakenNote = (draft: string) =>
