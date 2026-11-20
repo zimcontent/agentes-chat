@@ -7,8 +7,11 @@ import type { Agent, CalendarEvent, CalendarRange, Member } from "@dougbot/clien
 import { addDays, mondayOf } from "@dougbot/client/lib/calendar";
 import { toYmd } from "@dougbot/client/lib/format";
 import { act, cleanup, fireEvent, within } from "@testing-library/react";
+import { pinFileClock } from "./clock";
 import { ADA_ID, ATLAS_ID, createFakeApi, ENG_ID, ORG_ID, seedState } from "./fake-api";
 import { renderApp, screen, settle } from "./render";
+
+pinFileClock();
 
 afterEach(() => cleanup());
 
