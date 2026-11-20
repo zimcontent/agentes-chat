@@ -162,7 +162,8 @@ const sentSince = (message: { createdAt: Date }) =>
 
 /**
  * Marks a message whose triage is under way (`meta.triage`, ADR 0112 addendum of 2026-11-19): a run's step waits for
- * it a moment (`triageSettled`) instead of reading first what may be for someone else. Cleared when the judge answers.
+ * it a moment (`takeInbox`, `unreadNow` with `awaitTriage`) instead of reading first what may be for someone else. Cleared
+ * when the judge answers.
  */
 export async function markTriage(db: Executor, message: Pick<Message, "id" | "orgId" | "createdAt">, on: boolean) {
   await db
@@ -172,57 +173,64 @@ export async function markTriage(db: Executor, message: Pick<Message, "id" | "or
 }
 
 /**
- * How long a run's step waits at most for the triage of a message in its inbox (`markTriage`, ADR 0112 addendum of
+ * How long a run waits at most for the triage of a message in its inbox (`markTriage`, ADR 0112 addendum of
  * 2026-11-19), counted from the message's send: it may be for someone else (`releaseFromRun`), and a step that took it
- * first would answer it. The judge answers in about a second; past this, the step reads it as before.
+ * first would answer it. The judge answers in about a second; past this, the run reads it as before.
  */
 export const TRIAGE_GRACE_MS = 2_000;
 const TRIAGE_POLL_MS = 150;
 
 /**
- * Waits while a message in the run's inbox is still being triaged (`meta.triage`), at most `TRIAGE_GRACE_MS` from its
- * send (a triage that never ended holds nothing longer). Nothing under triage, the usual case, costs one query.
+ * SQL, read beside a run's inbox: one of its messages is under triage (`meta.triage`), sent less than
+ * `TRIAGE_GRACE_MS` ago on the database's clock (a triage that never ended holds nothing longer).
  */
-export async function triageSettled(db: Executor, run: Pick<AgentRun, "id">): Promise<void> {
-  // On the database's clock, which dated the message.
-  const grace = sql`${`${TRIAGE_GRACE_MS} milliseconds`}::interval`;
+const underTriage = sql<boolean>`exists (select 1 from ${messages} tm where tm.org_id = ${agentRuns.orgId}
+  and tm.id = any(${agentRuns.pendingMessageIds}) and tm.meta ? 'triage'
+  and tm.created_at > clock_timestamp() - ${`${TRIAGE_GRACE_MS} milliseconds`}::interval)`;
+
+/**
+ * Takes the run's unread messages (the inbox is emptied): the executor reads them, or hands them on. What waits for
+ * after the task (`afterMessageIds`) stays: only an ending hands it on. `awaitTriage`: while one of them is under
+ * triage, it waits for it (at most `TRIAGE_GRACE_MS`), in the same read, so nothing under triage costs no statement.
+ */
+export async function takeInbox(
+  db: Executor,
+  runId: string,
+  options: { awaitTriage?: boolean } = {},
+): Promise<string[]> {
   const deadline = Date.now() + TRIAGE_GRACE_MS;
   for (;;) {
-    const [row] = await db
-      .select({ n: sql<number>`count(*)::int` })
-      .from(agentRuns)
-      .innerJoin(
-        messages,
-        and(eq(messages.orgId, agentRuns.orgId), sql`${messages.id} = any(${agentRuns.pendingMessageIds})`),
-      )
-      .where(
-        and(
-          eq(agentRuns.id, run.id),
-          sql`${messages.meta} ? 'triage'`,
-          sql`${messages.createdAt} > clock_timestamp() - ${grace}`,
-        ),
-      );
-    if (!row?.n || Date.now() >= deadline) return;
+    const taken = await db.transaction(async (tx) => {
+      const [row] = await tx
+        .select({ pending: agentRuns.pendingMessageIds, triaging: options.awaitTriage ? underTriage : sql`false` })
+        .from(agentRuns)
+        .where(eq(agentRuns.id, runId))
+        .for("update");
+      const ids = row?.pending ?? [];
+      if (ids.length === 0) return [];
+      if (row?.triaging && Date.now() < deadline) return null;
+      await tx.update(agentRuns).set({ pendingMessageIds: [] }).where(eq(agentRuns.id, runId));
+      return ids;
+    });
+    if (taken) return taken;
     await Bun.sleep(TRIAGE_POLL_MS);
   }
 }
 
 /**
- * Takes the run's unread messages (the inbox is emptied): the executor reads them, or hands them on. What waits for
- * after the task (`afterMessageIds`) stays: only an ending hands it on.
+ * The run's unread messages as they are now, without taking them. `awaitTriage`: once none is under triage (at most
+ * `TRIAGE_GRACE_MS`), in the same read.
  */
-export async function takeInbox(db: Executor, runId: string): Promise<string[]> {
-  return db.transaction(async (tx) => {
-    const [row] = await tx
-      .select({ pending: agentRuns.pendingMessageIds })
+export async function unreadNow(db: Executor, runId: string, options: { awaitTriage?: boolean } = {}) {
+  const deadline = Date.now() + TRIAGE_GRACE_MS;
+  for (;;) {
+    const [row] = await db
+      .select({ pending: agentRuns.pendingMessageIds, triaging: options.awaitTriage ? underTriage : sql`false` })
       .from(agentRuns)
-      .where(eq(agentRuns.id, runId))
-      .for("update");
-    const ids = row?.pending ?? [];
-    if (ids.length === 0) return [];
-    await tx.update(agentRuns).set({ pendingMessageIds: [] }).where(eq(agentRuns.id, runId));
-    return ids;
-  });
+      .where(eq(agentRuns.id, runId));
+    if (!row?.triaging || Date.now() >= deadline) return row?.pending ?? [];
+    await Bun.sleep(TRIAGE_POLL_MS);
+  }
 }
 
 /**

@@ -195,24 +195,24 @@ describe("messages in a row (ADR 0112)", () => {
         // While it writes its greeting, the person asks for something else.
         return call === 1
           ? {
-              chunks: ["E aí! Tudo certo? Me manda um PR quando quiser."],
-              hold: postIn(dm, "busca umas passagens pra curitiba"),
+              chunks: ["Olá! Em que posso ajudar hoje?"],
+              hold: postIn(dm, "pesquisa hotéis em Recife para março"),
             }
-          : { chunks: ["Oi! Bora: de onde você sai?"] };
+          : { chunks: ["Claro: para quantas noites?"] };
       },
     });
     dm = (await openDm(f.db, f.owner.id, f.org.id, { agentId: f.agent.id })).id;
-    await postIn(dm, "eae");
+    await postIn(dm, "olá");
     await drainOutbox(f.db, f.handlers);
     const said = (await listMessages(f.db, f.owner.id, f.org.id, dm))
       .filter((m) => m.author.type === "agent")
       .map((m) => m.body);
-    expect(said).toEqual(["Oi! Bora: de onde você sai?"]);
+    expect(said).toEqual(["Claro: para quantas noites?"]);
     expect(f.provider.calls).toHaveLength(2);
     // The next turn knew its draft went nowhere, and read what overtook it.
     expect(requests[1]).toContain("Your reply was not sent");
-    expect(requests[1]).toContain("Me manda um PR");
-    expect(requests[1]).toContain("busca umas passagens pra curitiba");
+    expect(requests[1]).toContain("Em que posso ajudar hoje?");
+    expect(requests[1]).toContain("pesquisa hotéis em Recife para março");
     const [run] = await runs();
     expect(run?.status).toBe("done");
     expect((run?.transcript as { overtaken?: number } | undefined)?.overtaken).toBe(1);

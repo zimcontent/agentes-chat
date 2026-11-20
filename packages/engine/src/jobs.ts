@@ -577,7 +577,11 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
    * A person's message nobody mentioned, past the cases that start or join a run by themselves: the DM's agent, or the
    * router (`routeMessage`), whose decision the receipts say (`message.routed`).
    */
-  async function routePersonMessage(message: Message, where: Awaited<ReturnType<typeof getChannelCached>>) {
+  async function routePersonMessage(
+    message: Message,
+    where: Awaited<ReturnType<typeof getChannelCached>>,
+    except: string[] = [],
+  ) {
     const input = { orgId: message.orgId, messageId: message.id };
     const routed = (
       strategy: "mention" | "dm" | "router" | "none",
@@ -608,7 +612,7 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
         if (role !== "owner" && role !== "decide") return routed("none", [], [], "mission_read_only");
       }
     }
-    const res = await routeMessage(routing, input);
+    const res = await routeMessage(routing, input, { except });
     // Continued: the person's next message carries the decision, and its receipt.
     if (res.skipped === "already_routed" || res.skipped === "continued") return;
     // Nobody can think: what the person asks for may be to connect an AI (Jev reads it), for the Connect step.
@@ -841,7 +845,9 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
       if (!message || message.deletedAt || message.authorType !== "person") return;
       // Still in another agent's task (two were at it when it came): that one has it.
       if (Array.isArray(message.meta.steeredRunIds)) return;
-      await routePersonMessage(message, await getChannelCached(deps.db, message.orgId, message.channelId));
+      // Never back to the agent whose task it left.
+      const left = typeof job.payload.agentId === "string" ? [job.payload.agentId] : [];
+      await routePersonMessage(message, await getChannelCached(deps.db, message.orgId, message.channelId), left);
     },
     "agent_run.execute": async (job, ctx) => {
       // Counted per run (statements per stage go into the run profile).

@@ -786,6 +786,12 @@ export { AGENT_CHIME_IN_MAX_HOP };
 export async function routeMessage(
   deps: RouterDeps,
   input: { orgId: string; messageId: string },
+  /**
+   * `except`: agents out of the running. A message the triage took out of an agent's task as someone else's
+   * (`ROUTE_RELEASED_JOB`) never goes back to that agent: the lean toward the agent the person was just talking to
+   * would hand it straight back.
+   */
+  options: { except?: readonly string[] } = {},
 ): Promise<RouteResult> {
   const { db } = deps;
   // A workspace on hold, suspended or being deleted asks no strategy (Jev bills the server): nobody answers there now.
@@ -851,13 +857,15 @@ export async function routeMessage(
     )
     // Oldest first: the last tie-break of a default pick.
     .orderBy(asc(agents.createdAt));
-  let candidates: RoutingCandidate[] = rows.map((r) => ({
-    agentId: r.agentId,
-    handle: r.handle,
-    name: r.name,
-    role: r.role,
-    about: cutText(r.instructions, 300),
-  }));
+  let candidates: RoutingCandidate[] = rows
+    .filter((r) => !options.except?.includes(r.agentId))
+    .map((r) => ({
+      agentId: r.agentId,
+      handle: r.handle,
+      name: r.name,
+      role: r.role,
+      about: cutText(r.instructions, 300),
+    }));
   // Out of office (ADR 0084 §12): with nothing to think with until a reset, an agent doesn't answer a message nobody
   // mentioned it in (the others do); a mention still reaches it.
   if (deps.outOfOffice && candidates.length > 0) {

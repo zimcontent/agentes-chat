@@ -19,7 +19,7 @@ import {
   talkerPolicy,
 } from "../src";
 import { RUN_INTERRUPT_TOPIC } from "../src/cancel";
-import { markTriage, releaseInbox, stoppedToSend, TRIAGE_GRACE_MS, takeInbox, triageSettled } from "../src/run-inbox";
+import { markTriage, releaseInbox, stoppedToSend, TRIAGE_GRACE_MS, takeInbox, unreadNow } from "../src/run-inbox";
 import { type AgentRun, addRunStep } from "../src/runs";
 import { ROUTE_RELEASED_JOB } from "../src/steering";
 import { answerSteering, type Fixture, setup } from "./fixtures";
@@ -224,7 +224,11 @@ describe("a message sent while the agent works", () => {
     for (const tool of [null, "react"]) {
       const { run, threadId } = await working("model", tool);
       const question = await send(threadId, "tá funcionando?", triage({ "tá funcionando?": "answer" }));
-      const request = await send(threadId, "e busca umas passagens", triage({ "e busca umas passagens": "queue" }));
+      const request = await send(
+        threadId,
+        "e pesquisa hotéis em Recife",
+        triage({ "e pesquisa hotéis em Recife": "queue" }),
+      );
       const kept = (await runById(run.id)) as AgentRun;
       // Both read with its next step, nothing left for after it, and nothing answering in its place.
       expect(kept.pendingMessageIds).toEqual([question.sent.id, request.sent.id]);
@@ -281,10 +285,14 @@ describe("a message sent while the agent works", () => {
       router: { enabled: true, model: "claude-haiku-5-5", strategy },
     });
     const [job] = await f.db.select().from(schema.outbox).where(eq(schema.outbox.kind, ROUTE_RELEASED_JOB));
-    expect(job?.payload).toEqual({ messageId: sent.id });
+    expect(job?.payload).toEqual({ messageId: sent.id, agentId: f.agent.id });
     await handlers[ROUTE_RELEASED_JOB]?.(job as OutboxJob, { finalAttempt: false });
-    expect(asked).toHaveLength(1);
+    // Never back to the agent it left (the router leans toward the agent the person was just talking to): it isn't
+    // even a candidate, and here, its only agent gone, nobody is.
+    for (const decision of asked as { candidates: { agentId: string }[] }[])
+      expect(decision.candidates.map((c) => c.agentId)).not.toContain(f.agent.id);
     expect(events.some((e) => e.type === "message.routed" && e.messageId === sent.id)).toBe(true);
+    expect((await runById(run.id))?.pendingMessageIds).not.toContain(sent.id);
     expect((await runById(run.id))?.status).toBe("running");
   });
 
@@ -326,17 +334,17 @@ describe("a message sent while the agent works", () => {
     expect(offered(inDm.seen[0])).not.toContain("elsewhere");
   });
 
-  test("a step waits a moment for a message under triage, never past the grace, and not at all without one", async () => {
+  test("the run waits a moment for a message under triage, never past the grace, and not at all without one", async () => {
     const { run, threadId } = await working();
     const { sent } = await send(threadId, "inclui o gráfico por região", triage({}));
     let start = Date.now();
-    await triageSettled(f.db, run);
+    expect(await unreadNow(f.db, run.id, { awaitTriage: true })).toEqual([sent.id]);
     expect(Date.now() - start).toBeLessThan(TRIAGE_GRACE_MS / 2);
     const message = { id: sent.id, orgId: f.org.id, createdAt: new Date(sent.createdAt) };
     await markTriage(f.db, message, true);
     setTimeout(() => void markTriage(f.db, message, false), 300);
     start = Date.now();
-    await triageSettled(f.db, run);
+    expect(await takeInbox(f.db, run.id, { awaitTriage: true })).toEqual([sent.id]);
     const waited = Date.now() - start;
     expect(waited).toBeGreaterThanOrEqual(250);
     expect(waited).toBeLessThan(TRIAGE_GRACE_MS + 500);

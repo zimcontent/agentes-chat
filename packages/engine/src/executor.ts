@@ -307,7 +307,7 @@ import {
   releaseInbox,
   stoppedToSend,
   takeInbox,
-  triageSettled,
+  unreadNow,
   whileHeld,
 } from "./run-inbox";
 import { deliverNoticeToRun } from "./run-resume";
@@ -432,6 +432,7 @@ import {
   WORK_AUTO_AFTER_CALLS,
   WORK_AUTO_AFTER_MS,
   WORK_AUTO_MIN_MS,
+  WORK_BRIEF_HEADING,
   WORK_IN_BACKGROUND_TOOL,
   WORK_JOB_YIELD_MS,
   WORK_LIMITS,
@@ -1641,15 +1642,11 @@ async function executeRunInner(
   /** Messages people sent to this conversation while the run was active (one run per agent and conversation). */
   /**
    * A message just written in a channel others share may not be for this agent: its triage takes it out of the inbox
-   * (`steerHandling` `elsewhere`, ADR 0112 addendum of 2026-11-19), so a step waits a moment for it instead of reading
-   * it first. Without a judge there is no triage to wait for.
+   * (`steerHandling` `elsewhere`, ADR 0112 addendum of 2026-11-19), so the run waits a moment for it instead of reading
+   * it first (in the same read). Without a judge there is no triage to wait for.
    */
-  const settleTriage = () =>
-    deps.context?.judge ? triageSettled(db, run).catch(() => undefined) : Promise.resolve(undefined);
-  const takeSteering = async () => {
-    await settleTriage();
-    return takeInbox(db, run.id);
-  };
+  const awaitTriage = Boolean(deps.context?.judge);
+  const takeSteering = () => takeInbox(db, run.id, { awaitTriage });
   /**
    * The run ended: messages it took but never read get a run of their own (`releaseInbox`), so
    * nothing sent to the agent is swallowed by an ending.
@@ -3192,8 +3189,12 @@ async function executeRunInner(
    * run's: the follow-through judge reads a promise about what that work will bring as kept by it, so a reply turn
    * beside it ("I'll bring the findings when it ends") isn't pushed into doing the work itself.
    */
-  const backgroundWorkHere = async () =>
-    run.workId ? [] : (await liveWorksHere(db, run).catch(() => [])).map((w) => w.title || "untitled background work");
+  const backgroundWorkHere = async () => {
+    // Read again only where the run's context found some (`workBrief`, read before the model call): none then, none now.
+    const found = (transcript as Transcript | null)?.system.some((b) => b.text.startsWith(WORK_BRIEF_HEADING));
+    if (run.workId || !found) return [];
+    return (await liveWorksHere(db, run).catch(() => [])).map((w) => w.title || "untitled background work");
+  };
   let brain = createBrain(deps, thinker, run, plan.kind, turnToken, () => transcript as Transcript);
   /**
    * What the model brain stands in for since this claim's fallback, until it answers a turn: the computer brain's plan
@@ -3332,13 +3333,9 @@ async function executeRunInner(
    * A run that changed something posts its receipts instead (`endWithReceipts`).
    */
   const endQuietly = async (how: "pass" | "sentinel" | "empty", reason: string): Promise<boolean> => {
-    await settleTriage();
-    const [still] = await db
-      .select({ pending: agentRuns.pendingMessageIds })
-      .from(agentRuns)
-      .where(eq(agentRuns.id, run.id));
+    const still = { pending: await unreadNow(db, run.id, { awaitTriage }) };
     const t = transcript as Transcript;
-    if ((still?.pending.length ?? 0) > 0) {
+    if (still.pending.length > 0) {
       delete t.passed;
       return false;
     }
@@ -5973,17 +5970,13 @@ async function executeRunInner(
       }
       if (!text && !anythingPosted && !silent) return fail("empty_reply");
       // Someone wrote while it answered: post this answer, then read the new message(s) and go on.
-      await settleTriage();
-      const [still] = await db
-        .select({ pending: agentRuns.pendingMessageIds })
-        .from(agentRuns)
-        .where(eq(agentRuns.id, run.id));
+      const still = { pending: await unreadNow(db, run.id, { awaitTriage }) };
       // At the cap this answer ends the run instead: what came in gets a run of its own.
-      if (((still?.pending.length ?? 0) > 0 && run.turns < maxTurns) || keep) {
+      if ((still.pending.length > 0 && run.turns < maxTurns) || keep) {
         // Overtaken (ADR 0112 addendum of 2026-11-19): a short reply of a run that only talked (no tool called yet),
         // and the person wrote again before it went out. Sent as it is it would answer a conversation that has moved
-        // on ("Hi! Send me a PR" after they asked for flights). It is rewritten instead: the next turn reads what came
-        // and answers all of it in one message, as a person who sees new messages before pressing send would. A long
+        // on. It is rewritten instead: the next turn reads what came and answers all of it in one message, as a person
+        // who sees new messages before pressing send would. A long
         // reply is substance, a result or an explanation: it goes out, and the next turn answers what came. Twice in a
         // row at most, so someone who keeps writing still gets an answer.
         if (
@@ -5995,7 +5988,7 @@ async function executeRunInner(
           !run.workId &&
           !plan.missionId &&
           !betweenAgents &&
-          (await personAmong(db, run.orgId, still?.pending ?? [])) &&
+          (await personAmong(db, run.orgId, still.pending)) &&
           !(await runAtWork(db, run.id))
         ) {
           t.overtaken = (t.overtaken ?? 0) + 1;

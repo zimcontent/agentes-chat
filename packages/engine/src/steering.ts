@@ -212,7 +212,7 @@ export async function afterSteered(deps: SteeringDeps, input: SteeredInput) {
       if (talks) trackStopCheck(followUp(null));
       continue;
     }
-    // Where it may be for someone else, the run's next step waits for the triage a moment (`triageSettled`).
+    // Where it may be for someone else, the run waits for the triage a moment before reading it (`awaitTriage`).
     if (shared) await markTriage(deps.db, message, true).catch(() => undefined);
     // How the agent takes it, never in the way of the send: judged after the response (the app hears a stop then),
     // then what that does to the task, then its wait and the fast reply.
@@ -337,7 +337,7 @@ async function released(deps: SteeringDeps, run: AgentRun, message: Message, thr
   await enqueue(deps.db, {
     orgId: message.orgId,
     kind: ROUTE_RELEASED_JOB,
-    payload: { messageId: message.id },
+    payload: { messageId: message.id, agentId: run.agentId },
     dedupeKey: `${ROUTE_RELEASED_JOB}:${message.id}`,
   });
 }

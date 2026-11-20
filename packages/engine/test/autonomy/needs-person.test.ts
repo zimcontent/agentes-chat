@@ -203,19 +203,19 @@ describe("a step that needs the person is never a blocker", () => {
       orgId: "o",
       agentId: "a",
       runId: "r",
-      request: "ta ai?",
-      reply: "Tô aqui. Te trago os achados da auditoria com arquivo e linha assim que terminar.",
+      request: "como está indo?",
+      reply: "Está em andamento. Te mando o relatório assim que terminar.",
       means: [],
       tried: [],
       runKind: "conversation" as const,
     };
-    await continuationVerdict(judge, { ...turn, backgroundWork: ["Auditoria de código do projeto fin"] });
+    await continuationVerdict(judge, { ...turn, backgroundWork: ["Relatório de custos do trimestre"] });
     await continuationVerdict(judge, turn);
     const [beside, alone] = asked as unknown as {
       state: Record<string, unknown>;
       questions: Record<string, { criteria: Record<string, string> }>;
     }[];
-    expect(beside?.state.background_work).toEqual(["Auditoria de código do projeto fin"]);
+    expect(beside?.state.background_work).toEqual(["Relatório de custos do trimestre"]);
     expect(alone?.state).not.toHaveProperty("background_work");
     const criteria = beside?.questions.verdict?.criteria ?? {};
     expect(criteria.continue).toContain("A promise about what its `background_work` will bring is kept by that work");
