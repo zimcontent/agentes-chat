@@ -22,6 +22,7 @@ import {
   enqueueVaultSyncs,
   enqueueWaitlistContacts,
   ensureRightHandRondas,
+  ensureRightHandSkills,
   expireAgentProposalAsks,
   expireApprovals,
   expireBrowserHandoffs,
@@ -409,6 +410,9 @@ export function startWorkers(deps: WorkerDeps) {
   every("rightHandRondas", WORKER_INTERVALS_MS.rightHandRondas, async () => {
     const made = await ensureRightHandRondas(db);
     if (made > 0) log.info("right hand rondas on", { made });
+    // Its house skills, once per right hand (docs/adr/doug-0041-doug-defaults.md).
+    const given = await ensureRightHandSkills(db);
+    if (given > 0) log.info("right hand house skills given", { given });
   });
 
   every("approvals", WORKER_INTERVALS_MS.approvals, async () => {
