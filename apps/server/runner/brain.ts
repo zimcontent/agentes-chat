@@ -543,7 +543,7 @@ export class ClaudeStreamParser {
           if (!isObj(block)) continue;
           if (block.type === "tool_use") this.worked = true;
           if (block.type === "tool_use" && str(block.id) && str(block.name)) {
-            this.tools.set(str(block.id), { name: str(block.name), input: block.input ?? {}, since: Date.now() });
+            this.tools.set(str(block.id), { name: str(block.name), input: block.input ?? {} });
             // Ours run through the bridge, which tells the engine as they start.
             if (!str(block.name).startsWith(OUR_TOOL_PREFIX))
               events.push({
@@ -1121,15 +1121,18 @@ export class ClaudeProcess {
     start: Spawn = spawn,
     /** A token root handed over, on its own descriptor (`TOKEN_FD_ENV`). */
     token?: string,
+    /** The env of the runner's own `--settings`: the CLI applies it over its process env, timeouts included. */
+    settingsEnv?: Record<string, string>,
   ) {
     // A full path: the compiled runner would look the bare name up on the PATH it started with. On Windows, found on
     // the PATH (never in the agent's folder), a launcher through cmd.exe with every argument quoted (an empty
     // `--setting-sources` stays one).
     const run = cliSpawn(command.length ? command : ["claude"], args, env.PATH);
     const runEnv = run.env ? { ...env, ...run.env } : env;
-    const bashDefault = Number(runEnv.BASH_DEFAULT_TIMEOUT_MS);
+    const timeouts = { ...runEnv, ...settingsEnv };
+    const bashDefault = Number(timeouts.BASH_DEFAULT_TIMEOUT_MS);
     this.bashDefaultMs = Number.isFinite(bashDefault) && bashDefault > 0 ? bashDefault : BASH_DEFAULT_MS;
-    const apiTimeout = Number(runEnv.API_TIMEOUT_MS);
+    const apiTimeout = Number(timeouts.API_TIMEOUT_MS);
     this.apiTimeoutMs = Number.isFinite(apiTimeout) && apiTimeout > 0 ? apiTimeout : undefined;
     this.ownSettings = !args.includes("--setting-sources");
     this.child = start(run.file, run.args, {
@@ -2436,7 +2439,7 @@ export class BrainManager {
     const fast = Date.now() - live.proc.startedAt <= FAST_FAIL_MS;
     // Never into `--resume` on a delegated CLI: a transcript it doesn't own is what that answer may mean.
     if (mayRetryFlag && fast && WRONG_SESSION_FLAG.test(live.proc.stderr) && (resume || !ctx.delegated)) {
-      return this.oneShot(key, session, cwd, req, ctx, sig, !resume, false, earlier);
+      return this.oneShot(key, session, cwd, req, ctx, sig, !resume, false, earlier, stalledBefore);
     }
     const said = live.proc.stderr.trim().split("\n").slice(-3).join(" ").trim();
     if (/not logged in|\/login/i.test(said)) {
@@ -2614,34 +2617,29 @@ export class BrainManager {
       env.MCP_TOOL_TIMEOUT = String(PERMISSION_WAIT_MS + 5 * 60_000);
     }
     const settingsFile = path.join(dir, "settings.json");
-    writeFileSync(
-      settingsFile,
-      JSON.stringify(
-        delegated
-          ? // The turn's rules are the worker's to apply: none of the CLI's own tools is left for them.
-            { disableAllHooks: true, env: accountSettingsEnv(undefined, model) }
-          : {
-              ...claudePermissionSettings(
-                mode,
-                allow,
-                undefined,
-                // Every command reaches our prompt tool: plain reads pass there at once, secrets never.
-                {
-                  promptReads: true,
-                  ...(this.opts.runnerHome ? { runnerHome: this.opts.runnerHome } : {}),
-                  ...(asks === "always" ? { asksFirst: true } : {}),
-                },
-              ),
-              // With the owner's own settings loaded (`personalMcp`), theirs decide the computer's own sign-in.
-              ...(ctx.accountHome
-                ? { env: accountSettingsEnv(plan, model) }
-                : req.personalMcp === true && mode !== "chat"
-                  ? {}
-                  : { env: accountSettingsEnv(undefined, model, process.env, true) }),
+    const settings = delegated
+      ? // The turn's rules are the worker's to apply: none of the CLI's own tools is left for them.
+        { disableAllHooks: true, env: accountSettingsEnv(undefined, model) }
+      : {
+          ...claudePermissionSettings(
+            mode,
+            allow,
+            undefined,
+            // Every command reaches our prompt tool: plain reads pass there at once, secrets never.
+            {
+              promptReads: true,
+              ...(this.opts.runnerHome ? { runnerHome: this.opts.runnerHome } : {}),
+              ...(asks === "always" ? { asksFirst: true } : {}),
             },
-      ),
-      { mode: fileMode },
-    );
+          ),
+          // With the owner's own settings loaded (`personalMcp`), theirs decide the computer's own sign-in.
+          ...(ctx.accountHome
+            ? { env: accountSettingsEnv(plan, model) }
+            : req.personalMcp === true && mode !== "chat"
+              ? {}
+              : { env: accountSettingsEnv(undefined, model, process.env, true) }),
+        };
+    writeFileSync(settingsFile, JSON.stringify(settings), { mode: fileMode });
     // Starting in one of its checkouts (`repos/owner/name`), the agent keeps its whole folder (its other checkouts).
     const addDirs =
       mode === "chat" || delegated
@@ -2668,6 +2666,7 @@ export class BrainManager {
       env,
       this.opts.spawn,
       ctx.oauthToken,
+      settings.env,
     );
     if (mode === "chat") proc.lock = chatToolsBreach;
     else if (delegated) proc.lock = delegatedToolsBreach;

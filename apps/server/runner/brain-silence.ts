@@ -42,6 +42,7 @@ export interface ClaudeSilence {
 
 export const CLAUDE_SILENCE: ClaudeSilence = {
   modelMs: 10 * 60_000,
+  // The ceiling on an open block that streams only pings: 60 minutes, however long the think.
   openBlockMs: 60 * 60_000,
   compactingMs: 15 * 60_000,
   toolMs: 6 * 60_000,
@@ -67,8 +68,6 @@ export type SilencePhase = BrainStallPhase;
 export interface InFlightTool {
   name: string;
   input: unknown;
-  /** When its call came in the stream. */
-  since: number;
 }
 
 /** A turn stopped for its silence: where it was, the tool that ran (and on what), and how long nothing came. */

@@ -45,7 +45,7 @@ const QUICK: ClaudeSilence = {
 
 // ── The limits ───────────────────────────────────────────────────────────────
 
-const tool = (name: string, input: unknown = {}) => ({ name, input, since: 0 });
+const tool = (name: string, input: unknown = {}) => ({ name, input });
 
 test("silence: the model's answer, a compaction, its own tools and a command by its own timeout each have a limit", () => {
   const at = (s: Parameters<typeof silenceLimit>[0]) => silenceLimit(s, CLAUDE_SILENCE);
@@ -126,7 +126,7 @@ test("parser: calls in flight until their result, a compaction while the CLI say
       parent_tool_use_id: null,
     }),
   );
-  expect(p.inFlight()).toEqual([{ name: "Bash", input: { command: "make" }, since: expect.any(Number) }]);
+  expect(p.inFlight()).toEqual([{ name: "Bash", input: { command: "make" } }]);
   p.push(
     line({
       type: "user",
@@ -369,6 +369,18 @@ test.if(posix)("quiet again on the resumed session: the turn ends as brain_stall
     retryable: false,
   });
   expect(spawns()).toHaveLength(2);
+});
+
+test.if(posix)("stalled, its session not there to resume: one fresh try, still told it stalled", async () => {
+  process.env.FAKE_CLAUDE_NO_SESSION = "1";
+  try {
+    const { spawns, turn } = setup();
+    const r = await turn(1, "HANGEVER please");
+    expect(r.final).toMatchObject({ type: "error", code: "brain_stalled" });
+    expect(spawns().map((s) => s.args.at(-2))).toEqual(["--session-id", "--resume", "--session-id"]);
+  } finally {
+    delete process.env.FAKE_CLAUDE_NO_SESSION;
+  }
 });
 
 test.if(posix)(
