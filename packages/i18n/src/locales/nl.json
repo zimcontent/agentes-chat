@@ -15791,7 +15791,7 @@
       "accountInUse": "Dat account denkt al voor een andere agent.",
       "noAiYet": "Er is nog geen AI verbonden.",
       "filePurged": "Dit bestand is meer dan 30 dagen geleden verwijderd en kan niet terugkomen.",
-      "looksSecret": "Dat lijkt op een wachtwoord of sleutel, en iedereen hier zou het zien.",
+      "looksSecret": "Dat lijkt op een wachtwoord of sleutel, en iedereen hier zou het zien. Laat de agent er liever privé om vragen.",
       "blockSpec": "Dit blok bevat een fout in de onderdelen of formules, dus het kan niet worden getoond. Verbeter het en probeer het opnieuw.",
       "takeControl": "Neem eerst de controle over het profiel.",
       "profileBusy": "Iemand anders gebruikt dit profiel.",
