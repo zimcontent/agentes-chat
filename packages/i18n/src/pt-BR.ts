@@ -19157,6 +19157,8 @@ export const ptBR = {
       action_approvals: "Aprovações esperando você",
       welcome_member:
         "Você acabou de entrar na {{org}}. **Do que você cuida por aqui?** Me conta e eu monto seu primeiro agente com você.",
+      first_task_ask:
+        "Vamos começar por algo de verdade: **me passa uma tarefa chata que você faz toda semana.** Eu resolvo agora, aqui mesmo, e se ficar do seu jeito eu passo a fazer toda semana pra você.",
       action_open_page: "Abrir uma tela",
       calendar_proposal: "Proposta de evento: {{title}}",
       action_workspace: "Propôs uma mudança no workspace",

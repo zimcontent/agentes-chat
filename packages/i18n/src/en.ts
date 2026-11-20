@@ -19280,6 +19280,9 @@ export const en = {
       /** The right hand's greeting to someone who just joined the workspace, the first message of their DM with it. */
       welcome_member:
         "You just joined {{org}}. **What do you look after here?** Tell me and I set up your first agent with you.",
+      /** The right hand's ask to an owner whose onboarding just ended: one weekly chore it does on the spot. */
+      first_task_ask:
+        "Let's start with something real: **give me a boring task you do every week.** I'll do it right here, now, and if it comes out the way you like I can take it off your hands every week.",
       action_open_page: "Open a screen",
       calendar_proposal: "Event proposal: {{title}}",
       action_workspace: "Proposed a change in the workspace",

@@ -18892,6 +18892,7 @@
       "action_update_skills": "Skills bijwerken",
       "action_approvals": "Goedkeuringen die op jou wachten",
       "welcome_member": "Je bent net bij {{org}} gekomen. **Waar houd je je hier mee bezig?** Vertel het me en ik stel samen met jou je eerste agent in.",
+      "first_task_ask": "Laten we met iets echts beginnen: **geef me een saaie taak die je elke week doet.** Ik doe hem hier, nu meteen, en als het goed uitpakt kan ik hem elke week van je overnemen.",
       "action_open_page": "Een scherm openen",
       "calendar_proposal": "Voorstel voor een afspraak: {{title}}",
       "action_workspace": "Stelde een wijziging in de werkruimte voor",
