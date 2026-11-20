@@ -716,7 +716,7 @@ describe("rows as the server writes them", () => {
     await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, {
       body: "@dev revisa os PRs",
     });
-    await drainOutbox(f.db, createJobHandlers({ ...f.jobDeps, maxToolTurns: 4 }));
+    await drainOutbox(f.db, createJobHandlers({ ...f.jobDeps, maxToolTurns: 4, autoContinue: 0 }));
     const [wrapped] = await f.db.select().from(schema.agentRuns).where(eq(schema.agentRuns.trigger, "mention"));
     expect(wrapped?.status).toBe("done");
     const when = wrapped?.createdAt ?? new Date();

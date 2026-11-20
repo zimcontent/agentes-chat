@@ -48,6 +48,7 @@ import { type AgentAi, agentAiState, noAiReasonOf, ownNotSignedIn } from "./ai-s
 import { heldBehind, markNotRun, notRunAfter, notRunText, wakeLine } from "./approval-order";
 import { deciderName, publishApproval } from "./approvals";
 import { accountablePerson, fedByRoutine, personOfMessage, runAuthority } from "./authority";
+import { AUTO_CONTINUE_MAX, lastToolsSucceeded, mayContinueAlone, triggerRequester } from "./auto-continue";
 import {
   type AutoChoice,
   type AutoLine,
@@ -475,6 +476,11 @@ export interface EngineDeps {
   tools?: ToolGateway;
   /** Model calls one run may make (tool loops). */
   maxToolTurns?: number;
+  /**
+   * How many times a person's request may go on by itself at its step limit (`auto-continue.ts`, ADR 0097 addendum
+   * 2026-11-20): `AUTO_CONTINUE_MAX` by default, 0 turns it off.
+   */
+  autoContinue?: number;
   /** Long work's safety net (ADR 0121 §1): active time and model calls before a person's run moves, and how often it looks. */
   workAutoAfterMs?: number;
   workAutoAfterCalls?: number;
@@ -665,6 +671,11 @@ export interface Transcript {
    * reply offers Continuar (`meta.stepLimit`).
    */
   wrapUpNoted?: boolean;
+  /**
+   * How many times this request already went on by itself at its step limit (`autoContinueRun`, ADR 0097 addendum
+   * 2026-11-20). A Continuar a person presses starts it again (`continuedTranscript` leaves it out).
+   */
+  autoContinued?: number;
   /** Whether it goes in circles (`stuck.ts`): its latest steps and what was found. */
   stuck?: StuckState;
   /** Whether it keeps searching for a tool it doesn't have (`tool-hunt.ts`). */
@@ -4444,6 +4455,23 @@ async function executeRunInner(
   // A backstop for a run that runs away: one that goes in circles is stopped long before (`stuck.ts`).
   const backstop = deps.maxToolTurns ?? 200;
   let maxTurns = Math.min(backstop, transcript.stuck?.endAt ?? backstop);
+  // A person's request at its step limit goes on by itself while its work goes well (ADR 0097 addendum 2026-11-20):
+  // with continuations left it is not told to wrap up, and at the cap it continues if its last calls went well and
+  // its budget or plan has room. Looked at again at the cap (stuck since, a mission it joined).
+  const autoMax = deps.autoContinue ?? AUTO_CONTINUE_MAX;
+  const mayGoOnAlone = () =>
+    mayContinueAlone({
+      max: autoMax,
+      done: transcript.autoContinued ?? 0,
+      background: run.background,
+      workOrMission: Boolean(run.workId) || Boolean(plan.missionId),
+      viaRoutine: viaRoutine !== null,
+      modelBrain: plan.kind === "model",
+      stuck: transcript.stuck?.endAt !== undefined,
+      person: triggerRequester(triggerMessage) !== null,
+    });
+  /** Room to go on: its budget, or its plan's tightest window, short of where the agent is told it is running low. */
+  const hasRoom = (reading: Awaited<ReturnType<typeof usageReading>>) => !reading || reading.used < PLAN_NOTICE;
   let firstTurn = true;
   // Live steering (`live-steer.ts`): while a computer turn is in flight, a person's message goes to it
   // (read at its next tool boundary) instead of waiting for the turn's end; any other time, it waits.
@@ -4626,7 +4654,14 @@ async function executeRunInner(
       if (run.turns >= maxTurns) {
         const stuck = transcript.stuck?.endAt !== undefined;
         if (run.background) return fail(stuck ? STUCK_ERROR : "too_many_tool_calls");
-        return stuck ? endStuck() : endAtStepLimit();
+        if (stuck) return endStuck();
+        const goOn = mayGoOnAlone() && lastToolsSucceeded(transcript.messages) && hasRoom(await usageReading());
+        await endAtStepLimit();
+        if (goOn) {
+          const { autoContinueRun } = await import("./continue-run");
+          await autoContinueRun({ db, pubsub: deps.pubsub }, run.id, autoMax);
+        }
+        return;
       }
       const steered = await deliverSteering(firstTurn && run.turns === 0);
       if (steered && plan.kind !== "model") {
@@ -4661,7 +4696,8 @@ async function executeRunInner(
         plan.kind === "model" &&
         !transcript.wrapUpNoted &&
         transcript.stuck?.endAt === undefined &&
-        run.turns >= Math.max(0, maxTurns - WRAP_UP_TURNS)
+        run.turns >= Math.max(0, maxTurns - WRAP_UP_TURNS) &&
+        !mayGoOnAlone()
       ) {
         transcript.wrapUpNoted = true;
         appendUserText(transcript, run.background ? WRAP_UP_NOTE : run.workId ? WRAP_UP_WORK_NOTE : WRAP_UP_REPLY_NOTE);

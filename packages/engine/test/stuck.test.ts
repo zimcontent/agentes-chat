@@ -261,7 +261,7 @@ describe("a run that keeps going", () => {
       }),
     });
     await ask("@dev posta nos sites");
-    await drainOutbox(f.db, createJobHandlers({ ...f.jobDeps, maxToolTurns: 6 }));
+    await drainOutbox(f.db, createJobHandlers({ ...f.jobDeps, maxToolTurns: 6, autoContinue: 0 }));
 
     expect(requests()).toHaveLength(6);
     expect(requests().findIndex((r) => lastText(r).includes(WRAP_UP_REPLY_NOTE))).toBe(4);

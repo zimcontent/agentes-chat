@@ -1121,7 +1121,7 @@ describe("a reply that names its own tools to a person", () => {
         call === 1 ? { chunks: [NAMED] } : { chunks: [], toolUses: [{ name: "request_secret", input: {} }] },
     });
     await ask(f, "@dev entra no painel da Northwind");
-    await drainOutbox(f.db, createJobHandlers({ ...f.jobDeps, maxToolTurns: 3 }));
+    await drainOutbox(f.db, createJobHandlers({ ...f.jobDeps, maxToolTurns: 3, autoContinue: 0 }));
     const messages = await agentMessages(f);
     expect(messages.map((m) => m.body)).toEqual([NAMED, "I ran out of steps before finishing."]);
     expect(messages[1]?.meta.stepLimit).toBeDefined();

@@ -703,7 +703,7 @@ describe("approval flow (end to end)", () => {
     });
     await grantScopes(f.db, f.org.id, f.agent.id, ALL_GITHUB_SCOPES);
     await post(f, "@dev loop forever");
-    await drainOutbox(f.db, createJobHandlers({ ...f.jobDeps, maxToolTurns: 4 }));
+    await drainOutbox(f.db, createJobHandlers({ ...f.jobDeps, maxToolTurns: 4, autoContinue: 0 }));
     const [run] = await f.db.select().from(schema.agentRuns);
     // It ends saying it ran out of steps, with Continuar, never as a failure (step-limit.test.ts). A judge that
     // reads it as stuck stops it sooner (stuck.test.ts).

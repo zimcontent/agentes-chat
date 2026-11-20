@@ -39,6 +39,7 @@ export * from "./artifacts";
 export * from "./audience";
 export * from "./audit";
 export * from "./authority";
+export * from "./auto-continue";
 export * from "./auto-model";
 export * from "./autonomy-report";
 export * from "./avatars";
