@@ -568,6 +568,8 @@ test("command line: stream-json both ways, opus falls back to sonnet, strict MCP
   expect(lean.join(" ")).toContain("--tools Bash,Read,Edit,Write,Glob,Grep,ToolSearch");
   expect(lean.join(" ")).not.toContain("WebFetch");
   expect(lean.slice(-2)).toEqual(["--session-id", SESSION(1)]);
+  expect(fallbackModelFor("fable")).toBe("opus");
+  expect(fallbackModelFor("claude-fable-5-2")).toBe("opus");
   expect(fallbackModelFor("claude-opus-5-5")).toBe("sonnet");
   expect(fallbackModelFor("sonnet")).toBeUndefined();
   expect(JSON.parse(userMessageLine("oi"))).toEqual({

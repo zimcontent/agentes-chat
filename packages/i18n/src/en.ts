@@ -6582,7 +6582,8 @@ export const en = {
         speedText:
           "Answers faster in conversations and uses the plan 2.5× as fast. Routines and long tasks stay at standard speed.",
         modelLine: {
-          opus: "The most capable. Uses up the plan faster.",
+          fable: "The most capable. Uses up the plan much faster.",
+          opus: "Very capable. Uses up the plan faster.",
           sonnet: "Balanced. Good for almost everything.",
           haiku: "Fast and light. For simple tasks.",
         },
@@ -7918,6 +7919,7 @@ export const en = {
     modelAndCost: "Model and cost",
     model: "Model",
     modelDesc: {
+      fable: "The most capable, for the hardest work",
       sonnet: "Recommended for most",
       opus: "Long, hard tasks",
       haiku: "Fast and cheap",

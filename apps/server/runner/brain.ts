@@ -989,8 +989,9 @@ export function brainProfileLaunch(
   };
 }
 
-/** Claude Code under opus falls back to sonnet when opus is overloaded or out of the plan. */
-export const fallbackModelFor = (model: string | undefined) => (model && /opus/i.test(model) ? "sonnet" : undefined);
+/** Claude Code falls one size down when its model is overloaded or out of the plan: fable to opus, opus to sonnet. */
+export const fallbackModelFor = (model: string | undefined) =>
+  !model ? undefined : /fable/i.test(model) ? "opus" : /opus/i.test(model) ? "sonnet" : undefined;
 
 /** The argv of a brain turn's Claude Code (on Windows `cliSpawn` quotes each for cmd.exe). */
 export function claudeBrainArgs(l: ClaudeLaunch): string[] {

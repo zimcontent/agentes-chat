@@ -6460,7 +6460,8 @@ export const ptBR = {
           "Responde mais rápido nas conversas e gasta o plano 2,5× mais depressa. Rotinas e tarefas longas seguem no padrão.",
         /** The model picker's line under each Claude Code model (other models show their name only). */
         modelLine: {
-          opus: "O mais capaz. Gasta o plano mais rápido.",
+          fable: "O mais capaz. Gasta o plano bem mais rápido.",
+          opus: "Muito capaz. Gasta o plano mais rápido.",
           sonnet: "Equilibrado. Bom para quase tudo.",
           haiku: "Rápido e leve. Para tarefas simples.",
         },
@@ -7864,6 +7865,7 @@ export const ptBR = {
     modelAndCost: "Modelo e custo",
     model: "Modelo",
     modelDesc: {
+      fable: "O mais capaz, para o trabalho mais difícil",
       sonnet: "Recomendado para a maioria",
       opus: "Tarefas longas e difíceis",
       haiku: "Rápido e barato",
