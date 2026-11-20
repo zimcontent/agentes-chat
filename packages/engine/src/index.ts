@@ -327,6 +327,7 @@ export * from "./routines";
 export * from "./rrule";
 export * from "./run-hold";
 export * from "./run-inbox";
+export * from "./run-proof";
 export * from "./run-resume";
 export { STOP_REASON_MAX, setStopReason, stoppedText, tellAgentStopped } from "./run-stopped";
 export * from "./run-tool-tokens";

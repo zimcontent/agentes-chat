@@ -4180,6 +4180,11 @@
     "inChannel": "in #{{channel}}",
     "open": "Bekijken"
   },
+  "deliveryProof": {
+    "group": "Wat het opleverde",
+    "screenshot": "Schermafbeelding",
+    "showAll": "Alles tonen"
+  },
   "agentActions": {
     "issue": {
       "created": "Taak <b>#{{number}}</b> aangemaakt · {{title}}",

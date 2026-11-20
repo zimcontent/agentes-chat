@@ -4037,6 +4037,11 @@
     "inChannel": "#{{channel}}",
     "open": "見る"
   },
+  "deliveryProof": {
+    "group": "届けたもの",
+    "screenshot": "スクリーンショット",
+    "showAll": "すべて表示"
+  },
   "agentActions": {
     "issue": {
       "created": "タスク<b>#{{number}}</b>を作成しました · {{title}}",

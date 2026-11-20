@@ -4442,6 +4442,11 @@
     "inChannel": "в #{{channel}}",
     "open": "Открыть"
   },
+  "deliveryProof": {
+    "group": "Что сделано",
+    "screenshot": "Скриншот",
+    "showAll": "Показать все"
+  },
   "agentActions": {
     "issue": {
       "created": "Создана задача <b>#{{number}}</b> · {{title}}",

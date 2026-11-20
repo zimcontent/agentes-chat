@@ -371,6 +371,11 @@ export async function continuationVerdict(
      * and computer brains through the MCP bridge) plus a computer brain's own tools (`transcript.harnessTried`).
      */
     tried: string[];
+    /**
+     * What the run delivered, read from its steps and team actions (`runProof`, docs/adr/doug-0040-proof-on-delivery.md):
+     * a file, a screenshot, a task, a page. A claim one of them backs is backed.
+     */
+    proof?: string[];
     runKind: TurnKind;
     /** Agents and people its reply @named that aren't in the conversation (`unreachedNote`), "" none. */
     unreached?: string;
@@ -401,6 +406,7 @@ export async function continuationVerdict(
         reply: cutTextEnd(input.reply, 3000),
         means: input.means,
         tried: input.tried.slice(-20).map(neutralizeUntrusted),
+        ...(input.proof?.length ? { proof: input.proof.slice(0, 6).map(neutralizeUntrusted) } : {}),
         runKind: input.runKind,
         ...(input.unreached ? { unreached: input.unreached } : {}),
         ...(input.backgroundWork?.length
@@ -422,7 +428,7 @@ export async function continuationVerdict(
             secret:
               "It asks a person to type or paste a secret into the chat (a password, an API key, a token, a private key), or the work `request` asked it to do can't go on without one only a person has and it hasn't asked for it through a secure request (`tried` has no request_secret call). Not when it only names the key a step it offers would need.",
             unbacked:
-              "Its reply says it made, sent, created, posted, saved or did something (an image, a file, a message or an email sent, a task opened, a change made, 'done', 'here it is') that no call in `tried` did. Not when the reply only plans, offers or asks, says plainly it couldn't, or reports what someone did before and says so.",
+              "Its reply says it made, sent, created, posted, saved or did something (an image, a file, a message or an email sent, a task opened, a change made, 'done', 'here it is') that no call in `tried` did. `proof`, when given, is what the run really delivered (files, screenshots, tasks, pages, outside actions), read from its steps: a claim one of them backs is not this. Not when the reply only plans, offers or asks, says plainly it couldn't, or reports what someone did before and says so.",
           },
         },
         ...(learn ? { learn: input.personal ? LEARN_QUESTION_PERSONAL : LEARN_QUESTION } : {}),

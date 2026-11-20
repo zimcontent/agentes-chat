@@ -320,6 +320,7 @@ import {
   unreadNow,
   whileHeld,
 } from "./run-inbox";
+import { type ProofMark, proofLines, runProof } from "./run-proof";
 import { deliverNoticeToRun } from "./run-resume";
 import { issueRunToolToken, revokeRunToolTokens } from "./run-tool-tokens";
 import {
@@ -619,6 +620,8 @@ export interface Transcript {
   postedCount: number;
   /** The words of the last message it posted (trimmed): saying exactly them again next adds nothing. */
   lastPosted?: string;
+  /** Where the proof on its last message read up to (docs/adr/doug-0040-proof-on-delivery.md): the next carries what came after. */
+  proof?: ProofMark;
   /**
    * A reply judged `untried` and held back (ADR 0109): nobody saw it. It goes out with the run's next words
    * (`heldWords`), or alone when the run ends without any (a pass, an empty turn, a closing line, a failure).
@@ -2250,6 +2253,9 @@ async function executeRunInner(
     const said = note ? body : await publishable(tx, threadId, body);
     // Team actions (ADR 0064): what the run didn't repeat because the team already did it rides on its reply.
     const teamChecks = note ? [] : await runChecksForReply(tx, run.orgId, run.id);
+    // Proof on delivery (docs/adr/doug-0040-proof-on-delivery.md): what it did since its last message, read from its
+    // steps, never from its words.
+    const proof = note || !transcript ? null : await runProof(tx, run, transcript.proof ?? null).catch(() => null);
     // "Ver o que ele fez" under the reply: how many tool calls so far, so the apps leave it out at 0, and one call
     // per logo of the closed block, in order of first use: per service, else app, else screen, else tool (a
     // connector's dozens of tools would push the next apps past the few kept). A reaction already shows on the
@@ -2324,6 +2330,7 @@ async function executeRunInner(
         ...(readOutside && !note ? { readOutside: true } : {}),
         work,
         ...(teamChecks.length > 0 ? { teamChecks } : {}),
+        ...(proof && proof.items.length > 0 ? { proof: proof.items } : {}),
         ...(unreached.length > 0 ? { unreachedAgents: unreached } : {}),
         ...(missed.length > 0 ? { unreachedPeople: missed } : {}),
       },
@@ -2350,6 +2357,7 @@ async function executeRunInner(
     if ((await linkRunActions(tx, run.orgId, run.id, m.id)) > 0) withReceipts.push(m.id);
     if (!note && transcript) {
       transcript.lastPosted = body.trim();
+      if (proof) transcript.proof = proof.mark;
       // Its words went out, the held reply with them or in their place (`heldWords`), or before them (`closeWith`).
       delete transcript.held;
       delete transcript.heldWording;
@@ -3223,7 +3231,9 @@ async function executeRunInner(
       evidence.means = [...turnMeans(names, teammates, await isPersonalWorkspace(db, run.orgId)), ...own];
       // No call executed in this run: no tool step to read.
       evidence.tried = t.executedCalls ? await triedCalls(db, run, t.harnessTried) : (t.harnessTried ?? []);
-      return evidence;
+      // What the whole run delivered, read from its steps (docs/adr/doug-0040-proof-on-delivery.md).
+      const proof = t.executedCalls ? await runProof(db, run).catch(() => null) : null;
+      return { ...evidence, proof: proof ? proofLines(proof.items) : [] };
     };
     return { evidence, gather };
   };

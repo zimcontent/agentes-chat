@@ -4035,6 +4035,11 @@
     "inChannel": "#{{channel}}",
     "open": "보기"
   },
+  "deliveryProof": {
+    "group": "전달한 결과",
+    "screenshot": "스크린샷",
+    "showAll": "모두 보기"
+  },
   "agentActions": {
     "issue": {
       "created": "작업 <b>#{{number}}</b>을(를) 만들었어요 · {{title}}",

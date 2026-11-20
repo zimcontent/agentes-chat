@@ -4048,6 +4048,11 @@
     "inChannel": "di #{{channel}}",
     "open": "Lihat"
   },
+  "deliveryProof": {
+    "group": "Yang dihasilkan",
+    "screenshot": "Tangkapan layar",
+    "showAll": "Tampilkan semua"
+  },
   "agentActions": {
     "issue": {
       "created": "Membuat tugas <b>#{{number}}</b> · {{title}}",

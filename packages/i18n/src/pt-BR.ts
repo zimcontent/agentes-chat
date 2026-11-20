@@ -4353,6 +4353,11 @@ export const ptBR = {
     inChannel: "em #{{channel}}",
     open: "Ver",
   },
+  deliveryProof: {
+    group: "O que ele entregou",
+    screenshot: "Print",
+    showAll: "Mostrar tudo",
+  },
   agentActions: {
     issue: {
       created: "Criei a tarefa <b>#{{number}}</b> · {{title}}",

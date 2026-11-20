@@ -10135,6 +10135,15 @@
   "teamChecks.open": {
     "value": "View"
   },
+  "deliveryProof.group": {
+    "value": "What it delivered"
+  },
+  "deliveryProof.screenshot": {
+    "value": "Screenshot"
+  },
+  "deliveryProof.showAll": {
+    "value": "Show all"
+  },
   "agentActions.issue.created": {
     "value": "Created task <b>#{{number}}</b> · {{title}}"
   },

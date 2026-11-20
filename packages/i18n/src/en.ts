@@ -4463,6 +4463,12 @@ export const en = {
     inChannel: "in #{{channel}}",
     open: "View",
   },
+  /** Proof on delivery (docs/adr/doug-0040-proof-on-delivery.md): the line of what a run delivered under its reply. */
+  deliveryProof: {
+    group: "What it delivered",
+    screenshot: "Screenshot",
+    showAll: "Show all",
+  },
   agentActions: {
     issue: {
       created: "Created task <b>#{{number}}</b> · {{title}}",

@@ -369,6 +369,7 @@ import { useOrg } from "@/components/org-context";
 import { AuthorStatus } from "@/components/Presence";
 import { ProfileTrigger } from "@/components/ProfileCard";
 import { ChannelIconDialog, ChannelPhoto } from "@/components/ProfilePhoto";
+import { ProofLine } from "@/components/ProofLine";
 import { ReachLines } from "@/components/ReachLines";
 import { MessageReactions, useEmojiLabels } from "@/components/Reactions";
 import {
@@ -5029,6 +5030,8 @@ export const TimelineMessage = memo(function TimelineMessage({
                 </div>
               </ImageSet>
             )}
+            {/* What it delivered (docs/adr/doug-0040-proof-on-delivery.md): one line, under the files it shows. */}
+            {m.author.type === "agent" && !m.local && <ProofLine message={m} />}
             {/* Its tools after its words and what it changed: the same place live, kept and saved. */}
             {keptSteps?.length && seenLive ? (
               <LiveTools

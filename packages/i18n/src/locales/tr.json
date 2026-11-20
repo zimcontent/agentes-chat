@@ -4165,6 +4165,11 @@
     "inChannel": "#{{channel}} kanalında",
     "open": "Gör"
   },
+  "deliveryProof": {
+    "group": "Teslim ettikleri",
+    "screenshot": "Ekran görüntüsü",
+    "showAll": "Tümünü göster"
+  },
   "agentActions": {
     "issue": {
       "created": "<b>#{{number}}</b> görevini oluşturdum · {{title}}",

@@ -4314,6 +4314,11 @@
     "inChannel": "in #{{channel}}",
     "open": "Vedi"
   },
+  "deliveryProof": {
+    "group": "Cosa ha consegnato",
+    "screenshot": "Schermata",
+    "showAll": "Mostra tutto"
+  },
   "agentActions": {
     "issue": {
       "created": "Ho creato l'attività <b>#{{number}}</b> · {{title}}",

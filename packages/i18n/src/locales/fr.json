@@ -4313,6 +4313,11 @@
     "inChannel": "dans #{{channel}}",
     "open": "Voir"
   },
+  "deliveryProof": {
+    "group": "Ce qu'il a livré",
+    "screenshot": "Capture",
+    "showAll": "Tout afficher"
+  },
   "agentActions": {
     "issue": {
       "created": "A créé la tâche <b>#{{number}}</b> · {{title}}",

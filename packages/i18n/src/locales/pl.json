@@ -4442,6 +4442,11 @@
     "inChannel": "na #{{channel}}",
     "open": "Zobacz"
   },
+  "deliveryProof": {
+    "group": "Co dostarczył",
+    "screenshot": "Zrzut ekranu",
+    "showAll": "Pokaż wszystko"
+  },
   "agentActions": {
     "issue": {
       "created": "Utworzono zadanie <b>#{{number}}</b> · {{title}}",
