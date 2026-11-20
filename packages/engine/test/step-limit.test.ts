@@ -41,7 +41,8 @@ const runs = () => f.db.select().from(schema.agentRuns);
 const agentMessages = async (runId: string) =>
   (await f.db.select().from(schema.messages)).filter((m) => m.agentRunId === runId);
 const lastText = (req: ModelRequest) => JSON.stringify(req.messages.at(-1)?.content ?? "");
-const handlers = (maxToolTurns: number) => createJobHandlers({ ...f.jobDeps, maxToolTurns });
+// The person's Continuar: a request going on by itself at its cap is `auto-continue.test.ts`.
+const handlers = (maxToolTurns: number) => createJobHandlers({ ...f.jobDeps, maxToolTurns, autoContinue: 0 });
 
 /** A read tool (core), and one more that tools on demand keep behind `find_tools`. */
 function workTools(): ToolSource {

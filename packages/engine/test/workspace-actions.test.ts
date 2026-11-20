@@ -910,7 +910,7 @@ describe("what Desfazer, the card and the people card keep to", () => {
       // Three steps of looking (its step limit), then plain answers.
       reply: (_req, n) => (n <= 3 ? { chunks: [], toolUses: [{ name: "look", input: {} }] } : { chunks: ["Oi!"] }),
     });
-    const handlers = createJobHandlers({ ...f.jobDeps, maxToolTurns: 3 });
+    const handlers = createJobHandlers({ ...f.jobDeps, maxToolTurns: 3, autoContinue: 0 });
     const ask = (body: string) =>
       postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body });
     const devRuns = () =>

@@ -1,6 +1,7 @@
 import type { PubSub } from "@dougbot/adapters";
 import { and, type Database, eq, gte, inArray, schema, sql } from "@dougbot/db";
 import { recordAudit } from "./audit";
+import { AUTO_CONTINUE_MAX, autoContinueLine } from "./auto-continue";
 import { runBrainOf } from "./brains/select";
 import { canceledBy, mayStopRun, runRequester } from "./cancel";
 import { catchUpText } from "./catch-up";
@@ -87,12 +88,116 @@ export async function continueRun(
   if (reply.deletedAt || !ended || ended.continuedRunId) throw notContinuable();
   if (skipped && !(Date.now() - Date.parse(ended.closed?.at ?? "") < ANSWER_ANYWAY_MS)) throw notContinuable();
 
+  const [person] = await db.select({ name: users.name }).from(users).where(eq(users.id, userId));
+  const carried = stopped.transcript as unknown as Transcript;
+  const line = skipped
+    ? await answerAnywayText(db, stopped, carried, ended.closed, person?.name ?? "A person")
+    : `[${person?.name ?? "A person"} asked you to continue from where you stopped.]`;
+  const transcript = continuedTranscript(carried, line);
+  // Asked for by name: it answers, never passes.
+  if (skipped) transcript.answerOwed = true;
+  const newRunId = await startContinuation(deps, {
+    stopped,
+    channelKind: row.channelKind,
+    reply,
+    work,
+    ending,
+    transcript,
+    request: carried.request ?? row.request,
+    // Nobody brings it in this time: a person asked for it, so it starts a stretch of its own (ADR 0089).
+    stretch: null,
+    // A skipped note says who asked for the answer, in its own words ("Ana pediu para eu responder mesmo assim").
+    mark: { continuedByUserId: userId, ...(skipped ? { continuedByName: person?.name ?? "" } : {}) },
+    actor: { type: "person", id: userId },
+    details: skipped ? { answerAnyway: true } : {},
+    overruledBy: skipped ? userId : null,
+  });
+  if (!newRunId) throw notContinuable();
+  return { runId: newRunId };
+}
+
+/**
+ * A run at its step limit while its work went well goes on by itself (ADR 0097, addendum 2026-11-20): the same new
+ * run Continuar makes, for the person who asked (`continuedByUserId`, with `auto: true`), at most `max` times per
+ * request (`Transcript.autoContinued`). Only a reply at the step limit (never stuck), not yet continued, of a run a
+ * person asked for, and never while the agent already works in that conversation (a message that came in meanwhile
+ * got a run of its own). Returns the new run's id, or null when it doesn't apply: the reply keeps its Continuar.
+ */
+export async function autoContinueRun(
+  deps: { db: Database; pubsub?: PubSub },
+  runId: string,
+  max = AUTO_CONTINUE_MAX,
+): Promise<string | null> {
+  const { db } = deps;
+  const [row] = await db
+    .select({ run: agentRuns, requester: runRequester, request: messages.body, channelKind: channels.kind })
+    .from(agentRuns)
+    .leftJoin(messages, and(eq(messages.id, agentRuns.triggerMessageId), eq(messages.orgId, agentRuns.orgId)))
+    .leftJoin(channels, eq(channels.id, agentRuns.channelId))
+    .where(eq(agentRuns.id, runId));
+  const stopped = row?.run;
+  if (!stopped || !row.requester || stopped.status !== "done" || stopped.background || stopped.workId) return null;
+  const carried = stopped.transcript as unknown as Transcript | null;
+  const done = carried?.autoContinued ?? 0;
+  if (!carried || done >= max || !stopped.replyMessageId) return null;
+  const reply = await getMessage(db, stopped.orgId, stopped.replyMessageId);
+  const ended = reply?.meta.stepLimit as { stuck?: unknown; continuedRunId?: unknown } | undefined;
+  if (!reply || reply.deletedAt || !ended || ended.stuck || ended.continuedRunId) return null;
+  // The person who asked can still post here (they may have left the channel or the workspace meanwhile).
+  if (!(await personCanPost(db, stopped.orgId, row.requester, stopped.channelId))) return null;
+  const transcript = continuedTranscript(carried, autoContinueLine(done + 1, max));
+  transcript.autoContinued = done + 1;
+  return startContinuation(deps, {
+    stopped,
+    channelKind: row.channelKind,
+    reply,
+    work: undefined,
+    ending: "stepLimit",
+    transcript,
+    request: carried.request ?? row.request,
+    // Nobody new asked: it stays in the stretch it was in (ADR 0089).
+    stretch: { hop: stopped.hop, id: stopped.stretchId },
+    mark: { continuedByUserId: row.requester, auto: true },
+    actor: { type: "system", id: null },
+    details: { auto: done + 1 },
+    overruledBy: null,
+  }).catch(() => null);
+}
+
+/** What `startContinuation` needs: the stopped run and the reply it goes on from. */
+interface Continuation {
+  stopped: typeof agentRuns.$inferSelect;
+  channelKind: string | null;
+  reply: NonNullable<Awaited<ReturnType<typeof getMessage>>>;
+  work: typeof schema.agentWorks.$inferSelect | undefined;
+  ending: "usageWait" | "canceled" | "workEnd" | "stepLimit";
+  transcript: Transcript;
+  request: string | null | undefined;
+  /** The stretch it stays in (ADR 0089), or null for a stretch of its own at hop 1. */
+  stretch: { hop: number; id: string | null } | null;
+  /** Added to the reply's meta under `ending`, besides `continuedRunId`. */
+  mark: Record<string, unknown>;
+  actor: { type: "person" | "system"; id: string | null };
+  details: Record<string, unknown>;
+  /** A catch-up the check skipped, answered anyway at this person's word (ADR 0136). */
+  overruledBy: string | null;
+}
+
+/**
+ * The new run of a continuation: same agent, same conversation, the stopped run's transcript plus its line, triggered
+ * by the stopped reply (unique per agent: it continues once). Marks the reply, enqueues the run, audits it and tells
+ * the app. Null when the agent already works in that conversation or the reply was continued meanwhile.
+ */
+async function startContinuation(deps: { db: Database; pubsub?: PubSub }, c: Continuation): Promise<string | null> {
+  const { db } = deps;
+  const { stopped, reply, work, ending, transcript } = c;
+  const orgId = stopped.orgId;
   // The new run answers where the stopped reply is: its thread, or (flat: a DM) the reply itself. Long work (ADR 0121)
   // goes on in its own thread, as the same work.
   const threadRootId = (work ? updatesThreadOf(work) : null) ?? reply.threadId ?? reply.id;
   const roots = [...new Set([stopped.threadRootId, threadRootId])];
   // A DM is one conversation; a channel's are its threads.
-  const inConversation = row.channelKind === "dm" ? undefined : inArray(agentRuns.threadRootId, roots);
+  const inConversation = c.channelKind === "dm" ? undefined : inArray(agentRuns.threadRootId, roots);
   const [busy] = await db
     .select({ id: agentRuns.id })
     .from(agentRuns)
@@ -110,14 +215,7 @@ export async function continueRun(
     .limit(1);
   if (busy) throw new ConflictError("This agent is already working here", "run.agent_busy");
 
-  const [person] = await db.select({ name: users.name }).from(users).where(eq(users.id, userId));
-  const carried = stopped.transcript as unknown as Transcript;
-  const line = skipped
-    ? await answerAnywayText(db, stopped, carried, ended.closed, person?.name ?? "A person")
-    : `[${person?.name ?? "A person"} asked you to continue from where you stopped.]`;
-  const transcript = continuedTranscript(carried, line);
-  const request = carried.request ?? row.request;
-  if (request) transcript.request = request;
+  if (c.request) transcript.request = c.request;
   // What people passed on to the work that it never read before it stopped (`endWork`): the next run reads it first,
   // each from someone who can still post here.
   const unread = stopped.workId ? stopped.transcript?.unreadAsks : undefined;
@@ -132,8 +230,6 @@ export async function continueRun(
   for (const a of authors)
     if (a.userId && (await personCanPost(db, orgId, a.userId, stopped.channelId))) allowed.add(a.id);
   const unreadAsks = ids.filter((id) => allowed.has(id));
-  // Asked for by name: it answers, never passes.
-  if (skipped) transcript.answerOwed = true;
   const newRunId = Bun.randomUUIDv7();
   const created = await db.transaction(async (tx) => {
     // One continuation per stopped reply: it is the new run's trigger, unique per agent.
@@ -146,10 +242,9 @@ export async function continueRun(
         channelId: stopped.channelId,
         threadRootId,
         triggerMessageId: reply.id,
-        // Nobody brings it in this time: a person asked for it, so it starts a stretch of its own (ADR 0089).
         trigger: stopped.trigger === "router" ? "mention" : stopped.trigger,
-        hop: 1,
-        stretchId: newRunId,
+        hop: c.stretch ? c.stretch.hop : 1,
+        stretchId: c.stretch ? (c.stretch.id ?? newRunId) : newRunId,
         transcript: transcript as unknown as Record<string, unknown>,
         issueId: stopped.issueId,
         // A computer brain resumes the session it was stopped in.
@@ -161,12 +256,7 @@ export async function continueRun(
       .returning({ id: agentRuns.id });
     if (!inserted) return false;
     if (work) await reopenWork(tx, work.id);
-    // A skipped note says who asked for the answer, in its own words ("Ana pediu para eu responder mesmo assim").
-    const mark = JSON.stringify({
-      continuedRunId: newRunId,
-      continuedByUserId: userId,
-      ...(skipped ? { continuedByName: person?.name ?? "" } : {}),
-    });
+    const mark = JSON.stringify({ continuedRunId: newRunId, ...c.mark });
     await tx
       .update(messages)
       .set({
@@ -174,12 +264,12 @@ export async function continueRun(
       })
       .where(and(eq(messages.orgId, orgId), eq(messages.id, reply.id)));
     // Overruled: for a while no check skips this agent's catch-ups here, and the workspace's bar learns from it.
-    if (skipped)
+    if (c.overruledBy)
       await tx
         .update(agentRuns)
         .set({
           transcript: sql`jsonb_set(${agentRuns.transcript}, '{catchUpTriage}', (${agentRuns.transcript}->'catchUpTriage')
-            || jsonb_build_object('overruledBy', ${userId}::text, 'overruledAt', ${new Date().toISOString()}::text))`,
+            || jsonb_build_object('overruledBy', ${c.overruledBy}::text, 'overruledAt', ${new Date().toISOString()}::text))`,
         })
         .where(eq(agentRuns.id, stopped.id));
     await enqueue(tx, {
@@ -191,14 +281,14 @@ export async function continueRun(
     });
     await recordAudit(tx, {
       orgId,
-      actor: { type: "person", id: userId },
+      actor: c.actor,
       action: "run.continued",
       target: { type: "agent_run", id: newRunId },
-      details: { agentId: stopped.agentId, continues: stopped.id, ...(skipped ? { answerAnyway: true } : {}) },
+      details: { agentId: stopped.agentId, continues: stopped.id, ...c.details },
     });
     return true;
   });
-  if (!created) throw notContinuable();
+  if (!created) return null;
   if (work) {
     if (work.issueId) await setWorkIssueState(deps, work, {}).catch(() => null);
     await announceWork(deps.pubsub, db, orgId, work.id).catch(() => {});
@@ -214,7 +304,7 @@ export async function continueRun(
   });
   // The new run shows as any live run: "pensando…" right away.
   await publishChannelEvent(deps.pubsub, { type: "agent.thinking", ...where, runId: newRunId });
-  return { runId: newRunId };
+  return newRunId;
 }
 
 /** The note of a catch-up the check skipped: it says why, and is where "Responder mesmo assim" goes on from. */
