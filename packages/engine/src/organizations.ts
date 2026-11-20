@@ -1342,6 +1342,7 @@ export async function removeMember(
     await followOwner(tx, orgId);
     return { released, removed, handed, changed, heir, secrets, mailActions };
   });
+  caches.membership.delete(`${orgId}:${targetUserId}`);
   for (const row of secrets) await publishSecret({ db, pubsub: options.pubsub }, row, "secret.updated");
   for (const row of mailActions) await publishApproval({ db, pubsub: options.pubsub }, row, "approval.decided");
   forgetAgents(
@@ -1368,7 +1369,6 @@ export async function removeMember(
   }
   // Their open WebSocket connections lose every subscription now, not on reconnect.
   const quiet = actorId === targetUserId ? { quiet: true as const } : {};
-  caches.membership.delete(`${orgId}:${targetUserId}`);
   await publishOrgEvent(options.pubsub, { type: "membership.revoked", orgId, userId: targetUserId, ...quiet });
   // The workspace's computer hears their seat is gone: its worker and containers stop there.
   await publishMachineAgentsChanged(options.pubsub, orgId);
@@ -1522,6 +1522,7 @@ export async function deleteAccount(
   });
   if (!done) return false;
   const { plan, closed, released, removed, mailActions, ownerless } = done;
+  for (const org of [...plan.closes, ...plan.leaves]) caches.membership.delete(`${org.id}:${userId}`);
   for (const row of mailActions) await publishApproval({ db, pubsub: options.pubsub }, row, "approval.decided");
   await announceReleasedAccounts(options.pubsub, released);
   for (const { computer, freed } of removed) {
@@ -1529,7 +1530,6 @@ export async function deleteAccount(
   }
   // Their open WebSocket connections lose every subscription now.
   for (const org of [...plan.closes, ...plan.leaves]) {
-    caches.membership.delete(`${org.id}:${userId}`);
     await publishOrgEvent(options.pubsub, { type: "membership.revoked", orgId: org.id, userId, quiet: true });
   }
   for (const org of plan.leaves) await publishMachineAgentsChanged(options.pubsub, org.id);

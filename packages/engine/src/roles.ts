@@ -595,6 +595,8 @@ export async function deleteRole(
     });
     return left;
   });
+  // Its holders lose its keys now, before the hand-over work below reads anyone's membership.
+  caches.membership.deletePrefix(`${orgId}:`);
   await announceChannelLeavers({ db, pubsub: options.pubsub }, orgId, leavers);
   await announceRoles(options.pubsub, orgId);
 }
@@ -797,6 +799,8 @@ export async function setMemberRoles(
     return left;
   });
   if (changed) {
+    // Their keys follow their roles now, before the hand-over work below reads their membership.
+    caches.membership.delete(`${orgId}:${targetUserId}`);
     await announceChannelLeavers({ db, pubsub: options.pubsub }, orgId, changed);
     // Loaded here: questions build on channels, which this module loads.
     const { releaseQuestionsOutOfReach } = await import("./questions");

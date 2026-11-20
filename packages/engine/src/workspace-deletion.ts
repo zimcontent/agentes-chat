@@ -1095,9 +1095,9 @@ export async function scheduleAccountDeletion(deps: DeletionDeps, userId: string
     });
     return { dueAt, closed, orgs: mine };
   });
+  for (const m of orgs) caches.membership.delete(`${m.orgId}:${userId}`);
   // Their open sockets lose every subscription now.
   for (const m of orgs) {
-    caches.membership.delete(`${m.orgId}:${userId}`);
     await publishOrgEvent(deps.pubsub, { type: "membership.revoked", orgId: m.orgId, userId, quiet: true });
     await announceMembers(deps.pubsub, m.orgId);
   }

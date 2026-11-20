@@ -592,8 +592,9 @@ export async function setUserBlocked(
   });
   if (!done) return null;
   const { orgIds, ...state } = done;
+  // Every workspace reads them as no member at once, before the first socket is told.
+  for (const orgId of orgIds) caches.membership.delete(`${orgId}:${userId}`);
   for (const orgId of orgIds) {
-    caches.membership.delete(`${orgId}:${userId}`);
     await publishOrgEvent(deps.pubsub, { type: "membership.revoked", orgId, userId, quiet: true });
   }
   return state;

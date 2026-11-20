@@ -1,6 +1,17 @@
 import { afterEach, beforeEach, expect, test } from "bun:test";
 import { and, eq, schema } from "@dougbot/db";
-import { changeMemberRole, enableCaches, getMembership, setUserBlocked, TtlCache } from "../src";
+import {
+  can,
+  changeMemberRole,
+  createRole,
+  deleteRole,
+  enableCaches,
+  getMembership,
+  removeMember,
+  setMemberRoles,
+  setUserBlocked,
+  TtlCache,
+} from "../src";
 import { addMember, addUser, type Fixture, setup } from "./fixtures";
 
 let f: Fixture;
@@ -13,6 +24,10 @@ afterEach(async () => {
   await f.close();
 });
 
+const mayManage = async (userId: string) => {
+  const m = await getMembership(f.db, userId, f.org.id);
+  return m ? can(m, "manage_members") : null;
+};
 const roleOf = async (userId: string) => (await getMembership(f.db, userId, f.org.id))?.role ?? null;
 const writeRole = (userId: string, role: "owner" | "member") =>
   f.db
@@ -55,4 +70,34 @@ test("a membership read that an invalidation overtook is returned but not kept",
   release();
   expect(await load).toBe("member");
   expect(cache.get("org:bia")).toBeUndefined();
+});
+
+test("a read inside a transaction that rolls back is not kept", async () => {
+  const caio = await addUser(f.db, "caio");
+  await f.db
+    .transaction(async (tx) => {
+      await tx.insert(schema.organizationMembers).values({ orgId: f.org.id, userId: caio.id, role: "member" });
+      expect((await getMembership(tx, caio.id, f.org.id))?.role).toBe("member");
+      tx.rollback();
+    })
+    .catch(() => {});
+  expect(await roleOf(caio.id)).toBeNull();
+});
+
+test("a cached membership is gone at once when the person is removed or loses a role", async () => {
+  const bia = await addMember(f.db, f.org.id, "member", "bia");
+  const role = await createRole(f.db, f.owner.id, f.org.id, { name: "Editors", permissions: ["manage_members"] });
+  await setMemberRoles(f.db, f.owner.id, f.org.id, bia.id, [role.id]);
+  expect(await mayManage(bia.id)).toBe(true);
+
+  await setMemberRoles(f.db, f.owner.id, f.org.id, bia.id, []);
+  expect(await mayManage(bia.id)).toBe(false);
+
+  await setMemberRoles(f.db, f.owner.id, f.org.id, bia.id, [role.id]);
+  expect(await mayManage(bia.id)).toBe(true);
+  await deleteRole(f.db, f.owner.id, f.org.id, role.id);
+  expect(await mayManage(bia.id)).toBe(false);
+
+  await removeMember(f.db, f.owner.id, f.org.id, bia.id);
+  expect(await getMembership(f.db, bia.id, f.org.id)).toBeNull();
 });
