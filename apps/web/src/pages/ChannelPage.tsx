@@ -4291,7 +4291,25 @@ function ActivityBar({
             {/* The phrase turns: the old one leaves upward, the new one comes from below. Names in ink. */}
             <span className="ac-typing__text" title={consultTip}>
               {step !== null && firstAgent ? (
-                <BarStep name={firstAgent.name} step={step} />
+                <BarStep
+                  name={firstAgent.name}
+                  step={step}
+                  steps={
+                    soloAway?.work?.some((w) => w.kind === "call")
+                      ? {
+                          label: t("chat.work.block", agentGrammar(firstAgent.name)),
+                          node: (
+                            <LiveTools
+                              open
+                              work={soloAway.work}
+                              agentName={firstAgent.name}
+                              color={colorOf(dir.agentById.get(firstAgent.id))}
+                            />
+                          ),
+                        }
+                      : undefined
+                  }
+                />
               ) : (
                 <BarPhrase entries={entries} />
               )}
