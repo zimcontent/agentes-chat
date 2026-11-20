@@ -18,6 +18,7 @@ import {
   type TalkerDeps,
   talkerPolicy,
 } from "../src";
+import { addRunStep } from "../src/runs";
 import { afterSteered } from "../src/steering";
 import { answerSteering, type Fixture, setup } from "./fixtures";
 import { pairMachine, RUNNER } from "./machine-fixtures";
@@ -328,13 +329,19 @@ describe("talker: fast replies while the task waits", () => {
     });
     // Working (not drained): it steps at its next model call.
     const [run] = await f.db.select().from(schema.agentRuns);
+    if (!run) throw new Error("no run");
     await f.db
       .update(schema.agentRuns)
       .set({ status: "running", startedAt: new Date() })
-      .where(eq(schema.agentRuns.id, run?.id ?? ""));
-    if (run) answerSteering(f, run);
+      .where(eq(schema.agentRuns.id, run.id));
+    answerSteering(f, run);
     const { write, decisions } = talkerOn(trigger);
+    // Only talking so far (no tool called): it answers the person itself, so the talker isn't even asked.
     await write("olha só os de ontem");
+    expect(decisions).toEqual([]);
+    // At work (a tool called): considered, and it reads the message at its next step.
+    await addRunStep(f.db, run, "tool_call", { toolUseId: "c-1", name: "read_logs", input: {} });
+    await write("e os de anteontem");
     expect(decisions).toEqual(["reads_soon"]);
     expect(f.provider.calls).toHaveLength(0);
   });

@@ -215,7 +215,7 @@ describe("messages in a row (ADR 0112)", () => {
     expect(requests[1]).toContain("busca umas passagens pra curitiba");
     const [run] = await runs();
     expect(run?.status).toBe("done");
-    expect((run?.transcript as { overtaken?: number }).overtaken).toBe(1);
+    expect((run?.transcript as { overtaken?: number } | undefined)?.overtaken).toBe(1);
   });
 
   test("a reply after work (a tool called) goes out as it is, and what came meanwhile gets the next one", async () => {
@@ -372,22 +372,27 @@ describe("messages in a row (ADR 0112)", () => {
 
   test("a message sent while it writes its answer is never lost: the same run reads it next", async () => {
     let dmId = "";
+    const requests: string[] = [];
     f = await setup({
-      reply: (_req: ModelRequest, call: number) =>
-        call === 1
+      reply: (req: ModelRequest, call: number) => {
+        requests.push(JSON.stringify(req.messages));
+        return call === 1
           ? { chunks: ["Feito."], hold: postIn(dmId, "e manda pro canal também") }
-          : { chunks: ["Mandei no canal."] },
+          : { chunks: ["Feito, e mandei no canal."] };
+      },
     });
     dmId = (await openDm(f.db, f.owner.id, f.org.id, { agentId: f.agent.id })).id;
     await postIn(dmId, "fecha o relatório");
     await drainOutbox(f.db, f.handlers);
     expect((await runs()).map((r) => r.status)).toEqual(["done"]);
+    // Its reply only talked (no tool called): overtaken, it was rewritten with what came, in one answer.
+    expect(requests[1]).toContain("e manda pro canal também");
+    expect(requests[1]).toContain('It was: \\"Feito.\\"');
     const dm = await listMessages(f.db, f.owner.id, f.org.id, dmId);
     expect(dm.map((m) => m.body)).toEqual([
       "fecha o relatório",
       "e manda pro canal também",
-      "Feito.",
-      "Mandei no canal.",
+      "Feito, e mandei no canal.",
     ]);
   });
 });
