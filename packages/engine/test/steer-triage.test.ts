@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import { eq, schema } from "@dougbot/db";
 import {
+  activeRunsIn,
   type Judge,
   type JudgeAnswer,
   type JudgeRequest,
@@ -173,6 +174,9 @@ describe("a message sent while the agent works", () => {
     const held = (await runById(run.id)) as AgentRun;
     expect(held.pendingMessageIds).not.toContain(sent.id);
     expect(held.afterMessageIds).toEqual([sent.id]);
+    // What the apps read on load still counts it unread: a reload never says the agent read it.
+    const listed = (await activeRunsIn(f.db, f.org.id, f.general.id)).find((r) => r.runId === run.id);
+    expect(listed?.pendingMessageIds).toContain(sent.id);
     // The task's next step never reads it; the fast reply hears it comes after the task.
     expect(await takeInbox(f.db, run.id)).toEqual([]);
     expect(talked.map((t) => t.handling)).toEqual(["queue"]);
