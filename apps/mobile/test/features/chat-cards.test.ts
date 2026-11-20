@@ -66,6 +66,15 @@ describe("a reply's tools sit last", () => {
     for (const part of ["<TurnTools", "<RevealText", "run.text"])
       expect([part, live.includes(part)]).toEqual([part, false]);
   });
+
+  test("live: its steps open only from the working line's words, in a sheet of their own, already open", () => {
+    const live = source("LiveRows.tsx");
+    expect(live).toContain("<StepsSheet");
+    expect(live).toContain("const tap = openBrowser ?? openSteps;");
+    const sheet = source("StepsSheet.tsx");
+    expect(sheet).toContain("<Sheet open={open && Boolean(run)}");
+    expect(sheet).toContain("<TurnTools\n          open\n");
+  });
 });
 
 describe("agents it talked to: one round pill under the reply it belongs to", () => {
