@@ -15106,8 +15106,11 @@
   "agentPage.work.brain.speedText": {
     "value": "Answers faster in conversations and uses the plan 2.5× as fast. Routines and long tasks stay at standard speed."
   },
+  "agentPage.work.brain.modelLine.fable": {
+    "value": "The most capable. Uses up the plan much faster."
+  },
   "agentPage.work.brain.modelLine.opus": {
-    "value": "The most capable. Uses up the plan faster."
+    "value": "Very capable. Uses up the plan faster."
   },
   "agentPage.work.brain.modelLine.sonnet": {
     "value": "Balanced. Good for almost everything."
@@ -18226,6 +18229,9 @@
   },
   "newAgent.model": {
     "value": "Model"
+  },
+  "newAgent.modelDesc.fable": {
+    "value": "The most capable, for the hardest work"
   },
   "newAgent.modelDesc.sonnet": {
     "value": "Recommended for most"

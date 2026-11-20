@@ -6184,7 +6184,8 @@
         },
         "speedText": "Antwortet in Unterhaltungen schneller und verbraucht das Abo 2,5× so schnell. Routinen und lange Aufgaben bleiben beim Standard.",
         "modelLine": {
-          "opus": "Das leistungsstärkste. Verbraucht das Abo schneller.",
+          "fable": "Das leistungsstärkste. Verbraucht das Abo deutlich schneller.",
+          "opus": "Sehr leistungsstark. Verbraucht das Abo schneller.",
           "sonnet": "Ausgewogen. Gut für fast alles.",
           "haiku": "Schnell und leicht. Für einfache Aufgaben."
         },
@@ -7487,6 +7488,7 @@
     "modelAndCost": "Modell und Kosten",
     "model": "Modell",
     "modelDesc": {
+      "fable": "Das leistungsstärkste, für die schwierigste Arbeit",
       "sonnet": "Für die meisten empfohlen",
       "opus": "Lange, schwierige Aufgaben",
       "haiku": "Schnell und günstig",

@@ -6207,7 +6207,8 @@
         },
         "speedText": "Antwoordt sneller in gesprekken en verbruikt het abonnement 2,5× zo snel. Routines en lange taken blijven op standaard.",
         "modelLine": {
-          "opus": "De krachtigste. Verbruikt het abonnement sneller.",
+          "fable": "De krachtigste. Verbruikt het abonnement veel sneller.",
+          "opus": "Zeer krachtig. Verbruikt het abonnement sneller.",
           "sonnet": "Gebalanceerd. Goed voor bijna alles.",
           "haiku": "Snel en licht. Voor simpele taken."
         },
@@ -7527,6 +7528,7 @@
     "modelAndCost": "Model en kosten",
     "model": "Model",
     "modelDesc": {
+      "fable": "De krachtigste, voor het zwaarste werk",
       "sonnet": "Aanbevolen voor de meeste",
       "opus": "Lange, moeilijke taken",
       "haiku": "Snel en goedkoop",

@@ -6365,7 +6365,8 @@
         },
         "speedText": "Responde más rápido en las conversaciones y consume el plan 2,5× más deprisa. Las rutinas y las tareas largas siguen en estándar.",
         "modelLine": {
-          "opus": "El más capaz. Consume el plan más rápido.",
+          "fable": "El más capaz. Consume el plan mucho más rápido.",
+          "opus": "Muy capaz. Consume el plan más rápido.",
           "sonnet": "Equilibrado. Bueno para casi todo.",
           "haiku": "Rápido y ligero. Para tareas simples."
         },
@@ -7696,6 +7697,7 @@
     "modelAndCost": "Modelo y costo",
     "model": "Modelo",
     "modelDesc": {
+      "fable": "El más capaz, para el trabajo más difícil",
       "sonnet": "Recomendado para la mayoría",
       "opus": "Tareas largas y difíciles",
       "haiku": "Rápido y económico",

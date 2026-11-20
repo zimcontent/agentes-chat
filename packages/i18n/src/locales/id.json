@@ -5986,7 +5986,8 @@
         },
         "speedText": "Menjawab lebih cepat dalam percakapan dan menghabiskan paket 2,5× lebih cepat. Rutinitas dan tugas panjang tetap standar.",
         "modelLine": {
-          "opus": "Paling mampu. Menghabiskan paket lebih cepat.",
+          "fable": "Paling mampu. Menghabiskan paket jauh lebih cepat.",
+          "opus": "Sangat mampu. Menghabiskan paket lebih cepat.",
           "sonnet": "Seimbang. Cocok untuk hampir semua hal.",
           "haiku": "Cepat dan ringan. Untuk tugas sederhana."
         },
@@ -7248,6 +7249,7 @@
     "modelAndCost": "Model dan biaya",
     "model": "Model",
     "modelDesc": {
+      "fable": "Paling mampu, untuk pekerjaan tersulit",
       "sonnet": "Disarankan untuk sebagian besar",
       "opus": "Tugas panjang dan sulit",
       "haiku": "Cepat dan murah",

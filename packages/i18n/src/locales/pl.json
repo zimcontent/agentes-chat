@@ -6603,7 +6603,8 @@
         },
         "speedText": "Odpowiada szybciej w rozmowach i zużywa plan 2,5× szybciej. Rutyny i długie zadania zostają przy standardowej szybkości.",
         "modelLine": {
-          "opus": "Najbardziej zaawansowany. Szybciej zużywa plan.",
+          "fable": "Najbardziej zaawansowany. Zużywa plan znacznie szybciej.",
+          "opus": "Bardzo zaawansowany. Szybciej zużywa plan.",
           "sonnet": "Zrównoważony. Dobry prawie do wszystkiego.",
           "haiku": "Szybki i lekki. Do prostych zadań."
         },
@@ -7990,6 +7991,7 @@
     "modelAndCost": "Model i koszt",
     "model": "Model",
     "modelDesc": {
+      "fable": "Najbardziej zaawansowany, do najtrudniejszej pracy",
       "sonnet": "Zalecany w większości przypadków",
       "opus": "Długie, trudne zadania",
       "haiku": "Szybki i tani",
