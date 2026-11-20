@@ -1,4 +1,4 @@
-import { and, type Executor, eq, type SQL, schema, sql } from "@dougbot/db";
+import { and, type Executor, eq, notInArray, type SQL, schema, sql } from "@dougbot/db";
 import { PROVIDERS, type ProviderCause, ProviderError, providerCause } from "@dougbot/providers";
 import { wakeLineOfRun } from "./approval-order";
 import { BRAIN_NAMES, type ComputerBrainKind, planName } from "./brains/types";
@@ -612,6 +612,42 @@ export type StepKind = (typeof schema.agentRunStepKindEnum.enumValues)[number];
 
 /** Tries for a free number: tool calls that run side by side each lose at most to the others. */
 const STEP_TRIES = 20;
+
+/**
+ * The tools a turn uses to talk, not to work: a reaction, a question card, the line it says before slow work, its
+ * background works' own tools (`REACT_TOOL`, `ASK_USER_TOOL`, `ASK_CHOICES_TOOL`, `SAY_NOW_TOOL` and the four of
+ * `work-tools.ts`, written out here: those modules import this one).
+ */
+const TALK_TOOLS = [
+  "react",
+  "ask_user",
+  "ask_choices",
+  "say_now",
+  "post_update",
+  "steer_work",
+  "stop_work",
+  "work_in_background",
+];
+
+/**
+ * Whether a run is at work on something: its trail has a call of a tool other than a way of talking (`TALK_TOOLS`).
+ * One that has only talked so far ("oi", a reaction, a question) is a conversation, not a task (ADR 0112 addendum of
+ * 2026-11-19): what the person adds is part of what it answers, in one message.
+ */
+export async function runAtWork(db: Executor, runId: string): Promise<boolean> {
+  const [step] = await db
+    .select({ id: schema.agentRunSteps.id })
+    .from(schema.agentRunSteps)
+    .where(
+      and(
+        eq(schema.agentRunSteps.runId, runId),
+        eq(schema.agentRunSteps.kind, "tool_call"),
+        notInArray(sql<string>`coalesce(${schema.agentRunSteps.data}->>'name', '')`, TALK_TOOLS),
+      ),
+    )
+    .limit(1);
+  return step !== undefined;
+}
 
 /**
  * Appends a step to a run's trail (numbered in order). Two at once read the same last number, and the unique

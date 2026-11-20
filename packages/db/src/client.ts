@@ -776,6 +776,9 @@ export const EXTRA_COLUMNS = [
       WHERE i.id = q.id;
     END IF;
   END $$`,
+  // A separate request sent while a run worked, left for after its task (ADR 0112 addendum 2026-11-18): the
+  // original project numbers it as a migration this fork's journal doesn't have yet.
+  `ALTER TABLE "agent_runs" ADD COLUMN IF NOT EXISTS "after_message_ids" uuid[] DEFAULT '{}'::uuid[] NOT NULL`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

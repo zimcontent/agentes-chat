@@ -699,6 +699,8 @@ export const ALWAYS_LOADED: ReadonlySet<string> = new Set([
   "react",
   "ask_user",
   "ask_choices",
+  // The line before slow work (ADR 0207): in hand from the first round. The server also marks it `upFront`.
+  "say_now",
   "request_approval",
   "remember",
   "update_memory",
