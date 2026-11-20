@@ -2,6 +2,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 import { eq, schema } from "@dougbot/db";
 import {
   activeRunsIn,
+  createAgent,
   createJobHandlers,
   ELSEWHERE_SURE,
   type Judge,
@@ -294,6 +295,56 @@ describe("a message sent while the agent works", () => {
     expect(events.some((e) => e.type === "message.routed" && e.messageId === sent.id)).toBe(true);
     expect((await runById(run.id))?.pendingMessageIds).not.toContain(sent.id);
     expect((await runById(run.id))?.status).toBe("running");
+  });
+
+  test("for someone else: only an agent the message speaks to answers it, never the best placed nor one by rule", async () => {
+    const { run, threadId } = await working();
+    const other = await createAgent(
+      f.db,
+      f.owner.id,
+      f.org.id,
+      { name: "Sofia", handle: "sofia" },
+      {
+        model: "claude-sonnet-5-5",
+      },
+    );
+    await f.db.insert(schema.channelMembers).values({ orgId: f.org.id, channelId: f.general.id, agentId: other.id });
+    const body = "Maria, te mandei a proposta por e-mail";
+    const { sent } = await send(threadId, body, triage({ [body]: "elsewhere" }));
+    // A step that finds an agent best placed to answer (or is unsure, at the bar) while the message speaks to none:
+    // the best placed agent, or the "always one" rule, would answer a line meant for someone else.
+    const strategy: RouterStrategy = {
+      name: "jev",
+      decide: async () => ({
+        agents: [{ agentId: other.id, score: 0.7 }],
+        needsAgent: 0.56,
+        best: { agentId: other.id, confidence: 0.66 },
+      }),
+    };
+    const handlers = createJobHandlers({
+      ...f.jobDeps,
+      router: { enabled: true, model: "claude-haiku-5-5", strategy },
+    });
+    const [job] = await f.db.select().from(schema.outbox).where(eq(schema.outbox.kind, ROUTE_RELEASED_JOB));
+    await handlers[ROUTE_RELEASED_JOB]?.(job as OutboxJob, { finalAttempt: false });
+    const [decision] = await f.db
+      .select()
+      .from(schema.routingDecisions)
+      .where(eq(schema.routingDecisions.messageId, sent.id));
+    expect(decision?.selectedAgentIds).toEqual([]);
+    expect((await runs()).filter((r) => r.agentId === other.id)).toEqual([]);
+    expect((await runById(run.id))?.pendingMessageIds).not.toContain(sent.id);
+    // A line that speaks to another agent by name is that agent's.
+    const toSofia = "Sofia, vê esse erro de login quando puder";
+    const named = await send(threadId, toSofia, triage({ [toSofia]: "elsewhere" }));
+    const jobs = await f.db.select().from(schema.outbox).where(eq(schema.outbox.kind, ROUTE_RELEASED_JOB));
+    const next = jobs.find((j) => j.payload.messageId === named.sent.id);
+    await handlers[ROUTE_RELEASED_JOB]?.(next as OutboxJob, { finalAttempt: false });
+    const [routed] = await f.db
+      .select()
+      .from(schema.routingDecisions)
+      .where(eq(schema.routingDecisions.messageId, named.sent.id));
+    expect(routed?.selectedAgentIds).toEqual([other.id]);
   });
 
   test("a line for the agent, or one the judge isn't sure of, stays in the task as before", async () => {

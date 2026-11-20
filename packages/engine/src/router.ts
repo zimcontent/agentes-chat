@@ -787,11 +787,13 @@ export async function routeMessage(
   deps: RouterDeps,
   input: { orgId: string; messageId: string },
   /**
-   * `except`: agents out of the running. A message the triage took out of an agent's task as someone else's
-   * (`ROUTE_RELEASED_JOB`) never goes back to that agent: the lean toward the agent the person was just talking to
-   * would hand it straight back.
+   * A message the triage took out of an agent's task as someone else's (`ROUTE_RELEASED_JOB`). `except`: that agent,
+   * out of the running (the lean toward the agent the person was just talking to would hand it straight back).
+   * `forSomeoneElse`: only an agent the message speaks to answers it (the step's `addressee`, or an agent it names),
+   * never one placed best to answer nor one a rule supplies (the one agent here, a follow-up, a step's failure, R5's "a
+   * message for the agents always gets one"): it is for someone else, maybe another agent ("Bruno, vê isso").
    */
-  options: { except?: readonly string[] } = {},
+  options: { except?: readonly string[]; forSomeoneElse?: boolean } = {},
 ): Promise<RouteResult> {
   const { db } = deps;
   // A workspace on hold, suspended or being deleted asks no strategy (Jev bills the server): nobody answers there now.
@@ -1211,7 +1213,9 @@ export async function routeMessage(
   }
   // R2: a person alone in the channel with its one agent.
   const onlyAgentId =
-    !byAgent && candidates.length === 1 && (await aloneHere()) ? (candidates[0]?.agentId ?? null) : null;
+    !byAgent && !options.forSomeoneElse && candidates.length === 1 && (await aloneHere())
+      ? (candidates[0]?.agentId ?? null)
+      : null;
 
   const lineOf = (m: (typeof history)[number]): RoutingLine => {
     const names = namesOf(m).map((n) => n.label);
@@ -1390,7 +1394,7 @@ export async function routeMessage(
       ? { rule: "reply", agentId: repliedAgentId }
       : onlyAgentId
         ? { rule: "only_agent", agentId: onlyAgentId }
-        : fromOwn && !namesPerson
+        : fromOwn && !namesPerson && !options.forSomeoneElse
           ? { rule: "follow_up", agentId: fromOwn }
           : null;
     if (rule) {
@@ -1400,7 +1404,13 @@ export async function routeMessage(
         strategy: `rule:${rule.rule}`,
         decidedBy: { step: "rule", rule: rule.rule },
       };
-    } else if (failures.length > 0 && !peopleTalking && !isAck(0) && !(await defaultCapReached())) {
+    } else if (
+      failures.length > 0 &&
+      !options.forSomeoneElse &&
+      !peopleTalking &&
+      !isAck(0) &&
+      !(await defaultCapReached())
+    ) {
       // A router failure is never silence (R5): the agent they talk with, else the best placed. Not when no step
       // could even try (no key, no sign-in): that stays `mention_needed`, or every message would wake one.
       const agentId = talkingWith ?? bestPlaced(() => 0);
@@ -1445,8 +1455,14 @@ export async function routeMessage(
   const decided = result;
   const addressee = !byAgent && decided.addressee && candidateIds.has(decided.addressee) ? decided.addressee : null;
 
-  // The router's own pick; when it picks several agents, the message speaks to several.
-  const picked = selectAgents(candidates, decided, policy, { continuityAgentId: addressee ?? continuityAgentId });
+  // The router's own pick; when it picks several agents, the message speaks to several. For someone else: only the
+  // agent it speaks to, if any.
+  const spokenTo = addressee ?? address.find((n) => n.agent && candidateIds.has(n.id))?.id ?? null;
+  const picked = options.forSomeoneElse
+    ? spokenTo
+      ? [spokenTo]
+      : []
+    : selectAgents(candidates, decided, policy, { continuityAgentId: addressee ?? continuityAgentId });
   const scoreOf = (agentId: string | null) =>
     Math.max(0, ...decided.agents.filter((a) => a.agentId === agentId).map((a) => a.score));
   const clearPickScore = policy.clearPickScore ?? DEFAULT_ROUTER_POLICY.clearPickScore;
@@ -1490,6 +1506,7 @@ export async function routeMessage(
   // The failure fallback already chose, as a run that may pass: no follow-up marks it or switches its agent.
   const followUp =
     fallback === null &&
+    !options.forSomeoneElse &&
     talkingTo !== null &&
     (repliedAgentId !== null ||
       (talkingTo === addressee && picked.includes(talkingTo)) ||
@@ -1537,6 +1554,7 @@ export async function routeMessage(
   if (
     !byAgent &&
     !onlyAgentId &&
+    !options.forSomeoneElse &&
     selected.length === 0 &&
     !duplicate &&
     !toPerson &&
@@ -1571,6 +1589,7 @@ export async function routeMessage(
     chosen.length === 0 &&
     !byAgent &&
     !onlyAgentId &&
+    !options.forSomeoneElse &&
     !duplicate &&
     !peopleTalking &&
     !otherPerson(root?.authorUserId) &&
