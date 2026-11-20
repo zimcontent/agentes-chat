@@ -366,8 +366,14 @@ async function visibleRuns(
         last.data as last_data, last.created_at as last_at,
         ${which.active ? sql`(select count(*) from ${agentRunSteps} s where s.run_id = r.id and s.kind = 'tool_call')` : sql`0`} as steps,
         su.name as stopper_name,
-        coalesce(r.transcript->'waitingForBrain', case when r.status = 'running' and r.waiting_machine_id is not null
-          then '{"code":"busy"}'::jsonb end) as wait, pause.data as wait_pause, r.waiting_machine_id,
+        ${
+          // An ended run's wait is never read, and reading it would detoast every candidate's transcript (a large
+          // jsonb) before the sort keeps the last few.
+          which.active
+            ? sql`coalesce(r.transcript->'waitingForBrain', case when r.status = 'running' and r.waiting_machine_id is not null
+          then '{"code":"busy"}'::jsonb end)`
+            : sql`null`
+        } as wait, pause.data as wait_pause, r.waiting_machine_id,
         rt.created_by_user_id as routine_creator,
         ${which.active ? waitsOnViewerIn("r", userId) : sql`false`} as you,
         ${which.active ? outageIn("r") : sql`false`} as outage,

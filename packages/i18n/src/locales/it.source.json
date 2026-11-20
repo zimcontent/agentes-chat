@@ -38602,7 +38602,7 @@
     "value": "This file was deleted more than 30 days ago and can't come back."
   },
   "errors.said.looksSecret": {
-    "value": "That looks like a password or a key, and everyone here would see it."
+    "value": "That looks like a password or a key, and everyone here would see it. Ask the agent to request it privately instead."
   },
   "errors.said.blockSpec": {
     "value": "This block has a mistake in its parts or formulas, so it can't be shown. Fix it and try again."

@@ -16185,7 +16185,7 @@
       "accountInUse": "Esa cuenta ya piensa para otro agente.",
       "noAiYet": "Todavía no hay IA conectada.",
       "filePurged": "Este archivo se borró hace más de 30 días y no puede volver.",
-      "looksSecret": "Eso parece una contraseña o una clave, y todos aquí la verían.",
+      "looksSecret": "Eso parece una contraseña o una clave, y todos aquí la verían. Mejor pide al agente que te la pida en privado.",
       "blockSpec": "Este bloque tiene un error en sus partes o fórmulas, así que no se puede mostrar. Corrígelo e inténtalo de nuevo.",
       "takeControl": "Toma primero el control del perfil.",
       "profileBusy": "Otra persona está usando este perfil.",

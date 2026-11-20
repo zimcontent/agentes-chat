@@ -15893,7 +15893,8 @@ export const ptBR = {
       accountInUse: "Essa conta já pensa para outro agente.",
       noAiYet: "Ainda não há IA conectada.",
       filePurged: "Este arquivo foi apagado há mais de 30 dias e não pode voltar.",
-      looksSecret: "Isso parece uma senha ou uma chave, e todo mundo aqui veria.",
+      looksSecret:
+        "Isso parece uma senha ou uma chave, e todo mundo aqui veria. Peça ao agente para pedir em particular.",
       blockSpec:
         "Este bloco tem um erro nas partes ou nas fórmulas, então não pode ser mostrado. Corrija e tente de novo.",
       takeControl: "Assuma o controle do perfil primeiro.",

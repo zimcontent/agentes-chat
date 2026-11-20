@@ -65,7 +65,7 @@ async function mentionRun(options: { askAgent?: boolean; sayNow?: boolean } = {}
   expect(beforeModel).toBeGreaterThan(0);
   expect(profile).not.toBeNull();
   const p = profile as unknown as { runId: string; stages: StageTiming[]; total: { queries: number } };
-  expect(p.stages.map((s) => s.stage)).toEqual(["claim", "context", "model#1", "persist", "events"]);
+  expect(p.stages.map((s) => s.stage)).toEqual(["claim", "context", "model#1", "turn_end#1", "persist", "events"]);
   // Its status line is still picked, in a request of its own beside the run (ADR 0084 §8), counted in neither.
   await until(() => statusPicked.has(p.runId), "the run's status pick");
   return { beforeModel, total: p.total.queries, runId: p.runId };
@@ -130,7 +130,7 @@ test("the run keeps its stage profile in its transcript, for the operator's anal
     .where(eq(schema.agentRuns.id, run.runId));
   const kept = row?.transcript?.profiles as { stages: StageTiming[] }[] | undefined;
   expect(kept?.map((p) => p.stages.map((s) => s.stage))).toEqual([
-    ["claim", "context", "model#1", "persist", "events"],
+    ["claim", "context", "model#1", "turn_end#1", "persist", "events"],
   ]);
   const steps = await f.db
     .select({ data: schema.agentRunSteps.data })

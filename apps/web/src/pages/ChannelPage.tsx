@@ -1783,11 +1783,12 @@ function ChannelView({
   };
   // A DM with an agent: its tasks (ADR 0128), a pill in the header while it has any, opening them in the side panel.
   const tasksAgentId = chrome?.dmAgentId && !thread ? chrome.dmAgentId : null;
-  // Asked every 5 s: a pill beside the conversation, not the page that follows every task (3 s).
+  // Asked every 15 s: a pill beside the conversation (its work there comes live), not the page that follows every
+  // task (3 s). Each ask reads the whole workspace's tasks, and an agent's DM is the screen most often left open.
   const taskView = useTaskManager(org.id, {
     since: todayStart(),
     enabled: Boolean(tasksAgentId) && isMember,
-    pollMs: 5_000,
+    pollMs: 15_000,
   });
   const agentTasks = useMemo(
     () => (tasksAgentId ? tasksOf(taskView.data?.tasks ?? [], tasksAgentId) : []),
