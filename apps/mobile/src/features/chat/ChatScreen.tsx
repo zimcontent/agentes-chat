@@ -244,7 +244,6 @@ import { PinnedLines, PinsSheet } from "./PinsSheet";
 import { QuoteBar } from "./QuoteLine";
 import { AgentLocked, UnavailableLines } from "./ReachLines";
 import { ReturnLine, ReturnsSheet, useReturnsHere } from "./Returns";
-import { useSectorPillSuggestions } from "./SectorPills";
 import { SwipeReply } from "./SwipeReply";
 import {
   appendedKeys,
@@ -1986,13 +1985,7 @@ function Chat({
   // shows (`ChatComposer`).
   const suggestionsKey = suggestionsNow.map((s) => `${s.icon}:${s.label}`).join("|");
   // biome-ignore lint/correctness/useExhaustiveDependencies: `suggestionsKey` stands for the pills
-  const typedSuggestions = useMemo(() => suggestionsNow, [suggestionsKey]);
-  // In a person's conversation with the right hand, its sector pills come first (docs/adr/doug-0020-doug-sector-cards.md).
-  const sectorPills = useSectorPillSuggestions(orgId, rightHand && dmAgent ? dmAgent.id : "");
-  const suggestions = useMemo(
-    () => (sectorPills.length > 0 ? sectorPills : typedSuggestions),
-    [sectorPills, typedSuggestions],
-  );
+  const suggestions = useMemo(() => suggestionsNow, [suggestionsKey]);
   rowsRef.current = rows;
   const pinned = mission && isOpenMission(mission) ? mission : null;
   // Something is pinned here: its lines wait above the first message (`PinnedLines`).

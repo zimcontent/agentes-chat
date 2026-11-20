@@ -112,3 +112,10 @@ counts, and the agenda whenever a calendar connection exists. The web draws them
   `runBlockAct`, with its own checks.
 - The cards post a message the right hand didn't write in a run: the ronda's run hears which sectors were shown so it
   doesn't repeat them.
+
+## Addendum 2026-11-20: no sector buttons by the composer
+
+The owner didn't want the row of sector buttons above the composer in the conversation with the right hand, so neither
+app draws them (the web's `components/SectorPills.tsx` and the phone's `features/chat/SectorPills.tsx` removed;
+the phone's composer keeps only its typed suggestions). The cards stay: the ronda still posts them and the right
+hand still shows one when asked (`show_sector_card`). The `sector-pills` route stays for now.
