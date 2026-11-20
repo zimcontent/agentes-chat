@@ -44,9 +44,11 @@ const dateFormats = new Map<string, Intl.DateTimeFormat>();
 /**
  * One formatter per language and options, kept: making one costs far more than using it, and opening a conversation
  * formats every message's time (over a thousand made for a conversation of 185 messages before they were kept).
+ * A formatter fixes the time zone it was made in, so the device's offset is in the key: an app left open across a
+ * time zone change formats in the new zone.
  */
 function dateFormat(locale: string, options: Intl.DateTimeFormatOptions) {
-  const key = `${locale}|${JSON.stringify(options)}`;
+  const key = `${locale}|${new Date().getTimezoneOffset()}|${JSON.stringify(options)}`;
   let format = dateFormats.get(key);
   if (!format) {
     format = new Intl.DateTimeFormat(locale, options);
@@ -80,9 +82,7 @@ export const formatTime = (locale: string, iso: string) =>
  * says the whole time).
  */
 export function formatClock(locale: string, iso: string) {
-  const parts = dateFormat(locale, { hour: clockHour(locale), minute: "2-digit" }).formatToParts(
-    new Date(iso),
-  );
+  const parts = dateFormat(locale, { hour: clockHour(locale), minute: "2-digit" }).formatToParts(new Date(iso));
   const digits = parts.flatMap((p, i) => (p.type === "hour" || p.type === "minute" ? [i] : []));
   return parts
     .slice(digits[0], (digits.at(-1) ?? parts.length - 1) + 1)
@@ -107,8 +107,7 @@ export const formatShortDate = (locale: string, iso: string, year = false) =>
     .join("");
 
 /** "outubro" */
-export const formatMonth = (locale: string, date: Date) =>
-  dateFormat(locale, { month: "long" }).format(date);
+export const formatMonth = (locale: string, date: Date) => dateFormat(locale, { month: "long" }).format(date);
 
 /** "março de 2026" */
 export const formatMonthYear = (locale: string, iso: string) =>
@@ -273,8 +272,7 @@ export function upcomingAt(t: TFunction, locale: string, iso: string, now = new 
   const time = formatTime(locale, iso);
   if (days <= 0) return t("format.todayAt", { time });
   if (days === 1) return t("format.tomorrowAt", { time });
-  if (days < 7)
-    return `${dateFormat(locale, { weekday: "short" }).format(new Date(iso)).replace(/\.$/, "")} ${time}`;
+  if (days < 7) return `${dateFormat(locale, { weekday: "short" }).format(new Date(iso)).replace(/\.$/, "")} ${time}`;
   return formatShortDate(locale, iso);
 }
 
