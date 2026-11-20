@@ -597,6 +597,7 @@ export function TurnTools({
   done = false,
   settled = false,
   keep,
+  open = false,
 }: {
   items: ToolItem[];
   agentName: string;
@@ -609,6 +610,8 @@ export function TurnTools({
   settled?: boolean;
   /** On a reply: the key its block's open state is kept by (`ToolBlock`'s `keep`). */
   keep?: string | undefined;
+  /** Opens on its steps (the working line's sheet, opened to see them), as the web's `LiveTools`. */
+  open?: boolean;
 }) {
   const { t, i18n } = useTranslation();
   const { org } = useOrg();
@@ -654,11 +657,12 @@ export function TurnTools({
         // Its own line is closed until tapped, as the block it stands for (code that runs shows when opened).
         items={
           one
-            ? blockItems.map((i) => (i.kind === "line" ? { ...i, line: { ...i.line, defaultOpen: false } } : i))
+            ? blockItems.map((i) => (i.kind === "line" ? { ...i, line: { ...i.line, defaultOpen: open } } : i))
             : blockItems
         }
         color={color}
         label={t("chat.work.block", agentGrammar(agentName))}
+        defaultOpen={open}
         live={!done && !settled}
         one={one}
         keep={keep}

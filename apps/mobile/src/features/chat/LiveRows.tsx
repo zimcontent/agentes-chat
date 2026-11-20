@@ -15,6 +15,7 @@ import {
   peopleGroups,
   someoneTypes,
 } from "@dougbot/client/lib/activity";
+import { agentGrammar } from "@dougbot/client/lib/grammar";
 import { barStep } from "@dougbot/client/lib/work";
 import { type ReactNode, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -59,6 +60,7 @@ import {
   turnPhrase,
   workingEntries,
 } from "./logic";
+import { StepsSheet } from "./StepsSheet";
 import { WaitMark } from "./WaitMark";
 
 /** The runs at work in their browser, one per agent: each gets its browser card. */
@@ -81,7 +83,8 @@ export function browsingRuns(runs: LiveRun[]): LiveRun[] {
  * trabalhando · Marina está digitando…"), who records a voice message last, after three bars and their faces ("Rui
  * está gravando áudio…"); the clock of a question that is out. One agent on its own: its face, its step after its
  * name ("escrevendo…" while it writes) with its time right after it ("16 s"), whoever types or records beside it,
- * then "Parar".
+ * then "Parar". Once that agent has called a tool, a tap on its words opens its steps in a sheet, the reply's own block
+ * already open, as the web's `BarStep` opens them over the bar: they stay folded behind this one line until asked for.
  * Nothing moves with Reduce Motion or off screen.
  */
 export function WorkingLine({
@@ -124,6 +127,8 @@ export function WorkingLine({
   // phrase turning, an event) reads the same second, so both step evenly; narrowing to one agent changes the pace, and a
   // new pace reads the clock afresh (`useNow`).
   const now = useNow(asking || solo ? 1000 : 60_000);
+  // The run whose steps the sheet shows: by its id, so a later run never opens with it.
+  const [stepsOf, setStepsOf] = useState<string | null>(null);
   if (entries.length === 0) return rest;
   // The one agent it speaks for; a question it asks keeps its own phrase.
   const away = awayRun(entries, runs);
@@ -195,6 +200,10 @@ export function WorkingLine({
   // An agent working in its browser: the line says so, and a tap opens its browser card in the conversation.
   const browsing = browsingRuns(runs)[0];
   const openBrowser = browsing && onOpenBrowser ? () => onOpenBrowser(browsing.agentId) : undefined;
+  // Its steps, once it has called a tool: the line's words open them (its browser, when it is in one, comes first).
+  const stepsRun = !browsing && step !== null && away?.work?.some((w) => w.kind === "call") ? away : undefined;
+  const openSteps = stepsRun ? () => setStepsOf(stepsRun.runId) : undefined;
+  const tap = openBrowser ?? openSteps;
   const stopHere = stop?.runs ?? [];
   return (
     <View style={styles.dock}>
@@ -249,11 +258,17 @@ export function WorkingLine({
         {/* The words, read as one (its "Ver" is a button of its own). An agent in its browser:
             tapping opens it live. */}
         <Pressable
-          disabled={!browsing}
-          onPress={openBrowser}
+          disabled={!tap}
+          onPress={tap}
           accessible
-          accessibilityRole={browsing ? "button" : "text"}
-          accessibilityLabel={browsing ? `${label}. ${t("browser.watch.open")}` : label}
+          accessibilityRole={tap ? "button" : "text"}
+          accessibilityLabel={
+            browsing
+              ? `${label}. ${t("browser.watch.open")}`
+              : stepsRun && lead
+                ? `${label}. ${t("chat.work.block", agentGrammar(lead.name))}`
+                : label
+          }
           style={({ pressed }) => [styles.wordsTap, pressed && styles.pressed]}
         >
           {step !== null && lead ? (
@@ -314,6 +329,15 @@ export function WorkingLine({
             while it shows; the composer keeps only its send). */}
         {stop && stopHere.length > 0 ? <LineStop runs={stopHere} onStop={stop.onStop} place="word" /> : null}
       </Animated.View>
+      {lead ? (
+        <StepsSheet
+          run={stepsRun}
+          agentId={lead.id}
+          agentName={lead.name}
+          open={stepsRun?.runId === stepsOf}
+          onClose={() => setStepsOf(null)}
+        />
+      ) : null}
     </View>
   );
 }
