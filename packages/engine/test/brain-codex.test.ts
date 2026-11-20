@@ -207,7 +207,7 @@ test("a resumed turn sends only what came after the brain's last reply", () => {
   );
 });
 
-test("a model the ChatGPT sign-in refuses: the same turn goes again on its own default, and only that answer shows", async () => {
+test("a model the ChatGPT sign-in refused stays out of that sign-in's later turns; other brains and sign-ins keep it", async () => {
   const refusal = "The 'gpt-6.2-sol' model is not supported when using Codex with a ChatGPT account.";
   const l = link({});
   l.turn = async (_machineId, request, { onEvent }) => {
@@ -219,15 +219,13 @@ test("a model the ChatGPT sign-in refuses: the same turn goes again on its own d
     );
   };
   const brain = new CodexBrain({ link: l, mcp: async () => ({ token: "t" }) });
-  expect(await collect(brain.run(turn({ model: "gpt-6.2-sol" }), io()))).toEqual([
-    { type: "done", text: "Feito.", session: { id: SESSION } },
-  ]);
-  expect(l.sent.map((r) => r.model)).toEqual(["gpt-6.2-sol", undefined]);
-  // With no model chosen there is nothing to drop: the refusal is the turn's error.
-  const none = link({ events: [{ type: "error", code: "codex_failed", message: refusal }] });
-  const plain = new CodexBrain({ link: none, mcp: async () => ({ token: "t" }) });
-  expect(await collect(plain.run(turn(), io()))).toMatchObject([{ type: "error", message: refusal }]);
-  expect(none.sent).toHaveLength(1);
+  const on = (machineId: string) =>
+    turn({ model: "gpt-6.2-sol", session: { id: SESSION, resume: false, machineId, cwd: "app" } });
+  // The refusal is the turn's error: the executor takes it again in a fresh session.
+  expect(await collect(brain.run(on("m-refused"), io()))).toMatchObject([{ type: "error", message: refusal }]);
+  expect(await collect(brain.run(on("m-refused"), io()))).toMatchObject([{ type: "done", text: "Feito." }]);
+  expect(await collect(brain.run(on("m-other"), io()))).toMatchObject([{ type: "error" }]);
+  expect(l.sent.map((r) => r.model)).toEqual(["gpt-6.2-sol", undefined, "gpt-6.2-sol"]);
 });
 
 test("refuses before sending: offline, no Codex, Codex too old, no session", async () => {

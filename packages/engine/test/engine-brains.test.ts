@@ -4522,6 +4522,38 @@ test("a Codex session whose folder is gone: a fresh session before the API takes
   expect(f.provider.calls.length).toBeGreaterThan(0);
 });
 
+test("a model Codex's sign-in refuses: the turn goes again with no model in a fresh session, which later runs keep", async () => {
+  f = await setup({});
+  await computerAgent(f, { brain: "codex", brainModel: "gpt-6.1-sol" });
+  const refusal = "The 'gpt-6.1-sol' model is not supported when using Codex with a ChatGPT account.";
+  const { brain, seen } = scriptedComputerBrain((_n, turn) =>
+    turn.model
+      ? [{ type: "error", code: "codex_failed", message: refusal, retryable: true }]
+      : [{ type: "done", text: "Feito." }],
+  );
+  const handlers = createJobHandlers({
+    ...f.jobDeps,
+    brains: { codex: () => ({ ...brain, kind: "codex" }) },
+    machines: {
+      status: async (id) =>
+        statusOf(id, {
+          protocol: MACHINE_PROTOCOL_VERSION,
+          executors: { codex: { version: "codex-cli 0.166.0" }, detectedAt: new Date().toISOString() },
+        }),
+    },
+  });
+  await post(f, "@dev oi");
+  await drainOutbox(f.db, handlers);
+  expect(seen).toHaveLength(2);
+  expect(seen[1]?.model).toBeUndefined();
+  // A Codex thread keeps the model it opened with: never the refused turn's session again.
+  expect(seen[1]?.session?.id).not.toBe(seen[0]?.session?.id);
+  expect(seen[1]?.session?.resume).toBe(false);
+  expect((await timeline(f)).at(-1)?.body).toBe("Feito.");
+  const [run] = await f.db.select().from(schema.agentRuns);
+  expect(run?.brainSessionId).toBe(seen[1]?.session?.id ?? "");
+});
+
 test("in a busy channel, its teammates now and why its session was lost reach the computer brain whole", async () => {
   f = await setup();
   await computerAgent(f);
