@@ -485,6 +485,10 @@ export function openTarget(n: AppNotification): OpenTarget | null {
   if (n.kind === "admin_ask" && n.latest.reason === "create_agents")
     return { to: "/org/$orgId/settings/$section", params: { section: "members" } };
   if (n.kind === "admin_ask" && n.latest.reason === "webhook") return { to: "/org/$orgId/routines" };
+  // An agent waits for an app to be connected (`request_connection`): connected in Connectors, wherever it was asked
+  // (the conversation may be one the admin can't open), the agent goes on by itself.
+  if (n.kind === "admin_ask" && n.latest.reason === "connector")
+    return { to: "/org/$orgId/settings/$section", params: { section: "connectors" } };
   // Someone accepted an invitation (ADR 0090): a conversation with them, to say hi.
   if (n.kind === "invitation_accepted") {
     const who = n.actors[0];

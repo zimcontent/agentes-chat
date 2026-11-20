@@ -4349,6 +4349,12 @@ export const en = {
       title: "Connect {{name}}",
       mcp: "Add an MCP server",
       adminOnly: "An admin connects it",
+      /** The agent's task goes on by itself once it's connected (`request_connection`). */
+      continuing: "Connected, continuing",
+      /** Who was asked to connect it, because the person can't. */
+      asked: "Waiting for {{names}} to connect it",
+      /** Nobody connected it within a day: the agent stopped waiting. */
+      expired: "No longer waiting for {{name}}",
     },
     invite: {
       title_one: "Invite {{count}} person",
@@ -6048,6 +6054,8 @@ export const en = {
       adminAskChannel: "<b>{{name}}</b> asks you to add <b>{{agent}}</b> to #{{label}}",
       adminAskCreate: "<b>{{name}}</b> asks to be able to create agents",
       adminAskWebhook: "<b>{{name}}</b> asks you to set up the {{service}} webhook for routines",
+      /** An agent waits for the app to be connected to go on with a task (`request_connection`). */
+      adminAskConnector: "<b>{{name}}</b> asks you to connect {{service}}",
       invitationAccepted: "<b>{{name}}</b> accepted your invitation and joined {{org}}",
       /** A company asked for DougBot on the page (`company_request`): the company and the person. */
       companyRequest: "<b>{{company}}</b> asked for DougBot: a request from <b>{{name}}</b>",

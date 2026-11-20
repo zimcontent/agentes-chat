@@ -90,9 +90,11 @@ export const strings: Partial<PushStrings> = {
   adminAskTitle: (a, what, l) =>
     what === "channel_agent"
       ? `${a} 请你把一个智能体加入 #${l}`
-      : what === "create_agents"
-        ? `${a} 请求获得创建智能体的权限`
-        : `${a} 请你为例行任务设置 ${l} webhook`,
+      : what === "connector"
+        ? `${a} 请你连接 ${l}`
+        : what === "create_agents"
+          ? `${a} 请求获得创建智能体的权限`
+          : `${a} 请你为例行任务设置 ${l} webhook`,
   deviceWaitingTitle: (p, d) => `${p} 的智能体正在等待你的 ${d}`,
   deviceWaitingBody: "它回来后就会开始。",
   teamWeekReady: "你的团队周报已准备好",

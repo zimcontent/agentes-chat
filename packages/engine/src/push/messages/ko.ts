@@ -93,9 +93,11 @@ export const strings: Partial<PushStrings> = {
   adminAskTitle: (a, what, l) =>
     what === "channel_agent"
       ? `${a} 님이 #${l}에 에이전트를 추가해 달라고 요청합니다`
-      : what === "create_agents"
-        ? `${a} 님이 에이전트를 만들 수 있게 해 달라고 요청합니다`
-        : `${a} 님이 루틴용 ${l} 웹훅을 설정해 달라고 요청합니다`,
+      : what === "connector"
+        ? `${a} 님이 ${l} 연결을 요청합니다`
+        : what === "create_agents"
+          ? `${a} 님이 에이전트를 만들 수 있게 해 달라고 요청합니다`
+          : `${a} 님이 루틴용 ${l} 웹훅을 설정해 달라고 요청합니다`,
   deviceWaitingTitle: (p, d) => `${p} 님의 에이전트가 내 ${d}을(를) 기다리고 있어요`,
   deviceWaitingBody: "돌아오면 시작해요.",
   teamWeekReady: "팀의 한 주 정리가 준비됐어요",

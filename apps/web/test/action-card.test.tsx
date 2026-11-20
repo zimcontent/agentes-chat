@@ -169,6 +169,24 @@ describe("an agent's card to connect an app or an MCP server, and to invite peop
     expect((within(flow).getByLabelText("Endereço do servidor MCP") as HTMLInputElement).value).toBe("");
   });
 
+  test("an agent's request (request_connection): Conectar while it waits, then 'Conectado, continuando'; ended, it says so", async () => {
+    const state = seedState({ connections: [] });
+    const request = (s: string, resumed = false) => ({ id: `r-${s}`, state: s, resumed, askedUserIds: [] });
+    state.messages.push(
+      offer("c-wait", "connect_app", { connector: "linear", why: "Para ler as issues.", request: request("waiting") }),
+      offer("c-went", "connect_app", { connector: "linear", why: "x", request: request("connected", true) }, 1),
+      offer("c-gone", "connect_app", { connector: "linear", why: "y", request: request("expired") }, 2),
+    );
+    await open(state);
+    const rows = screen()
+      .getAllByRole("article")
+      .flatMap((a) => (a.querySelector(".rq-open, .rq-done")?.textContent ?? "") || []);
+    expect(rows.find((r) => r.includes("Para ler as issues."))).toContain("Conectar Linear");
+    expect(within(cardRow("Para ler as issues.")).getByRole("button", { name: "Conectar" })).toBeTruthy();
+    expect(rows.some((r) => r.includes("Conectado, continuando: Conectar Linear"))).toBe(true);
+    expect(rows.some((r) => r.includes("Deixou de esperar por Linear"))).toBe(true);
+  });
+
   test("invites: Convidar opens the invite dialog with the addresses in it; done once they're invited", async () => {
     const state = seedState();
     state.messages.push(

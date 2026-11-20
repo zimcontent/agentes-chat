@@ -4244,6 +4244,9 @@ export const ptBR = {
       title: "Conectar {{name}}",
       mcp: "Adicionar um servidor MCP",
       adminOnly: "Um admin conecta",
+      continuing: "Conectado, continuando",
+      asked: "Esperando {{names}} conectar",
+      expired: "Deixou de esperar por {{name}}",
     },
     invite: {
       title_one: "Convidar {{count}} pessoa",
@@ -5911,6 +5914,7 @@ export const ptBR = {
       adminAskChannel: "<b>{{name}}</b> pede para adicionar <b>{{agent}}</b> a #{{label}}",
       adminAskCreate: "<b>{{name}}</b> pede para poder criar agentes",
       adminAskWebhook: "<b>{{name}}</b> pede para ligar o webhook do {{service}} para rotinas",
+      adminAskConnector: "<b>{{name}}</b> pede para conectar o {{service}}",
       invitationAccepted: "<b>{{name}}</b> aceitou seu convite e entrou na {{org}}",
       companyRequest: "<b>{{company}}</b> pediu o DougBot: um pedido de <b>{{name}}</b>",
       invitationAcceptedAny: "<b>{{name}}</b> aceitou seu convite",

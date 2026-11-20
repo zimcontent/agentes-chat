@@ -4,7 +4,8 @@ import { AskDone, AskWaiting } from "../chat/asks";
 
 /**
  * One offer as a waiting pill: its title, the action (tinted) for who may take it, else who may in the text under it;
- * the agent's why and the detail (an address, names) under the pill too. Done, a decided request's pill.
+ * the agent's why and the detail (an address, names) under the pill too. Done, a decided request's pill (`ended`: it
+ * ended without going through).
  */
 export function OfferShell({
   icon,
@@ -12,6 +13,7 @@ export function OfferShell({
   why,
   detail,
   done,
+  ended,
   action,
   onAction,
   blocked,
@@ -21,6 +23,7 @@ export function OfferShell({
   why: string;
   detail?: string;
   done: string | null;
+  ended?: boolean;
   action: string | null;
   onAction: () => void;
   blocked: string;
@@ -28,7 +31,7 @@ export function OfferShell({
   if (done) {
     return (
       <View>
-        <AskDone done words={done} />
+        <AskDone done={!ended} words={done} />
       </View>
     );
   }

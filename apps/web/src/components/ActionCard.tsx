@@ -23,6 +23,7 @@ import {
   type ConnectAppCard,
   connectAiDone,
   connectAppDone,
+  connectAppState,
   type InstallSkillCard,
   type InviteCard,
   installSkillDone,
@@ -200,11 +201,13 @@ export function ActionCard({ message }: { message: Message }) {
  * "Connect Linear" / "Add MCP" (`offer_connect_app`) as a waiting pill: "Connect" opens the same connect dialog as
  * Settings, at the catalog entry or at connecting by address with the address filled in; the person signs in or types
  * the key there. Its why and address go under it, and who may not connect reads who does there. Done once the
- * workspace has it.
+ * workspace has it. An agent's request (`request_connection`, docs/adr/doug-0039) then reads "Connected, continuing"
+ * (the agent goes on by itself), names who was asked when the viewer can't connect, and says when it stopped waiting.
  */
 function ConnectAppCardView({ card }: { card: ConnectAppCard }) {
   const { t } = useTranslation();
   const { org } = useOrg();
+  const dir = useDirectory(org.id);
   const catalog = useCatalog();
   const connections = useConnections(org.id);
   const servers = useCustomServers(org.id);
@@ -213,14 +216,28 @@ function ConnectAppCardView({ card }: { card: ConnectAppCard }) {
   const def = defs.find((d) => d.id === card.connector) ?? null;
   const name = def ? connectorName(t, def) : card.url ? hostOf(card.url) : "";
   const title = name ? t("actionCard.connect_app.title", { name }) : t("actionCard.connect_app.mcp");
-  if (connectAppDone(card, connectedItems(connections.data ?? [], servers.data ?? [], defs))) {
+  const state = connectAppState(
+    card,
+    connectAppDone(card, connectedItems(connections.data ?? [], servers.data ?? [], defs)),
+  );
+  if (state === "connected" || state === "continuing") {
     return (
       <RequestDone done label={title}>
-        {t("actionCard.connected")}: <b>{title}</b>
+        {t(state === "continuing" ? "actionCard.connect_app.continuing" : "actionCard.connected")}: <b>{title}</b>
+      </RequestDone>
+    );
+  }
+  if (state === "expired") {
+    return (
+      <RequestDone done={false} label={title}>
+        {t("actionCard.connect_app.expired", { name: name || title })}
       </RequestDone>
     );
   }
   const may = can(org, "manage_connectors");
+  const asked = (card.request?.askedUserIds ?? []).flatMap(
+    (id) => dir.members.find((p) => p.userId === id)?.name ?? [],
+  );
   return (
     <>
       <RequestOpen
@@ -246,7 +263,13 @@ function ConnectAppCardView({ card }: { card: ConnectAppCard }) {
                   <code>{card.url}</code>
                 </p>
               )}
-              {!may && <p>{t("actionCard.connect_app.adminOnly")}</p>}
+              {!may && (
+                <p>
+                  {asked.length > 0
+                    ? t("actionCard.connect_app.asked", { names: joinNames(asked, t) })
+                    : t("actionCard.connect_app.adminOnly")}
+                </p>
+              )}
             </>
           ) : undefined
         }

@@ -89,9 +89,11 @@ export const ptBR: PushStrings = {
   adminAskTitle: (a, what, l) =>
     what === "channel_agent"
       ? `${a} pede para adicionar um agente a #${l}`
-      : what === "create_agents"
-        ? `${a} pede para poder criar agentes`
-        : `${a} pede para ligar o webhook do ${l} para rotinas`,
+      : what === "connector"
+        ? `${a} pede para conectar ${l}`
+        : what === "create_agents"
+          ? `${a} pede para poder criar agentes`
+          : `${a} pede para ligar o webhook do ${l} para rotinas`,
   deviceWaitingTitle: (p, d) => `O agente de ${p} está esperando seu ${d}`,
   deviceWaitingBody: "Começa quando ele voltar.",
   teamWeekReady: "Sua semana da equipe está pronta",
