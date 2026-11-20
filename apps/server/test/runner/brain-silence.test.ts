@@ -6,6 +6,7 @@ import { BrainManager, type BrainManagerOptions, ClaudeStreamParser } from "../.
 import {
   CLAUDE_SILENCE,
   type ClaudeSilence,
+  keepAliveLine,
   silenceLimit,
   stalledAgainMessage,
   stallLabel,
@@ -124,6 +125,16 @@ test("parser: calls in flight until their result, a compaction while the CLI say
   });
 });
 
+test("silence: the API's pings and a keep-alive say nothing of the turn moving; a text that says ping does", () => {
+  const sid = { session_id: "s", parent_tool_use_id: null, uuid: "u" };
+  expect(keepAliveLine(line({ type: "stream_event", event: { type: "ping" }, ...sid }))).toBe(true);
+  expect(keepAliveLine(line({ type: "keep_alive" }))).toBe(true);
+  const delta = { type: "content_block_delta", index: 0, delta: { type: "text_delta", text: '"ping"' } };
+  expect(keepAliveLine(line({ type: "stream_event", event: delta, ...sid }))).toBe(false);
+  expect(keepAliveLine(line({ type: "stream_event", event: { type: "message_start" }, ...sid }))).toBe(false);
+  expect(keepAliveLine('not json "ping"')).toBe(false);
+});
+
 test("protocol: a stalled event travels with where it was; an unknown phase is dropped", () => {
   expect(
     parseBrainEvent({ type: "stalled", phase: "tool", tool: "Bash", label: "Bash (make)", silentMs: 12.6, resumed: 1 }),
@@ -205,6 +216,15 @@ test.if(posix)(
     expect(m.size).toBe(0);
   },
 );
+
+test.if(posix)("an answer that stopped coming while the API's pings go on: stalled all the same", async () => {
+  const { spawns, turn } = setup();
+  const r = await turn(1, "HANGPING please");
+  expect(stalls(r.events)).toEqual([{ type: "stalled", phase: "model", silentMs: expect.any(Number), resumed: true }]);
+  expect(r.final).toMatchObject({ type: "done" });
+  expect(r.final.type === "done" && r.final.text).toContain("while it waited for the model's answer");
+  expect(spawns()).toHaveLength(2);
+});
 
 test.if(posix)("a command that outlives its own timeout: the turn says which, and goes on resumed", async () => {
   const { turn } = setup();

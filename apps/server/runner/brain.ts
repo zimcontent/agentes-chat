@@ -63,6 +63,7 @@ import {
   CLAUDE_SILENCE,
   type ClaudeSilence,
   type InFlightTool,
+  keepAliveLine,
   STALL_EXIT_WAIT_MS,
   type StallInfo,
   silenceLimit,
@@ -1085,7 +1086,10 @@ export class ClaudeProcess {
    * servers), and this hears which. Anything the agent's side sends the CLI may lead to one.
    */
   onControl: ((subtype: string) => void) | null = null;
-  /** When it last printed a line (any line: a token, a retry, a subagent's step): a turn's silence counts from here. */
+  /**
+   * When it last printed a line (a token, a retry, a subagent's step; never a keep-alive, which a stream that stopped
+   * still sends): a turn's silence counts from here.
+   */
   lastLineAt = Date.now();
   /** Calls of its MCP server that our bridge is relaying now (`BrainManager.bridgeCall`): it waits on us meanwhile. */
   bridgeCalls = 0;
@@ -1131,7 +1135,7 @@ export class ClaudeProcess {
     if (this.child.stdout) {
       const rl = createInterface({ input: this.child.stdout, crlfDelay: Number.POSITIVE_INFINITY });
       (rl as unknown as EventEmitter).on("line", (line: string) => {
-        this.lastLineAt = Date.now();
+        if (!keepAliveLine(line)) this.lastLineAt = Date.now();
         // Read whether a turn listens or not (the CLI may say it before the first turn's prompt).
         if (line.includes('"init"')) this.noteInit(line);
         // A locked turn answers only after an `init` that passed: one that never listed its tools never runs.

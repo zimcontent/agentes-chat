@@ -4,11 +4,11 @@ import type { BrainStallPhase } from "@dougbot/adapters/machine-protocol";
  * A Claude Code turn that stopped answering (`brain.ts`, "Silence"): how long the CLI may print nothing in each
  * phase of a turn before the turn counts as stalled.
  *
- * Every line it prints counts as a sign of life: with partial messages the model's answer streams token by token
- * (its thinking and a tool's input too), a retry says `api_retry`, and a subagent prints its own steps. What may run
- * long without a line has its own limit: one of its own tools (a shell command for as long as its timeout), the
- * conversation being compacted, and nothing at all while a call of ours runs (a permission prompt may wait for a
- * person; our tools have their own timeouts, and so does the CLI's wait for any MCP server's).
+ * Every line it prints counts as a sign of life but a keep-alive (`keepAliveLine`): with partial messages the model's
+ * answer streams token by token (its thinking and a tool's input too), a retry says `api_retry`, and a subagent prints
+ * its own steps. What may run long without a line has its own limit: one of its own tools (a shell command for as long
+ * as its timeout), the conversation being compacted, and nothing at all while a call of ours runs (a permission prompt
+ * may wait for a person; our tools have their own timeouts, and so does the CLI's wait for any MCP server's).
  */
 
 export interface ClaudeSilence {
@@ -63,6 +63,23 @@ export interface StallInfo {
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v);
 const text = (v: unknown) => (typeof v === "string" ? v : "");
+
+/**
+ * A line that only keeps a stream open, and says nothing of the turn moving: the API's `ping` (Claude Code 2.1.319
+ * passes one on about every 10 s while an answer is open, and goes on doing so after the answer stopped coming), or a
+ * `keep_alive`.
+ */
+export function keepAliveLine(line: string): boolean {
+  if (!line.includes('"ping"') && !line.includes('"keep_alive"')) return false;
+  try {
+    const ev = JSON.parse(line) as unknown;
+    if (!isObj(ev)) return false;
+    if (ev.type === "keep_alive") return true;
+    return ev.type === "stream_event" && isObj(ev.event) && ev.event.type === "ping";
+  } catch {
+    return false;
+  }
+}
 
 /** A shell command's own timeout: what the call says (the CLI caps it), else the CLI's default. */
 function commandTimeoutMs(input: unknown, defaultMs: number) {

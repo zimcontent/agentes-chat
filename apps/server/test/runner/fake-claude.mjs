@@ -14,7 +14,8 @@
 // deltas, each 150 ms before the next line, "KEY401" is refused by the endpoint and retries for good
 // (as Claude Code 2.1.310 does, ten times with backoff), "ASKCONTROL" asks for an elicitation on stdout and answers
 // with what it got back, "ECHOSHAPE" prints a token-shaped text in two deltas, "ECHOLONGSHAPE" one that goes on over
-// three after its prefix, "KEY403" is forbidden by it (a model or account switched off), "HANG…", "OURTOOLWAIT",
+// three after its prefix, "KEY403" is forbidden by it (a model or account switched off), "HANG…" (the API's pings
+// going on in "HANGPING"), "OURTOOLWAIT",
 // "RETRYWAIT" and "QUIETWAIT" go quiet (see below). Control requests: `initialize`, and `get_usage`
 // as $FAKE_CLAUDE_USAGE says ("" a Max plan's windows, "signed_out", "error",
 // "hang": never).
@@ -332,12 +333,16 @@ async function answer(line) {
     await sleep(20);
     process.exit(3);
   }
-  // Silence: "HANGMODEL" starts the model's answer and goes quiet, once (its resumed process answers);
+  // Silence: "HANGMODEL" starts the model's answer and goes quiet, once (its resumed process answers); "HANGPING" the
+  // same while the API's pings go on every 40 ms (as Claude Code passes them on over an answer that stopped coming);
   // "HANGTOOL" runs a shell command with a 50 ms timeout that never ends, once; "HANGEVER" goes quiet every time;
   // "OURTOOLWAIT" calls one of our tools, quiet 700 ms till its result; "RETRYWAIT" says it retries in 800 ms and is
   // quiet 600 ms; "QUIETWAIT" is quiet 1500 ms, then answers.
   const hung = marker ? `${marker}-hung` : "";
-  const hangOnce = (prompt.includes("HANGMODEL") || prompt.includes("HANGTOOL")) && hung && !existsSync(hung);
+  const hangOnce =
+    (prompt.includes("HANGMODEL") || prompt.includes("HANGPING") || prompt.includes("HANGTOOL")) &&
+    hung &&
+    !existsSync(hung);
   if (hangOnce || prompt.includes("HANGEVER")) {
     if (hung) writeFileSync(hung, "");
     if (prompt.includes("HANGTOOL")) {
@@ -354,6 +359,9 @@ async function answer(line) {
         event: { type: "message_start", message: { id: "msg_hang" } },
         parent_tool_use_id: null,
       });
+      if (prompt.includes("HANGPING")) {
+        setInterval(() => out({ type: "stream_event", event: { type: "ping" }, parent_tool_use_id: null }), 40);
+      }
     }
     await sleep(600_000);
     return;
