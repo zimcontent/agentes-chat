@@ -207,6 +207,29 @@ test("a resumed turn sends only what came after the brain's last reply", () => {
   );
 });
 
+test("a model the ChatGPT sign-in refuses: the same turn goes again on its own default, and only that answer shows", async () => {
+  const refusal = "The 'gpt-6.2-sol' model is not supported when using Codex with a ChatGPT account.";
+  const l = link({});
+  l.turn = async (_machineId, request, { onEvent }) => {
+    l.sent.push(request);
+    onEvent(
+      request.model
+        ? { type: "error", code: "codex_failed", message: refusal }
+        : { type: "done", text: "Feito.", session: { id: SESSION } },
+    );
+  };
+  const brain = new CodexBrain({ link: l, mcp: async () => ({ token: "t" }) });
+  expect(await collect(brain.run(turn({ model: "gpt-6.2-sol" }), io()))).toEqual([
+    { type: "done", text: "Feito.", session: { id: SESSION } },
+  ]);
+  expect(l.sent.map((r) => r.model)).toEqual(["gpt-6.2-sol", undefined]);
+  // With no model chosen there is nothing to drop: the refusal is the turn's error.
+  const none = link({ events: [{ type: "error", code: "codex_failed", message: refusal }] });
+  const plain = new CodexBrain({ link: none, mcp: async () => ({ token: "t" }) });
+  expect(await collect(plain.run(turn(), io()))).toMatchObject([{ type: "error", message: refusal }]);
+  expect(none.sent).toHaveLength(1);
+});
+
 test("refuses before sending: offline, no Codex, Codex too old, no session", async () => {
   const run = async (l: ComputerBrainLink, t = turn()) =>
     collect(new CodexBrain({ link: l, mcp: async () => ({ token: "t" }) }).run(t, io()));

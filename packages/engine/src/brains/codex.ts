@@ -285,6 +285,12 @@ const ANTIGRAVITY_CLI: CliBrainSpec = {
         },
 };
 
+/**
+ * A ChatGPT sign-in offers Codex its own list of models, not the API's (catalog rows a plan may not have, or not yet),
+ * and refuses any other: "The '<model>' model is not supported when using Codex with a ChatGPT account."
+ */
+const CODEX_MODEL_REFUSED = /model is not supported when using Codex with a ChatGPT account/i;
+
 export class CodexBrain implements Brain {
   readonly kind: "codex" | "cursor" | "opencode" | "grok" | "antigravity";
 
@@ -296,6 +302,16 @@ export class CodexBrain implements Brain {
   }
 
   async *run(turn: BrainTurn, io: BrainIO): AsyncIterable<BrainEvent> {
+    let refused = false;
+    for await (const event of this.attempt(turn, io)) {
+      if (turn.model && event.type === "error" && CODEX_MODEL_REFUSED.test(event.message)) refused = true;
+      else yield event;
+    }
+    // Refused before the model ran, so nothing happened yet: the same turn goes again on the sign-in's own default.
+    if (refused) yield* this.attempt({ ...turn, model: undefined }, io);
+  }
+
+  private async *attempt(turn: BrainTurn, io: BrainIO): AsyncIterable<BrainEvent> {
     const session = turn.session;
     const { name } = this.cli;
     if (!session) {
