@@ -25,7 +25,6 @@ import { currentHandles } from "./agents";
 import { withDeletedArtifacts } from "./artifacts";
 import { audienceSql, notifyBlocked } from "./audience";
 import { postRefusal, requireChannelAccess } from "./channels";
-import type { ContextDeps } from "./context/summaries";
 import { ConflictError, NotFoundError, ValidationError } from "./errors";
 import {
   type DecidedBy,
@@ -1214,21 +1213,12 @@ async function resendView(deps: { db: Database; pubsub: PubSub }, orgId: string,
 
 export async function postPersonMessage(
   /**
-   * `judge`: how an agent at work takes the message (`steerHandling`: a stop, a correction now, the next pause, or,
-   * for a quick question or a separate request, its task steps aside so it answers in a turn of its own; none = read
-   * at the next pause, never a stop).
-   * `talker`: the agents' conversation layer, for fast replies while their task waits (none = no fast replies).
-   * `context`: names a task that steps aside after its conversation (none: its line says "in the background").
+   * `judge`: how an agent at work takes the message (`steerHandling`: a stop, a correction now, a separate request
+   * after the task, a quick reply at once; none = read at the next pause, never a stop).
+   * `talker`: the agents' conversation layer, for fast replies while they work (none = no fast replies).
    * `gifs`: the server's GIF provider (ADR 0091; none = no GIFs).
    */
-  deps: {
-    db: Database;
-    pubsub: PubSub;
-    judge?: Judge;
-    talker?: Talker;
-    context?: ContextDeps;
-    gifs?: GifProvider | null;
-  },
+  deps: { db: Database; pubsub: PubSub; judge?: Judge; talker?: Talker; gifs?: GifProvider | null },
   userId: string,
   orgId: string,
   channelId: string,

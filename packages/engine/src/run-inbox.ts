@@ -27,12 +27,28 @@ export const ACTIVE_RUN_STATUSES = ["queued", "running", "waiting_approval", "wa
 
 /**
  * Why a run's unread messages were handed on (kept on the run's trail). `held`: the run waits on
- * something a message can't move (an approval, a secret, a mission's decision: `holdsMessages`). `aside`: a person
- * asked something while it worked, and it stepped out of the conversation into background work so the agent answers
- * in a turn of its own (`stepAsideFor`, ADR 0121 addendum of 2026-11-19).
+ * something a message can't move (an approval, a secret, a mission's decision: `holdsMessages`).
  */
-export const RELEASE_REASONS = ["done", "failed", "canceled", "interrupted", "swept", "held", "aside"] as const;
+export const RELEASE_REASONS = ["done", "failed", "canceled", "interrupted", "swept", "held"] as const;
 export type ReleaseReason = (typeof RELEASE_REASONS)[number];
+
+/** Whether one of these messages (a run's unread ones) is a person's, not deleted: someone wrote, not an event. */
+export async function personAmong(db: Executor, orgId: string, ids: string[]): Promise<boolean> {
+  if (ids.length === 0) return false;
+  const [row] = await db
+    .select({ id: messages.id })
+    .from(messages)
+    .where(
+      and(
+        eq(messages.orgId, orgId),
+        inArray(messages.id, ids),
+        eq(messages.authorType, "person"),
+        isNull(messages.deletedAt),
+      ),
+    )
+    .limit(1);
+  return row !== undefined;
+}
 
 /**
  * The message a person stopped this run to send ("Parar e mandar" to a computer brain, whose turn can't be cut
@@ -152,21 +168,6 @@ export async function handOnMessages(
   const taken = await takeToHandOn(db, run, messageIds);
   return handOn(db, pubsub, run, taken, { reason: "held" });
 }
-
-/**
- * The two halves of `handOnMessages`, for a caller that changes the run in between (`stepAsideFor`): these messages
- * leave the run's inbox (those still there; empty when it read them), and later go on to a run of their own.
- */
-export const takeForHandOn = (db: Database, run: Pick<AgentRun, "id" | "orgId">, messageIds: string[]) =>
-  takeToHandOn(db, run, messageIds);
-
-export const handOnTaken = (
-  db: Database,
-  pubsub: PubSub | undefined,
-  run: Pick<AgentRun, "id" | "orgId" | "agentId" | "channelId" | "threadRootId" | "triggerMessageId" | "trigger">,
-  taken: string[],
-  reason: ReleaseReason,
-) => handOn(db, pubsub, run, taken, { reason });
 
 /**
  * Takes unread messages out of a run's inbox (all of them, or those of `only` still there) to hand them on. All of

@@ -76,7 +76,6 @@ import {
   SESSION_IDLE_MS,
   SESSION_MAX_INPUT_TOKENS,
   sessionLostNote,
-  statusReply,
   type ToolSource,
   taskManager,
 } from "../src";

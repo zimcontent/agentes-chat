@@ -678,7 +678,6 @@ export function chatRoutes(deps: AppDeps) {
             pubsub: adapters.pubsub,
             judge: deps.extras?.context?.judge,
             talker: deps.extras?.talker,
-            context: deps.extras?.context,
             gifs: adapters.gifs,
           },
           user.id,

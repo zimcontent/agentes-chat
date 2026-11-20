@@ -186,6 +186,74 @@ describe("messages in a row (ADR 0112)", () => {
     30_000,
   );
 
+  test("a reply that only talked, overtaken by the person before it went out, is rewritten: one answer to all of it", async () => {
+    const requests: string[] = [];
+    let dm = "";
+    f = await setup({
+      reply: (req: ModelRequest, call: number) => {
+        requests.push(JSON.stringify(req.messages));
+        // While it writes its greeting, the person asks for something else.
+        return call === 1
+          ? {
+              chunks: ["E aí! Tudo certo? Me manda um PR quando quiser."],
+              hold: postIn(dm, "busca umas passagens pra curitiba"),
+            }
+          : { chunks: ["Oi! Bora: de onde você sai?"] };
+      },
+    });
+    dm = (await openDm(f.db, f.owner.id, f.org.id, { agentId: f.agent.id })).id;
+    await postIn(dm, "eae");
+    await drainOutbox(f.db, f.handlers);
+    const said = (await listMessages(f.db, f.owner.id, f.org.id, dm))
+      .filter((m) => m.author.type === "agent")
+      .map((m) => m.body);
+    expect(said).toEqual(["Oi! Bora: de onde você sai?"]);
+    expect(f.provider.calls).toHaveLength(2);
+    // The next turn knew its draft went nowhere, and read what overtook it.
+    expect(requests[1]).toContain("Your reply was not sent");
+    expect(requests[1]).toContain("Me manda um PR");
+    expect(requests[1]).toContain("busca umas passagens pra curitiba");
+    const [run] = await runs();
+    expect(run?.status).toBe("done");
+    expect((run?.transcript as { overtaken?: number }).overtaken).toBe(1);
+  });
+
+  test("a reply after work (a tool called) goes out as it is, and what came meanwhile gets the next one", async () => {
+    let dm = "";
+    f = await setup({
+      toolSources: [slowTool(async () => {})],
+      reply: (_req: ModelRequest, call: number) =>
+        call === 1
+          ? { chunks: [], toolUses: [{ name: "build", input: {} }] }
+          : call === 2
+            ? { chunks: ["Build ok."], hold: postIn(dm, "e roda os testes também") }
+            : { chunks: ["Testes rodando."] },
+    });
+    dm = (await openDm(f.db, f.owner.id, f.org.id, { agentId: f.agent.id })).id;
+    await postIn(dm, "builda o projeto");
+    await drainOutbox(f.db, f.handlers);
+    const said = (await listMessages(f.db, f.owner.id, f.org.id, dm))
+      .filter((m) => m.author.type === "agent")
+      .map((m) => m.body);
+    expect(said).toEqual(["Build ok.", "Testes rodando."]);
+  });
+
+  test("a person who keeps writing still gets an answer: at most two rewrites in a row", async () => {
+    let dm = "";
+    f = await setup({
+      reply: (_req: ModelRequest, call: number) =>
+        call <= 3 ? { chunks: [`Resposta ${call}.`], hold: postIn(dm, `mais uma ${call}`) } : { chunks: ["Fim."] },
+    });
+    dm = (await openDm(f.db, f.owner.id, f.org.id, { agentId: f.agent.id })).id;
+    await postIn(dm, "oi");
+    await drainOutbox(f.db, f.handlers);
+    const said = (await listMessages(f.db, f.owner.id, f.org.id, dm))
+      .filter((m) => m.author.type === "agent")
+      .map((m) => m.body);
+    // The first two are rewritten; the third goes out, and the fourth answers what overtook it.
+    expect(said).toEqual(["Resposta 3.", "Fim."]);
+  });
+
   test("a message to a model-brain run that is still starting never holds the send for a live delivery", async () => {
     f = await setup();
     const dm = (await openDm(f.db, f.owner.id, f.org.id, { agentId: f.agent.id })).id;

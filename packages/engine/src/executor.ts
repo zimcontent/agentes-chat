@@ -196,6 +196,7 @@ import { modelInfoFor } from "./credentials";
 import { sha256 } from "./crypto";
 import { widgetRunWaitChanged } from "./dashboards/refresh-fire";
 import { WIDGET_FAILURES } from "./dashboards/types";
+import { publishDelivery } from "./delivery";
 import { personalComputer } from "./devices";
 import { kickParkedWakes } from "./dispatch";
 import { isAgentOnlyDm } from "./dms";
@@ -236,7 +237,7 @@ import {
   kickKeyLine,
   rateLimited,
 } from "./key-line";
-import { answerNoTurn, listenLiveSteering, renderSteered } from "./live-steer";
+import { answerNoTurn, deliverLive, listenLiveSteering, renderSteered } from "./live-steer";
 import {
   accountEverWorked,
   accountFailureCause,
@@ -299,7 +300,16 @@ import { withRondaModel } from "./ronda";
 import { routineBriefOf } from "./routine-brief";
 import { missStaleRoutineRun, routineRunWaitingForComputer, routineRunWaitingForPlan } from "./routine-firing";
 import { closeRoutineRun, type RoutineRunEnd, recordRoutineReportMessage, routineFailureEnd } from "./routine-ledger";
-import { type ReleaseReason, releaseHeldInbox, releaseInbox, stoppedToSend, takeInbox, whileHeld } from "./run-inbox";
+import {
+  personAmong,
+  type ReleaseReason,
+  releaseHeldInbox,
+  releaseInbox,
+  stoppedToSend,
+  takeInbox,
+  whileHeld,
+} from "./run-inbox";
+import { deliverNoticeToRun } from "./run-resume";
 import { issueRunToolToken, revokeRunToolTokens } from "./run-tool-tokens";
 import {
   type ArtifactLink,
@@ -340,6 +350,7 @@ import {
   providerFailureText,
   type RunStatus,
   replyThreadOf,
+  runAtWork,
   runErrorDetail,
   STUCK_ERROR,
   stopNote,
@@ -350,7 +361,6 @@ import { secretResult } from "./secrets";
 import { enabledSkills } from "./skills";
 import { type SpillRecord, spillMayHelp, spillPlan, spillTarget } from "./spill";
 import { billingHold, standingErrorDetail, standingRefusal } from "./standing";
-import { moveRunAside } from "./step-aside";
 import { personAskedLately, rerootRun, runStretchOf } from "./stretch";
 import { isStuck, noteStep, STUCK_END_NOTE, STUCK_END_REPLY_NOTE, STUCK_NOTE, type StuckState } from "./stuck";
 import { archivedAgentsPrompt, FIND_AGENT_TOOL, renamedAgentsPrompt, teammateMeans } from "./team";
@@ -409,10 +419,11 @@ import {
 import { recordWikiReads, retrieveWikiForRun } from "./wiki";
 import { RESTRICTED_HERE, sendHeldToDm } from "./wiki-dm";
 import { withWikiLinks } from "./wiki-links";
-import { workMayStart, workStartsNote } from "./work-tools";
+import { movedNote, queuedNote, workMayStart, workStartsNote } from "./work-tools";
 import {
   dropWorkNotices,
   endWork,
+  moveToBackground,
   pauseWorkTimer,
   resumeWorkTimer,
   takeLocalMove,
@@ -421,7 +432,9 @@ import {
   WORK_AUTO_MIN_MS,
   WORK_IN_BACKGROUND_TOOL,
   WORK_JOB_YIELD_MS,
+  WORK_LIMITS,
   wakeQueuedRun,
+  workEligible,
   workQueued,
   workQueueWaitId,
   workTopic,
@@ -596,6 +609,11 @@ export interface Transcript {
    * pause card drops it.
    */
   heldWording?: string;
+  /**
+   * How many of its replies people overtook (`overtakenNote`): written while only talking, and the person wrote again
+   * before they went out, so each was rewritten with the rest instead of sent. At most `OVERTAKEN_MAX`.
+   */
+  overtaken?: number;
   /** What replies once streamed counted their pieces with: read by nothing now, kept on old runs' transcripts. */
   deltaSeq?: number;
   /** Memory changes made by tools, not yet attached to a posted message (`meta.memoryUpdates`). */
@@ -4493,8 +4511,32 @@ async function executeRunInner(
       return;
     }
     if (autoTick) clearInterval(autoTick);
-    // The same move a person's quick question makes (`stepAsideFor`); this executor adopts it at once.
-    await moveRunAside({ db, pubsub: deps.pubsub, context: deps.context }, run.id, { onMoved: adoptWork });
+    if (current?.status !== "running" || !(await workEligible(db, current))) return;
+    // No title given: a person's for its thread, else a short name the cheap model gives the conversation.
+    const moved = await moveToBackground({ db, pubsub: deps.pubsub, context: deps.context }, run.id, {
+      how: "auto",
+      title: "",
+      nextUpdateMin: WORK_LIMITS.nextDefault,
+    });
+    if (!moved) return;
+    await adoptWork();
+    later(() => addRunStep(db, run, "context", { work: { id: moved.work.id, how: "auto" } }));
+    // The note reaches the brain like a check-in: live on a steerable turn, else at its next step.
+    const at = { ...run, threadRootId: run.threadRootId };
+    const delivered = await db.transaction((tx) =>
+      deliverNoticeToRun(tx, at, {
+        kind: "work_check_in",
+        text: moved.queued ? queuedNote : movedNote(WORK_LIMITS.nextDefault),
+        refs: { workId: moved.work.id, kind: "moved" },
+      }),
+    );
+    await publishDelivery(deps.pubsub, delivered).catch(() => {});
+    if (deps.pubsub)
+      await deliverLive(
+        { db, pubsub: deps.pubsub },
+        { ...current, ...at },
+        { messageId: delivered.message.id, urgent: false },
+      );
   };
   /** The first computer turn's checkouts sync, started during the quiet window for that plan. */
   let earlyCode: { plan: BrainPlan; code: Promise<CodeSetup | null> } | null = null;
@@ -5916,6 +5958,32 @@ async function executeRunInner(
         .where(eq(agentRuns.id, run.id));
       // At the cap this answer ends the run instead: what came in gets a run of its own.
       if (((still?.pending.length ?? 0) > 0 && run.turns < maxTurns) || keep) {
+        // Overtaken (ADR 0112 addendum of 2026-11-19): a reply that only talked (no tool called yet), and the person
+        // wrote again before it went out. Sent as it is it would answer a conversation that has moved on ("Hi! Send me
+        // a PR" after they asked for flights). It is rewritten instead: the next turn reads what came and answers all
+        // of it in one message, as a person who sees new messages before pressing send would. Twice in a row at most,
+        // so someone who keeps writing still gets an answer.
+        if (
+          !keep &&
+          text &&
+          (t.overtaken ?? 0) < OVERTAKEN_MAX &&
+          !run.background &&
+          !run.workId &&
+          !plan.missionId &&
+          !betweenAgents &&
+          (await personAmong(db, run.orgId, still?.pending ?? [])) &&
+          !(await runAtWork(db, run.id))
+        ) {
+          t.overtaken = (t.overtaken ?? 0) + 1;
+          // A draft: never picked up again as unposted words (a fallback, the restart sweep).
+          t.postedUpTo = t.messages.length;
+          const note = overtakenNote(text);
+          appendUserText(t, note);
+          if (plan.kind !== "model") nextPrompt = note;
+          await saveTranscript(db, t);
+          later(() => addRunStep(db, run, "context", { overtaken: t.overtaken }));
+          continue;
+        }
         const posted =
           text && !repeatsLastPost(text)
             ? await db.transaction(async (tx) => {
@@ -6790,6 +6858,13 @@ export function continuedTranscript(stopped: Transcript, line: string): Transcri
 }
 
 /** Adds text to the conversation as the person's side (joined to a last user message, never two in a row). */
+/** Replies in a row a run may rewrite because people overtook them (`Transcript.overtaken`). */
+export const OVERTAKEN_MAX = 2;
+
+/** What the next turn reads before the messages that overtook its reply: its draft, unsent, and to answer all of it. */
+export const overtakenNote = (draft: string) =>
+  `[Your reply was not sent: they wrote again before it went out (their new messages follow). It was: "${cutText(draft.trim(), 600)}". Answer everything they said, the earlier messages too, in one message, as your first answer to them.]`;
+
 export function appendUserText(t: Pick<Transcript, "messages">, text: string) {
   const last = t.messages.at(-1);
   if (last?.role === "user") {
