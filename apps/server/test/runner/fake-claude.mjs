@@ -15,7 +15,7 @@
 // (as Claude Code 2.1.310 does, ten times with backoff), "ASKCONTROL" asks for an elicitation on stdout and answers
 // with what it got back, "ECHOSHAPE" prints a token-shaped text in two deltas, "ECHOLONGSHAPE" one that goes on over
 // three after its prefix, "KEY403" is forbidden by it (a model or account switched off), "HANG…" (the API's pings
-// going on in "HANGPING"), "OURTOOLWAIT",
+// going on in "HANGPING", inside an open thinking block in "HANGTHINK"), "LONGTHINK", "OURTOOLWAIT",
 // "RETRYWAIT" and "QUIETWAIT" go quiet (see below). Control requests: `initialize`, and `get_usage`
 // as $FAKE_CLAUDE_USAGE says ("" a Max plan's windows, "signed_out", "error",
 // "hang": never).
@@ -335,12 +335,17 @@ async function answer(line) {
   }
   // Silence: "HANGMODEL" starts the model's answer and goes quiet, once (its resumed process answers); "HANGPING" the
   // same while the API's pings go on every 40 ms (as Claude Code passes them on over an answer that stopped coming);
+  // "HANGTHINK" the same inside an open thinking block (a think whose text is omitted, that never ends); "LONGTHINK"
+  // thinks 900 ms with only pings inside its open block, then answers;
   // "HANGTOOL" runs a shell command with a 50 ms timeout that never ends, once; "HANGEVER" goes quiet every time;
   // "OURTOOLWAIT" calls one of our tools, quiet 700 ms till its result; "RETRYWAIT" says it retries in 800 ms and is
   // quiet 600 ms; "QUIETWAIT" is quiet 1500 ms, then answers.
   const hung = marker ? `${marker}-hung` : "";
   const hangOnce =
-    (prompt.includes("HANGMODEL") || prompt.includes("HANGPING") || prompt.includes("HANGTOOL")) &&
+    (prompt.includes("HANGMODEL") ||
+      prompt.includes("HANGPING") ||
+      prompt.includes("HANGTHINK") ||
+      prompt.includes("HANGTOOL")) &&
     hung &&
     !existsSync(hung);
   if (hangOnce || prompt.includes("HANGEVER")) {
@@ -359,12 +364,28 @@ async function answer(line) {
         event: { type: "message_start", message: { id: "msg_hang" } },
         parent_tool_use_id: null,
       });
-      if (prompt.includes("HANGPING")) {
+      if (prompt.includes("HANGTHINK")) {
+        out({
+          type: "stream_event",
+          event: { type: "content_block_start", index: 0, content_block: { type: "thinking", thinking: "" } },
+          parent_tool_use_id: null,
+        });
+      }
+      if (prompt.includes("HANGPING") || prompt.includes("HANGTHINK")) {
         setInterval(() => out({ type: "stream_event", event: { type: "ping" }, parent_tool_use_id: null }), 40);
       }
     }
     await sleep(600_000);
     return;
+  }
+  if (prompt.includes("LONGTHINK")) {
+    const ev = (event) => out({ type: "stream_event", event, parent_tool_use_id: null });
+    ev({ type: "message_start", message: { id: "msg_think" } });
+    ev({ type: "content_block_start", index: 0, content_block: { type: "thinking", thinking: "" } });
+    const pings = setInterval(() => ev({ type: "ping" }), 40);
+    await sleep(900);
+    clearInterval(pings);
+    ev({ type: "content_block_stop", index: 0 });
   }
   if (prompt.includes("OURTOOLWAIT")) {
     out({

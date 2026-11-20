@@ -6,19 +6,28 @@ import type { BrainStallPhase } from "@dougbot/adapters/machine-protocol";
  *
  * Every line it prints counts as a sign of life but a keep-alive (`keepAliveLine`): with partial messages the model's
  * answer streams token by token (its thinking and a tool's input too), a retry says `api_retry`, and a subagent prints
- * its own steps. What may run long without a line has its own limit: one of its own tools (a shell command for as long
- * as its timeout), the conversation being compacted, and nothing at all while a call of ours runs (a permission prompt
- * may wait for a person; our tools have their own timeouts, and so does the CLI's wait for any MCP server's).
+ * its own steps. A keep-alive counts only while a block of the answer is open (`ClaudeStreamParser.openBlocks`): a
+ * think whose text the API omits streams nothing but pings until its block ends, so there pings are life, up to
+ * `openBlockMs` with nothing else.
+ *
+ * What may run long without a line has its own limit: one of its own tools (a shell command for as long as its
+ * timeout), the conversation being compacted, and nothing at all while a call of ours runs (a permission prompt may
+ * wait for a person; our tools have their own timeouts, and so does the CLI's wait for any MCP server's).
  */
 
 export interface ClaudeSilence {
-  /** No tool runs: the turn waits for the model's answer. */
+  /**
+   * No tool runs: the turn waits for the model's answer. Past Claude Code's own 5 min watchdog on a stream that sends
+   * nothing, which then asks again without streaming and prints nothing until that answer is whole.
+   */
   modelMs: number;
+  /** Only keep-alives inside an open block of the answer (a long think): a stream stuck there still pings. */
+  openBlockMs: number;
   /** The CLI said it is compacting the conversation (`system/status`). */
   compactingMs: number;
   /** One of its own tools that isn't a shell command or a subagent (a read, an edit, a search). */
   toolMs: number;
-  /** A shell command (`Bash`): its own timeout (its `timeout`, else the CLI's default) plus this. */
+  /** A shell command (`Bash`, `PowerShell`): its own timeout (its `timeout`, else the CLI's default) plus this. */
   commandGraceMs: number;
   /** A subagent (`Task`, `Agent`): its own steps print lines, but one long answer of its may not. */
   subagentMs: number;
@@ -27,7 +36,8 @@ export interface ClaudeSilence {
 }
 
 export const CLAUDE_SILENCE: ClaudeSilence = {
-  modelMs: 6 * 60_000,
+  modelMs: 10 * 60_000,
+  openBlockMs: 30 * 60_000,
   compactingMs: 15 * 60_000,
   toolMs: 6 * 60_000,
   commandGraceMs: 3 * 60_000,
@@ -91,7 +101,7 @@ function commandTimeoutMs(input: unknown, defaultMs: number) {
 function toolLimit(tool: InFlightTool, limits: ClaudeSilence, bashDefaultMs: number): number | null {
   if (tool.name.startsWith("mcp__")) return null;
   if (tool.name === "Task" || tool.name === "Agent") return limits.subagentMs;
-  if (tool.name === "Bash") {
+  if (tool.name === "Bash" || tool.name === "PowerShell") {
     // Sent to the background, it answers at once: a quick call like any other.
     if (isObj(tool.input) && tool.input.run_in_background === true) return limits.toolMs;
     return commandTimeoutMs(tool.input, bashDefaultMs) + limits.commandGraceMs;

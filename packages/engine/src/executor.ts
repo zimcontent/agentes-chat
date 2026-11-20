@@ -4806,24 +4806,6 @@ async function executeRunInner(
       const sharing: Promise<void>[] = [];
       /** Its own calls whose step line went out as they started (`tool_started`): not again as they end. */
       const stepTold = new Set<string>();
-      /** When each of its own calls started (`tool_started`): how long it ran goes on the trail. */
-      const ownStartedAt = new Map<string, number>();
-      /**
-       * A call of its own ended: kept on the run's trail (its name, how long it ran, whether it failed), never what it
-       * ran on nor what came back. A context step, so nothing that reads tool steps counts it; the bridge keeps ours.
-       */
-      const keepOwnCall = (call: { id: string; name: string; result?: ToolResult }) => {
-        if (turnTools.some((t) => t.name === call.name)) return;
-        const started = ownStartedAt.get(call.id);
-        ownStartedAt.delete(call.id);
-        const computerTool = {
-          id: call.id.slice(0, 128),
-          name: call.name,
-          ms: started === undefined ? null : Date.now() - started,
-          ...(call.result?.isError ? { isError: true } : {}),
-        };
-        later(() => addRunStep(db, run, "context", { computerTool }));
-      };
       /** A call of its own (not ours through the bridge, which says its step as it starts) is the step line now. */
       const ownStep = (call: { id: string; name: string }) => {
         if (run.background || turnTools.some((t) => t.name === call.name)) return;
@@ -4946,7 +4928,6 @@ async function executeRunInner(
             ...(deps.planLimitGraceMs !== undefined ? { limitGraceMs: deps.planLimitGraceMs } : {}),
             onStarted: (call) => {
               stepTold.add(call.id);
-              ownStartedAt.set(call.id, Date.now());
               ownStep(call);
             },
             onExecuted: (call) => {
@@ -4954,7 +4935,6 @@ async function executeRunInner(
               progress?.step(call);
               // A brain that tells its calls only once they ended (Codex, an older runner) says the step now.
               if (!stepTold.delete(call.id)) ownStep(call);
-              keepOwnCall(call);
               // The text it streams next is another model call's: never one reply with what it wrote before.
               deltas.toolEnded();
             },

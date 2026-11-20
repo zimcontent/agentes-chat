@@ -131,12 +131,13 @@ import { claudeSessionExists, claudeSessionFile, type TaskSecrets, WRONG_SESSION
  *   turn; one that dies mid-turn is replaced by a one-shot resume of the same
  *   turn. Turns of one session run one at a time (queued).
  * - Silence (`brain-silence.ts`): a turn whose CLI prints nothing for longer
- *   than the phase it is in allows (6 min waiting for the model, a shell
+ *   than the phase it is in allows (10 min waiting for the model, a shell
  *   command's own timeout plus 3 min, 15 min while it compacts; never while a
  *   call of ours runs, which the bridge says through `bridgeCall`) is stalled:
- *   the turn says so (`stalled`), the process is stopped and the same turn
- *   goes again on a one-shot resume, told what hung (`stallNote`). Stalled
- *   again there, the turn ends as `brain_stalled`.
+ *   the process and its process group are stopped and the same turn goes
+ *   again on a one-shot resume, told what hung (`stallNote`), and the turn
+ *   says so (`stalled`) unless a result came first. Stalled again there, the
+ *   turn ends as `brain_stalled`.
  * - ADR 0041: a turn with an `account` runs with `CLAUDE_CONFIG_DIR` set to
  *   that account's folder (its sessions live there too; a missing folder is
  *   `account_missing`, never another account), and `effort` is `--effort`.
@@ -401,6 +402,8 @@ export class ClaudeStreamParser {
   planKey = false;
   /** The CLI says it is compacting the conversation (`system/status`), until it says otherwise or the boundary. */
   compacting = false;
+  /** Blocks of the main conversation's answer that started streaming and haven't ended (`content_block_start`). */
+  openBlocks = 0;
 
   private tools = new Map<string, InFlightTool>();
   private sawDelta = false;
@@ -431,6 +434,7 @@ export class ClaudeStreamParser {
     this.context.clear();
     this.tools.clear();
     this.compacting = false;
+    this.openBlocks = 0;
     this.sawDelta = false;
     this.streamedMessage = null;
     this.limited = false;
@@ -493,6 +497,9 @@ export class ClaudeStreamParser {
       case "stream_event": {
         const e = isObj(ev.event) ? ev.event : {};
         const delta = isObj(e.delta) ? e.delta : {};
+        if (main && (e.type === "message_start" || e.type === "message_stop")) this.openBlocks = 0;
+        if (main && e.type === "content_block_start") this.openBlocks++;
+        if (main && e.type === "content_block_stop") this.openBlocks = Math.max(0, this.openBlocks - 1);
         if (main && e.type === "message_start")
           this.streamedMessage = isObj(e.message) ? str(e.message.id) || null : null;
         if (main && e.type === "content_block_delta" && delta.type === "text_delta" && str(delta.text)) {
@@ -1091,6 +1098,8 @@ export class ClaudeProcess {
    * still sends): a turn's silence counts from here.
    */
   lastLineAt = Date.now();
+  /** When it last printed anything but a keep-alive: bounds a stream that only pings inside an open block. */
+  lastOutputAt = Date.now();
   /** Calls of its MCP server that our bridge is relaying now (`BrainManager.bridgeCall`): it waits on us meanwhile. */
   bridgeCalls = 0;
   /** When one of those started or ended: its silence counts from there too. */
@@ -1122,6 +1131,8 @@ export class ClaudeProcess {
       stdio: token ? [...TOKEN_STDIO] : ["pipe", "pipe", "pipe"],
       windowsHide: true,
       windowsVerbatimArguments: run.windowsVerbatimArguments,
+      // Its own process group, so `killTree` takes a shell command it hung in along.
+      detached: process.platform !== "win32",
     });
     if (token) handToken(this.child, token);
     const events = this.child as unknown as EventEmitter;
@@ -1135,7 +1146,9 @@ export class ClaudeProcess {
     if (this.child.stdout) {
       const rl = createInterface({ input: this.child.stdout, crlfDelay: Number.POSITIVE_INFINITY });
       (rl as unknown as EventEmitter).on("line", (line: string) => {
-        if (!keepAliveLine(line)) this.lastLineAt = Date.now();
+        if (!keepAliveLine(line)) this.lastLineAt = this.lastOutputAt = Date.now();
+        // Inside an open block (a think whose text the API omits) the pings are all that streams while it goes on.
+        else if (this.parser.openBlocks > 0) this.lastLineAt = Date.now();
         // Read whether a turn listens or not (the CLI may say it before the first turn's prompt).
         if (line.includes('"init"')) this.noteInit(line);
         // A locked turn answers only after an `init` that passed: one that never listed its tools never runs.
@@ -1183,10 +1196,10 @@ export class ClaudeProcess {
 
   /**
    * Ends Claude Code. On Windows its whole tree: started through cmd.exe (npm's `claude.cmd`), killing the child alone
-   * would leave Claude Code running the turn.
+   * would leave Claude Code running the turn. `tree` elsewhere: its process group too, with a command it hung in.
    */
-  private end(signal: NodeJS.Signals) {
-    if (process.platform === "win32") killTree(this.child, signal);
+  private end(signal: NodeJS.Signals, tree = false) {
+    if (tree || process.platform === "win32") killTree(this.child, signal);
     else this.child.kill(signal);
   }
 
@@ -1334,15 +1347,16 @@ export class ClaudeProcess {
     } catch {}
   }
 
-  kill() {
+  /** `tree`: what it started goes too, even what outlives it a moment (a command that ignores SIGTERM). */
+  kill(tree = false) {
     if (this.exited) return;
     try {
-      this.end("SIGTERM");
+      this.end("SIGTERM", tree);
     } catch {}
     const t = setTimeout(() => {
-      if (!this.exited) {
+      if (tree || !this.exited) {
         try {
-          this.end("SIGKILL");
+          this.end("SIGKILL", tree);
         } catch {}
       }
     }, 3000);
@@ -1552,7 +1566,12 @@ export function runTurnOnProcess(
       if (backgroundWait) clearTimeout(backgroundWait);
       if (watch) clearInterval(watch);
       proc.turn = null;
-      if (stalled) out = { ...out, died: out.final ? out.died : true, stalled };
+      if (stalled && !out.final) {
+        out = { ...out, died: true, stalled };
+        flush();
+        opts.emit({ type: "stalled", ...stalled, resumed: !opts.lastTry });
+        opts.onCancel?.();
+      }
       if (outstanding.size) out = { ...out, unread: [...outstanding] };
       flush();
       proc.onLine(null);
@@ -1658,19 +1677,19 @@ export function runTurnOnProcess(
       );
       if (!limit) return;
       const now = Date.now();
-      const since = Math.max(begun, proc.lastLineAt, proc.bridgeChangedAt, quietUntil);
-      if (now - since <= limit.ms) return;
+      const floor = Math.max(begun, proc.bridgeChangedAt, quietUntil);
+      const silent = now - Math.max(floor, proc.lastLineAt);
+      const quiet = now - Math.max(floor, proc.lastOutputAt);
+      if (silent <= limit.ms && quiet <= limits.openBlockMs) return;
       stalled = {
         phase: limit.phase,
         ...(limit.tool
           ? { tool: limit.tool.name.slice(0, BRAIN_LIMITS.toolName), label: redact(stallLabel(limit.tool)) }
           : {}),
-        silentMs: now - since,
+        silentMs: quiet,
       };
-      flush();
-      opts.emit({ type: "stalled", ...stalled, resumed: !opts.lastTry });
-      opts.onCancel?.();
-      proc.kill();
+      // Said (and delegated tools canceled) only if no result beats its exit (`finish`).
+      proc.kill(true);
       // Its exit ends the turn; one that won't go ends it anyway, left to its kill.
       const late = setTimeout(() => finish({ died: true }), STALL_EXIT_WAIT_MS);
       late.unref?.();

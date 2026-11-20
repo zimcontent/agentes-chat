@@ -34,6 +34,7 @@ const line = (o: unknown) => JSON.stringify(o);
 /** Short limits: a quiet model or tool stalls in a few hundred milliseconds. */
 const QUICK: ClaudeSilence = {
   modelMs: 300,
+  openBlockMs: 1500,
   compactingMs: 3000,
   toolMs: 300,
   commandGraceMs: 100,
@@ -47,7 +48,7 @@ const tool = (name: string, input: unknown = {}) => ({ name, input, since: 0 });
 
 test("silence: the model's answer, a compaction, its own tools and a command by its own timeout each have a limit", () => {
   const at = (s: Parameters<typeof silenceLimit>[0]) => silenceLimit(s, CLAUDE_SILENCE);
-  expect(at({ tools: [], compacting: false, bridgeCalls: 0 })).toEqual({ phase: "model", ms: 6 * 60_000 });
+  expect(at({ tools: [], compacting: false, bridgeCalls: 0 })).toEqual({ phase: "model", ms: 10 * 60_000 });
   expect(at({ tools: [], compacting: true, bridgeCalls: 0 })).toEqual({ phase: "compacting", ms: 15 * 60_000 });
   expect(at({ tools: [tool("Edit", { file_path: "a.ts" })], compacting: false, bridgeCalls: 0 })).toMatchObject({
     phase: "tool",
@@ -60,6 +61,10 @@ test("silence: the model's answer, a compaction, its own tools and a command by 
     at({ tools: [tool("Bash", { command: "make", timeout: 600_000 })], compacting: false, bridgeCalls: 0 })?.ms,
   ).toBe(13 * 60_000);
   expect(at({ tools: [tool("Bash")], compacting: false, bridgeCalls: 0, bashDefaultMs: 60_000 })?.ms).toBe(4 * 60_000);
+  expect(
+    at({ tools: [tool("PowerShell", { command: "npm test", timeout: 600_000 })], compacting: false, bridgeCalls: 0 })
+      ?.ms,
+  ).toBe(13 * 60_000);
   // Sent to the background it answers at once; a subagent prints its own steps.
   expect(at({ tools: [tool("Bash", { run_in_background: true })], compacting: false, bridgeCalls: 0 })?.ms).toBe(
     6 * 60_000,
@@ -123,6 +128,23 @@ test("parser: calls in flight until their result, a compaction while the CLI say
     events: [],
     retryInMs: 4000,
   });
+});
+
+test("parser: a block of the main answer is open from its start to its stop; a subagent's never counts", () => {
+  const p = new ClaudeStreamParser();
+  p.beginTurn();
+  const ev = (event: unknown, parent: string | null = null) =>
+    p.push(line({ type: "stream_event", event, parent_tool_use_id: parent }));
+  ev({ type: "message_start", message: { id: "m1" } });
+  ev({ type: "content_block_start", index: 0, content_block: { type: "thinking", thinking: "" } });
+  expect(p.openBlocks).toBe(1);
+  ev({ type: "content_block_start", index: 0, content_block: { type: "thinking" } }, "task1");
+  expect(p.openBlocks).toBe(1);
+  ev({ type: "content_block_stop", index: 0 });
+  expect(p.openBlocks).toBe(0);
+  ev({ type: "content_block_start", index: 1, content_block: { type: "tool_use", id: "t1", name: "Write" } });
+  ev({ type: "message_stop" });
+  expect(p.openBlocks).toBe(0);
 });
 
 test("silence: the API's pings and a keep-alive say nothing of the turn moving; a text that says ping does", () => {
@@ -225,6 +247,28 @@ test.if(posix)("an answer that stopped coming while the API's pings go on: stall
   expect(r.final.type === "done" && r.final.text).toContain("while it waited for the model's answer");
   expect(spawns()).toHaveLength(2);
 });
+
+test.if(posix)("a long think with only pings inside its open block is no silence", async () => {
+  const { spawns, turn } = setup();
+  // Three times the model's limit, as a 30-minute think is three times its 10.
+  const r = await turn(1, "LONGTHINK please");
+  expect(stalls(r.events)).toEqual([]);
+  expect(r.final).toMatchObject({ type: "done", text: "echo 1: LONGTHINK please" });
+  expect(spawns()).toHaveLength(1);
+});
+
+test.if(posix)(
+  "a think whose block never ends, pinging on: stalled once nothing but pings came past its limit",
+  async () => {
+    const { turn } = setup();
+    const r = await turn(1, "HANGTHINK please");
+    const stall = stalls(r.events)[0];
+    expect(stalls(r.events)).toHaveLength(1);
+    expect(stall?.type === "stalled" && stall.phase).toBe("model");
+    expect(stall?.type === "stalled" && stall.silentMs).toBeGreaterThanOrEqual(QUICK.openBlockMs);
+    expect(r.final).toMatchObject({ type: "done" });
+  },
+);
 
 test.if(posix)("a command that outlives its own timeout: the turn says which, and goes on resumed", async () => {
   const { turn } = setup();

@@ -4182,7 +4182,7 @@
                 },
                 "tool": {
                   "type": ["string", "null"],
-                  "description": "A tool call's and its result's. A `context` step's that kept a call the computer's CLI ran itself (`computerTool`: Bash, Edit…): that tool. An error's whose `reason` is `brain_stalled`: the CLI's own tool it hung in."
+                  "description": "A tool call's and its result's. An error's whose `reason` is `brain_stalled`: the CLI's own tool it hung in."
                 },
                 "builtIn": {
                   "type": ["boolean", "null"],
@@ -4194,7 +4194,7 @@
                 },
                 "isError": {
                   "type": ["boolean", "null"],
-                  "description": "A tool result's, and a `computerTool` step's (a call the computer's CLI ran)."
+                  "description": "A tool result's."
                 },
                 "refusal": {
                   "type": ["string", "null"],
@@ -4281,7 +4281,7 @@
                 "durationMs": {
                   "type": ["integer", "null"],
                   "minimum": 0,
-                  "description": "A tool result's: since its call; null when the call is on an earlier page. A `computerTool` step's: how long the computer's CLI ran that call (null when the CLI said only its end). A `brain_stalled` error's: how long nothing came from the CLI."
+                  "description": "A tool result's: since its call; null when the call is on an earlier page. A `brain_stalled` error's: how long nothing came from the CLI."
                 },
                 "messageId": {
                   "type": ["string", "null"],

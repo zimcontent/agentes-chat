@@ -500,8 +500,6 @@ const errorClassSql = (data: SQL) => {
 /** What a long work paused near (`usage_wait` with a `pause`). */
 const PAUSE_SOURCES = ["plan", "budget"] as const;
 const USAGE_WAIT = sql`(${KIND} = 'error' and ${DATA}->>'reason' = 'usage_wait')`;
-/** A context step that kept a call the computer's CLI ran itself (`computerTool`: its name, how long, if it failed). */
-const COMPUTER_TOOL = sql`(${KIND} = 'context' and ${DATA} ? 'computerTool')`;
 /** An error step of a turn whose CLI the computer stopped for its silence (`brain_stalled`). */
 const STALLED = sql`(${KIND} = 'error' and ${DATA}->>'reason' = 'brain_stalled')`;
 
@@ -511,9 +509,8 @@ const stepColumns = {
   kind: KIND,
   at: agentRunSteps.createdAt,
   toolUseId: sql<string | null>`case when ${KIND} in ('tool_call', 'tool_result') then ${DATA}->>'toolUseId' end`,
-  // A call the computer's CLI ran itself (`computerTool`), and the CLI's own tool a stalled turn hung in.
+  // And the CLI's own tool a stalled turn hung in.
   tool: sql<string | null>`case when ${KIND} in ('tool_call', 'tool_result') then ${DATA}->>'name'
-    when ${COMPUTER_TOOL} then ${DATA}->'computerTool'->>'name'
     when ${STALLED} then ${DATA}->>'tool' end`,
   // Only the call's step holds the mark: a result reads it from the call it answers.
   builtIn: sql<boolean | null>`case when ${KIND} = 'tool_call' then ${builtInSql(sql`${DATA}`)}
@@ -524,8 +521,7 @@ const stepColumns = {
   connector: sql<string | null>`case when ${KIND} = 'tool_call' then ${DATA}->>'connector' end`,
   isError: sql<
     boolean | null
-  >`case when ${KIND} = 'tool_result' then coalesce(${DATA}->'isError' = 'true'::jsonb, false)
-    when ${COMPUTER_TOOL} then coalesce(${DATA}->'computerTool'->'isError' = 'true'::jsonb, false) end`,
+  >`case when ${KIND} = 'tool_result' then coalesce(${DATA}->'isError' = 'true'::jsonb, false) end`,
   refusal: sql<string | null>`case when ${KIND} = 'tool_result' then ${DATA}->'data'->>'refusal' end`,
   code: sql<string | null>`case when ${KIND} = 'error' then ${DATA}->>'code'
     when ${KIND} = 'tool_result' then ${DATA}->'data'->>'code' end`,
@@ -547,10 +543,8 @@ const stepColumns = {
   chars: sql<number | null>`case when ${KIND} = 'tool_call' then length(${DATA}->>'input')
     when ${KIND} = 'tool_result' then length(${DATA}->>'content') end`.mapWith(Number),
   inputHash: sql<string | null>`case when ${KIND} = 'tool_call' then ${inputHashSql(sql`${DATA}`)} end`,
-  // How long the computer's CLI ran one of its calls, and how long nothing came from it before a stall: kept as such.
+  // How long nothing came from the computer's CLI before a stall.
   keptMs: sql<number | null>`case
-    when ${COMPUTER_TOOL} and jsonb_typeof(${DATA}->'computerTool'->'ms') = 'number'
-      then (${DATA}->'computerTool'->>'ms')::float8
     when ${STALLED} and jsonb_typeof(${DATA}->'silentMs') = 'number' then (${DATA}->>'silentMs')::float8 end`.mapWith(
     Number,
   ),

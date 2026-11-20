@@ -256,17 +256,14 @@ const Trace = z
           at: Time,
           tool: z.string().nullable().openapi({
             description:
-              "A tool call's and its result's. A `context` step's that kept a call the computer's CLI ran itself (`computerTool`: Bash, Edit…): that tool. An error's whose `reason` is `brain_stalled`: the CLI's own tool it hung in.",
+              "A tool call's and its result's. An error's whose `reason` is `brain_stalled`: the CLI's own tool it hung in.",
           }),
           builtIn: z
             .boolean()
             .nullable()
             .openapi({ description: `A tool call's and its result's. ${BUILT_IN}` }),
           connector: z.string().nullable().openapi({ description: "A tool call's: the connection the tool is of." }),
-          isError: z
-            .boolean()
-            .nullable()
-            .openapi({ description: "A tool result's, and a `computerTool` step's (a call the computer's CLI ran)." }),
+          isError: z.boolean().nullable().openapi({ description: "A tool result's." }),
           refusal: z
             .string()
             .nullable()
@@ -320,7 +317,7 @@ const Trace = z
             .openapi({ description: `A tool call's. ${INPUT_DIGEST}` }),
           durationMs: Count.nullable().openapi({
             description:
-              "A tool result's: since its call; null when the call is on an earlier page. A `computerTool` step's: how long the computer's CLI ran that call (null when the CLI said only its end). A `brain_stalled` error's: how long nothing came from the CLI.",
+              "A tool result's: since its call; null when the call is on an earlier page. A `brain_stalled` error's: how long nothing came from the CLI.",
           }),
           messageId: z.uuid().nullable().openapi({ description: "A `message` step's: the reply it posted." }),
           records: z.array(z.string()).openapi({

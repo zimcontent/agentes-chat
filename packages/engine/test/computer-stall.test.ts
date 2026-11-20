@@ -13,9 +13,8 @@ import { type Fixture, SECRET, setup } from "./fixtures";
 import { pairMachine } from "./machine-fixtures";
 
 /**
- * A computer brain's own calls and its stalls on the run's trail: each call it ran itself as a `computerTool` step
- * (name, how long, whether it failed; nothing that reads tool steps counts it), and the computer stopping its CLI for
- * its silence as a `brain_stalled` error step, both read by the operator's trace.
+ * The computer stopping a brain's CLI for its silence, on the run's trail as a `brain_stalled` error step the
+ * operator's trace reads; the calls the CLI ran itself are not written there, one row each.
  */
 
 let f: Fixture;
@@ -56,7 +55,7 @@ const onComputer = async (brain: Brain) => {
   });
 };
 
-test("its own calls and a stall the computer recovered from are kept on the trail; ours are the bridge's", async () => {
+test("a stall the computer recovered from is kept on the trail; its own calls are not", async () => {
   const brain: Brain = {
     kind: "claude_code",
     async *run(_turn, io) {
@@ -107,15 +106,9 @@ test("its own calls and a stall the computer recovered from are kept on the trai
     .from(schema.agentRunSteps)
     .where(eq(schema.agentRunSteps.runId, run.id))
     .orderBy(asc(schema.agentRunSteps.seq));
-  const own = steps.filter((s) => s.kind === "context" && s.data.computerTool).map((s) => s.data.computerTool);
-  expect(own).toEqual([
-    { id: "b1", name: "Bash", ms: expect.any(Number), isError: true },
-    { id: "w1", name: "Write", ms: null },
-  ]);
-  expect((own[0] as { ms: number }).ms).toBeGreaterThanOrEqual(25);
-  // What it ran on and what came back stay off the trail; ours are the bridge's tool steps, not kept twice.
-  expect(JSON.stringify(own)).not.toContain("npm run build");
-  expect(own.some((c) => (c as { name: string }).name === "search_context")).toBe(false);
+  // Its own calls write nothing; ours are the bridge's tool steps.
+  expect(steps.filter((s) => s.kind === "context" && JSON.stringify(s.data).includes("Bash"))).toEqual([]);
+  expect(steps.some((s) => s.kind === "tool_call" && s.data.name === "search_context")).toBe(true);
   const stalled = steps.filter((s) => s.kind === "error" && s.data.reason === "brain_stalled");
   expect(stalled.map((s) => s.data)).toEqual([
     {
@@ -128,13 +121,8 @@ test("its own calls and a stall the computer recovered from are kept on the trai
     },
   ]);
 
-  // The operator reads which tool, how long and whether it failed; never what it ran on.
+  // The operator reads which tool and how long; never what it ran on.
   const trail = (await operatorRunTrace(f.db, run.id, { limit: 200, secret: SECRET }))?.steps ?? [];
-  const kept = trail.filter((s) => s.records.includes("computerTool"));
-  expect(kept.map(({ tool, isError, durationMs }) => ({ tool, isError, durationMs }))).toEqual([
-    { tool: "Bash", isError: true, durationMs: expect.any(Number) },
-    { tool: "Write", isError: false, durationMs: null },
-  ]);
   const stall = trail.find((s) => s.kind === "error" && s.reason === "brain_stalled");
   expect(stall).toMatchObject({ code: "tool", tool: "Bash", durationMs: 420_000 });
   expect(JSON.stringify(trail)).not.toContain("npm run build");
