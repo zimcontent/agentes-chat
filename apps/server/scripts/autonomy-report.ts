@@ -1,6 +1,7 @@
 /**
  * The daily stall-and-noise report (`autonomy-report.ts` in the engine) as a table, for the people who run the
- * server. Reads only.
+ * server, ending with the day's resolution rate by brain and its least resolved agents (ADR 0097, addendum
+ * 2026-11-20). Reads only.
  *
  *   bun run report:autonomy [--day YYYY-MM-DD] [--org <workspace id>]
  *

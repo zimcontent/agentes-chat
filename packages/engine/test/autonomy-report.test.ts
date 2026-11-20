@@ -770,4 +770,69 @@ describe("rows as the server writes them", () => {
     const [day] = await autonomyRows(f.db, { from: said.toISOString().slice(0, 10), days: 1 });
     expect(day).toMatchObject({ mentionNoRun: 1, limitStops: 1, stalls: 2 });
   });
+
+  test("resolution: runs ended done by their last turn, less those at the cap or a bound, by brain and agent", async () => {
+    f = await setup();
+    ops = (await createAgent(f.db, f.owner.id, f.org.id, { name: "Ops", handle: "ops" }, NEW_AGENT_DEFAULTS)).id;
+    const day = "2026-10-12";
+    const when = at("09:00:00", day);
+    const end = (continuation: Record<string, unknown>): Step => ["context", { continuation }];
+    // Ended and resolved: by the judge after a nudge, by `ended`, and a cap that a later turn of the run ended well.
+    await run({
+      at: when,
+      steps: [end({ outcome: "continue", rule: "untried", count: 1 }), end({ outcome: "done", rule: "judged" })],
+    });
+    await run({ at: when, steps: [end({ outcome: "done", rule: "ended" })] });
+    await run({ at: when, steps: [end({ outcome: "done", rule: "cap" }), end({ outcome: "done", rule: "judged" })] });
+    // Ended unresolved: at the cap (one stalled), and stopped by a bound.
+    await run({
+      at: when,
+      agentId: ops,
+      steps: [end({ outcome: "done", rule: "untried_cap", verdict: "untried", stalled: true })],
+    });
+    await run({ at: when, agentId: ops, steps: [end({ outcome: "done", rule: "cap", count: 6 })] });
+    await run({ at: when, agentId: ops, steps: [end({ outcome: "done", rule: "stuck" })] });
+    // Not ended: still waiting, a failed run, a run with no continuation step.
+    await run({ at: when, steps: [end({ outcome: "waiting", rule: "wakes_later" })] });
+    await run({
+      at: when,
+      status: "failed",
+      error: "provider_error: 529",
+      steps: [end({ outcome: "done", rule: "cap" })],
+    });
+    await run({ at: when });
+    await f.db.update(schema.agentRuns).set({ brain: "model" }).where(eq(schema.agentRuns.agentId, f.agent.id));
+    await f.db.update(schema.agentRuns).set({ brain: "claude_code" }).where(eq(schema.agentRuns.agentId, ops));
+
+    const [row] = await autonomyRows(f.db, { from: day, days: 1 });
+    expect(row).toMatchObject({ endedRuns: 6, resolvedRuns: 3, cappedRuns: 2, stalledEnds: 1 });
+    // None of it is a stall.
+    expect(row?.stalls).toBe(0);
+    const report = await autonomyReport(f.db, { day });
+    expect(report.resolution.byBrain).toEqual([
+      { brain: "claude_code", ended: 3, resolved: 0, capped: 2 },
+      { brain: "model", ended: 3, resolved: 3, capped: 0 },
+    ]);
+    // Only agents with something unresolved, by id: no names nor anything they wrote.
+    expect(report.resolution.worstAgents).toEqual([
+      { orgId: f.org.id, orgName: f.org.name, agentId: ops, ended: 3, resolved: 0, capped: 2 },
+    ]);
+    const table = autonomyTable(report);
+    expect(table).toContain("Resolution: 50.0% of 6 ended runs");
+    expect(table).toContain("claude_code");
+    expect(table).toContain(ops);
+  });
+
+  test("a real run's end is read as resolved", async () => {
+    f = await setup();
+    await postPersonMessage({ db: f.db, pubsub: f.pubsub }, f.owner.id, f.org.id, f.general.id, { body: "@dev oi" });
+    await drainOutbox(f.db, f.handlers);
+    const [done] = await f.db.select().from(schema.agentRuns);
+    expect(done?.status).toBe("done");
+    const [row] = await autonomyRows(f.db, {
+      from: (done?.createdAt ?? new Date()).toISOString().slice(0, 10),
+      days: 1,
+    });
+    expect(row).toMatchObject({ endedRuns: 1, resolvedRuns: 1, cappedRuns: 0 });
+  });
 });
