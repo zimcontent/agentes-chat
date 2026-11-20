@@ -5,6 +5,7 @@ import { runCalls } from "../continuation";
 import { dmPeople } from "../dms";
 import { ConflictError, ForbiddenError, NotFoundError, ValidationError } from "../errors";
 import type { Judge } from "../judge";
+import { enqueueLearnedLine } from "../learned-words";
 import { notifySkillUpdate } from "../notification-producers";
 import { requirePermission } from "../organizations";
 import { enqueue } from "../outbox";
@@ -642,6 +643,8 @@ async function promoteCluster(deps: ContextDeps, orgId: string, agentId: string,
           },
         ],
       );
+    // Said under that run's answer while it is still recent (ADR 0120, addendum 2026-11-20): "Aprendi a fazer isso".
+    if (usedIn) await enqueueLearnedLine(tx, orgId, usedIn.run.id, `promote:${skill.id}`);
   });
   return true;
 }

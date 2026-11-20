@@ -36,6 +36,7 @@ import {
 } from "./events";
 import { pictureSize } from "./image-size";
 import { type EveryoneAnswer, everyoneShape, type Judge, personMentionAddressees } from "./judge";
+import { isLearnedLine } from "./learned-words";
 import { PLATFORM_CAP } from "./limits";
 import { isMediaAfterReply, isStickerMood, type MessageMedia, mediaOf, mediaSettings, type StickerMood } from "./media";
 import { type MessageMemory, memoriesFor } from "./message-memories";
@@ -697,8 +698,9 @@ export async function insertMessageWithRuns(
   // conversation later. Nothing to search in it either.
   const mediaOnly = body === "" && !files && media !== null;
   // The sticker or GIF an agent adds after its own reply is silent (ADR 0091 §4): it notifies nobody, and a thread
-  // waits for the reply's own assessment. So is an agent's first line before its answer (docs/adr/doug-0037).
-  const silent = isMediaAfterReply(input.meta) || isQuickAck(input.meta);
+  // waits for the reply's own assessment. So is an agent's first line before its answer (docs/adr/doug-0037), and its
+  // "Aprendi a fazer isso" under one (ADR 0120, addendum 2026-11-20).
+  const silent = isMediaAfterReply(input.meta) || isQuickAck(input.meta) || isLearnedLine(input.meta);
   if (body.length > MAX_MESSAGE_LENGTH)
     throw new ValidationError(`Message is longer than ${MAX_MESSAGE_LENGTH} characters`, "message.too_long", {
       length: body.length,

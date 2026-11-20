@@ -191,6 +191,8 @@ export * from "./jev-key";
 export * from "./jobs";
 export * from "./judge";
 export * from "./key-line";
+export * from "./learned-line";
+export * from "./learned-words";
 export * from "./legal";
 export * from "./limits";
 export * from "./live-activities";

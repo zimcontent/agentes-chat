@@ -1252,7 +1252,7 @@ async function resolveTrigger(
 }
 
 /** Admins, or the agent's owner. */
-async function requireRoutineManager(db: Database, actorId: string, orgId: string, agentId: string) {
+export async function requireRoutineManager(db: Database, actorId: string, orgId: string, agentId: string) {
   const membership = await requirePermission(db, actorId, orgId, "read");
   if (can(membership, "manage_routines")) return;
   const agent = await getAgent(db, orgId, agentId);

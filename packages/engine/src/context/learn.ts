@@ -6,6 +6,7 @@ import { steeredByOthers } from "../authority";
 import { callLine, type LearnSignal, type RunCall, runCalls } from "../continuation";
 import { cutText, cutTextEnd } from "../format";
 import { agentBudgetState } from "../gateway";
+import { enqueueLearnedLine } from "../learned-words";
 import { enqueue } from "../outbox";
 import { runReadOutsideById } from "../outside";
 import { personBehindCall } from "../requester";
@@ -186,6 +187,8 @@ export async function ownWords(
 
 /** Tool calls that already wrote memory: the run kept what it learned itself. */
 const WROTE_MEMORY = new Set(["remember", "save_how_to", "update_memory", "update_skill", "create_skill"]);
+/** Tool calls that write a skill. */
+const SKILL_WRITES = new Set(["update_skill", "create_skill"]);
 
 type EndedRun = { id: string; orgId: string; agentId: string; channelId: string; threadRootId: string };
 
@@ -212,6 +215,10 @@ export async function afterTurnDone(
         .where(inArray(contextItems.id, usedHowTos));
       await addRunStep(db, run, "context", { [HOW_TOS_COUNTED]: true });
     }
+    // A skill made or changed in the turn: "Aprendi a fazer isso" may follow (ADR 0120, addendum 2026-11-20). Keyed by
+    // the calls so far: a later turn of the same run that changes another skill queues again.
+    if (calls.some((c) => SKILL_WRITES.has(c.name) && c.result && !c.result.isError))
+      await enqueueLearnedLine(db, run.orgId, run.id, `turn:${calls.length}`);
     // What it saved itself is its own; who holds an access is the team's, so that is still learned.
     if (cfg.maxPerAgentDay <= 0 || (input.signal !== "access" && calls.some((c) => WROTE_MEMORY.has(c.name))))
       return false;
@@ -691,6 +698,9 @@ export async function learnRun(deps: ContextDeps, input: { orgId: string; runId:
       out.skills.push({ slug, action: "refused" });
     }
   }
+  // A skill it fixed: "Aprendi a fazer isso" may follow under the run's answer (ADR 0120, addendum 2026-11-20).
+  if (out.skills.some((s) => s.action === "updated"))
+    await enqueueLearnedLine(db, run.orgId, run.id, "learn").catch(() => undefined);
   return out;
 }
 
