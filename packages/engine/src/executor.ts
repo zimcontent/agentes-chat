@@ -4806,6 +4806,24 @@ async function executeRunInner(
       const sharing: Promise<void>[] = [];
       /** Its own calls whose step line went out as they started (`tool_started`): not again as they end. */
       const stepTold = new Set<string>();
+      /** When each of its own calls started (`tool_started`): how long it ran goes on the trail. */
+      const ownStartedAt = new Map<string, number>();
+      /**
+       * A call of its own ended: kept on the run's trail (its name, how long it ran, whether it failed), never what it
+       * ran on nor what came back. A context step, so nothing that reads tool steps counts it; the bridge keeps ours.
+       */
+      const keepOwnCall = (call: { id: string; name: string; result?: ToolResult }) => {
+        if (turnTools.some((t) => t.name === call.name)) return;
+        const started = ownStartedAt.get(call.id);
+        ownStartedAt.delete(call.id);
+        const computerTool = {
+          id: call.id.slice(0, 128),
+          name: call.name,
+          ms: started === undefined ? null : Date.now() - started,
+          ...(call.result?.isError ? { isError: true } : {}),
+        };
+        later(() => addRunStep(db, run, "context", { computerTool }));
+      };
       /** A call of its own (not ours through the bridge, which says its step as it starts) is the step line now. */
       const ownStep = (call: { id: string; name: string }) => {
         if (run.background || turnTools.some((t) => t.name === call.name)) return;
@@ -4928,6 +4946,7 @@ async function executeRunInner(
             ...(deps.planLimitGraceMs !== undefined ? { limitGraceMs: deps.planLimitGraceMs } : {}),
             onStarted: (call) => {
               stepTold.add(call.id);
+              ownStartedAt.set(call.id, Date.now());
               ownStep(call);
             },
             onExecuted: (call) => {
@@ -4935,8 +4954,21 @@ async function executeRunInner(
               progress?.step(call);
               // A brain that tells its calls only once they ended (Codex, an older runner) says the step now.
               if (!stepTold.delete(call.id)) ownStep(call);
+              keepOwnCall(call);
               // The text it streams next is another model call's: never one reply with what it wrote before.
               deltas.toolEnded();
+            },
+            // Its CLI went quiet and the computer stopped it: on the trail, where it was and for how long.
+            onStalled: (stall) => {
+              const step = {
+                reason: "brain_stalled",
+                code: stall.phase,
+                ...(stall.tool ? { tool: stall.tool } : {}),
+                ...(stall.label ? { label: stall.label } : {}),
+                silentMs: stall.silentMs,
+                resumed: stall.resumed,
+              };
+              later(() => addRunStep(db, run, "error", step));
             },
             onFile: (path) => {
               const machineId = turnPlan.session?.machineId;
@@ -6269,6 +6301,8 @@ async function thinkOnce(
     onTaken?(): void | Promise<void>;
     /** Fast failed and the turn answered at standard speed. */
     onSpeedFallback?(message: string): void;
+    /** The computer stopped the brain's CLI for its silence (`stalled`): resumed there, or the turn ends. */
+    onStalled?(stall: Extract<BrainEvent, { type: "stalled" }>): void;
     /** A failed turn that is the plan's refusal, though the CLI didn't call it a limit. */
     refusedByPlan?(message: string): boolean;
   } = {},
@@ -6313,6 +6347,7 @@ async function thinkOnce(
     }
     if (event.type === "text_delta") onDelta(event.text);
     else if (event.type === "tool_started") hooks.onStarted?.(event);
+    else if (event.type === "stalled") hooks.onStalled?.(event);
     else if (event.type === "tool_call") {
       // Executed elsewhere (a computer brain through the runner bridge, which recorded its steps): shown only.
       if (event.executed) {

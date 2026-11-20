@@ -58,6 +58,19 @@ import {
   withSignIn,
   yieldRoute,
 } from "./accounts";
+import {
+  BASH_DEFAULT_MS,
+  CLAUDE_SILENCE,
+  type ClaudeSilence,
+  type InFlightTool,
+  STALL_EXIT_WAIT_MS,
+  type StallInfo,
+  silenceLimit,
+  stalledAgainMessage,
+  stallLabel,
+  stallNote,
+  stallWords,
+} from "./brain-silence";
 import { coAuthorLines } from "./co-authors";
 import { ownBranches } from "./command-gate";
 import { DELEGATED_RESULT_CHARS, type DelegatedBridge } from "./delegated-tools";
@@ -116,6 +129,13 @@ import { claudeSessionExists, claudeSessionFile, type TaskSecrets, WRONG_SESSION
  *   A process that dies while idle is started again (resumed) on the next
  *   turn; one that dies mid-turn is replaced by a one-shot resume of the same
  *   turn. Turns of one session run one at a time (queued).
+ * - Silence (`brain-silence.ts`): a turn whose CLI prints nothing for longer
+ *   than the phase it is in allows (6 min waiting for the model, a shell
+ *   command's own timeout plus 3 min, 15 min while it compacts; never while a
+ *   call of ours runs, which the bridge says through `bridgeCall`) is stalled:
+ *   the turn says so (`stalled`), the process is stopped and the same turn
+ *   goes again on a one-shot resume, told what hung (`stallNote`). Stalled
+ *   again there, the turn ends as `brain_stalled`.
  * - ADR 0041: a turn with an `account` runs with `CLAUDE_CONFIG_DIR` set to
  *   that account's folder (its sessions live there too; a missing folder is
  *   `account_missing`, never another account), and `effort` is `--effort`.
@@ -328,6 +348,8 @@ export interface ParsedBrainLine {
   boundary?: boolean;
   /** The endpoint refused the sign-in or key, and the CLI is retrying (`api_retry`, 401). */
   authRetry?: boolean;
+  /** An `api_retry` said how long the CLI waits before trying again (`retry_delay_ms`): a quiet wait it announced. */
+  retryInMs?: number;
 }
 
 /** A task of Claude Code's (`system/task_*`: a Bash command, a subagent…). */
@@ -376,8 +398,10 @@ export class ClaudeStreamParser {
    * the engine to read (`claude_failed`), never the key refused, which would sign out every agent on that key.
    */
   planKey = false;
+  /** The CLI says it is compacting the conversation (`system/status`), until it says otherwise or the boundary. */
+  compacting = false;
 
-  private tools = new Map<string, { name: string; input: unknown }>();
+  private tools = new Map<string, InFlightTool>();
   private sawDelta = false;
   /** The API message whose text streamed (`message_start`): Claude Code says it in one `assistant` per block. */
   private streamedMessage: string | null = null;
@@ -396,10 +420,16 @@ export class ClaudeStreamParser {
   /** Each API call's whole input (cache included), by message id: the largest is the turn's biggest step. */
   private context = new Map<string, number>();
 
+  /** The calls of the main conversation (ours and its own) whose result hasn't come yet, oldest first. */
+  inFlight(): InFlightTool[] {
+    return [...this.tools.values()];
+  }
+
   beginTurn() {
     this.uncached.clear();
     this.context.clear();
     this.tools.clear();
+    this.compacting = false;
     this.sawDelta = false;
     this.streamedMessage = null;
     this.limited = false;
@@ -444,12 +474,15 @@ export class ClaudeStreamParser {
         if (ev.subtype === "api_retry" && ev.error === "rate_limit") this.limited = true;
         // Claude Code says `init` as each turn starts (also one it starts by itself).
         if (ev.subtype === "init") return { events: [], turnStart: true };
+        if (ev.subtype === "status" && main) this.compacting = ev.status === "compacting";
         if (ev.subtype === "compact_boundary" && main) {
           this.compacted = true;
+          this.compacting = false;
           this.onCompacted?.();
         }
+        const retryInMs = ev.subtype === "api_retry" && num(ev.retry_delay_ms) > 0 ? num(ev.retry_delay_ms) : 0;
         const task = taskOf(ev);
-        return task ? { events: [], task } : { events: [] };
+        return { events: [], ...(task ? { task } : {}), ...(retryInMs ? { retryInMs } : {}) };
       }
       case "command_lifecycle":
         // The model picked one of our lines up (msg_lifecycle_v1): the moment it's read.
@@ -502,7 +535,7 @@ export class ClaudeStreamParser {
           if (!isObj(block)) continue;
           if (block.type === "tool_use") this.worked = true;
           if (block.type === "tool_use" && str(block.id) && str(block.name)) {
-            this.tools.set(str(block.id), { name: str(block.name), input: block.input ?? {} });
+            this.tools.set(str(block.id), { name: str(block.name), input: block.input ?? {}, since: Date.now() });
             // Ours run through the bridge, which tells the engine as they start.
             if (!str(block.name).startsWith(OUR_TOOL_PREFIX))
               events.push({
@@ -1052,6 +1085,14 @@ export class ClaudeProcess {
    * servers), and this hears which. Anything the agent's side sends the CLI may lead to one.
    */
   onControl: ((subtype: string) => void) | null = null;
+  /** When it last printed a line (any line: a token, a retry, a subagent's step): a turn's silence counts from here. */
+  lastLineAt = Date.now();
+  /** Calls of its MCP server that our bridge is relaying now (`BrainManager.bridgeCall`): it waits on us meanwhile. */
+  bridgeCalls = 0;
+  /** When one of those started or ended: its silence counts from there too. */
+  bridgeChangedAt = 0;
+  /** Its shell timeout when a command sets none (`BASH_DEFAULT_TIMEOUT_MS` in its env, else the CLI's own). */
+  readonly bashDefaultMs: number;
   private lineHandler: ((line: string) => void) | null = null;
   private exitHandlers = new Set<() => void>();
 
@@ -1069,6 +1110,8 @@ export class ClaudeProcess {
     // `--setting-sources` stays one).
     const run = cliSpawn(command.length ? command : ["claude"], args, env.PATH);
     const runEnv = run.env ? { ...env, ...run.env } : env;
+    const bashDefault = Number(runEnv.BASH_DEFAULT_TIMEOUT_MS);
+    this.bashDefaultMs = Number.isFinite(bashDefault) && bashDefault > 0 ? bashDefault : BASH_DEFAULT_MS;
     this.child = start(run.file, run.args, {
       cwd,
       env: token ? { ...runEnv, ...TOKEN_FD_ENV } : runEnv,
@@ -1088,6 +1131,7 @@ export class ClaudeProcess {
     if (this.child.stdout) {
       const rl = createInterface({ input: this.child.stdout, crlfDelay: Number.POSITIVE_INFINITY });
       (rl as unknown as EventEmitter).on("line", (line: string) => {
+        this.lastLineAt = Date.now();
         // Read whether a turn listens or not (the CLI may say it before the first turn's prompt).
         if (line.includes('"init"')) this.noteInit(line);
         // A locked turn answers only after an `init` that passed: one that never listed its tools never runs.
@@ -1317,12 +1361,18 @@ interface TurnOutcome {
   unread?: string[];
   /** Ended while work it moved to the background still ran: the CLI answers it on its own later (draining). */
   draining?: boolean;
+  /** The CLI said nothing for longer than the phase it was in allows, and was stopped (`died` too). */
+  stalled?: StallInfo;
 }
 
 /**
  * Runs one turn on a process: writes the prompt, emits events (text deltas
  * batched every `deltaMs`), resolves on the turn's `result` or the process
  * exiting first. Abort kills the process.
+ *
+ * Silence (`brain-silence.ts`): a turn whose CLI prints nothing for longer than the phase it is in allows (waiting
+ * for the model, one of its own tools, a compaction; never while a call of ours runs) says so (`stalled`), and the
+ * process is stopped: the turn ends as `died` with `stalled`, for the manager to send it again on the resumed session.
  *
  * The request goes on past a `result` (answers joined) while the CLI is sure
  * to run another turn for it: steered messages still queued, work moved to the
@@ -1363,6 +1413,10 @@ export function runTurnOnProcess(
      * Code would retry for minutes), so the turn ends at once as `not_logged_in`, with these words.
      */
     refused?: string;
+    /** How long each phase may stay quiet (`CLAUDE_SILENCE`; tests: shorter). */
+    silence?: ClaudeSilence;
+    /** This turn is already the resumed one: a stall now ends it (`stalled` says so to the server). */
+    lastTry?: boolean;
   },
 ): Promise<TurnOutcome> {
   const redact = opts.redact ?? ((s: string) => s);
@@ -1377,6 +1431,11 @@ export function runTurnOnProcess(
     let tail = "";
     let timer: ReturnType<typeof setTimeout> | null = null;
     let settled = false;
+    /** The silence check (`watch` below): set once it found the CLI stalled and stopped it. */
+    let stalled: StallInfo | undefined;
+    let watch: ReturnType<typeof setInterval> | null = null;
+    /** An `api_retry` said the CLI waits until then before trying again: quiet till then was announced. */
+    let quietUntil = 0;
     /** Steered messages written to this turn and not yet said read. */
     const outstanding = new Set<string>();
     /** Answers of results that came while steered messages were still queued: they lead the final one. */
@@ -1487,7 +1546,9 @@ export function runTurnOnProcess(
       settled = true;
       if (followUp) clearTimeout(followUp);
       if (backgroundWait) clearTimeout(backgroundWait);
+      if (watch) clearInterval(watch);
       proc.turn = null;
+      if (stalled) out = { ...out, died: out.final ? out.died : true, stalled };
       if (outstanding.size) out = { ...out, unread: [...outstanding] };
       flush();
       proc.onLine(null);
@@ -1521,6 +1582,7 @@ export function runTurnOnProcess(
         unheard = 0;
       }
       if (parsed.boundary) unheard = 0;
+      if (parsed.retryInMs) quietUntil = Math.max(quietUntil, Date.now() + parsed.retryInMs);
       if (parsed.task) noteTask(parsed.task);
       if (parsed.rateLimit) opts.onRateLimit?.(parsed.rateLimit);
       movedOver();
@@ -1576,6 +1638,40 @@ export function runTurnOnProcess(
       opts.onCancel?.();
       finish({ final: { type: "error", code: "canceled", message: "The turn was canceled.", retryable: false } });
     }
+    // Silence (see above): never between a result and the turn the CLI runs next (their own timers bound that).
+    const limits = opts.silence ?? CLAUDE_SILENCE;
+    const begun = Date.now();
+    watch = setInterval(() => {
+      if (settled || stalled || between) return;
+      const limit = silenceLimit(
+        {
+          tools: proc.parser.inFlight(),
+          compacting: proc.parser.compacting,
+          bridgeCalls: proc.bridgeCalls,
+          bashDefaultMs: proc.bashDefaultMs,
+        },
+        limits,
+      );
+      if (!limit) return;
+      const now = Date.now();
+      const since = Math.max(begun, proc.lastLineAt, proc.bridgeChangedAt, quietUntil);
+      if (now - since <= limit.ms) return;
+      stalled = {
+        phase: limit.phase,
+        ...(limit.tool
+          ? { tool: limit.tool.name.slice(0, BRAIN_LIMITS.toolName), label: redact(stallLabel(limit.tool)) }
+          : {}),
+        silentMs: now - since,
+      };
+      flush();
+      opts.emit({ type: "stalled", ...stalled, resumed: !opts.lastTry });
+      opts.onCancel?.();
+      proc.kill();
+      // Its exit ends the turn; one that won't go ends it anyway, left to its kill.
+      const late = setTimeout(() => finish({ died: true }), STALL_EXIT_WAIT_MS);
+      late.unref?.();
+    }, limits.checkMs);
+    watch.unref?.();
     if (opts.signal?.aborted) return onAbort();
     opts.signal?.addEventListener("abort", onAbort, { once: true });
     proc.write(userMessageLine(input(prompt)));
@@ -1619,6 +1715,8 @@ export interface BrainManagerOptions {
   strayWaitMs?: number;
   /** Tests: `OWN_TURN_DUE_WAIT_MS`. */
   dueWaitMs?: number;
+  /** Tests: how long each phase of a turn may stay quiet (`CLAUDE_SILENCE`). */
+  silence?: ClaudeSilence;
   log?: (line: string) => void;
 }
 
@@ -1663,6 +1761,8 @@ interface BridgeEntry {
   runId: string | null;
   runToken: string | null;
   redact?: (text: string) => string;
+  /** Its process, which waits on the bridge while a call of it runs (`bridgeCall`). */
+  proc?: ClaudeProcess;
 }
 
 /** What root tells the agent's worker of one process, but who it is for (`DelegatedBridge`). */
@@ -1864,6 +1964,17 @@ export class BrainManager {
   }
 
   /**
+   * The MCP bridge started relaying a call of the process `id` (+1) or answered it (-1): meanwhile the CLI waits on us
+   * (a permission prompt may wait for a person), so its turn's silence isn't the CLI's (`brain-silence.ts`).
+   */
+  bridgeCall(id: string, delta: 1 | -1) {
+    const proc = this.bridge.get(id)?.proc;
+    if (!proc) return;
+    proc.bridgeCalls = Math.max(0, proc.bridgeCalls + delta);
+    proc.bridgeChangedAt = Date.now();
+  }
+
+  /**
    * Protocol 15: messages for the turn of `runId` in progress, on the agent's
    * process for that session (another agent's turn is never reached).
    */
@@ -2041,6 +2152,12 @@ export class BrainManager {
       // A background turn (a routine's run): nothing stays alive for it afterwards, not even a process it found.
       if (!keepAlive) this.drop(live);
       if (out.final) return timed(out.final);
+      // Stalled and stopped: the same turn again, one-shot, resuming the session, told what hung (`stallNote`).
+      if (out.stalled) {
+        this.logStall(ctx, session, out.stalled, "resuming one-shot");
+        const resume = this.resumeFor(cwd, session, req, ctx, true);
+        return this.oneShot(key, session, cwd, req, ctx, sig, resume, true, "", out.stalled);
+      }
       // Died mid-turn: the same turn again, one-shot, resuming the session. Why it died is logged, and kept for the
       // error should the one-shot die without a word.
       const line = redactedLine(live.proc.stderr, ctx);
@@ -2124,7 +2241,23 @@ export class BrainManager {
     return errorEvent("cli_missing", "Claude Code (claude) is not installed on this computer's PATH.", true);
   }
 
-  private async onLive(live: Live, req: BrainTurnRequest, ctx: BrainTurnContext): Promise<TurnOutcome> {
+  /** A stall in the log: who, what hung and for how long, and what happens next. */
+  private logStall(ctx: BrainTurnContext, session: string, s: StallInfo, next: string) {
+    this.log(
+      `[${ctx.agent.handle}] brain process for ${session.slice(0, 8)} said nothing for ${stallWords(s)}; stopped, ${next}`,
+    );
+  }
+
+  /**
+   * One turn on `live`. `stalledBefore`: the turn is sent again after it stalled (its prompt led by `stallNote`), and a
+   * stall now ends it.
+   */
+  private async onLive(
+    live: Live,
+    req: BrainTurnRequest,
+    ctx: BrainTurnContext,
+    stalledBefore?: StallInfo,
+  ): Promise<TurnOutcome> {
     live.busy = true;
     if (live.idleTimer) clearTimeout(live.idleTimer);
     live.idleTimer = null;
@@ -2150,10 +2283,13 @@ export class BrainManager {
         });
       }
       const prompt = turnPrompt(live, req);
-      const out = await runTurnOnProcess(live.proc, told ? `${told}\n\n${prompt}` : prompt, {
+      const lead = [told, stalledBefore ? stallNote(stalledBefore) : ""].filter(Boolean).join("\n\n");
+      const out = await runTurnOnProcess(live.proc, lead ? `${lead}\n\n${prompt}` : prompt, {
         emit: ctx.emit,
         signal: ctx.signal,
         deltaMs: this.opts.deltaMs,
+        ...(this.opts.silence ? { silence: this.opts.silence } : {}),
+        ...(stalledBefore ? { lastTry: true } : {}),
         redact: ctx.secrets?.redact,
         redactHold: ctx.secrets?.hold,
         ...(delegated
@@ -2227,11 +2363,33 @@ export class BrainManager {
     mayRetryFlag: boolean,
     /** The error line of a process that died on this turn before: said when this one dies without a word. */
     earlier = "",
+    /** This turn stalled before and is sent again: told so, and a second stall ends it. */
+    stalledBefore?: StallInfo,
   ): Promise<WireBrainEvent> {
     const live = await this.spawn(key, session, cwd, req, ctx, sig, false, resume);
-    const out = await this.onLive(live, req, ctx);
+    const out = await this.onLive(live, req, ctx, stalledBefore);
     this.drop(live);
     if (out.final) return out.final;
+    if (out.stalled && !stalledBefore) {
+      this.logStall(ctx, session, out.stalled, "resuming one-shot");
+      return this.oneShot(
+        key,
+        session,
+        cwd,
+        req,
+        ctx,
+        sig,
+        this.resumeFor(cwd, session, req, ctx, true),
+        false,
+        earlier,
+        out.stalled,
+      );
+    }
+    // Stalled again on its resumed session: whatever hangs there would hang a third time.
+    if (out.stalled) {
+      this.logStall(ctx, session, out.stalled, "ending the turn (it stalled before too)");
+      return errorEvent("brain_stalled", stalledAgainMessage(out.stalled), false);
+    }
     if (live.proc.stderr.startsWith("ENOENT")) return this.cliMissing();
     const fast = Date.now() - live.proc.startedAt <= FAST_FAIL_MS;
     // Never into `--resume` on a delegated CLI: a transcript it doesn't own is what that answer may mean.
@@ -2475,6 +2633,9 @@ export class BrainManager {
       proc.onControl = (subtype) => this.log(`[${ctx.agent.handle}] refused the CLI's control_request ${subtype}`);
     }
     proc.parser.planKey = Boolean(plan);
+    // The bridge tells it when a call of its runs (`bridgeCall`): a turn waiting on us isn't silent.
+    const entry = this.bridge.get(id);
+    if (entry) entry.proc = proc;
     const live: Live = {
       key,
       agentId: ctx.agent.id,

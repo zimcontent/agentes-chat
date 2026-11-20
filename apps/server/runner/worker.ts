@@ -669,6 +669,7 @@ export async function runWorker(o: WorkerOptions): Promise<number> {
     socketPath,
     task: (taskId) =>
       tasks.mcpTask(taskId) ?? brains.mcpTask(taskId) ?? codexRuns.get(taskId) ?? delegatedRuns.get(taskId) ?? null,
+    onCall: (taskId, delta) => brains.bridgeCall(taskId, delta),
     log,
   });
   await mcp

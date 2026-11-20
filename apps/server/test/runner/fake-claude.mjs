@@ -14,7 +14,8 @@
 // deltas, each 150 ms before the next line, "KEY401" is refused by the endpoint and retries for good
 // (as Claude Code 2.1.310 does, ten times with backoff), "ASKCONTROL" asks for an elicitation on stdout and answers
 // with what it got back, "ECHOSHAPE" prints a token-shaped text in two deltas, "ECHOLONGSHAPE" one that goes on over
-// three after its prefix, "KEY403" is forbidden by it (a model or account switched off). Control requests: `initialize`, and `get_usage`
+// three after its prefix, "KEY403" is forbidden by it (a model or account switched off), "HANG…", "OURTOOLWAIT",
+// "RETRYWAIT" and "QUIETWAIT" go quiet (see below). Control requests: `initialize`, and `get_usage`
 // as $FAKE_CLAUDE_USAGE says ("" a Max plan's windows, "signed_out", "error",
 // "hang": never).
 // With `--json-schema` it is a route (`brain.route`): the prompt on stdin, one JSON result whose
@@ -331,6 +332,57 @@ async function answer(line) {
     await sleep(20);
     process.exit(3);
   }
+  // Silence: "HANGMODEL" starts the model's answer and goes quiet, once (its resumed process answers);
+  // "HANGTOOL" runs a shell command with a 50 ms timeout that never ends, once; "HANGEVER" goes quiet every time;
+  // "OURTOOLWAIT" calls one of our tools, quiet 700 ms till its result; "RETRYWAIT" says it retries in 800 ms and is
+  // quiet 600 ms; "QUIETWAIT" is quiet 1500 ms, then answers.
+  const hung = marker ? `${marker}-hung` : "";
+  const hangOnce = (prompt.includes("HANGMODEL") || prompt.includes("HANGTOOL")) && hung && !existsSync(hung);
+  if (hangOnce || prompt.includes("HANGEVER")) {
+    if (hung) writeFileSync(hung, "");
+    if (prompt.includes("HANGTOOL")) {
+      out({
+        type: "assistant",
+        message: {
+          content: [{ type: "tool_use", id: "h1", name: "Bash", input: { command: "sleep 999\nmore", timeout: 50 } }],
+        },
+        parent_tool_use_id: null,
+      });
+    } else {
+      out({
+        type: "stream_event",
+        event: { type: "message_start", message: { id: "msg_hang" } },
+        parent_tool_use_id: null,
+      });
+    }
+    await sleep(600_000);
+    return;
+  }
+  if (prompt.includes("OURTOOLWAIT")) {
+    out({
+      type: "assistant",
+      message: { content: [{ type: "tool_use", id: "o1", name: "mcp__agentes__search_context", input: { q: "x" } }] },
+      parent_tool_use_id: null,
+    });
+    await sleep(700);
+    out({
+      type: "user",
+      message: { content: [{ type: "tool_result", tool_use_id: "o1", content: "found" }] },
+      parent_tool_use_id: null,
+    });
+  }
+  if (prompt.includes("RETRYWAIT")) {
+    out({
+      type: "system",
+      subtype: "api_retry",
+      attempt: 1,
+      max_retries: 10,
+      retry_delay_ms: 800,
+      error: "overloaded",
+    });
+    await sleep(600);
+  }
+  if (prompt.includes("QUIETWAIT")) await sleep(1500);
   if (prompt.includes("ASKCONTROL")) {
     out({
       type: "control_request",

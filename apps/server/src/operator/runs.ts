@@ -254,13 +254,19 @@ const Trace = z
           seq: z.number().int(),
           kind: z.enum(schema.agentRunStepKindEnum.enumValues),
           at: Time,
-          tool: z.string().nullable().openapi({ description: "A tool call's and its result's." }),
+          tool: z.string().nullable().openapi({
+            description:
+              "A tool call's and its result's. A `context` step's that kept a call the computer's CLI ran itself (`computerTool`: Bash, Edit…): that tool. An error's whose `reason` is `brain_stalled`: the CLI's own tool it hung in.",
+          }),
           builtIn: z
             .boolean()
             .nullable()
             .openapi({ description: `A tool call's and its result's. ${BUILT_IN}` }),
           connector: z.string().nullable().openapi({ description: "A tool call's: the connection the tool is of." }),
-          isError: z.boolean().nullable().openapi({ description: "A tool result's." }),
+          isError: z
+            .boolean()
+            .nullable()
+            .openapi({ description: "A tool result's, and a `computerTool` step's (a call the computer's CLI ran)." }),
           refusal: z
             .string()
             .nullable()
@@ -269,7 +275,7 @@ const Trace = z
             .string()
             .nullable()
             .openapi({
-              description: `An error's, or a tool result's own (\`tool.unknown\`, \`tool.invalid_input\`, \`tool.failed\`, \`tool.not_allowed\`…). On an error whose \`reason\` is \`no_ai\`: why the run had nothing to think with, one of ${NO_AI_CARD_REASONS.map((r) => `\`${r}\``).join(", ")}; null on a run from before the server kept it.`,
+              description: `An error's, or a tool result's own (\`tool.unknown\`, \`tool.invalid_input\`, \`tool.failed\`, \`tool.not_allowed\`…). On an error whose \`reason\` is \`no_ai\`: why the run had nothing to think with, one of ${NO_AI_CARD_REASONS.map((r) => `\`${r}\``).join(", ")}; null on a run from before the server kept it. On an error whose \`reason\` is \`brain_stalled\` (the computer stopped the CLI after it said nothing for too long): where it was, \`model\` (waiting for the model's answer), \`tool\` (in one of its own tools, \`tool\`) or \`compacting\`.`,
             }),
           errorClass: z
             .enum(OPERATOR_ERROR_CLASSES)
@@ -284,7 +290,7 @@ const Trace = z
             .string()
             .nullable()
             .openapi({
-              description: `An error's: \`transient\`, \`provider_outage\`, \`brain_unavailable\`, \`usage_wait\`, \`no_ai\`, \`canceled\`, \`gave_up\`, \`recovered\`, \`interrupted\`… A \`context\` step's that handed the run's unread messages on to another run (\`redispatchedMessageIds\`): why, one of ${RELEASE_REASONS.map((r) => `\`${r}\``).join(", ")}.`,
+              description: `An error's: \`transient\`, \`provider_outage\`, \`brain_unavailable\`, \`brain_stalled\`, \`usage_wait\`, \`no_ai\`, \`canceled\`, \`gave_up\`, \`recovered\`, \`interrupted\`… A \`context\` step's that handed the run's unread messages on to another run (\`redispatchedMessageIds\`): why, one of ${RELEASE_REASONS.map((r) => `\`${r}\``).join(", ")}.`,
             }),
           toRunId: z.uuid().nullable().openapi({
             description:
@@ -313,7 +319,8 @@ const Trace = z
             .nullable()
             .openapi({ description: `A tool call's. ${INPUT_DIGEST}` }),
           durationMs: Count.nullable().openapi({
-            description: "A tool result's: since its call; null when the call is on an earlier page.",
+            description:
+              "A tool result's: since its call; null when the call is on an earlier page. A `computerTool` step's: how long the computer's CLI ran that call (null when the CLI said only its end). A `brain_stalled` error's: how long nothing came from the CLI.",
           }),
           messageId: z.uuid().nullable().openapi({ description: "A `message` step's: the reply it posted." }),
           records: z.array(z.string()).openapi({
