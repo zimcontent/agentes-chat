@@ -194,6 +194,16 @@ export const RECLAIM_EXIT_MS = 2_000;
 export const DELTA_FLUSH_MS = 50;
 /** A one-shot start that fails this fast with "wrong session flag" is retried once with the other flag. */
 const FAST_FAIL_MS = 30_000;
+/**
+ * Claude Code started without our MCP server (it gave up on it, or it never came up): none of our tools, the
+ * `--permission-prompt-tool` included, so the first command that needs a prompt ends the process with "MCP tool
+ * mcp__agentes__permission_prompt (passed via --permission-prompt-tool) not found. Available MCP tools: none".
+ * Nothing that needed a prompt ran, and the session keeps what did: the turn goes again on a new process, resumed,
+ * after `MCP_MISSING_RETRY_MS` (ADR 0032 addendum 2026-11-20).
+ */
+export const MCP_MISSING = /--permission-prompt-tool\) not found|Available MCP tools: none/;
+/** How long a turn that started without our MCP server waits before its new process (the bridge settles). */
+export const MCP_MISSING_RETRY_MS = 3_000;
 const SESSION_ID = /^[a-fA-F0-9-]{36}$/;
 const RUN_ID = /^[a-zA-Z0-9-]{8,64}$/;
 const MODEL = /^[A-Za-z0-9._:[\]-]{1,100}$/;
@@ -1761,6 +1771,8 @@ export interface BrainManagerOptions {
   strayWaitMs?: number;
   /** Tests: `OWN_TURN_DUE_WAIT_MS`. */
   dueWaitMs?: number;
+  /** Tests: `MCP_MISSING_RETRY_MS`. */
+  mcpRetryMs?: number;
   /** Tests: how long each phase of a turn may stay quiet (`CLAUDE_SILENCE`). */
   silence?: ClaudeSilence;
   log?: (line: string) => void;
@@ -2212,6 +2224,8 @@ export class BrainManager {
         `[${ctx.agent.handle}] brain process for ${session.slice(0, 8)} died mid-turn (${died}); resuming one-shot`,
       );
       if (live.proc.stderr.startsWith("ENOENT")) return this.cliMissing();
+      // Started without our MCP server: a moment for the bridge before the next process dials it.
+      if (MCP_MISSING.test(live.proc.stderr)) await this.mcpPause();
       const resume = this.resumeFor(cwd, session, req, ctx, true);
       return this.oneShot(key, session, cwd, req, ctx, sig, resume, true, line);
     }
@@ -2281,6 +2295,11 @@ export class BrainManager {
     const ran = ranBefore || this.ran.has(ranKeyOf(req, session));
     // An account folder with no sessions yet: the conversation's earlier ones live in another home.
     return ctx.accountHome ? ran : ran || req.session?.resume === true;
+  }
+
+  /** `MCP_MISSING_RETRY_MS`. */
+  private mcpPause() {
+    return new Promise<void>((resolve) => setTimeout(resolve, this.opts.mcpRetryMs ?? MCP_MISSING_RETRY_MS));
   }
 
   private cliMissing() {
@@ -2441,6 +2460,26 @@ export class BrainManager {
     // Never into `--resume` on a delegated CLI: a transcript it doesn't own is what that answer may mean.
     if (mayRetryFlag && fast && WRONG_SESSION_FLAG.test(live.proc.stderr) && (resume || !ctx.delegated)) {
       return this.oneShot(key, session, cwd, req, ctx, sig, !resume, false, earlier, stalledBefore);
+    }
+    // Started without our MCP server (`MCP_MISSING`): once more on a new process, resuming what this one did. Once a
+    // turn: a routine's (never kept alive) here, a kept-alive one's after the one-shot that followed its process.
+    if (mayRetryFlag && MCP_MISSING.test(live.proc.stderr) && !this.closed) {
+      this.log(
+        `[${ctx.agent.handle}] brain one-shot for ${session.slice(0, 8)} started without its MCP tools; trying once more`,
+      );
+      await this.mcpPause();
+      const again = this.resumeFor(cwd, session, req, ctx, true);
+      return this.oneShot(
+        key,
+        session,
+        cwd,
+        req,
+        ctx,
+        sig,
+        again,
+        false,
+        redactedLine(live.proc.stderr, ctx) || earlier,
+      );
     }
     const said = live.proc.stderr.trim().split("\n").slice(-3).join(" ").trim();
     if (/not logged in|\/login/i.test(said)) {
