@@ -61,6 +61,7 @@ import {
 import { linePrompt } from "./reporting";
 import { wikiPersonOf } from "./requester";
 import { isRightHand } from "./right-hand";
+import { RIGHT_HAND_RESOLVE } from "./right-hand-defaults";
 import { rightHandPrompt, rightHandTools } from "./right-hand-prompt";
 import { rightHandRondaBrief } from "./right-hand-ronda";
 import { seatState } from "./right-hand-seats";
@@ -1144,6 +1145,7 @@ export async function buildRunContext(
             `You are ${agent.name} (@${agent.handle})${agent.role ? `, ${agent.role}` : ""}, ${personal ? "one of this person's AI agents" : "an AI agent of this organization"}.`,
             agent.instructions.trim() ? `# Your instructions\n${agent.instructions.trim()}` : "",
             // The right hand with nobody behind the run (another agent's message) still keeps to its tools.
+            isRightHand(agent) ? RIGHT_HAND_RESOLVE : "",
             isRightHand(agent) ? rightHandTools(await seatState(db, run)) : "",
           ]
             .filter(Boolean)

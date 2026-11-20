@@ -19976,6 +19976,7 @@
       "action_update_skills": "Zaktualizuj umiejętności",
       "action_approvals": "Zatwierdzenia czekające na ciebie",
       "welcome_member": "Od teraz jesteś w {{org}}. **Czym się tu zajmujesz?** Napisz mi, a skonfiguruję z tobą twojego pierwszego agenta.",
+      "first_task_ask": "Zacznijmy od czegoś prawdziwego: **daj mi nudne zadanie, które robisz co tydzień.** Zrobię je tutaj, od razu, a jeśli wyjdzie po twojej myśli, mogę przejąć je od ciebie co tydzień.",
       "action_open_page": "Otwórz ekran",
       "calendar_proposal": "Propozycja wydarzenia: {{title}}",
       "action_workspace": "Zaproponowano zmianę w przestrzeni roboczej",

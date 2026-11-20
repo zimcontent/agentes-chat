@@ -18271,6 +18271,7 @@
       "action_update_skills": "Perbarui skill",
       "action_approvals": "Persetujuan yang menunggumu",
       "welcome_member": "Anda baru saja bergabung dengan {{org}}. **Apa yang Anda tangani di sini?** Beri tahu saya dan saya siapkan agen pertama Anda bersama Anda.",
+      "first_task_ask": "Kita mulai dari sesuatu yang nyata: **berikan saya satu tugas membosankan yang Anda kerjakan setiap minggu.** Saya kerjakan sekarang juga di sini, dan kalau hasilnya sesuai, saya bisa mengambil alih setiap minggu.",
       "action_open_page": "Buka layar",
       "calendar_proposal": "Usulan acara: {{title}}",
       "action_workspace": "Mengusulkan perubahan di ruang kerja",

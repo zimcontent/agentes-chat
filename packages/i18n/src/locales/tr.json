@@ -18753,6 +18753,7 @@
       "action_update_skills": "Becerileri güncelle",
       "action_approvals": "Sizi bekleyen onaylar",
       "welcome_member": "{{org}} çalışma alanına az önce katıldın. **Burada nelerle ilgileniyorsun?** Bana anlat, ilk ajanını birlikte kuralım.",
+      "first_task_ask": "Gerçek bir işle başlayalım: **her hafta yaptığın sıkıcı bir işi bana ver.** Şimdi burada hallederim, istediğin gibi olursa her hafta senin yerine yapabilirim.",
       "action_open_page": "Bir ekran aç",
       "calendar_proposal": "Etkinlik önerisi: {{title}}",
       "action_workspace": "Çalışma alanında bir değişiklik önerdi",

@@ -304,6 +304,7 @@ export * from "./review-gate";
 export * from "./review-rounds";
 export * from "./right-hand";
 export * from "./right-hand-approvals";
+export * from "./right-hand-defaults";
 export * from "./right-hand-follow";
 export * from "./right-hand-lane";
 export * from "./right-hand-lanes";

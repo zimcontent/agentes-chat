@@ -46453,6 +46453,9 @@
   "chat.body.welcome_member": {
     "value": "You just joined {{org}}. **What do you look after here?** Tell me and I set up your first agent with you."
   },
+  "chat.body.first_task_ask": {
+    "value": "Let's start with something real: **give me a boring task you do every week.** I'll do it right here, now, and if it comes out the way you like I can take it off your hands every week."
+  },
   "chat.body.action_open_page": {
     "value": "Open a screen"
   },
