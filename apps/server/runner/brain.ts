@@ -76,7 +76,7 @@ import { coAuthorLines } from "./co-authors";
 import { ownBranches } from "./command-gate";
 import { DELEGATED_RESULT_CHARS, type DelegatedBridge } from "./delegated-tools";
 import { RunnerError } from "./errors";
-import { killTree } from "./exec";
+import { descendantPids, killTree } from "./exec";
 import { cliSpawn } from "./executors";
 import { HARDENED_GIT_ARGS } from "./git-guard";
 import { readJson, writeJson } from "./json-file";
@@ -1106,6 +1106,10 @@ export class ClaudeProcess {
   bridgeChangedAt = 0;
   /** Its shell timeout when a command sets none (`BASH_DEFAULT_TIMEOUT_MS` in its env, else the CLI's own). */
   readonly bashDefaultMs: number;
+  /** Its API timeout (`API_TIMEOUT_MS` in its env), when set. */
+  readonly apiTimeoutMs: number | undefined;
+  /** Started with settings files of its own (no `--setting-sources`): their hooks and env time it too. */
+  readonly ownSettings: boolean;
   private lineHandler: ((line: string) => void) | null = null;
   private exitHandlers = new Set<() => void>();
 
@@ -1125,14 +1129,15 @@ export class ClaudeProcess {
     const runEnv = run.env ? { ...env, ...run.env } : env;
     const bashDefault = Number(runEnv.BASH_DEFAULT_TIMEOUT_MS);
     this.bashDefaultMs = Number.isFinite(bashDefault) && bashDefault > 0 ? bashDefault : BASH_DEFAULT_MS;
+    const apiTimeout = Number(runEnv.API_TIMEOUT_MS);
+    this.apiTimeoutMs = Number.isFinite(apiTimeout) && apiTimeout > 0 ? apiTimeout : undefined;
+    this.ownSettings = !args.includes("--setting-sources");
     this.child = start(run.file, run.args, {
       cwd,
       env: token ? { ...runEnv, ...TOKEN_FD_ENV } : runEnv,
       stdio: token ? [...TOKEN_STDIO] : ["pipe", "pipe", "pipe"],
       windowsHide: true,
       windowsVerbatimArguments: run.windowsVerbatimArguments,
-      // Its own process group, so `killTree` takes a shell command it hung in along.
-      detached: process.platform !== "win32",
     });
     if (token) handToken(this.child, token);
     const events = this.child as unknown as EventEmitter;
@@ -1196,10 +1201,10 @@ export class ClaudeProcess {
 
   /**
    * Ends Claude Code. On Windows its whole tree: started through cmd.exe (npm's `claude.cmd`), killing the child alone
-   * would leave Claude Code running the turn. `tree` elsewhere: its process group too, with a command it hung in.
+   * would leave Claude Code running the turn.
    */
-  private end(signal: NodeJS.Signals, tree = false) {
-    if (tree || process.platform === "win32") killTree(this.child, signal);
+  private end(signal: NodeJS.Signals) {
+    if (process.platform === "win32") killTree(this.child, signal);
     else this.child.kill(signal);
   }
 
@@ -1350,15 +1355,21 @@ export class ClaudeProcess {
   /** `tree`: what it started goes too, even what outlives it a moment (a command that ignores SIGTERM). */
   kill(tree = false) {
     if (this.exited) return;
-    try {
-      this.end("SIGTERM", tree);
-    } catch {}
-    const t = setTimeout(() => {
-      if (tree || !this.exited) {
+    // Listed before it goes: once it has, what it started belongs to init. (Windows: `end` already takes its tree.)
+    const under = tree && process.platform !== "win32" && this.child.pid ? descendantPids(this.child.pid) : [];
+    const signal = (s: NodeJS.Signals) => {
+      try {
+        this.end(s);
+      } catch {}
+      for (const pid of under) {
         try {
-          this.end("SIGKILL", tree);
+          process.kill(pid, s);
         } catch {}
       }
+    };
+    signal("SIGTERM");
+    const t = setTimeout(() => {
+      if (tree || !this.exited) signal("SIGKILL");
     }, 3000);
     t.unref?.();
   }
@@ -1664,7 +1675,13 @@ export function runTurnOnProcess(
     // Silence (see above): never between a result and the turn the CLI runs next (their own timers bound that).
     const limits = opts.silence ?? CLAUDE_SILENCE;
     const begun = Date.now();
+    let lastTick = begun;
+    /** When the computer woke from sleep: the clock jumped over time nothing could print in. */
+    let wokeAt = 0;
     watch = setInterval(() => {
+      const tick = Date.now();
+      if (tick - lastTick > 3 * limits.checkMs) wokeAt = tick;
+      lastTick = tick;
       if (settled || stalled || between) return;
       const limit = silenceLimit(
         {
@@ -1672,15 +1689,17 @@ export function runTurnOnProcess(
           compacting: proc.parser.compacting,
           bridgeCalls: proc.bridgeCalls,
           bashDefaultMs: proc.bashDefaultMs,
+          apiTimeoutMs: proc.apiTimeoutMs,
+          ownSettings: proc.ownSettings,
         },
         limits,
       );
       if (!limit) return;
-      const now = Date.now();
-      const floor = Math.max(begun, proc.bridgeChangedAt, quietUntil);
-      const silent = now - Math.max(floor, proc.lastLineAt);
-      const quiet = now - Math.max(floor, proc.lastOutputAt);
-      if (silent <= limit.ms && quiet <= limits.openBlockMs) return;
+      const floor = Math.max(begun, proc.bridgeChangedAt, quietUntil, wokeAt);
+      const silent = tick - Math.max(floor, proc.lastLineAt);
+      const quiet = tick - Math.max(floor, proc.lastOutputAt);
+      // Out of a block `quiet` is `silent`: the open-block bound never cuts a phase's own limit shorter.
+      if (silent <= limit.ms && quiet <= Math.max(limit.ms, limits.openBlockMs)) return;
       stalled = {
         phase: limit.phase,
         ...(limit.tool

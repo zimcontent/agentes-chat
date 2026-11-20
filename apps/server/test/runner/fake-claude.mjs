@@ -15,7 +15,7 @@
 // (as Claude Code 2.1.310 does, ten times with backoff), "ASKCONTROL" asks for an elicitation on stdout and answers
 // with what it got back, "ECHOSHAPE" prints a token-shaped text in two deltas, "ECHOLONGSHAPE" one that goes on over
 // three after its prefix, "KEY403" is forbidden by it (a model or account switched off), "HANG…" (the API's pings
-// going on in "HANGPING", inside an open thinking block in "HANGTHINK"), "LONGTHINK", "OURTOOLWAIT",
+// going on in "HANGPING", inside an open thinking block in "HANGTHINK"), "LONGTHINK", "LONGTOOL", "OURTOOLWAIT",
 // "RETRYWAIT" and "QUIETWAIT" go quiet (see below). Control requests: `initialize`, and `get_usage`
 // as $FAKE_CLAUDE_USAGE says ("" a Max plan's windows, "signed_out", "error",
 // "hang": never).
@@ -27,6 +27,7 @@
 // config folder ($CLAUDE_CONFIG_DIR, else ~/.claude: a `.credentials.json` there); otherwise its result is
 // "Not logged in · Please run /login" (exit 1). "SLOWTASK" takes 30 s, "SLOWKEY" 3 s, "ECHOKEY" answers with
 // $ANTHROPIC_AUTH_TOKEN, "NOSESSION" refuses its session flag after 1.5 s (exit 1).
+import { spawn } from "node:child_process";
 import { appendFileSync, closeSync, existsSync, readFileSync, readSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { createInterface } from "node:readline";
@@ -337,7 +338,9 @@ async function answer(line) {
   // same while the API's pings go on every 40 ms (as Claude Code passes them on over an answer that stopped coming);
   // "HANGTHINK" the same inside an open thinking block (a think whose text is omitted, that never ends); "LONGTHINK"
   // thinks 900 ms with only pings inside its open block, then answers;
-  // "HANGTOOL" runs a shell command with a 50 ms timeout that never ends, once; "HANGEVER" goes quiet every time;
+  // "HANGTOOL" runs a shell command with a 50 ms timeout that never ends, once, in a process group of its own as Claude
+  // Code starts one (its pid in "<marker>-child"); "LONGTOOL" a command with a 2500 ms timeout, quiet 2000 ms till its
+  // result; "HANGEVER" goes quiet every time;
   // "OURTOOLWAIT" calls one of our tools, quiet 700 ms till its result; "RETRYWAIT" says it retries in 800 ms and is
   // quiet 600 ms; "QUIETWAIT" is quiet 1500 ms, then answers.
   const hung = marker ? `${marker}-hung` : "";
@@ -351,6 +354,8 @@ async function answer(line) {
   if (hangOnce || prompt.includes("HANGEVER")) {
     if (hung) writeFileSync(hung, "");
     if (prompt.includes("HANGTOOL")) {
+      const child = spawn("sleep", ["999"], { detached: true, stdio: "ignore" });
+      writeFileSync(`${marker}-child`, String(child.pid));
       out({
         type: "assistant",
         message: {
@@ -386,6 +391,19 @@ async function answer(line) {
     await sleep(900);
     clearInterval(pings);
     ev({ type: "content_block_stop", index: 0 });
+  }
+  if (prompt.includes("LONGTOOL")) {
+    out({
+      type: "assistant",
+      message: { content: [{ type: "tool_use", id: "l1", name: "Bash", input: { command: "make", timeout: 2500 } }] },
+      parent_tool_use_id: null,
+    });
+    await sleep(2000);
+    out({
+      type: "user",
+      message: { content: [{ type: "tool_result", tool_use_id: "l1", content: "built" }] },
+      parent_tool_use_id: null,
+    });
   }
   if (prompt.includes("OURTOOLWAIT")) {
     out({

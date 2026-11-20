@@ -13,12 +13,15 @@ import type { BrainStallPhase } from "@dougbot/adapters/machine-protocol";
  * What may run long without a line has its own limit: one of its own tools (a shell command for as long as its
  * timeout), the conversation being compacted, and nothing at all while a call of ours runs (a permission prompt may
  * wait for a person; our tools have their own timeouts, and so does the CLI's wait for any MCP server's).
+ * With settings files of its own loaded (the owner's and the folder's), their hooks and the timeouts their env sets
+ * can hold any phase longer than the table knows: no phase is cut shorter than `ownSettingsMs` then.
  */
 
 export interface ClaudeSilence {
   /**
    * No tool runs: the turn waits for the model's answer. Past Claude Code's own 5 min watchdog on a stream that sends
-   * nothing, which then asks again without streaming and prints nothing until that answer is whole.
+   * nothing, which then asks again without streaming and prints nothing until that answer is whole (within its API
+   * timeout: an `API_TIMEOUT_MS` set longer stretches this).
    */
   modelMs: number;
   /** Only keep-alives inside an open block of the answer (a long think): a stream stuck there still pings. */
@@ -31,22 +34,28 @@ export interface ClaudeSilence {
   commandGraceMs: number;
   /** A subagent (`Task`, `Agent`): its own steps print lines, but one long answer of its may not. */
   subagentMs: number;
+  /** Settings files of its own are loaded: the least any phase gets. */
+  ownSettingsMs: number;
   /** How often a turn looks. */
   checkMs: number;
 }
 
 export const CLAUDE_SILENCE: ClaudeSilence = {
   modelMs: 10 * 60_000,
-  openBlockMs: 30 * 60_000,
+  openBlockMs: 60 * 60_000,
   compactingMs: 15 * 60_000,
   toolMs: 6 * 60_000,
   commandGraceMs: 3 * 60_000,
   subagentMs: 20 * 60_000,
+  ownSettingsMs: 30 * 60_000,
   checkMs: 15_000,
 };
 
 /** Claude Code's own shell timeout when the call sets none (its `BASH_DEFAULT_TIMEOUT_MS`). */
 export const BASH_DEFAULT_MS = 120_000;
+
+/** Claude Code's watchdog on a stream that sends nothing, before it asks again without streaming. */
+const STREAM_WATCHDOG_MS = 300_000;
 
 /** After a stalled CLI is told to end, how long the turn waits for it to go before ending anyway. */
 export const STALL_EXIT_WAIT_MS = 5_000;
@@ -116,12 +125,23 @@ function toolLimit(tool: InFlightTool, limits: ClaudeSilence, bashDefaultMs: num
  * the one that may run longest decides.
  */
 export function silenceLimit(
-  state: { tools: InFlightTool[]; compacting: boolean; bridgeCalls: number; bashDefaultMs?: number },
+  state: {
+    tools: InFlightTool[];
+    compacting: boolean;
+    bridgeCalls: number;
+    bashDefaultMs?: number;
+    apiTimeoutMs?: number;
+    ownSettings?: boolean;
+  },
   limits: ClaudeSilence,
 ): { phase: SilencePhase; ms: number; tool?: InFlightTool } | null {
   if (state.bridgeCalls > 0) return null;
+  const least = state.ownSettings ? limits.ownSettingsMs : 0;
   if (state.tools.length === 0) {
-    return state.compacting ? { phase: "compacting", ms: limits.compactingMs } : { phase: "model", ms: limits.modelMs };
+    const api = state.apiTimeoutMs ? state.apiTimeoutMs + STREAM_WATCHDOG_MS : 0;
+    return state.compacting
+      ? { phase: "compacting", ms: Math.max(limits.compactingMs, api, least) }
+      : { phase: "model", ms: Math.max(limits.modelMs, api, least) };
   }
   let longest: { tool: InFlightTool; ms: number } | null = null;
   for (const tool of state.tools) {
@@ -129,7 +149,7 @@ export function silenceLimit(
     if (ms === null) return null;
     if (!longest || ms > longest.ms) longest = { tool, ms };
   }
-  return longest ? { phase: "tool", ms: longest.ms, tool: longest.tool } : null;
+  return longest ? { phase: "tool", ms: Math.max(longest.ms, least), tool: longest.tool } : null;
 }
 
 const firstLine = (s: string) => s.trim().split("\n")[0]?.trim() ?? "";

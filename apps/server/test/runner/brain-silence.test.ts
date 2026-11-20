@@ -39,6 +39,7 @@ const QUICK: ClaudeSilence = {
   toolMs: 300,
   commandGraceMs: 100,
   subagentMs: 3000,
+  ownSettingsMs: 30_000,
   checkMs: 25,
 };
 
@@ -74,6 +75,20 @@ test("silence: the model's answer, a compaction, its own tools and a command by 
   expect(
     at({ tools: [tool("Read"), tool("Bash", { timeout: 300_000 })], compacting: false, bridgeCalls: 0 }),
   ).toMatchObject({ ms: 8 * 60_000, tool: { name: "Bash" } });
+});
+
+test("silence: a longer API timeout stretches the model's wait; settings of its own leave no phase under 30 minutes", () => {
+  const at = (s: Parameters<typeof silenceLimit>[0]) => silenceLimit(s, CLAUDE_SILENCE);
+  // Its API timeout plus the CLI's 5-minute watchdog, never under the default.
+  expect(at({ tools: [], compacting: false, bridgeCalls: 0, apiTimeoutMs: 900_000 })?.ms).toBe(20 * 60_000);
+  expect(at({ tools: [], compacting: true, bridgeCalls: 0, apiTimeoutMs: 900_000 })?.ms).toBe(20 * 60_000);
+  expect(at({ tools: [], compacting: false, bridgeCalls: 0, apiTimeoutMs: 60_000 })?.ms).toBe(10 * 60_000);
+  // Hooks and its settings' env may hold anything: a blocking TaskOutput, a tool the table doesn't know, a stop hook.
+  const own = { compacting: false, bridgeCalls: 0, ownSettings: true };
+  expect(at({ ...own, tools: [] })?.ms).toBe(30 * 60_000);
+  expect(at({ ...own, tools: [tool("TaskOutput", { block: true, timeout: 600_000 })] })?.ms).toBe(30 * 60_000);
+  expect(at({ ...own, tools: [tool("Edit")] })?.ms).toBe(30 * 60_000);
+  expect(at({ ...own, tools: [tool("Bash", { timeout: 3_000_000 })] })?.ms).toBe(53 * 60_000);
 });
 
 test("silence: nothing is timed while a call of ours runs, or the model called an MCP server's tool", () => {
@@ -211,7 +226,7 @@ function setup(over: Partial<BrainManagerOptions> = {}) {
     );
     return { final, events };
   };
-  return { m, spawns, turn };
+  return { m, spawns, turn, home };
 }
 
 const stalls = (events: WireBrainEvent[]) => events.filter((e) => e.type === "stalled");
@@ -289,6 +304,58 @@ test.if(posix)("a command that outlives its own timeout: the turn says which, an
   expect(silent?.type === "stalled" && silent.silentMs).toBeLessThan(QUICK.modelMs);
   expect(r.final).toMatchObject({ type: "done" });
   expect(r.final.type === "done" && r.final.text).toContain("while it ran Bash (sleep 999)");
+});
+
+test.if(posix)("a stalled command in a process group of its own is stopped with the CLI", async () => {
+  const { home, turn } = setup();
+  let pid = 0;
+  try {
+    const r = await turn(1, "HANGTOOL please");
+    expect(stalls(r.events)).toHaveLength(1);
+    pid = Number(readFileSync(path.join(home, "crashed-child"), "utf8"));
+    expect(pid).toBeGreaterThan(0);
+    const alive = () => {
+      try {
+        process.kill(pid, 0);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    for (let i = 0; i < 40 && alive(); i++) await Bun.sleep(50);
+    expect(alive()).toBe(false);
+  } finally {
+    try {
+      if (pid) process.kill(pid, "SIGKILL");
+    } catch {}
+  }
+});
+
+test.if(posix)("a command quiet past the open-block bound but within its own timeout is no stall", async () => {
+  const { spawns, turn } = setup();
+  const r = await turn(1, "LONGTOOL please");
+  expect(stalls(r.events)).toEqual([]);
+  expect(r.final).toMatchObject({ type: "done", text: "echo 1: LONGTOOL please" });
+  expect(spawns()).toHaveLength(1);
+});
+
+test.if(posix)("the time a computer slept is no silence", async () => {
+  const { turn } = setup();
+  const realNow = Date.now;
+  let slept = 0;
+  Date.now = () => realNow() + slept;
+  const jump = setTimeout(() => {
+    slept = 10 * 60_000;
+  }, 100);
+  try {
+    const r = await turn(1, "HANGMODEL please");
+    const stall = stalls(r.events)[0];
+    expect(stall?.type === "stalled" && stall.silentMs).toBeGreaterThanOrEqual(QUICK.modelMs);
+    expect(stall?.type === "stalled" && stall.silentMs).toBeLessThan(slept);
+  } finally {
+    clearTimeout(jump);
+    Date.now = realNow;
+  }
 });
 
 test.if(posix)("quiet again on the resumed session: the turn ends as brain_stalled", async () => {
