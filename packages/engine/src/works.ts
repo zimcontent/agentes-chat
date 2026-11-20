@@ -375,6 +375,8 @@ export interface MoveInput {
   /** A number: link that issue as the card. Any other value is ignored: every named work gets a card (§4). */
   card?: boolean | number;
   description?: string;
+  /** No move at all when the work would wait in line behind the agent's other work (`queued`). */
+  onlyIfRoom?: boolean;
 }
 
 /**
@@ -406,6 +408,7 @@ export async function moveToBackground(
       .from(agentWorks)
       .where(and(eq(agentWorks.orgId, run.orgId), eq(agentWorks.status, "live")));
     const queued = (live?.agent ?? 0) >= WORK_LIMITS.perAgent || (live?.org ?? 0) >= perOrgCap;
+    if (queued && input.onlyIfRoom) return null;
     const workId = Bun.randomUUIDv7();
     const say = plainText(input.say, WORK_LIMITS.sayMax);
     const locale = await lineLocale(tx, run.orgId, requester, run.id);
@@ -1342,7 +1345,7 @@ export async function workBrief(db: Executor, run: Pick<AgentRun, "orgId" | "age
     "# Your background work here",
     "You are already working on this in the background (each one reports here by itself when it ends):",
     ...lines,
-    `A person's message here comes to you, not to the work, which keeps running: answer it now. A question about the work (how it goes, what it covers, what it found): answer from the lines above, plainly, without starting that work again. If the message changes the work (a correction, a narrower or wider scope, more detail) or asks for a next step once it is done, pass it on with ${STEER_WORK_TOOL} and tell them in one short line what it answers: the work takes it on, or, from someone who didn't ask for the work, it runs once the work ends or is stopped, as them. Never say you will do it yourself later: this turn ends here. To stop one, ${STOP_WORK_TOOL}. Anything else, answer it normally here. Never poll or wait for your own work.`,
+    `A person's message here comes to you, not to the work, which keeps running: answer it now. A question about the work (how it goes, what it covers, what it found): answer from the lines above, plainly, without starting that work again. If the message changes the work (a correction, a narrower or wider scope, more detail) or asks for a next step once it is done, pass it on with ${STEER_WORK_TOOL} and tell them in one short line what it answers: the work takes it on, or, from someone who didn't ask for the work, it runs once the work ends or is stopped, as them. Never say you will do it yourself later: this turn ends here. A separate request that would change what the work is changing (the same files, page or document) is a next step for it: pass it on rather than do it beside it. To stop one, ${STOP_WORK_TOOL}. Anything else, answer it normally here. Never poll or wait for your own work.`,
   ].join("\n");
 }
 

@@ -1,7 +1,5 @@
 import { and, type Database, desc, eq, inArray, isNull, schema, sql } from "@dougbot/db";
 import type { Agent } from "./agents";
-import { runBrainOf } from "./brains/select";
-import type { SteerHandling } from "./judge";
 import type { Message } from "./messages";
 import { latestPlan, missionOfThread, planMark } from "./missions";
 import { type AgentRun, replyThreadOf } from "./runs";
@@ -36,8 +34,6 @@ export interface TalkerSnapshot {
   waitingOn: string[];
   /** What the message did to the wait, if it waited. */
   waitOutcome: WaitMessageOutcome | null;
-  /** A computer brain (Claude Code, Codex) in the middle of a turn; `live`: it gets the message at its next tool. */
-  computerTurn: { live: boolean } | null;
   /** Its latest steps, oldest first ("12s ago: ran tool run_code"). */
   steps: string[];
   /** Its mission's plan, when the task is a mission's. */
@@ -48,8 +44,6 @@ export interface TalkerSnapshot {
   conversation: { from: string; text: string; you?: true }[];
   /** The message to answer or pass on. */
   message: { from: string; text: string };
-  /** A separate request the agent takes up right after the current task (the triage's `queue`). */
-  afterTask?: true;
 }
 
 export const ago = (now: Date, at: Date) => {
@@ -158,10 +152,7 @@ export async function loadTalkerSnapshot(
     run: AgentRun;
     agent: Agent;
     message: Message;
-    live: boolean;
     waited: WaitMessageOutcome | null;
-    /** How the triage said the agent takes the message (`TalkerInput.handling`). */
-    handling?: SteerHandling | null;
     now: Date;
   },
 ): Promise<TalkerSnapshot> {
@@ -205,7 +196,6 @@ export async function loadTalkerSnapshot(
     status: run.status,
     waitingOn,
     waitOutcome: input.waited,
-    computerTurn: runBrainOf(run, agent) !== "model" && run.status === "running" ? { live: input.live } : null,
     steps: steps.reverse().flatMap((s) => {
       const line = stepLine(s.kind, s.data);
       return line ? [`${ago(now, s.createdAt)}: ${line}`] : [];
@@ -221,6 +211,5 @@ export async function loadTalkerSnapshot(
         ...(m.authorAgentId === run.agentId ? { you: true as const } : {}),
       })),
     message: { from: author, text: clip(message.body, 2000) },
-    ...(input.handling === "queue" ? { afterTask: true as const } : {}),
   };
 }

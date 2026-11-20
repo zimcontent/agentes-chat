@@ -196,7 +196,6 @@ import { modelInfoFor } from "./credentials";
 import { sha256 } from "./crypto";
 import { widgetRunWaitChanged } from "./dashboards/refresh-fire";
 import { WIDGET_FAILURES } from "./dashboards/types";
-import { publishDelivery } from "./delivery";
 import { personalComputer } from "./devices";
 import { kickParkedWakes } from "./dispatch";
 import { isAgentOnlyDm } from "./dms";
@@ -237,7 +236,7 @@ import {
   kickKeyLine,
   rateLimited,
 } from "./key-line";
-import { answerNoTurn, deliverLive, listenLiveSteering, renderSteered } from "./live-steer";
+import { answerNoTurn, listenLiveSteering, renderSteered } from "./live-steer";
 import {
   accountEverWorked,
   accountFailureCause,
@@ -301,7 +300,6 @@ import { routineBriefOf } from "./routine-brief";
 import { missStaleRoutineRun, routineRunWaitingForComputer, routineRunWaitingForPlan } from "./routine-firing";
 import { closeRoutineRun, type RoutineRunEnd, recordRoutineReportMessage, routineFailureEnd } from "./routine-ledger";
 import { type ReleaseReason, releaseHeldInbox, releaseInbox, stoppedToSend, takeInbox, whileHeld } from "./run-inbox";
-import { deliverNoticeToRun } from "./run-resume";
 import { issueRunToolToken, revokeRunToolTokens } from "./run-tool-tokens";
 import {
   type ArtifactLink,
@@ -352,6 +350,7 @@ import { secretResult } from "./secrets";
 import { enabledSkills } from "./skills";
 import { type SpillRecord, spillMayHelp, spillPlan, spillTarget } from "./spill";
 import { billingHold, standingErrorDetail, standingRefusal } from "./standing";
+import { moveRunAside } from "./step-aside";
 import { personAskedLately, rerootRun, runStretchOf } from "./stretch";
 import { isStuck, noteStep, STUCK_END_NOTE, STUCK_END_REPLY_NOTE, STUCK_NOTE, type StuckState } from "./stuck";
 import { archivedAgentsPrompt, FIND_AGENT_TOOL, renamedAgentsPrompt, teammateMeans } from "./team";
@@ -410,11 +409,10 @@ import {
 import { recordWikiReads, retrieveWikiForRun } from "./wiki";
 import { RESTRICTED_HERE, sendHeldToDm } from "./wiki-dm";
 import { withWikiLinks } from "./wiki-links";
-import { movedNote, queuedNote, workMayStart, workStartsNote } from "./work-tools";
+import { workMayStart, workStartsNote } from "./work-tools";
 import {
   dropWorkNotices,
   endWork,
-  moveToBackground,
   pauseWorkTimer,
   resumeWorkTimer,
   takeLocalMove,
@@ -423,9 +421,7 @@ import {
   WORK_AUTO_MIN_MS,
   WORK_IN_BACKGROUND_TOOL,
   WORK_JOB_YIELD_MS,
-  WORK_LIMITS,
   wakeQueuedRun,
-  workEligible,
   workQueued,
   workQueueWaitId,
   workTopic,
@@ -4497,32 +4493,8 @@ async function executeRunInner(
       return;
     }
     if (autoTick) clearInterval(autoTick);
-    if (current?.status !== "running" || !(await workEligible(db, current))) return;
-    // No title given: a person's for its thread, else a short name the cheap model gives the conversation.
-    const moved = await moveToBackground({ db, pubsub: deps.pubsub, context: deps.context }, run.id, {
-      how: "auto",
-      title: "",
-      nextUpdateMin: WORK_LIMITS.nextDefault,
-    });
-    if (!moved) return;
-    await adoptWork();
-    later(() => addRunStep(db, run, "context", { work: { id: moved.work.id, how: "auto" } }));
-    // The note reaches the brain like a check-in: live on a steerable turn, else at its next step.
-    const at = { ...run, threadRootId: run.threadRootId };
-    const delivered = await db.transaction((tx) =>
-      deliverNoticeToRun(tx, at, {
-        kind: "work_check_in",
-        text: moved.queued ? queuedNote : movedNote(WORK_LIMITS.nextDefault),
-        refs: { workId: moved.work.id, kind: "moved" },
-      }),
-    );
-    await publishDelivery(deps.pubsub, delivered).catch(() => {});
-    if (deps.pubsub)
-      await deliverLive(
-        { db, pubsub: deps.pubsub },
-        { ...current, ...at },
-        { messageId: delivered.message.id, urgent: false },
-      );
+    // The same move a person's quick question makes (`stepAsideFor`); this executor adopts it at once.
+    await moveRunAside({ db, pubsub: deps.pubsub, context: deps.context }, run.id, { onMoved: adoptWork });
   };
   /** The first computer turn's checkouts sync, started during the quiet window for that plan. */
   let earlyCode: { plan: BrainPlan; code: Promise<CodeSetup | null> } | null = null;

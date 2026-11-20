@@ -11,7 +11,7 @@ import {
   steerHandling,
   stopChecksSettled,
   type TalkerInput,
-  talkerPolicy,
+  WORK_LIMITS,
 } from "../src";
 import { RUN_INTERRUPT_TOPIC } from "../src/cancel";
 import { releaseInbox, stoppedToSend, takeInbox } from "../src/run-inbox";
@@ -20,8 +20,9 @@ import { answerSteering, type Fixture, setup } from "./fixtures";
 
 /**
  * The triage of a message a person sends an agent while it works for them (ADR 0112 addendum): one judgment says how
- * the agent takes it, and the engine does that: a stop, a correction now, a separate request after the task, a quick
- * reply at once, or the next pause as before.
+ * the agent takes it, and the engine does that: a stop, a correction now, the next pause as before, or, for a quick
+ * question or a separate request, the task steps aside into background work and the agent answers in a turn of its
+ * own (ADR 0121 addendum of 2026-11-19).
  */
 
 let f: Fixture;
@@ -74,28 +75,6 @@ describe("steerHandling", () => {
     expect(await steerHandling(none.judge, { ...input, text: "  " })).toBe("add");
     expect(none.seen).toHaveLength(0);
   });
-});
-
-test("the fast reply answers a quick question or a separate request at once, even from a task that reads soon", () => {
-  const at = new Date("2026-11-18T12:00:00Z");
-  const base = {
-    run: { status: "running" as const, background: false, startedAt: new Date(at.getTime() - 5_000) },
-    brain: "model",
-    message: { body: "tá funcionando?", createdAt: at },
-    waited: null,
-    lastActivityAt: new Date(at.getTime() - 2_000),
-    lastReplyAt: null,
-    now: at,
-  };
-  expect(talkerPolicy(base)).toBe("reads_soon");
-  expect(talkerPolicy({ ...base, handling: "add" })).toBe("reads_soon");
-  expect(talkerPolicy({ ...base, handling: "answer" })).toBeNull();
-  expect(talkerPolicy({ ...base, handling: "queue" })).toBeNull();
-  // Still one fast reply per run in its window, and never for background work.
-  expect(talkerPolicy({ ...base, handling: "answer", lastReplyAt: new Date(at.getTime() - 5_000) })).toBe(
-    "rate_limited",
-  );
-  expect(talkerPolicy({ ...base, run: { ...base.run, background: true }, handling: "answer" })).toBe("background");
 });
 
 describe("a message sent while the agent works", () => {
@@ -160,26 +139,74 @@ describe("a message sent while the agent works", () => {
     expect((await runById(run.id))?.pendingMessageIds).toContain(sent.id);
   });
 
-  test("a quick question gets the fast reply at once; the task still reads it at its next pause", async () => {
+  /** The run's turn of its own for `sent` (the step aside handed it on), the work it became, and the run itself. */
+  async function steppedAside(run: AgentRun, sent: { id: string }) {
+    const moved = (await runById(run.id)) as AgentRun;
+    const reply = (await runs()).find((r) => r.id !== run.id);
+    const [work] = await f.db.select().from(schema.agentWorks);
+    const [handed] = await f.db
+      .select({ data: schema.agentRunSteps.data })
+      .from(schema.agentRunSteps)
+      .where(eq(schema.agentRunSteps.runId, run.id))
+      .then((steps) => steps.filter((st) => (st.data as { reason?: unknown }).reason === "aside"));
+    return { moved, reply, work, handed: handed?.data, sentId: sent.id };
+  }
+
+  test("a quick question: the task steps aside into background work and the agent answers it in a turn of its own", async () => {
     const { run, threadId } = await working();
     const { sent, talked } = await send(threadId, "tá funcionando?", triage({ "tá funcionando?": "answer" }));
-    expect(talked.map((t) => [t.message.id, t.handling])).toEqual([[sent.id, "answer"]]);
-    expect((await runById(run.id))?.pendingMessageIds).toContain(sent.id);
+    const { moved, reply, work, handed } = await steppedAside(run, sent);
+    // The task keeps going as background work (the safety net's move), and never reads the question itself.
+    expect(moved.status).toBe("running");
+    expect(moved.workId).toBe(work?.id ?? "");
+    expect(work).toMatchObject({ status: "live", how: "auto" });
+    expect(moved.pendingMessageIds).not.toContain(sent.id);
+    expect(await takeInbox(f.db, run.id)).not.toContain(sent.id);
+    // The question starts a turn of the agent's own, and the trail says why it went there.
+    expect(reply).toMatchObject({ agentId: run.agentId, triggerMessageId: sent.id, workId: null });
+    expect(handed).toMatchObject({ redispatchedMessageIds: [sent.id], reason: "aside", toRunId: reply?.id });
+    // Nothing answers in the agent's place meanwhile.
+    expect(talked).toEqual([]);
   });
 
-  test("a separate request waits for the task's end, then gets a run of its own", async () => {
+  test("a separate request steps aside too: the agent takes it up in a turn of its own while the task goes on", async () => {
     const { run, threadId } = await working();
     const body = "depois vê por que o deploy de ontem falhou";
-    const { sent, talked } = await send(threadId, body, triage({ [body]: "queue" }));
+    const { sent } = await send(threadId, body, triage({ [body]: "queue" }));
+    const { moved, reply } = await steppedAside(run, sent);
+    expect(moved.workId).not.toBeNull();
+    expect(moved.afterMessageIds).toEqual([]);
+    expect(reply?.triggerMessageId).toBe(sent.id);
+  });
+
+  test("where the task can't step aside (its work would wait in line), a separate request waits for the task's end", async () => {
+    const { run, threadId } = await working();
+    // The agent already has as much background work as runs at once: this task would only wait in line there.
+    await f.db.insert(schema.agentWorks).values(
+      Array.from({ length: WORK_LIMITS.perAgent }, () => ({
+        orgId: f.org.id,
+        agentId: run.agentId,
+        channelId: f.general.id,
+        anchorMessageId: crypto.randomUUID(),
+        ownThread: true,
+        title: "outra coisa",
+        status: "live",
+        how: "agent",
+        lastUpdateAt: new Date(),
+      })),
+    );
+    const body = "depois vê por que o deploy de ontem falhou";
+    const { sent } = await send(threadId, body, triage({ [body]: "queue" }));
     const held = (await runById(run.id)) as AgentRun;
+    expect(held.workId).toBeNull();
     expect(held.pendingMessageIds).not.toContain(sent.id);
     expect(held.afterMessageIds).toEqual([sent.id]);
+    expect(await runs()).toHaveLength(1);
     // What the apps read on load still counts it unread: a reload never says the agent read it.
     const listed = (await activeRunsIn(f.db, f.org.id, f.general.id)).find((r) => r.runId === run.id);
     expect(listed?.pendingMessageIds).toContain(sent.id);
-    // The task's next step never reads it; the fast reply hears it comes after the task.
+    // The task's next step never reads it.
     expect(await takeInbox(f.db, run.id)).toEqual([]);
-    expect(talked.map((t) => t.handling)).toEqual(["queue"]);
     // The task ends: the request goes on to a run of its own.
     await f.db
       .update(schema.agentRuns)
@@ -191,21 +218,27 @@ describe("a message sent while the agent works", () => {
     expect((await runById(run.id))?.afterMessageIds).toEqual([]);
   });
 
-  test("anything else is read at the next pause, as before", async () => {
+  test("anything else is read at the next pause, as before: the task stays in the conversation", async () => {
     const { run, threadId } = await working();
-    const { sent, talked } = await send(threadId, "inclui o gráfico por região", triage({}));
-    expect((await runById(run.id))?.pendingMessageIds).toContain(sent.id);
-    expect((await runById(run.id))?.afterMessageIds).toEqual([]);
-    expect(talked.map((t) => t.handling)).toEqual(["add"]);
+    const { sent } = await send(threadId, "inclui o gráfico por região", triage({}));
+    const kept = (await runById(run.id)) as AgentRun;
+    expect(kept.pendingMessageIds).toContain(sent.id);
+    expect(kept.afterMessageIds).toEqual([]);
+    expect(kept.workId).toBeNull();
+    expect(await runs()).toHaveLength(1);
   });
 
-  test("a computer brain never gets a separate request in its turn: it waits for the task's end", async () => {
+  test("a computer brain's turn never gets a separate request: the task steps aside and hears only that it moved", async () => {
     const { run, threadId } = await working("claude_code");
     const live = answerSteering(f, (await runById(run.id)) as AgentRun);
     try {
       const body = "quando terminar, traduz pra inglês";
       const { sent } = await send(threadId, body, triage({ [body]: "queue" }));
-      expect((await runById(run.id))?.afterMessageIds).toEqual([sent.id]);
+      const { moved, reply } = await steppedAside(run, sent);
+      expect(moved.workId).not.toBeNull();
+      expect(reply?.triggerMessageId).toBe(sent.id);
+      // Its turn hears only the move (a check-in), never the person's message.
+      expect(moved.pendingMessageIds).not.toContain(sent.id);
     } finally {
       live.close();
     }

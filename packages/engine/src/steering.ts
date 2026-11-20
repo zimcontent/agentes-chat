@@ -4,6 +4,7 @@ import { getAgentCached } from "./agents";
 import { runBrainOf } from "./brains/select";
 import { cancelRun, interruptRun } from "./cancel";
 import { frontOfLine } from "./computer-queue";
+import type { ContextDeps } from "./context/summaries";
 import { publishChannelEvent } from "./events";
 import { type Judge, type SteerHandling, steerHandling } from "./judge";
 import { deliverLive } from "./live-steer";
@@ -12,6 +13,7 @@ import { enqueue } from "./outbox";
 import { holdsMessages } from "./run-hold";
 import { handOnMessages, queueAfterRun } from "./run-inbox";
 import { type AgentRun, computerWaitOf, replyThreadOf } from "./runs";
+import { stepAsideFor } from "./step-aside";
 import type { Talker } from "./talker";
 import { onMessageWhileWaiting, type WaitMessageOutcome } from "./waits";
 
@@ -26,9 +28,10 @@ const { agentRuns, messages } = schema;
  * 1. "Parar e mandar" (`now`): the model call stops and the loop reads it.
  * 2. The triage (the judge, `steerHandling`, ADR 0112 addendum), after the send: a plain "stop" cancels the task; a
  *    correction that makes going on a waste cuts the model call for it (a computer brain gets it live and urgent, or
- *    is stopped and started again from it); a separate request waits for the task's end (`queueAfterRun`) and gets a
- *    run of its own; a quick question gets the fast reply at once; anything else, or a judge that isn't sure, is read
- *    at the next pause.
+ *    is stopped and started again from it); a quick question or a separate request makes the task step aside into
+ *    background work, so the agent answers it in a turn of its own (`stepAsideFor`, ADR 0121 addendum of 2026-11-19),
+ *    or, where it can't step aside, a separate request waits for the task's end (`queueAfterRun`) and gets a run of
+ *    its own; anything else, or a judge that isn't sure, is read at the next pause.
  * 3. Live delivery (`live-steer.ts`): a computer brain mid-turn gets it at its
  *    next tool boundary instead of at the end of the turn (with a judge, once the triage said how).
  * 4. A run waiting (`waits.ts`): browser help, another agent's answer. The
@@ -38,9 +41,9 @@ const { agentRuns, messages } = schema;
  *    (a secret, a mission's decision, a question for someone else;
  *    `holdsMessages`): the message leaves it for a run of its own; an approval
  *    never takes it at all.
- * 5. The fast reply (`talker.ts`): when the run can't answer soon (waiting, or
- *    deep in a long turn), or the triage says a quick question or a separate request, the agent's conversation layer
- *    may answer in a second or two, or pass.
+ * 5. The fast reply (`talker.ts`): only for a run that waits (its question, a person's help, another agent, its
+ *    computer, its plan); the agent's conversation layer may answer in a second or two, or pass. A run at work speaks
+ *    for itself: nothing answers in its place.
  *
  * Nothing here ever grants anything.
  */
@@ -51,6 +54,8 @@ export interface SteeringDeps {
   judge?: Judge;
   /** The conversation layer (none = no fast replies). */
   talker?: Talker;
+  /** Names a task that steps aside after its conversation (`stepAsideFor`); none: its line says "in the background". */
+  context?: ContextDeps;
 }
 
 export interface SteeredInput {
@@ -170,7 +175,7 @@ export async function afterSteered(deps: SteeringDeps, input: SteeredInput) {
     const holds = waiting && (await holdsMessages(deps.db, active, userId));
     if (holds) await handOnMessages(deps.db, deps.pubsub, active, [message.id]).catch(() => null);
     const talks = !holds && (waiting || (deps.talker && !now));
-    const followUp = async (handling: SteerHandling | null) => {
+    const followUp = async () => {
       let waited: WaitMessageOutcome | null = null;
       if (waiting) {
         waited = await onMessageWhileWaiting(deps, active, message).catch(() => null);
@@ -187,11 +192,11 @@ export async function afterSteered(deps: SteeringDeps, input: SteeredInput) {
           });
         }
       }
-      if (deps.talker && !now) await deps.talker.consider({ run: active, message, live, waited, handling });
+      if (deps.talker && !now) await deps.talker.consider({ run: active, message, waited });
     };
     const judge = deps.judge;
     if (!judge) {
-      if (talks) trackStopCheck(followUp(null));
+      if (talks) trackStopCheck(followUp());
       continue;
     }
     // How the agent takes it, never in the way of the send: judged after the response (the app hears a stop then),
@@ -202,7 +207,15 @@ export async function afterSteered(deps: SteeringDeps, input: SteeredInput) {
         if (handling === "stop") return;
         if (now) await toSend?.();
         else if (active.status === "running") {
-          // A separate request: out of what the task reads, a run of its own once it ends.
+          // A quick question or a separate request: the task steps aside into background work and keeps going, and the
+          // agent answers it in a turn of its own, as itself, passing on what is for the task (ADR 0121 addendum of
+          // 2026-11-19). Nothing speaks in its place meanwhile.
+          if (
+            (handling === "answer" || handling === "queue") &&
+            (await stepAsideFor(deps, active, message.id).catch(() => false))
+          )
+            return;
+          // Where it can't step aside, a separate request: out of what the task reads, a run of its own once it ends.
           const queued = handling === "queue" && (await queueAfterRun(deps.db, runId, message.id).catch(() => false));
           if (handAfterTriage && !queued) {
             const urgent = handling === "interrupt";
@@ -211,7 +224,7 @@ export async function afterSteered(deps: SteeringDeps, input: SteeredInput) {
             if (urgent && !live) await stopToSend();
           } else if (!computer && handling === "interrupt") await interruptRun(deps.pubsub, runId, message.id);
         }
-        if (talks) await followUp(handling);
+        if (talks) await followUp();
       })(),
     );
   }

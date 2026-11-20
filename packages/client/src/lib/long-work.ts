@@ -219,9 +219,10 @@ export function autoUpdateText(t: TFunction, params: Record<string, unknown>): s
 }
 
 /**
- * The server's own status line for a working agent a person wrote to (ADR 0131 §2, `talker_status`): that it can't
- * answer yet, how long it has worked, when it reads them (its next step, or `reads: "turn"`: when its computer's turn
- * ends) and what it does now. Parked on its plan or budget (`wait`), it says that and when it is back (`until`).
+ * The server's own line for an agent a person wrote to while its task waited (ADR 0131 §2, `talker_status`): parked on
+ * its plan or budget (`wait`), it says that and when it is back (`until`); its computer gone or busy, it says so. Lines
+ * without a `wait` (how long it had worked, when it would read them: its next step, or `reads: "turn"`) are what the
+ * server posted for a task at work before ADR 0121's addendum of 2026-11-19, kept so those messages still read right.
  */
 export function talkerStatusText(t: TFunction, params: Record<string, unknown>, locale?: string): string {
   const say = loose(t);

@@ -55,3 +55,7 @@ Decision:
 Measured before shipping on 52 messages written for it (synthetic, no conversation of anyone's): 49 right (94%), every stop, correction and addition right; the three misses were follow-ups on the same file taken as additions and an off-topic quick question taken for after the task, all under 0.45 confidence. About 300 ms and 740 input tokens a message.
 
 Consequences: a message sent mid-task costs one Jev call, as the stop check did (that one asked only for short messages). A separate request is answered in its own message after the task instead of inside its final answer. A misjudged `interrupt` costs a cut step, or on a computer whose turn can't take messages a restart from the message, the same as the person pressing "Parar e mandar".
+
+## Addendum (2026-11-19): a quick question or a separate request steps aside
+
+`answer` and `queue` no longer get the fast reply. The task steps aside into background work and the agent answers the message in a turn of its own (ADR 0121, addendum of 2026-11-19, `stepAsideFor`); `queue` falls back to `after_message_ids` only where the task can't step aside. Nothing speaks in a working agent's place any more.

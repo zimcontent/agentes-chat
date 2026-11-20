@@ -3979,8 +3979,6 @@ test("a run that waited in line counts its work from the turn it got, not from t
     yield { type: "text_delta", text: "Pronto." };
     await Bun.sleep(0);
     await Bun.sleep(0);
-    const [row] = await f.db.select().from(schema.agentRuns);
-    notes.push((await statusReply(f.db, row as NonNullable<typeof row>, new Date())).meta.bodyParams.minutes);
     notes.push(
       Date.now() - Date.parse((await activeRunsIn(f.db, f.org.id, f.general.id))[0]?.startedAt ?? "") < 60_000,
     );
@@ -4003,7 +4001,7 @@ test("a run that waited in line counts its work from the turn it got, not from t
   });
   await drainOutbox(f.db, handlers, { now: new Date(Date.now() + COMPUTER_BUSY_RETRY_MS + 1_000) });
   // Once as the ask starts, once as the computer takes the turn.
-  expect(notes).toEqual(["1", true, 2]);
+  expect(notes).toEqual([true, 2]);
 });
 
 test("a person's message during the ask joins the wait: its receipt says the line, as a reload would", async () => {
