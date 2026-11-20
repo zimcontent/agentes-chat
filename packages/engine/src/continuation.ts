@@ -29,16 +29,32 @@ import { neutralizeUntrusted, untrustedBlock } from "./untrusted";
  */
 
 /**
- * Extra turns one run may be given, every kind counted together (the decision nudge, the answer nudge and the
- * continue nudges), plus one ask nudge. Worst case: 3 extra turns and 4 judgments, then a question card or done.
+ * Extra turns one run may be given, every kind counted together (the widget, decision and answer nudges and the
+ * continue nudges: promise, unreached, untried, unbacked), plus one ask nudge (ADR 0097, addendum 2026-11-20).
+ *
+ * The judged continues are gated by progress, not by a small count: the first is free, and each further one only if
+ * the round since the last nudge executed at least one new tool call (`TurnEnd.executed`, which leaves out calls that
+ * repeat one that already worked); a round with none ends the run as judged (`stalled`). `maxPerRun` and
+ * `routineMaxPerRun` are only the ceiling for a run that keeps doing new work and still doesn't get there: six walks
+ * the four tool families of `untriedNudge`'s escalation with room for one retry; four for a routine, which nobody
+ * watches and which fires again on its own schedule. Circles are braked before this by `stuck.ts` and the turn cap.
+ * The nudges given without a judgment (`blindMaxPerRun`: a widget's, a decision's, an empty answer's) keep the old
+ * fixed count, since nothing tells progress from noise there.
+ *
+ * Cost: one follow-through judgment per judged turn end. Worst case for a conversation: 7 extra turns (6 continues
+ * and the ask nudge) and 8 judgments, then a question card or done; for a routine, 4 extra turns and 5 judgments.
+ * The once-only rules (the secret nudge, open requests, the wording rewrites) add at most one turn each. Before the
+ * addendum the ceiling was 2 and 1 (3 extra turns and 4 judgments).
  */
-export const CONTINUE = { maxPerRun: 2, routineMaxPerRun: 1 } as const;
+export const CONTINUE = { maxPerRun: 6, routineMaxPerRun: 4, blindMaxPerRun: 2, routineBlindMaxPerRun: 1 } as const;
 
 /** Where the controller stands in a run (`transcript.continuation`). */
 export interface ContinuationState {
   count: number;
   /** The run's executed tool calls when it was last told to continue: the next continue needs more. */
   executedAtNudge?: number;
+  /** How many `untried` nudges it got: from the second on, the nudge tells it to change tool family. */
+  untried?: number;
   askNudged?: boolean;
   /**
    * The last turn was told to ask: this one is judged past the cap, and a reply that still asks only in its text
@@ -59,12 +75,18 @@ export type ContinuationVerdict = "done" | "continue" | "ask" | "untried" | "sec
 
 /**
  * What a run reads when it ended saying it couldn't while it still had ways to try (ADR 0109): its means and what it
- * already tried, so it varies the attempt instead of handing the problem to a person.
+ * already tried, so it varies the attempt instead of handing the problem to a person. `round` is which untried nudge
+ * this is: from the second on it gave up again after trying more, so it is told to change tool family in order
+ * (ADR 0097 addendum 2026-11-20) instead of repeating what `tried` shows.
  */
-export function untriedNudge(means: string[], tried: string[]) {
+export function untriedNudge(means: string[], tried: string[], round = 1) {
   const have = means.length > 0 ? means.join("; ") : "your tools and find_tools";
-  return `You ended saying you couldn't, but you still have ways to try. Your means: ${have}. Already tried:\n${triedBlock(tried)}\nUse the ones that fit; when a search or a page gives nothing or is blocked, change the words, the source or the tool. Missing an access or a login? Look in the workspace first (your memory, search_context for who signed in or holds it) and ask the teammate who has it. ${SAFETY_FINAL} ${HAND_OVER_STEP} If no way is left at all, say what you tried and the one step a person must do.`;
+  return `You ended saying you couldn't, but you still have ways to try. Your means: ${have}. Already tried:\n${triedBlock(tried)}\n${round >= 2 ? ESCALATION : "Use the ones that fit; when a search or a page gives nothing or is blocked, change the words, the source or the tool."} Missing an access or a login? Look in the workspace first (your memory, search_context for who signed in or holds it) and ask the teammate who has it. ${SAFETY_FINAL} ${HAND_OVER_STEP} If no way is left at all, say what you tried and the one step a person must do.`;
 }
+
+/** The later untried nudges: the families of tools in order, the first one `tried` doesn't show yet. */
+const ESCALATION =
+  "You were sent back already and gave up again: the way you took didn't work. Don't repeat any call in what you tried, not even with other words. Switch to the next family of tools you haven't used, in this order: an API or a connector (find_tools, use_tool) → the browser (open the site and do it as a person would) → code you write yourself on your computer (a terminal command or a script that calls the service) → a teammate agent who may know or hold it (ask_agent). Skip a family your means don't have.";
 
 /**
  * The `untried` nudge as a conversation run reads it: its reply was held back (`Transcript.held`), so it must never
@@ -619,6 +641,11 @@ export type TurnEndDecision = {
   nudge?: string;
   verdict?: ContinuationVerdict;
   judgeError?: boolean;
+  /**
+   * A judged continue it would have had, refused because the round since its last nudge executed no new tool call
+   * (ADR 0097 addendum 2026-11-20): kept on the run's `continuation` step, so the report tells it from the ceiling.
+   */
+  stalled?: boolean;
 };
 
 /**
@@ -665,14 +692,20 @@ function wordingHold(t: TurnEnd): TurnEndDecision | null {
 
 /** The decision without the wording rules (`wordingHold`). */
 async function answerTurnEnd(t: TurnEnd): Promise<TurnEndDecision> {
-  const max = t.kind === "routine" ? CONTINUE.routineMaxPerRun : CONTINUE.maxPerRun;
-  const canNudge = t.state.count < max;
+  const routine = t.kind === "routine";
+  const canNudge = t.state.count < (routine ? CONTINUE.routineMaxPerRun : CONTINUE.maxPerRun);
+  // Unjudged nudges keep the old fixed count (`CONTINUE`).
+  const canBlindNudge = t.state.count < (routine ? CONTINUE.routineBlindMaxPerRun : CONTINUE.blindMaxPerRun);
+  // The first continue is free; each further one needs a new executed call since the last nudge.
+  const progressed = t.state.count === 0 || t.executed > (t.state.executedAtNudge ?? 0);
+  const goesOn = canNudge && progressed;
+  const stalled = canNudge && !progressed ? { stalled: true } : {};
   if (t.bound) return { outcome: "done", rule: t.bound };
   // Quiet or not, a widget's run speaks only through update_widget: without it, nobody gets anything.
-  if (t.widgetOwed && canNudge) return { outcome: "continue", rule: "widget", nudge: WIDGET_NUDGE };
+  if (t.widgetOwed && canBlindNudge) return { outcome: "continue", rule: "widget", nudge: WIDGET_NUDGE };
   if (t.quiet) return { outcome: "done", rule: "quiet" };
-  if (t.decided && canNudge) return { outcome: "continue", rule: "decision", nudge: decisionNudge(t.decided) };
-  if (t.unanswered && canNudge) return { outcome: "continue", rule: "answer", nudge: ANSWER_NUDGE };
+  if (t.decided && canBlindNudge) return { outcome: "continue", rule: "decision", nudge: decisionNudge(t.decided) };
+  if (t.unanswered && canBlindNudge) return { outcome: "continue", rule: "answer", nudge: ANSWER_NUDGE };
   if (t.openRequest && !t.state.requestNudged)
     return { outcome: "continue", rule: "open_request", nudge: t.openRequest };
   if (!t.judged || !t.verdict) return { outcome: "done", rule: t.verdict ? "nothing_to_judge" : "no_judge" };
@@ -696,11 +729,11 @@ async function answerTurnEnd(t: TurnEnd): Promise<TurnEndDecision> {
       : { outcome: "continue", rule: "secret", verdict, nudge: SECRET_NUDGE };
   // A result it claims that no call produced (ADR 0167): never posted; once more to do it or say it can't.
   if (verdict === "unbacked")
-    return canNudge
+    return goesOn
       ? { outcome: "continue", rule: "unbacked", verdict, nudge: UNBACKED_NUDGE }
-      : { outcome: "done", rule: "unbacked_cap", verdict };
+      : { outcome: "done", rule: "unbacked_cap", verdict, ...stalled };
   // A hand-off by mention to an agent that isn't here is an unkept hand-off: it goes on and hands it over.
-  if (verdict === "continue" && t.unreached && canNudge)
+  if (verdict === "continue" && t.unreached && goesOn)
     return { outcome: "continue", rule: "unreached", verdict, nudge: t.unreached };
   // Asking means waiting (ADR 0131 §1): a reply that ends asking the person whether to go on waits for their answer,
   // never pushed into going ahead. A secret asked in the chat and an unkept hand-off keep their rules above; one told
@@ -712,28 +745,27 @@ async function answerTurnEnd(t: TurnEnd): Promise<TurnEndDecision> {
   if (verdict === "continue" && t.kind === "conversation" && (await t.comesBack?.().catch(() => false)))
     return { outcome: "waiting", rule: "comes_back", verdict };
   if (verdict === "continue") {
-    const progressed = t.state.count === 0 || t.executed > (t.state.executedAtNudge ?? 0);
-    if (canNudge && progressed)
+    if (goesOn)
       return {
         outcome: "continue",
         rule: "promise",
         verdict,
         nudge: t.kind === "agents_dm" ? FOLLOW_THROUGH_NUDGE_DM : FOLLOW_THROUGH_NUDGE,
       };
-    if (t.kind !== "conversation") return { outcome: "done", rule: "cap", verdict };
+    if (t.kind !== "conversation") return { outcome: "done", rule: "cap", verdict, ...stalled };
     // Nothing brings it back: a person is asked what it needs instead.
   }
-  // It said it couldn't with ways left: once more with its means, while it still acts between nudges.
+  // It said it couldn't with ways left: again with its means, while it still does new work between nudges, and from
+  // the second time told to change tool family.
   if (verdict === "untried") {
-    const progressed = t.state.count === 0 || t.executed > (t.state.executedAtNudge ?? 0);
-    if (canNudge && progressed)
+    if (goesOn)
       return {
         outcome: "continue",
         rule: "untried",
         verdict,
-        nudge: untriedNudge(t.evidence?.means ?? [], t.evidence?.tried ?? []),
+        nudge: untriedNudge(t.evidence?.means ?? [], t.evidence?.tried ?? [], (t.state.untried ?? 0) + 1),
       };
-    return { outcome: "done", rule: "untried_cap", verdict };
+    return { outcome: "done", rule: "untried_cap", verdict, ...stalled };
   }
   if (verdict === "done") return { outcome: "done", rule: "judged", verdict };
   if (!t.state.askNudged)
@@ -751,7 +783,8 @@ export function advance(state: ContinuationState, d: TurnEndDecision, executed: 
   // A reply held for its wording answers no ask: one it was told to ask still becomes the question card.
   if (d.rule === "local_paths") return { ...state, pathsNudged: true };
   if (d.rule === "tool_names") return { ...state, toolsNudged: true };
-  return { ...rest, count: state.count + 1, executedAtNudge: executed };
+  const untried = d.rule === "untried" ? { untried: (state.untried ?? 0) + 1 } : {};
+  return { ...rest, ...untried, count: state.count + 1, executedAtNudge: executed };
 }
 
 /** Run errors the person already sees explained elsewhere, or that no one can act on. */

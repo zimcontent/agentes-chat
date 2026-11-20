@@ -496,3 +496,66 @@ scenario(
     await assertInvariants(w);
   },
 );
+
+/** The judge of the scenarios below: every "couldn't" reads as untried, anything else as done. */
+const alwaysUntried = (state: Record<string, unknown>) =>
+  /não (consigo|consegui)/i.test(String(state.reply)) ? ("untried" as const) : ("done" as const);
+
+scenario(
+  "S69",
+  "a run that keeps trying something new is sent back past the old cap of two, and told to change tool family",
+  async () => {
+    const w = await world({
+      agents: ["rui"],
+      setup: { toolSources: [fakeWeb()] },
+      judge: { followThrough: alwaysUntried },
+      script: {
+        rui: [
+          { calls: [{ name: "web_fetch", input: { url: "https://www.google.com/search?q=banco+azul" } }] },
+          { text: "Não consigo pesquisar: o Google bloqueou." },
+          { calls: [{ name: "web_fetch", input: { url: "https://bancoazul.example.com/noticias" } }] },
+          { text: "Não consigo: o site do banco também bloqueou." },
+          { calls: [{ name: "web_fetch", input: { url: "https://jornal.example.com/bancos" } }] },
+          { text: "Não consegui ler o jornal." },
+          { calls: [{ name: "web_search", input: { query: "Banco Azul notícias" } }] },
+          { text: "O Banco Azul lançou um cartão sem anuidade nesta semana." },
+        ],
+      },
+    });
+    await w.say("@rui quais as notícias do Banco Azul?");
+    await w.settle();
+    // Three give-ups, each after a new call: three nudges (ADR 0097 addendum 2026-11-20), then the answer.
+    expect(await untriedSteps(w)).toHaveLength(3);
+    expect((await w.posts("rui")).map((p) => p.body)).toEqual([
+      "O Banco Azul lançou um cartão sem anuidade nesta semana.",
+    ]);
+    // The second nudge on names the tool families in order.
+    const last = w.f.provider.calls.at(-1);
+    expect(JSON.stringify(last?.request.messages)).toContain("Switch to the next family of tools you haven't used");
+    await assertInvariants(w);
+  },
+);
+
+scenario("S70", "a give-up after a nudged round with no new call ends the run: the reply posts", async () => {
+  const w = await world({
+    agents: ["rui"],
+    setup: { toolSources: [fakeWeb()] },
+    judge: { followThrough: alwaysUntried },
+    script: {
+      rui: [
+        { calls: [{ name: "web_fetch", input: { url: "https://www.google.com/search?q=banco+azul" } }] },
+        { text: "Não consigo pesquisar: o Google bloqueou." },
+        { text: "Não consigo mesmo: não tenho como pesquisar." },
+      ],
+    },
+  });
+  await w.say("@rui quais as notícias do Banco Azul?");
+  await w.settle();
+  expect(await untriedSteps(w)).toHaveLength(1);
+  const ends = (await w.steps((await w.runs()).map((r) => r.id)))
+    .map((s) => (s.data as { continuation?: { rule?: string; stalled?: boolean } }).continuation)
+    .filter((c) => c?.rule === "untried_cap");
+  expect(ends).toEqual([expect.objectContaining({ rule: "untried_cap", stalled: true })]);
+  expect((await w.posts("rui")).map((p) => p.body)).toEqual(["Não consigo mesmo: não tenho como pesquisar."]);
+  await assertInvariants(w);
+});

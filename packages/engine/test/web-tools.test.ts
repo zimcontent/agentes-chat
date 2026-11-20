@@ -14,6 +14,7 @@ import {
 } from "../src";
 import {
   advance,
+  CONTINUE,
   type ContinuationVerdict,
   callLine,
   continuationVerdict,
@@ -197,14 +198,69 @@ describe("the controller's untried verdict", () => {
     evidence: { means: ["the web: `web_search`"], tried: ["find_tools(search the web) → No tool matches"] },
   });
 
-  test("continues once with the means and what it tried; never past the cap or without progress", async () => {
+  test("continues with the means and what it tried while it does new work; never past the ceiling or without progress", async () => {
     const d = await decideTurnEnd(turn("untried"));
     expect(d).toMatchObject({ outcome: "continue", rule: "untried" });
     expect(d.nudge).toContain("the web: `web_search`");
     expect(d.nudge).toContain("find_tools(search the web)");
-    expect(await decideTurnEnd(turn("untried", 1, 1))).toMatchObject({ outcome: "done", rule: "untried_cap" });
-    expect(await decideTurnEnd(turn("untried", 2, 9))).toMatchObject({ outcome: "done", rule: "untried_cap" });
+    // A round with no new call since the nudge ends it, marked as stalled.
+    expect(await decideTurnEnd(turn("untried", 1, 1))).toMatchObject({
+      outcome: "done",
+      rule: "untried_cap",
+      stalled: true,
+    });
+    // New work since the nudge: on again, well past the old cap of two (ADR 0097 addendum 2026-11-20).
+    expect(await decideTurnEnd(turn("untried", 2, 9))).toMatchObject({ outcome: "continue", rule: "untried" });
+    expect(await decideTurnEnd(turn("untried", CONTINUE.maxPerRun - 1, 9))).toMatchObject({ outcome: "continue" });
+    // The ceiling holds whatever the progress, and it isn't a stall.
+    const ceiling = await decideTurnEnd(turn("untried", CONTINUE.maxPerRun, 9));
+    expect(ceiling).toMatchObject({ outcome: "done", rule: "untried_cap" });
+    expect(ceiling.stalled).toBeUndefined();
     expect(await decideTurnEnd(turn("done"))).toMatchObject({ outcome: "done", rule: "judged" });
+  });
+
+  test("every judged continue needs progress after the first: a promise, an unbacked claim, a routine's", async () => {
+    // A promise in a routine: on while it does new work, done at its smaller ceiling.
+    const routine = (count: number, executed: number) => ({
+      ...turn("continue", count, executed),
+      kind: "routine" as const,
+    });
+    expect(await decideTurnEnd(routine(0, 0))).toMatchObject({ outcome: "continue", rule: "promise" });
+    expect(await decideTurnEnd(routine(2, 5))).toMatchObject({ outcome: "continue", rule: "promise" });
+    expect(await decideTurnEnd(routine(2, 1))).toMatchObject({ outcome: "done", rule: "cap", stalled: true });
+    expect(await decideTurnEnd(routine(CONTINUE.routineMaxPerRun, 9))).toMatchObject({ outcome: "done", rule: "cap" });
+    // An unbacked claim: told once for free, then only after new calls.
+    expect(await decideTurnEnd(turn("unbacked"))).toMatchObject({ outcome: "continue", rule: "unbacked" });
+    expect(await decideTurnEnd(turn("unbacked", 3, 4))).toMatchObject({ outcome: "continue", rule: "unbacked" });
+    expect(await decideTurnEnd(turn("unbacked", 3, 1))).toMatchObject({
+      outcome: "done",
+      rule: "unbacked_cap",
+      stalled: true,
+    });
+    // A conversation's promise without progress goes to a person, as at the cap.
+    expect(await decideTurnEnd(turn("continue", 3, 1))).toMatchObject({ outcome: "continue", rule: "ask" });
+    // The nudges without a judgment keep their old fixed count.
+    const empty = { ...turn("done", CONTINUE.blindMaxPerRun, 9), unanswered: true, judged: "" };
+    expect(await decideTurnEnd(empty)).toMatchObject({ outcome: "done", rule: "nothing_to_judge" });
+    expect(await decideTurnEnd({ ...empty, state: { count: 1, executedAtNudge: 1 } })).toMatchObject({
+      rule: "answer",
+    });
+  });
+
+  test("the second untried nudge on tells it to change tool family, in order", async () => {
+    const first = await decideTurnEnd(turn("untried"));
+    expect(first.nudge).not.toContain("Switch to the next family");
+    const state = advance({ count: 0 }, first, 1);
+    expect(state).toMatchObject({ count: 1, untried: 1, executedAtNudge: 1 });
+    const second = await decideTurnEnd({ ...turn("untried"), state, executed: 3 });
+    expect(second).toMatchObject({ outcome: "continue", rule: "untried" });
+    expect(second.nudge).toContain("Switch to the next family of tools you haven't used");
+    expect(second.nudge).toMatch(/connector.*→ the browser.*→ code you write yourself.*→ a teammate agent.*ask_agent/);
+    expect(second.nudge).toContain("find_tools(search the web)");
+    expect(advance(state, second, 3)).toMatchObject({ count: 2, untried: 2 });
+    // Another kind of nudge in between doesn't count as an untried round.
+    const promise = await decideTurnEnd(turn("continue"));
+    expect(advance({ count: 0 }, promise, 1).untried).toBeUndefined();
   });
 
   test("a secret asked in the chat never becomes a question card: told the secure way once, then ends", async () => {
