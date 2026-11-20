@@ -3,6 +3,7 @@ import { getAgent } from "./agents";
 import { recordAudit } from "./audit";
 import { BROWSER_SCOPE, BROWSER_TOOL_INFO, BROWSER_TOOLS, DESKTOP_SCOPE, DESKTOP_TOOL_INFO } from "./browser/types";
 import { caches } from "./cache";
+import { queueConnectionCheck } from "./connection-check";
 import { CONNECTOR_CATALOG } from "./connectors/catalog";
 import { connectorGrantValidator, toolPrefixOfConnection } from "./connectors/connections";
 import { classifiedTools, customScope, isCustom, type ToolAccess } from "./connectors/custom";
@@ -611,6 +612,8 @@ export async function setAgentAccess(
         deny: (input.tools?.deny ?? []).map((t) => t.name),
       },
     });
+    // Access given: an agent waiting for a service goes on (docs/adr/doug-0039-connect-and-continue.md).
+    await queueConnectionCheck(tx, orgId);
   });
   caches.scopes.deletePrefix(`${orgId}:${agentId}`);
   return treeFor(await freshGrantedKeys(db, orgId, agentId), await orgToolCatalog(db, orgId), isRightHand(agent));

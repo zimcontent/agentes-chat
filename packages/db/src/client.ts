@@ -779,6 +779,30 @@ export const EXTRA_COLUMNS = [
   // A separate request sent while a run worked, left for after its task (ADR 0112 addendum 2026-11-18): the
   // original project numbers it as a migration this fork's journal doesn't have yet.
   `ALTER TABLE "agent_runs" ADD COLUMN IF NOT EXISTS "after_message_ids" uuid[] DEFAULT '{}'::uuid[] NOT NULL`,
+  // An agent's request to connect a service its task needs, and the run that goes on once it is connected
+  // (docs/adr/doug-0039-connect-and-continue.md).
+  `CREATE TABLE IF NOT EXISTS "connection_requests" (
+    "id" uuid PRIMARY KEY NOT NULL,
+    "org_id" uuid NOT NULL REFERENCES "organizations"("id") ON DELETE cascade,
+    "agent_id" uuid NOT NULL REFERENCES "agents"("id") ON DELETE cascade,
+    "run_id" uuid NOT NULL,
+    "channel_id" uuid NOT NULL,
+    "thread_id" uuid,
+    "message_id" uuid,
+    "requested_for_user_id" text REFERENCES "users"("id") ON DELETE set null,
+    "service" text NOT NULL,
+    "label" text NOT NULL,
+    "why" text NOT NULL,
+    "next_step" text NOT NULL,
+    "asked_user_ids" jsonb NOT NULL DEFAULT '[]'::jsonb,
+    "state" text NOT NULL DEFAULT 'waiting',
+    "connection_id" uuid,
+    "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+    "expires_at" timestamp with time zone NOT NULL,
+    "ended_at" timestamp with time zone
+  )`,
+  `CREATE INDEX IF NOT EXISTS "connection_requests_org_id_state_index" ON "connection_requests" ("org_id", "state")`,
+  `CREATE INDEX IF NOT EXISTS "connection_requests_run_id_index" ON "connection_requests" ("run_id")`,
 ];
 
 /** The advisory lock every process takes around its migrations (`DatabaseHandle.migrate`). */

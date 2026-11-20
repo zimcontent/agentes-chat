@@ -13,6 +13,9 @@ import type { ToolContext, ToolDefinition } from "./types";
  */
 export const OFFER_CONNECT_APP_TOOL = "offer_connect_app";
 
+/** `request_connection`'s name (`connection-requests.ts`), kept here for the same reason. */
+export const REQUEST_CONNECTION_TOOL = "request_connection";
+
 /** How many of the people's last messages in the conversation `person_said` is looked for in. */
 const PEOPLE_MESSAGES_READ = 30;
 const TOOLS_NAMED = 5;
@@ -148,6 +151,10 @@ async function wayIn(ctx: ToolContext, service: ConnectorState, usable: ToolDefi
     if (permission) {
       return `${label} is connected in this workspace but not given to you: ask for it with ${REQUEST_PERMISSION_TOOL} (permission "${permission.id}"), not for a key.`;
     }
+  }
+  // The task needs it: a Connect card the run waits on, and it goes on once connected (docs/adr/doug-0039).
+  if (state === "not_connected" && has(REQUEST_CONNECTION_TOOL)) {
+    return `${label} isn't connected in this workspace: ask for it with ${REQUEST_CONNECTION_TOOL} (service "${label}"), not a key. You go on with the task once it's connected.`;
   }
   if (state === "not_connected" && has(OFFER_CONNECT_APP_TOOL)) {
     return `${label} isn't connected in this workspace: offer it with ${OFFER_CONNECT_APP_TOOL} (app "${label}"), not a key.`;

@@ -2,6 +2,7 @@ import type { PubSub } from "@dougbot/adapters";
 import { and, type Database, type Executor, eq, inArray, schema } from "@dougbot/db";
 import { getAgentCached } from "./agents";
 import { type BrowserHandoffRow, finishHandoff } from "./browser/handoff";
+import { isConnectionWaitId } from "./connection-check";
 import type { AgentConsultationRow } from "./consultations";
 import { endDeviceWaitCards, isDeviceWaitId } from "./device-waits";
 import { cutText } from "./format";
@@ -29,7 +30,9 @@ export type WaitKind =
   | "mission"
   | "machine"
   /** `wait_for_device`: a device to be back, free or allowed (`device-waits.ts`). */
-  | "device";
+  | "device"
+  /** `request_connection`: a service to be connected (docs/adr/doug-0039-connect-and-continue.md). */
+  | "connection";
 
 /** One thing a waiting run waits on: a pending tool call of its transcript, or its computer. */
 export interface RunWait {
@@ -91,6 +94,7 @@ export async function currentWaits(
     else if (c.secretRequestId) out.push({ kind: "secret", id: c.secretRequestId, ...base });
     else if (c.questionId) out.push({ kind: "question", id: c.questionId, ...base });
     else if (c.waitId && isDeviceWaitId(c.waitId)) out.push({ kind: "device", id: c.waitId, ...base });
+    else if (c.waitId && isConnectionWaitId(c.waitId)) out.push({ kind: "connection", id: c.waitId, ...base });
     else if (c.waitId) {
       const waitId = c.waitId;
       const handoff = handoffs.find((h) => h.id === waitId);
@@ -207,6 +211,14 @@ export function detachOf(wait: RunWait): Detach | null {
       text: `You stopped waiting for the device. ${MEANWHILE} Do what it asks; if the device is still needed, call wait_for_device again.`,
     };
   }
+  if (wait.kind === "connection") {
+    return {
+      waitId: wait.id,
+      kind: wait.kind,
+      from: "Your request to connect an app",
+      text: `Still open: your request to connect an app (its card stays in the conversation). ${MEANWHILE} Once it is connected you'll get a notice and go on with the task: don't ask again.`,
+    };
+  }
   if (wait.kind === "consultation" && wait.consultation) {
     const handle = `@${wait.consultation.handle}`;
     return {
@@ -293,7 +305,13 @@ export async function onMessageWhileWaiting(
   if (waits.length === 0) return null;
   const held = waits.find((w) => w.kind === "approval" || w.kind === "secret");
   if (held) return { waitKind: held.kind, outcome: "held" };
-  if (waits.some((w) => w.kind !== "browser_handoff" && w.kind !== "consultation" && w.kind !== "device")) return null;
+  if (
+    waits.some(
+      (w) =>
+        w.kind !== "browser_handoff" && w.kind !== "consultation" && w.kind !== "device" && w.kind !== "connection",
+    )
+  )
+    return null;
   const [first] = waits;
   if (!first) return null;
 

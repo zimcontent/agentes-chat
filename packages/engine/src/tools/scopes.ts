@@ -1,6 +1,7 @@
 import { and, asc, type Database, type Executor, eq, inArray, isNull, like, type SQL, schema, sql } from "@dougbot/db";
 import { recordAudit } from "../audit";
 import { caches } from "../cache";
+import { queueConnectionCheck } from "../connection-check";
 import { NotFoundError, ValidationError } from "../errors";
 import { requirePermission } from "../organizations";
 import { isRightHand, RIGHT_HAND_GRANTS } from "../right-hand";
@@ -429,6 +430,8 @@ export async function setAgentScopes(
         })),
       );
     }
+    // Access given: an agent waiting for a service goes on (docs/adr/doug-0039-connect-and-continue.md).
+    await queueConnectionCheck(tx, orgId);
   });
   caches.scopes.delete(`${orgId}:${agentId}`);
 }
@@ -447,4 +450,5 @@ export async function grantScopes(
     .insert(agentScopes)
     .values(grants.map((g) => ({ orgId, agentId, connectionId: g.connectionId, scope: g.scope, grantedByUserId })))
     .onConflictDoNothing();
+  if (grants.some((g) => g.connectionId)) await queueConnectionCheck(db, orgId);
 }

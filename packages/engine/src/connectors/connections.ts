@@ -4,6 +4,7 @@ import { and, asc, type Database, type Executor, eq, isNull, lt, ne, or, schema,
 import { StreamableHTTPError } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { type AuditEntry, recordAudit } from "../audit";
 import { caches } from "../cache";
+import { queueConnectionCheck } from "../connection-check";
 import { openSecret, randomToken, sealSecret, sha256 } from "../crypto";
 import { ConflictError, ForbiddenError, MisconfiguredError, NotFoundError, ValidationError } from "../errors";
 import { forgetInstallationTokens } from "../git/github-app";
@@ -318,6 +319,8 @@ async function storeConnection(
       });
     }
     if (!previous) await grantToEveryAgent(tx, input.orgId, input.actorId, row);
+    // An agent waiting for this service goes on (docs/adr/doug-0039-connect-and-continue.md).
+    await queueConnectionCheck(tx, input.orgId);
     caches.connections.delete(`${input.orgId}:active`);
     caches.scopes.deletePrefix(`${input.orgId}:`);
     // Over GitHub through the app alone, an account is a first connection to people: never a "Reconectar".

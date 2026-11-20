@@ -15,6 +15,7 @@ import {
 import {
   actionCardOf,
   connectAppDone,
+  connectAppState,
   installSkillDone,
   inviteDone,
   skillUpdateState,
@@ -77,11 +78,27 @@ function ConnectApp({ card }: { card: Extract<Card, { kind: "connect_app" }> }) 
   const catalog = useCatalog();
   const connections = useConnections(orgId);
   const servers = useCustomServers(orgId);
+  const members = useMembers(orgId);
   const defs = catalog.data?.connectors ?? [];
   const def = defs.find((d) => d.id === card.connector);
   const name = def ? connectorName(t, def) : card.url ? hostOf(card.url) : "";
   const title = name ? t("actionCard.connect_app.title", { name }) : t("actionCard.connect_app.mcp");
-  const done = connectAppDone(card, connectedItems(connections.data ?? [], servers.data ?? [], defs));
+  // An agent's request (`request_connection`, docs/adr/doug-0039): it goes on by itself once connected.
+  const state = connectAppState(
+    card,
+    connectAppDone(card, connectedItems(connections.data ?? [], servers.data ?? [], defs)),
+  );
+  const asked = (card.request?.askedUserIds ?? []).flatMap(
+    (id) => (members.data ?? []).find((m) => m.userId === id)?.name ?? [],
+  );
+  const done =
+    state === "continuing"
+      ? `${t("actionCard.connect_app.continuing")}: ${title}`
+      : state === "connected"
+        ? `${t("actionCard.connected")}: ${title}`
+        : state === "expired"
+          ? t("actionCard.connect_app.expired", { name: name || title })
+          : null;
   const query = def ? `connect=${encodeURIComponent(def.id)}` : `mcp=${encodeURIComponent(card.url ?? "")}`;
   return (
     <OfferShell
@@ -89,10 +106,15 @@ function ConnectApp({ card }: { card: Extract<Card, { kind: "connect_app" }> }) 
       title={title}
       why={card.why}
       detail={card.url}
-      done={done ? `${t("actionCard.connected")}: ${title}` : null}
+      done={done}
+      ended={state === "expired"}
       action={can(org, "manage_connectors") ? t("actionCard.connect") : null}
       onAction={() => router.push(`/connectors?${query}` as never)}
-      blocked={t("actionCard.connect_app.adminOnly")}
+      blocked={
+        asked.length > 0
+          ? t("actionCard.connect_app.asked", { names: joinNames(asked, t) })
+          : t("actionCard.connect_app.adminOnly")
+      }
     />
   );
 }

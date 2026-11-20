@@ -654,7 +654,7 @@ function connectorsToGet(query: string, connectors: MissingConnector[] = []) {
     .filter((c) => c.names.some(isNamed))
     .map((c) => `- ${c.label}: ${c.description} ${HOW_TO_GET[c.state](c.label)}`);
   if (lines.length === 0) return "";
-  return `Connectors you don't have yet. If the person wants one, offer it with offer_connect_app (a card that opens the app's own connect dialog) or say how to get it, never that it doesn't exist.\n${lines.join("\n")}`;
+  return `Connectors you don't have yet. When the task needs one that isn't connected, call request_connection (a Connect card; you go on by yourself once it's connected); one connected but not given to you, request_permission. If the person only wants one connected, offer it with offer_connect_app (a card that opens the app's own connect dialog) or say how to get it, never that it doesn't exist.\n${lines.join("\n")}`;
 }
 
 /**
@@ -770,6 +770,7 @@ export const HAND_OVER_TOOLS = [
   "request_secret",
   "request_approval",
   "request_permission",
+  "request_connection",
 ] as const;
 
 /**
@@ -777,7 +778,7 @@ export const HAND_OVER_TOOLS = [
  * (ADR 0097 addendum). The controller's nudges and the mission prompts say it the same way.
  */
 export const HAND_OVER_STEP =
-  "A step only a person can do (sign in, scan a QR code, type a code sent to them, a captcha, approve, grant a permission, a key, a file or a fact only they have, something done by hand) is never a blocker or a reason to say you can't: do everything up to it, hand it over with its request (on a page or app: `browser_ask_person` or `desktop_ask_person` once at that step; a key: `request_secret`; an approval only someone else can give: `request_approval`; a permission: `request_permission`; else `ask_user`), then go on.";
+  "A step only a person can do (sign in, scan a QR code, type a code sent to them, a captcha, approve, grant a permission, a key, a file or a fact only they have, something done by hand) is never a blocker or a reason to say you can't: do everything up to it, hand it over with its request (on a page or app: `browser_ask_person` or `desktop_ask_person` once at that step; a key: `request_secret`; an approval only someone else can give: `request_approval`; a permission: `request_permission`; an app or service the workspace hasn't connected: `request_connection`; else `ask_user`), then go on.";
 
 /** The run's general means; `personal`: a personal workspace's words (ADR 0159), its other agents not "teammates". */
 export function turnMeans(names: ReadonlySet<string>, teammates: string[] = [], personal = false): string[] {
@@ -799,6 +800,10 @@ export function turnMeans(names: ReadonlySet<string>, teammates: string[] = [], 
   if (handOver.length > 0)
     out.push(
       `hand a person a step only they can do (sign in, scan a QR code, a code, a captcha, approve, a key) with ${handOver.map((t) => `\`${t}\``).join(", ")}, then go on`,
+    );
+  if (names.has("request_connection"))
+    out.push(
+      "an app or service the workspace hasn't connected (`request_connection`): a Connect card, and you go on with the task by yourself once it's connected, never 'I don't have access'",
     );
   if (reachesTeammates(names))
     out.push(

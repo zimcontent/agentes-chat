@@ -78,6 +78,8 @@ export * from "./chat-tools";
 export * from "./claude-auth-policy";
 export * from "./company-requests";
 export * from "./computer-queue";
+export * from "./connection-check";
+export * from "./connection-requests";
 export * from "./connector-triggers";
 export * from "./connector-usage";
 export * from "./connectors/catalog";

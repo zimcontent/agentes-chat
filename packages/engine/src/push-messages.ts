@@ -209,7 +209,7 @@ function renderOne(locale: PushLocale, input: PushTextInput): { title: string; b
         s.adminAskTitle(
           actor,
           input.reason ?? "",
-          (input.reason === "webhook" ? input.title : input.label)?.trim() ?? "",
+          (input.reason === "webhook" || input.reason === "connector" ? input.title : input.label)?.trim() ?? "",
         ),
         s.openBody,
       );

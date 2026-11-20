@@ -124,6 +124,38 @@ export interface ConnectAppCard {
   connector?: string;
   url?: string;
   why: string;
+  /**
+   * The agent's run waits on it (`request_connection`, docs/adr/doug-0039-connect-and-continue.md): once connected it
+   * goes on with the task by itself.
+   */
+  request?: ConnectionRequest;
+}
+
+/** A Connect card the agent waits on: `waiting`, then `connected` (`resumed`: it went on) or `expired`. */
+export interface ConnectionRequest {
+  state: "waiting" | "connected" | "expired";
+  resumed: boolean;
+  /** Who was asked to connect it, because the person it works for can't. */
+  askedUserIds: string[];
+}
+
+function connectionRequestOf(raw: unknown): ConnectionRequest | undefined {
+  if (!raw || typeof raw !== "object") return undefined;
+  const r = raw as Record<string, unknown>;
+  const state = r.state === "connected" || r.state === "expired" ? r.state : "waiting";
+  return { state, resumed: r.resumed === true, askedUserIds: strings(r.askedUserIds) };
+}
+
+/**
+ * What a Connect card shows: `open` (its button), `continuing` (connected and the agent goes on: from the request, or
+ * from live data before the request says so), `connected`, or `expired` (nobody connected it in time).
+ */
+export function connectAppState(card: ConnectAppCard, connectedNow: boolean) {
+  const r = card.request;
+  if (!r) return connectedNow ? ("connected" as const) : ("open" as const);
+  if (r.state === "connected") return r.resumed ? ("continuing" as const) : ("connected" as const);
+  if (r.state === "expired") return connectedNow ? ("connected" as const) : ("expired" as const);
+  return connectedNow ? ("continuing" as const) : ("open" as const);
 }
 
 /** "Convidar pessoas" (`offer_invites`): the invite dialog with these addresses filled in, as members. */
@@ -493,6 +525,7 @@ export function actionCardOf(meta: Record<string, unknown> | null | undefined): 
       ...(typeof p.connector === "string" ? { connector: p.connector } : {}),
       ...(typeof p.url === "string" && isHttpsUrl(p.url) ? { url: p.url } : {}),
       why,
+      ...(p.request ? { request: connectionRequestOf(p.request) } : {}),
     };
   }
   if (card.kind === "install_skill") {

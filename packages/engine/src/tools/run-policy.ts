@@ -137,6 +137,8 @@ const ELSEWHERE = new Set([
   "create_channel",
   "request_secret",
   "request_permission",
+  // A Connect card the run waits on (docs/adr/doug-0039-connect-and-continue.md): only for a person's own request.
+  "request_connection",
   // An agent's own settings, as its permissions: never what a routine or what it read asks for.
   "request_settings_change",
   "request_folder_access",
@@ -260,6 +262,7 @@ const MISSION = new Set([
 const ASKS_ITSELF = new Set([
   "request_secret",
   "request_permission",
+  "request_connection",
   "request_settings_change",
   "request_folder_access",
   "send_feedback",
