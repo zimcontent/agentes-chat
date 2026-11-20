@@ -25,6 +25,12 @@ import { HANDOFF_REMIND_JOB, remindBrowserHandoff } from "./browser/handoff";
 import { typingLogFor } from "./burst";
 import { CHANNEL_DELETE_JOB, purgeChannel } from "./channel-deletion";
 import { crowdedAgents, publishQueueChanged } from "./computer-queue";
+import { CONNECTION_CHECK_JOB } from "./connection-check";
+import {
+  CONNECTION_REQUEST_EXPIRED_JOB,
+  expireConnectionRequest,
+  settleConnectionRequests,
+} from "./connection-requests";
 import type { ConnectorDeps } from "./connectors/connections";
 import { startNoteRun } from "./consultations";
 import { getChannelCached } from "./context";
@@ -1265,6 +1271,14 @@ export function createJobHandlers(deps: JobDeps): JobHandlers {
       await wakeForAccessDecision({ db: deps.db, pubsub: deps.pubsub }, String(job.payload.requestId), {
         maxHops: deps.maxHops,
       });
+    },
+    // Something changed what an agent may hold: requests to connect a service it now holds go on (docs/adr/doug-0039).
+    [CONNECTION_CHECK_JOB]: async (job) => {
+      await settleConnectionRequests({ db: deps.db, pubsub: deps.pubsub }, String(job.payload.orgId));
+    },
+    // Nobody connected it within a day (`request_connection`): the wait ends and the agent says so.
+    [CONNECTION_REQUEST_EXPIRED_JOB]: async (job) => {
+      await expireConnectionRequest({ db: deps.db, pubsub: deps.pubsub }, String(job.payload.requestId));
     },
     // A run waited a day for a device (`wait_for_device`): still waiting, it stops and says so.
     [DEVICE_WAIT_EXPIRED_JOB]: async (job) => {
